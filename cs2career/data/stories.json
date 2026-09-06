@@ -1,0 +1,136 @@
+{
+  "_how_to_add": [
+    "每条剧情一个对象，复制下面任意一条改 id / when / 过滤条件 / title / text。",
+    "when 必填，可选值：start, first_lan, first_final, first_major, first_title, title, first_mvp, first_evp, top20_eve",
+    "title 是每次夺冠后的庆祝语，同一赛事只弹一次；可写多条，按过滤条件挑最贴的。",
+    "过滤条件都是可选的，不写就对所有人生效。可写单个字符串，也可写数组。",
+    "可用过滤：era, year, player, team, role, mode, class, type",
+    "正文里可用 {player} {team} {event} {short} {year} {class_label} {champion}，空 text 会被跳过，方便先占位。",
+    "同一 id 每个生涯只弹一次。"
+  ],
+  "stories": [
+    {
+      "id": "start.2024.donk",
+      "when": "start",
+      "era": "2024",
+      "player": "donk",
+      "title": "魔童降临",
+      "text": "年轻的魔王悄然降临卡托。于赛场而言你是新人。你坐在赛场上，对面的对手互相说笑着，似乎并没有在意你的存在。但没关系，你也一样。"
+    },
+    {
+      "id": "start.2025.zywoo",
+      "when": "start",
+      "era": "2025",
+      "player": "ZywOo",
+      "title": "天选之子",
+      "text": "法国的最终兵器，CS 的天选之子。在去年的征途上似乎遇到了一些麻烦。那沉稳的外表下，到底隐藏着什么样的野望。"
+    },
+    {
+      "id": "start.2026.niko",
+      "when": "start",
+      "era": "2026",
+      "player": "NiKo",
+      "title": "时间才是问题",
+      "text": "对于出道的 NiKo 来说，赢下 Major 只是时间问题。而现在，貌似时间才是问题。"
+    },
+    {
+      "id": "first.lan",
+      "when": "first_lan",
+      "class": ["major", "premier", "t1"],
+      "title": "走进场馆",
+      "text": "四周的人声鼎沸，你的双手微微发颤。那绝不是恐惧，而是兴奋。"
+    },
+    {
+      "id": "first.final",
+      "when": "first_final",
+      "title": "第一次决赛",
+      "text": "对于很多人来说，进入决赛已经是千载难逢的机会。但你知道，这远不是终点。"
+    },
+    {
+      "id": "first.major",
+      "when": "first_major",
+      "title": "",
+      "text": ""
+    },
+    {
+      "id": "first.title",
+      "when": "first_title",
+      "title": "",
+      "text": ""
+    },
+    {
+      "id": "title.major",
+      "when": "title",
+      "class": "major",
+      "title": "这座奖杯是真的",
+      "text": "场馆里的声音一下子全压过来。你看见奖杯被举过头顶，灯光跟着晃。对面的人已经散了，你们还站在台上。{short} 的冠军，从此写在 {team} 的名字后面。而你知道，今晚过后，会有人开始认真对待你。"
+    },
+    {
+      "id": "title.premier",
+      "when": "title",
+      "class": "premier",
+      "title": "站在最上面",
+      "text": "这不是 qual，也不是热身。镜头对准你们的时候，没有人再把这场比赛当成偶然。{team} 拿下了 {event}。你看了一眼队友——他们也在看你。这一次，是你们站在最上面。"
+    },
+    {
+      "id": "title.t1",
+      "when": "title",
+      "class": "t1",
+      "title": "把名字留下",
+      "text": "赛后通道里有人在喊你们的队名。有人已经开始谈下一站，你还想把这一夜多留一会儿。{event} 结束了，冠军是 {team}。奖杯会凉下来，可这句话不会。"
+    },
+    {
+      "id": "title.t2",
+      "when": "title",
+      "class": "t2",
+      "title": "先赢这一座",
+      "text": "更大的舞台还在后面，可今晚的酒是热的。{team} 在 {short} 把比分钉死的时候，你听见自己的呼吸第一次慢下来。先赢这一座。后面的路，明天再说。"
+    },
+    {
+      "id": "title.cct",
+      "when": "title",
+      "class": "cct",
+      "title": "积分之外",
+      "text": "灯光没有 Major 那么亮，桌上那座奖杯却是真的。有人已经在算 VRS，有人还没缓过来。{team} 拿下了 {event}。积分会涨，可你记得的是最后一颗雷落地之后，耳机里那一声短促的笑。"
+    },
+    {
+      "id": "title.default.a",
+      "when": "title",
+      "title": "冠军",
+      "text": "你们赢了。这句话很短，够你们记住很久。{event} 的夜晚属于 {team}，也属于还没卸妆的你。"
+    },
+    {
+      "id": "title.default.b",
+      "when": "title",
+      "title": "今晚留下",
+      "text": "有人拍你的肩，有人已经开始拆外设。奖杯还在桌上，金属是凉的。{team}，{short} 冠军。你把这几个字在心里念了一遍，才敢相信是真的。"
+    },
+    {
+      "id": "top20.eve.lock",
+      "when": "top20_eve",
+      "band": "lock",
+      "title": "名单将至",
+      "text": "明天，这一年的二十个名字会被一个个念出来。你的数据已经把位置几乎坐实了。你不必去想自己在不在里面——你在。剩下的，只是第几。"
+    },
+    {
+      "id": "top20.eve.edge",
+      "when": "top20_eve",
+      "band": "edge",
+      "title": "名单将至",
+      "text": "明天top20就将会一个个公布了，你不知道这是否会与你有关系，但是你的步伐不会停下"
+    },
+    {
+      "id": "top20.eve.miss",
+      "when": "top20_eve",
+      "band": "miss",
+      "title": "名单将至",
+      "text": "明天那些名字会从第二十位往上念。你清楚，自己大概率不在其中。路还在前面，你的步伐也不会为此停下。"
+    },
+    {
+      "id": "first.mvp",
+      "when": "first_mvp",
+      "title": "",
+      "text": ""
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CS2 Career</title>
+<link rel="stylesheet" href="style.css?v=31">
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><b>CS2</b><span>CAREER</span></div>
+
+    <div class="nav-group" id="nav-career">
+      <h5>生涯</h5>
+      <button data-view="home">概览</button>
+      <button data-view="squad">阵容</button>
+      <button data-view="honours">荣誉墙</button>
+      <button data-view="locker">经营</button>
+      <button data-view="mail">邮件<span class="dot" id="mail-dot" hidden></span></button>
+      <button data-view="market">转会</button>
+      <button data-view="play">训练赛</button>
+    </div>
+
+    <div class="nav-group">
+      <h5>赛场</h5>
+      <button data-view="schedule">赛程</button>
+      <button data-view="event">赛事</button>
+      <button data-view="ranking">世界排名</button>
+      <button data-view="players">选手榜</button>
+    </div>
+
+    <div class="side-foot" id="side-foot"></div>
+  </aside>
+
+  <main class="main">
+    <header class="top">
+      <span class="date" id="top-date">—</span>
+      <span class="sep"></span>
+      <span class="msg" id="top-msg"></span>
+      <span class="acts">
+        <button class="btn" id="btn-next">下一天</button>
+        <button class="btn primary" id="btn-skip">跳到下个赛事</button>
+      </span>
+    </header>
+
+    <section class="view" id="view-setup"></section>
+    <section class="view" id="view-home"></section>
+    <section class="view" id="view-squad"></section>
+    <section class="view" id="view-honours"></section>
+    <section class="view" id="view-locker"></section>
+    <section class="view" id="view-mail"></section>
+    <section class="view" id="view-market"></section>
+    <section class="view" id="view-play"></section>
+    <section class="view" id="view-schedule"></section>
+    <section class="view" id="view-event"></section>
+    <section class="view" id="view-match"></section>
+    <section class="view" id="view-ranking"></section>
+    <section class="view" id="view-players"></section>
+  </main>
+</div>
+<script src="app.js?v=36"></script>
+</body>
+</html>

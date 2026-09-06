@@ -1,0 +1,12 @@
+save/
+dist/
+build/
+release/
+__pycache__/
+*.pyc
+*.pyo
+*.pdb
+.cursor/
+.vscode/
+*.dll
+!vendor/CareerMatch/CareerMatch.dll

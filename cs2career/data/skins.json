@@ -1,0 +1,68 @@
+{
+  "cases": [
+    {
+      "id": "rev",
+      "name": "Revolution Case",
+      "price": 220,
+      "key": 160,
+      "drops": ["ak-headshot", "m4-in-n", "awp-duality", "de-sienna", "usp-print", "glock-umbral", "ak-ice", "m4-temukau", "awp-chromatic"]
+    },
+    {
+      "id": "rec",
+      "name": "Recoil Case",
+      "price": 180,
+      "key": 160,
+      "drops": ["ak-ice", "m4-temukau", "awp-chromatic", "de-print", "usp-ticket", "glock-winter", "ak-slate", "m4-cyber", "awp-mortis"]
+    },
+    {
+      "id": "kil",
+      "name": "Kilowatt Case",
+      "price": 260,
+      "key": 180,
+      "drops": ["ak-inheritance", "m4-black-lotus", "awp-chrome", "de-heat", "usp-torque", "glock-pink", "ak-bloodsport", "m4-neo", "knife-karambit-fade"]
+    },
+    {
+      "id": "gal",
+      "name": "Gallery Case",
+      "price": 200,
+      "key": 160,
+      "drops": ["ak-slate", "m4-cyber", "awp-mortis", "de-blaze", "usp-orion", "glock-water", "ak-redline", "m4-hot-rod", "gloves-sport-pandora"]
+    }
+  ],
+  "market": ["ak-redline", "ak-slate", "ak-bloodsport", "m4-hot-rod", "m4-cyber", "awp-asiimov", "awp-chromatic", "de-blaze", "usp-orion", "glock-water", "knife-bayonet-vanilla", "gloves-specialist-fade"],
+  "skins": [
+    {"id": "ak-headshot", "name": "AK-47 | Head Shot", "weapon": "AK-47", "slot": "ak47", "rarity": "classified", "buy": 1800, "sell": 1100, "def": 7, "paint": 1221},
+    {"id": "ak-ice", "name": "AK-47 | Ice Coaled", "weapon": "AK-47", "slot": "ak47", "rarity": "restricted", "buy": 420, "sell": 250, "def": 7, "paint": 1142},
+    {"id": "ak-slate", "name": "AK-47 | Slate", "weapon": "AK-47", "slot": "ak47", "rarity": "milspec", "buy": 90, "sell": 50, "def": 7, "paint": 1034},
+    {"id": "ak-redline", "name": "AK-47 | Redline", "weapon": "AK-47", "slot": "ak47", "rarity": "classified", "buy": 2400, "sell": 1500, "def": 7, "paint": 282},
+    {"id": "ak-bloodsport", "name": "AK-47 | Bloodsport", "weapon": "AK-47", "slot": "ak47", "rarity": "covert", "buy": 6200, "sell": 4000, "def": 7, "paint": 639},
+    {"id": "ak-inheritance", "name": "AK-47 | Inheritance", "weapon": "AK-47", "slot": "ak47", "rarity": "covert", "buy": 8800, "sell": 5600, "def": 7, "paint": 1171},
+    {"id": "m4-in-n", "name": "M4A1-S | In Living Color", "weapon": "M4A1-S", "slot": "m4a1", "rarity": "classified", "buy": 1600, "sell": 980, "def": 60, "paint": 1073},
+    {"id": "m4-temukau", "name": "M4A1-S | Temukau", "weapon": "M4A1-S", "slot": "m4a1", "rarity": "covert", "buy": 5400, "sell": 3400, "def": 60, "paint": 1136},
+    {"id": "m4-cyber", "name": "M4A4 | Cyber Security", "weapon": "M4A4", "slot": "m4a4", "rarity": "restricted", "buy": 380, "sell": 220, "def": 16, "paint": 1074},
+    {"id": "m4-hot-rod", "name": "M4A1-S | Hot Rod", "weapon": "M4A1-S", "slot": "m4a1", "rarity": "classified", "buy": 3200, "sell": 2000, "def": 60, "paint": 445},
+    {"id": "m4-black-lotus", "name": "M4A1-S | Black Lotus", "weapon": "M4A1-S", "slot": "m4a1", "rarity": "restricted", "buy": 520, "sell": 310, "def": 60, "paint": 1228},
+    {"id": "m4-neo", "name": "M4A4 | Neo-Noir", "weapon": "M4A4", "slot": "m4a4", "rarity": "covert", "buy": 4100, "sell": 2600, "def": 16, "paint": 695},
+    {"id": "awp-duality", "name": "AWP | Duality", "weapon": "AWP", "slot": "awp", "rarity": "classified", "buy": 2100, "sell": 1300, "def": 9, "paint": 1055},
+    {"id": "awp-chromatic", "name": "AWP | Chromatic Aberration", "weapon": "AWP", "slot": "awp", "rarity": "classified", "buy": 2800, "sell": 1700, "def": 9, "paint": 1029},
+    {"id": "awp-mortis", "name": "AWP | Mortis", "weapon": "AWP", "slot": "awp", "rarity": "restricted", "buy": 640, "sell": 380, "def": 9, "paint": 344},
+    {"id": "awp-chrome", "name": "AWP | Chrome Cannon", "weapon": "AWP", "slot": "awp", "rarity": "covert", "buy": 7200, "sell": 4500, "def": 9, "paint": 1235},
+    {"id": "awp-asiimov", "name": "AWP | Asiimov", "weapon": "AWP", "slot": "awp", "rarity": "covert", "buy": 9800, "sell": 6200, "def": 9, "paint": 279},
+    {"id": "de-sienna", "name": "Desert Eagle | Sienna Damask", "weapon": "Desert Eagle", "slot": "deagle", "rarity": "milspec", "buy": 35, "sell": 18, "def": 1, "paint": 1223},
+    {"id": "de-print", "name": "Desert Eagle | Printstream", "weapon": "Desert Eagle", "slot": "deagle", "rarity": "covert", "buy": 5600, "sell": 3500, "def": 1, "paint": 1058},
+    {"id": "de-heat", "name": "Desert Eagle | Heat Treated", "weapon": "Desert Eagle", "slot": "deagle", "rarity": "restricted", "buy": 480, "sell": 280, "def": 1, "paint": 1236},
+    {"id": "de-blaze", "name": "Desert Eagle | Blaze", "weapon": "Desert Eagle", "slot": "deagle", "rarity": "restricted", "buy": 1900, "sell": 1200, "def": 1, "paint": 37},
+    {"id": "usp-print", "name": "USP-S | Printstream", "weapon": "USP-S", "slot": "usp", "rarity": "covert", "buy": 6100, "sell": 3900, "def": 61, "paint": 1089},
+    {"id": "usp-ticket", "name": "USP-S | Ticket to Hell", "weapon": "USP-S", "slot": "usp", "rarity": "restricted", "buy": 260, "sell": 150, "def": 61, "paint": 1140},
+    {"id": "usp-torque", "name": "USP-S | Torque", "weapon": "USP-S", "slot": "usp", "rarity": "milspec", "buy": 40, "sell": 20, "def": 61, "paint": 489},
+    {"id": "usp-orion", "name": "USP-S | Orion", "weapon": "USP-S", "slot": "usp", "rarity": "classified", "buy": 1700, "sell": 1050, "def": 61, "paint": 313},
+    {"id": "glock-umbral", "name": "Glock-18 | Umbral Rabbit", "weapon": "Glock-18", "slot": "glock", "rarity": "restricted", "buy": 210, "sell": 120, "def": 4, "paint": 1220},
+    {"id": "glock-winter", "name": "Glock-18 | Winterized", "weapon": "Glock-18", "slot": "glock", "rarity": "milspec", "buy": 12, "sell": 6, "def": 4, "paint": 1143},
+    {"id": "glock-pink", "name": "Glock-18 | Pink DDPAT", "weapon": "Glock-18", "slot": "glock", "rarity": "restricted", "buy": 340, "sell": 200, "def": 4, "paint": 1233},
+    {"id": "glock-water", "name": "Glock-18 | Water Elemental", "weapon": "Glock-18", "slot": "glock", "rarity": "classified", "buy": 1500, "sell": 920, "def": 4, "paint": 353},
+    {"id": "knife-karambit-fade", "name": "Karambit | Fade", "weapon": "Karambit", "slot": "knife", "rarity": "extraordinary", "buy": 28000, "sell": 19000, "def": 507, "paint": 38},
+    {"id": "knife-bayonet-vanilla", "name": "Bayonet | Vanilla", "weapon": "Bayonet", "slot": "knife", "rarity": "extraordinary", "buy": 9000, "sell": 6200, "def": 500, "paint": 0},
+    {"id": "gloves-sport-pandora", "name": "Sport Gloves | Pandora's Box", "weapon": "Gloves", "slot": "gloves", "rarity": "extraordinary", "buy": 16000, "sell": 11000, "def": 5030, "paint": 10048},
+    {"id": "gloves-specialist-fade", "name": "Specialist Gloves | Fade", "weapon": "Gloves", "slot": "gloves", "rarity": "extraordinary", "buy": 12000, "sell": 8000, "def": 5034, "paint": 10513}
+  ]
+}

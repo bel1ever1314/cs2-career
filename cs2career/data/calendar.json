@@ -1,0 +1,295 @@
+{
+  "season": 2026,
+  "start": "2026-01-08",
+  "note": "band = the global VRS rank window a regional/secondary event draws from.",
+  "events": [
+    {
+      "id": "cct-eu-1", "name": "CCT Europe Series 1", "short": "CCT EU 1",
+      "type": "cct", "format": "single_elim", "region": "EU",
+      "band": [9, 22], "vrs_weight": 0.42, "size": 8, "prize": 50000,
+      "dates": ["2026-01-13", "2026-01-14", "2026-01-15"]
+    },
+    {
+      "id": "pi-blast-bounty", "name": "BLAST Bounty Spring Play-In", "short": "Bounty 附加赛",
+      "type": "qual", "format": "single_elim", "region": "EU", "scope": "global",
+      "vrs_weight": 0.50, "size": 8, "qualify": 4, "feeds": "blast-bounty", "prize": 25000,
+      "dates": ["2026-01-16", "2026-01-17", "2026-01-18"]
+    },
+    {
+      "id": "blast-bounty", "name": "BLAST Bounty Spring 2026", "short": "BLAST Bounty",
+      "type": "t1", "format": "gsl_playoff", "region": "EU",
+      "direct": 12, "vrs_weight": 0.95, "size": 16, "prize": 500000,
+      "dates": ["2026-01-21", "2026-01-22", "2026-01-23", "2026-01-24", "2026-01-25"]
+    },
+    {
+      "id": "cct-am-1", "name": "CCT South America 1", "short": "CCT SA 1",
+      "type": "cct", "format": "single_elim", "region": "AM",
+      "band": [9, 24], "vrs_weight": 0.40, "size": 8, "prize": 45000,
+      "dates": ["2026-01-27", "2026-01-28", "2026-01-29"]
+    },
+    {
+      "id": "pi-katowice", "name": "IEM Katowice Play-In", "short": "Katowice 附加赛",
+      "type": "qual", "format": "single_elim", "region": "EU", "scope": "global",
+      "vrs_weight": 0.52, "size": 8, "qualify": 4, "feeds": "iem-katowice", "prize": 25000,
+      "dates": ["2026-01-31", "2026-02-01", "2026-02-02"]
+    },
+    {
+      "id": "iem-katowice", "name": "IEM Katowice 2026", "short": "Katowice",
+      "type": "t1", "format": "swiss_playoff", "region": "EU", "prestige": "premier",
+      "direct": 12, "vrs_weight": 1.15, "size": 16, "prize": 1000000,
+      "dates": ["2026-02-04", "2026-02-05", "2026-02-06", "2026-02-07", "2026-02-08", "2026-02-09", "2026-02-10"]
+    },
+    {
+      "id": "cct-as-1", "name": "CCT Asia Series 1", "short": "CCT AS 1",
+      "type": "cct", "format": "single_elim", "region": "AS",
+      "band": [9, 30], "vrs_weight": 0.42, "size": 8, "prize": 55000,
+      "dates": ["2026-02-12", "2026-02-13", "2026-02-14"]
+    },
+    {
+      "id": "esl-chal-eu-1", "name": "ESL Challenger Rotterdam", "short": "Chal. Rotterdam",
+      "type": "t2", "format": "gsl_playoff", "region": "EU",
+      "band": [9, 32], "vrs_weight": 0.66, "size": 16, "prize": 150000,
+      "dates": ["2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-21"]
+    },
+    {
+      "id": "cct-eu-2", "name": "CCT Europe Series 2", "short": "CCT EU 2",
+      "type": "cct", "format": "single_elim", "region": "EU",
+      "band": [20, 36], "vrs_weight": 0.38, "size": 8, "prize": 40000,
+      "dates": ["2026-02-24", "2026-02-25", "2026-02-26"]
+    },
+    {
+      "id": "pi-epl-s23", "name": "ESL Pro League S23 Play-In", "short": "EPL 附加赛",
+      "type": "qual", "format": "single_elim", "region": "EU", "scope": "global",
+      "vrs_weight": 0.50, "size": 8, "qualify": 4, "feeds": "epl-s23", "prize": 25000,
+      "dates": ["2026-02-27", "2026-02-28", "2026-03-01"]
+    },
+    {
+      "id": "epl-s23", "name": "ESL Pro League Season 23", "short": "EPL S23",
+      "type": "t1", "format": "gsl_playoff", "region": "EU",
+      "direct": 12, "vrs_weight": 1.05, "size": 16, "prize": 750000,
+      "dates": ["2026-03-04", "2026-03-05", "2026-03-06", "2026-03-07", "2026-03-08", "2026-03-09", "2026-03-10"]
+    },
+    {
+      "id": "cct-am-2", "name": "CCT South America 2", "short": "CCT SA 2",
+      "type": "cct", "format": "single_elim", "region": "AM",
+      "band": [22, 49], "vrs_weight": 0.36, "size": 8, "prize": 35000,
+      "dates": ["2026-03-12", "2026-03-13", "2026-03-14"]
+    },
+    {
+      "id": "cct-as-2", "name": "CCT Asia Series 2", "short": "CCT AS 2",
+      "type": "cct", "format": "single_elim", "region": "AS",
+      "band": [25, 49], "vrs_weight": 0.36, "size": 8, "prize": 35000,
+      "dates": ["2026-03-17", "2026-03-18", "2026-03-19"]
+    },
+    {
+      "id": "esl-chal-am-1", "name": "ESL Challenger São Paulo", "short": "Chal. São Paulo",
+      "type": "t2", "format": "single_elim", "region": "AM",
+      "band": [9, 32], "vrs_weight": 0.62, "size": 8, "prize": 120000,
+      "dates": ["2026-03-25", "2026-03-26", "2026-03-27"]
+    },
+    {
+      "id": "cct-eu-3", "name": "CCT Europe Series 3", "short": "CCT EU 3",
+      "type": "cct", "format": "single_elim", "region": "EU",
+      "band": [30, 49], "vrs_weight": 0.34, "size": 8, "prize": 30000,
+      "dates": ["2026-04-07", "2026-04-08", "2026-04-09"]
+    },
+    {
+      "id": "pi-dallas", "name": "IEM Dallas Play-In", "short": "Dallas 附加赛",
+      "type": "qual", "format": "single_elim", "region": "AM", "scope": "global",
+      "vrs_weight": 0.50, "size": 8, "qualify": 4, "feeds": "iem-dallas", "prize": 25000,
+      "dates": ["2026-04-10", "2026-04-11", "2026-04-12"]
+    },
+    {
+      "id": "iem-dallas", "name": "IEM Dallas 2026", "short": "Dallas",
+      "type": "t1", "format": "swiss_playoff", "region": "AM",
+      "direct": 12, "vrs_weight": 1.00, "size": 16, "prize": 500000,
+      "dates": ["2026-04-14", "2026-04-15", "2026-04-16", "2026-04-17", "2026-04-18", "2026-04-19", "2026-04-20"]
+    },
+    {
+      "id": "cct-as-3", "name": "CCT Asia Series 3", "short": "CCT AS 3",
+      "type": "cct", "format": "single_elim", "region": "AS",
+      "band": [9, 30], "vrs_weight": 0.42, "size": 8, "prize": 55000,
+      "dates": ["2026-04-22", "2026-04-23", "2026-04-24"]
+    },
+    {
+      "id": "esl-chal-jinjiang", "name": "ESL Challenger Jinjiang", "short": "Chal. Jinjiang",
+      "type": "t2", "format": "single_elim", "region": "AS",
+      "band": [9, 40], "vrs_weight": 0.64, "size": 8, "prize": 130000,
+      "dates": ["2026-04-28", "2026-04-29", "2026-04-30"]
+    },
+    {
+      "id": "cct-eu-4", "name": "CCT Europe Series 4", "short": "CCT EU 4",
+      "type": "cct", "format": "single_elim", "region": "EU",
+      "band": [9, 22], "vrs_weight": 0.42, "size": 8, "prize": 50000,
+      "dates": ["2026-05-05", "2026-05-06", "2026-05-07"]
+    },
+    {
+      "id": "mrq-eu", "name": "Major 1 European RMR", "short": "RMR EU",
+      "type": "qual", "format": "single_elim", "region": "EU", "gate": "rmr",
+      "vrs_weight": 0.55, "size": 8, "qualify": 3, "feeds": "major-1", "prize": 30000,
+      "dates": ["2026-05-12", "2026-05-13", "2026-05-14"]
+    },
+    {
+      "id": "mrq-am", "name": "Major 1 Americas RMR", "short": "RMR AM",
+      "type": "qual", "format": "single_elim", "region": "AM", "gate": "rmr",
+      "vrs_weight": 0.55, "size": 8, "qualify": 3, "feeds": "major-1", "prize": 30000,
+      "dates": ["2026-05-12", "2026-05-13", "2026-05-14"]
+    },
+    {
+      "id": "mrq-as", "name": "Major 1 Asian RMR", "short": "RMR AS",
+      "type": "qual", "format": "single_elim", "region": "AS", "gate": "rmr",
+      "vrs_weight": 0.55, "size": 8, "qualify": 2, "feeds": "major-1", "prize": 30000,
+      "dates": ["2026-05-12", "2026-05-13", "2026-05-14"]
+    },
+    {
+      "id": "cct-am-3", "name": "CCT South America 3", "short": "CCT SA 3",
+      "type": "cct", "format": "single_elim", "region": "AM",
+      "band": [22, 49], "vrs_weight": 0.36, "size": 8, "prize": 35000,
+      "dates": ["2026-05-19", "2026-05-20", "2026-05-21"]
+    },
+    {
+      "id": "major-1", "name": "Austin Major 2026", "short": "Austin Major",
+      "type": "major", "format": "swiss_playoff", "region": "AM", "prestige": "major",
+      "vrs_weight": 1.60, "size": 16, "prize": 1250000,
+      "dates": ["2026-06-04", "2026-06-05", "2026-06-06", "2026-06-07", "2026-06-08", "2026-06-12", "2026-06-13", "2026-06-14"]
+    },
+    {
+      "id": "cct-eu-5", "name": "CCT Europe Series 5", "short": "CCT EU 5",
+      "type": "cct", "format": "single_elim", "region": "EU",
+      "band": [20, 36], "vrs_weight": 0.38, "size": 8, "prize": 40000,
+      "dates": ["2026-06-23", "2026-06-24", "2026-06-25"]
+    },
+    {
+      "id": "cct-as-4", "name": "CCT Asia Series 4", "short": "CCT AS 4",
+      "type": "cct", "format": "single_elim", "region": "AS",
+      "band": [25, 49], "vrs_weight": 0.36, "size": 8, "prize": 35000,
+      "dates": ["2026-07-01", "2026-07-02", "2026-07-03"]
+    },
+    {
+      "id": "esl-chal-eu-2", "name": "ESL Challenger Valencia", "short": "Chal. Valencia",
+      "type": "t2", "format": "gsl_playoff", "region": "EU",
+      "band": [9, 32], "vrs_weight": 0.66, "size": 16, "prize": 150000,
+      "dates": ["2026-07-07", "2026-07-08", "2026-07-09", "2026-07-10", "2026-07-11"]
+    },
+    {
+      "id": "pi-cologne", "name": "IEM Cologne Play-In", "short": "Cologne 附加赛",
+      "type": "qual", "format": "single_elim", "region": "EU", "scope": "global",
+      "vrs_weight": 0.52, "size": 8, "qualify": 4, "feeds": "iem-cologne", "prize": 25000,
+      "dates": ["2026-07-14", "2026-07-15", "2026-07-16"]
+    },
+    {
+      "id": "iem-cologne", "name": "IEM Cologne 2026", "short": "Cologne",
+      "type": "t1", "format": "swiss_playoff", "region": "EU", "prestige": "premier",
+      "direct": 12, "vrs_weight": 1.20, "size": 16, "prize": 1000000,
+      "dates": ["2026-07-21", "2026-07-22", "2026-07-23", "2026-07-24", "2026-07-25", "2026-07-26", "2026-07-27"]
+    },
+    {
+      "id": "cct-eu-6", "name": "CCT Europe Series 6", "short": "CCT EU 6",
+      "type": "cct", "format": "single_elim", "region": "EU",
+      "band": [30, 49], "vrs_weight": 0.34, "size": 8, "prize": 30000,
+      "dates": ["2026-08-04", "2026-08-05", "2026-08-06"]
+    },
+    {
+      "id": "cct-am-4", "name": "CCT North America 1", "short": "CCT NA 1",
+      "type": "cct", "format": "single_elim", "region": "AM",
+      "band": [9, 24], "vrs_weight": 0.40, "size": 8, "prize": 45000,
+      "dates": ["2026-08-11", "2026-08-12", "2026-08-13"]
+    },
+    {
+      "id": "pi-blast-fall", "name": "BLAST Open Fall Play-In", "short": "BLAST Fall 附加赛",
+      "type": "qual", "format": "single_elim", "region": "EU", "scope": "global",
+      "vrs_weight": 0.50, "size": 8, "qualify": 4, "feeds": "blast-open-fall", "prize": 25000,
+      "dates": ["2026-08-14", "2026-08-15", "2026-08-16"]
+    },
+    {
+      "id": "blast-open-fall", "name": "BLAST Open Fall 2026", "short": "BLAST Fall",
+      "type": "t1", "format": "gsl_playoff", "region": "EU",
+      "direct": 12, "vrs_weight": 1.00, "size": 16, "prize": 400000,
+      "dates": ["2026-08-18", "2026-08-19", "2026-08-20", "2026-08-21", "2026-08-22"]
+    },
+    {
+      "id": "cct-as-5", "name": "CCT Asia Series 5", "short": "CCT AS 5",
+      "type": "cct", "format": "single_elim", "region": "AS",
+      "band": [9, 30], "vrs_weight": 0.42, "size": 8, "prize": 55000,
+      "dates": ["2026-08-25", "2026-08-26", "2026-08-27"]
+    },
+    {
+      "id": "esl-chal-am-2", "name": "ESL Challenger Atlanta", "short": "Chal. Atlanta",
+      "type": "t2", "format": "single_elim", "region": "AM",
+      "band": [9, 32], "vrs_weight": 0.62, "size": 8, "prize": 120000,
+      "dates": ["2026-09-02", "2026-09-03", "2026-09-04"]
+    },
+    {
+      "id": "mrq2-eu", "name": "Major 2 European RMR", "short": "RMR EU 2",
+      "type": "qual", "format": "single_elim", "region": "EU", "gate": "rmr",
+      "vrs_weight": 0.55, "size": 8, "qualify": 3, "feeds": "major-2", "prize": 30000,
+      "dates": ["2026-09-15", "2026-09-16", "2026-09-17"]
+    },
+    {
+      "id": "mrq2-am", "name": "Major 2 Americas RMR", "short": "RMR AM 2",
+      "type": "qual", "format": "single_elim", "region": "AM", "gate": "rmr",
+      "vrs_weight": 0.55, "size": 8, "qualify": 3, "feeds": "major-2", "prize": 30000,
+      "dates": ["2026-09-15", "2026-09-16", "2026-09-17"]
+    },
+    {
+      "id": "mrq2-as", "name": "Major 2 Asian RMR", "short": "RMR AS 2",
+      "type": "qual", "format": "single_elim", "region": "AS", "gate": "rmr",
+      "vrs_weight": 0.55, "size": 8, "qualify": 2, "feeds": "major-2", "prize": 30000,
+      "dates": ["2026-09-15", "2026-09-16", "2026-09-17"]
+    },
+    {
+      "id": "cct-eu-7", "name": "CCT Europe Series 7", "short": "CCT EU 7",
+      "type": "cct", "format": "single_elim", "region": "EU",
+      "band": [20, 36], "vrs_weight": 0.38, "size": 8, "prize": 40000,
+      "dates": ["2026-09-22", "2026-09-23", "2026-09-24"]
+    },
+    {
+      "id": "major-2", "name": "Shanghai Major 2026", "short": "Shanghai Major",
+      "type": "major", "format": "swiss_playoff", "region": "AS", "prestige": "major",
+      "vrs_weight": 1.60, "size": 16, "prize": 1250000,
+      "dates": ["2026-10-07", "2026-10-08", "2026-10-09", "2026-10-10", "2026-10-11", "2026-10-15", "2026-10-16", "2026-10-17"]
+    },
+    {
+      "id": "cct-as-6", "name": "CCT Asia Series 6", "short": "CCT AS 6",
+      "type": "cct", "format": "single_elim", "region": "AS",
+      "band": [25, 49], "vrs_weight": 0.36, "size": 8, "prize": 35000,
+      "dates": ["2026-10-27", "2026-10-28", "2026-10-29"]
+    },
+    {
+      "id": "cct-eu-8", "name": "CCT Europe Series 8", "short": "CCT EU 8",
+      "type": "cct", "format": "single_elim", "region": "EU",
+      "band": [30, 49], "vrs_weight": 0.34, "size": 8, "prize": 30000,
+      "dates": ["2026-11-03", "2026-11-04", "2026-11-05"]
+    },
+    {
+      "id": "pi-chengdu", "name": "IEM Chengdu Play-In", "short": "Chengdu 附加赛",
+      "type": "qual", "format": "single_elim", "region": "AS", "scope": "global",
+      "vrs_weight": 0.50, "size": 8, "qualify": 4, "feeds": "iem-chengdu", "prize": 25000,
+      "dates": ["2026-11-06", "2026-11-07", "2026-11-08"]
+    },
+    {
+      "id": "iem-chengdu", "name": "IEM Chengdu 2026", "short": "Chengdu",
+      "type": "t1", "format": "gsl_playoff", "region": "AS",
+      "direct": 12, "vrs_weight": 1.05, "size": 16, "prize": 500000,
+      "dates": ["2026-11-10", "2026-11-11", "2026-11-12", "2026-11-13", "2026-11-14"]
+    },
+    {
+      "id": "cct-am-5", "name": "CCT South America 4", "short": "CCT SA 4",
+      "type": "cct", "format": "single_elim", "region": "AM",
+      "band": [22, 49], "vrs_weight": 0.36, "size": 8, "prize": 35000,
+      "dates": ["2026-11-18", "2026-11-19", "2026-11-20"]
+    },
+    {
+      "id": "esl-chal-eu-3", "name": "ESL Challenger Malta", "short": "Chal. Malta",
+      "type": "t2", "format": "gsl_playoff", "region": "EU",
+      "band": [9, 32], "vrs_weight": 0.66, "size": 16, "prize": 150000,
+      "dates": ["2026-11-24", "2026-11-25", "2026-11-26", "2026-11-27", "2026-11-28"]
+    },
+    {
+      "id": "blast-world-final", "name": "BLAST World Final 2026", "short": "World Final",
+      "type": "t1", "format": "single_elim", "region": "EU", "prestige": "premier",
+      "vrs_weight": 1.10, "size": 8, "prize": 1000000,
+      "dates": ["2026-12-09", "2026-12-10", "2026-12-11"]
+    }
+  ]
+}
