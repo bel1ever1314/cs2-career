@@ -31,14 +31,29 @@ class State:
         self.season.career = self.career
         dirty = bool(getattr(self.season, "_calendar_changed", False))
         if self.career.exists:
-            before = len(self.career.inbox)
-            self.career.dispatch_invites(self.season)
-            if len(self.career.inbox) != before:
-                dirty = True
             if self.career.fix_placeholder_mates(self.season):
+                dirty = True
+            if self._boot_career():
                 dirty = True
         if dirty:
             self.persist()
+
+    def _boot_career(self) -> bool:
+        dirty = False
+        if not self.career.exists:
+            return False
+        before_stories = len(self.career.story_queue)
+        self.career._ensure_loan_popup()
+        if len(self.career.story_queue) != before_stories:
+            dirty = True
+        before = len(self.career.inbox)
+        if self.career.unsigned and not self.career.banned:
+            self.career._dispatch_contracts(self.season)
+        elif not self.career.unsigned:
+            self.career.dispatch_invites(self.season)
+        if len(self.career.inbox) != before:
+            dirty = True
+        return dirty
 
     def sync(self) -> None:
         apply_roles(self.season.teams)
@@ -178,11 +193,17 @@ class Handler(SimpleHTTPRequestHandler):
     # ---------------------------------------------------------------- actions
 
     def post_api_next(self):
+        if getattr(STATE.career, "loan_default_pending", False):
+            self._json({**STATE.payload(""), "ok": False, "msg": "先处理俱乐部的最后通牒。"}, 400)
+            return
         msg = STATE.season.next_stage()
         STATE.persist()
         self._json(STATE.payload(msg))
 
     def post_api_skip(self):
+        if getattr(STATE.career, "loan_default_pending", False):
+            self._json({**STATE.payload(""), "ok": False, "msg": "先处理俱乐部的最后通牒。"}, 400)
+            return
         msg = STATE.season.skip_to_next_event()
         STATE.persist()
         self._json(STATE.payload(msg))
@@ -219,7 +240,7 @@ class Handler(SimpleHTTPRequestHandler):
 
     def post_api_story_ack(self):
         body = self._body()
-        STATE.career.ack_story(str(body.get("id") or ""), str(body.get("choice") or ""))
+        STATE.career.ack_story(str(body.get("id") or ""), str(body.get("choice") or ""), STATE.season)
         STATE.persist()
         self._json(STATE.payload(""))
 
@@ -309,6 +330,9 @@ class Handler(SimpleHTTPRequestHandler):
         if getattr(STATE.career, "banned", False):
             self._json({"ok": False, "msg": "你已被禁赛，这份档案只能重开。"}, 400)
             return
+        if getattr(STATE.career, "unsigned", False) or not STATE.career.team_id:
+            self._json({"ok": False, "msg": "你现在是自由身，先在邮箱接下合同再进训练赛。"}, 400)
+            return
         if not team or not opp:
             self._json({"ok": False, "msg": "先创建生涯并选好对手。"}, 400)
             return
@@ -331,6 +355,16 @@ class Handler(SimpleHTTPRequestHandler):
 
     def post_api_ops_donate(self):
         msg = STATE.career.donate(STATE.season, int(self._body().get("amount") or 0))
+        STATE.persist()
+        self._json(STATE.payload(msg))
+
+    def post_api_ops_borrow(self):
+        msg = STATE.career.borrow(STATE.season, int(self._body().get("amount") or 0))
+        STATE.persist()
+        self._json(STATE.payload(msg))
+
+    def post_api_ops_repay(self):
+        msg = STATE.career.repay(STATE.season, int(self._body().get("amount") or 0))
         STATE.persist()
         self._json(STATE.payload(msg))
 
@@ -371,7 +405,12 @@ class Handler(SimpleHTTPRequestHandler):
         self._json(STATE.payload(msg))
 
     def post_api_skins_equip(self):
-        msg = STATE.career.equip_skin(str(self._body().get("id") or ""))
+        body = self._body()
+        msg = STATE.career.equip_skin(
+            str(body.get("id") or ""),
+            str(body.get("side") or ""),
+            bool(body.get("off")),
+        )
         STATE.persist()
         self._json(STATE.payload(msg))
 
@@ -382,7 +421,23 @@ class Handler(SimpleHTTPRequestHandler):
     def post_api_cs2_install(self):
         try:
             out = cs2.install_mod()
-        except OSError as exc:
+        except (OSError, ValueError) as exc:
+            self._json({"ok": False, "msg": str(exc), "cs2": cs2.status()}, 400)
+            return
+        self._json({"ok": True, "msg": out["msg"], "cs2": cs2.status()})
+
+    def post_api_cs2_sync(self):
+        try:
+            out = cs2.sync_live_profiles()
+        except (OSError, ValueError) as exc:
+            self._json({"ok": False, "msg": str(exc), "cs2": cs2.status()}, 400)
+            return
+        self._json({"ok": True, "msg": out["msg"], "added": out.get("added") or 0, "cs2": cs2.status()})
+
+    def post_api_cs2_skins(self):
+        try:
+            out = cs2.install_skins_mod()
+        except (OSError, ValueError) as exc:
             self._json({"ok": False, "msg": str(exc), "cs2": cs2.status()}, 400)
             return
         self._json({"ok": True, "msg": out["msg"], "cs2": cs2.status()})
@@ -397,11 +452,15 @@ def _equipped_v5_response(path: str) -> dict | None:
         return None
     career = STATE.career
     if not getattr(career, "real_skins", False):
-        return skins.equipped_v5_body([], {})
+        return None
     sid = "".join(ch for ch in str(career.steam_id or "") if ch.isdigit())
-    if sid != match.group(1):
-        return skins.equipped_v5_body([], {})
-    return skins.equipped_v5_body(career.inventory, career.equipped)
+    if not sid or sid != match.group(1):
+        return None
+    return skins.equipped_v5_body(
+        career.inventory,
+        getattr(career, "equipped_ct", None) or {},
+        getattr(career, "equipped_t", None) or {},
+    )
 
 
 class SkinApiHandler(BaseHTTPRequestHandler):
@@ -442,6 +501,7 @@ def free_port(preferred: int = 8768) -> int:
 
 
 def serve(port: int = 8765) -> None:
+    start_skin_api()
     server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     print(f"CS2 Career  ->  http://127.0.0.1:{port}/")
     server.serve_forever()

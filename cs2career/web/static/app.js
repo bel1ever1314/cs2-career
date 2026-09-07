@@ -12,6 +12,9 @@ let SERIES_SIDE = "ct";
 let SERIES_CS2 = null;
 let SERIES_TRIED = "";
 let DRAFT = { era: "2026", mode: "join", role: "rifle", team_id: "", replace: "", region: "AS", logo: "" };
+let SKIN_UI = { weapon: "all", sort: "rarity" };
+let UNBOX_NEXT = false;
+let UNBOX = null;
 
 const ROLE = { awp: "主狙", igl: "指挥", entry: "突破手", lurk: "自由人", support: "辅助", rifle: "步枪手" };
 const MAPS = {
@@ -131,7 +134,7 @@ const AXIS = {
   entry: "突破", trade: "补枪", nade: "道具", clutch: "残局",
   aim: "枪法", open: "开战", move: "身法", command: "指挥",
 };
-const MAIL_KIND = { invite: "邀请", prize: "奖金", sponsor: "赞助", qualify: "出线", ops: "经营", whisper: "来信", discipline: "纪律" };
+const MAIL_KIND = { invite: "邀请", prize: "奖金", sponsor: "赞助", qualify: "出线", ops: "经营", whisper: "来信", discipline: "纪律", contract: "合同" };
 const RARITY = { milspec: "军规", restricted: "受限", classified: "保密", covert: "隐秘", extraordinary: "非凡" };
 const MAIL_STATUS = {
   open: "待处理", accepted: "已接受", declined: "已婉拒",
@@ -363,8 +366,8 @@ function renderShell() {
   const has = S.career?.exists;
   $("nav-career").style.display = has ? "" : "none";
   document.querySelectorAll("[data-view]").forEach((b) => b.classList.toggle("on", b.dataset.view === VIEW));
-  $("btn-next").disabled = !has || !!S.career?.banned;
-  $("btn-skip").disabled = !has || !!S.career?.banned;
+  $("btn-next").disabled = !has || !!S.career?.banned || !!S.career?.loan_default_pending;
+  $("btn-skip").disabled = !has || !!S.career?.banned || !!S.career?.loan_default_pending;
   const dot = $("mail-dot");
   if (dot) {
     const n = S.career?.unread || 0;
@@ -380,9 +383,10 @@ function renderShell() {
   }
   const c = S.career;
   const vrs = c.vrs || {};
+  const clubLabel = c.unsigned ? "自由市场" : (c.team_name || "未签约");
   foot.innerHTML = `
-    <div class="team-chip">${crest(c.team_name, 30)}
-      <div><b>${esc(c.team_name)}</b><small>#${vrs.rank ?? "—"} · ${Math.round(vrs.vrs ?? 0)}</small></div>
+    <div class="team-chip">${crest(c.unsigned ? c.player_name : c.team_name, 30)}
+      <div><b>${esc(clubLabel)}</b><small>${c.unsigned ? "等待合同" : `#${vrs.rank ?? "—"} · ${Math.round(vrs.vrs ?? 0)}`}</small></div>
     </div>
     <div class="team-chip you">
       <div><b>${esc(c.player_name)}</b><small>${ROLE[c.role] || c.role} · ${c.you ? Math.round(c.you.ability) : "—"}</small></div>
@@ -411,7 +415,7 @@ function render() {
   renderShell();
   const fn = {
     setup: renderSetup, home: renderHome, squad: renderSquad, honours: renderHonours,
-    locker: renderLocker, mail: renderMail, market: renderMarket, play: renderPlay, schedule: renderSchedule,
+    locker: renderLocker, skins: renderSkinMarket, mail: renderMail, market: renderMarket, play: renderPlay, schedule: renderSchedule,
     event: renderEvent, match: renderMatch, ranking: renderRanking, players: renderPlayers,
   }[VIEW];
   if (fn) fn();
@@ -530,16 +534,20 @@ function renderHome() {
   const cnt = c.honours?.counts || {};
   const myTop = (S.top20 || []).find((r) => r.player === c.player_name);
 
-  let h = `<div class="page-head"><h2>${esc(c.team_name)}</h2>
+  let h = `<div class="page-head"><h2>${esc(c.unsigned ? "自由市场" : c.team_name)}</h2>
     <span class="hint">${S.year} 赛季 · ${esc(c.era)} ${esc((c.eras || {})[c.era]?.title || "")}</span></div>`;
 
   if (c.banned) {
     h += `<div class="card" style="margin-bottom:12px;border-color:#6a2a2a"><h3>已被禁赛</h3>
       <p class="hint">赛事方暂停了你的参赛资格。这份档案到此为止，只能重开生涯。</p></div>`;
+  } else if (c.unsigned) {
+    h += `<div class="card" style="margin-bottom:12px"><h3>你目前是自由身</h3>
+      <p class="hint">不能打官方赛，也不能进训练赛。推日历等邮箱里的入队合同，皮肤市场仍可用。</p>
+      <div class="row"><button class="btn primary sm" id="go-mail-home">打开邮箱</button></div></div>`;
   }
 
   const ym = S.your_match;
-  if (ym?.match && !c.banned) {
+  if (ym?.match && !c.banned && !c.unsigned) {
     const pending = ym.match.pending_map;
     const n = (ym.match.maps_done || 0) + 1;
     h += `<div class="card live-up" style="margin-bottom:12px"><div class="row" style="justify-content:space-between">
@@ -618,6 +626,7 @@ function renderHome() {
   $("view-home").innerHTML = h;
   if ($("go-ev")) $("go-ev").onclick = () => { FOCUS = ev.id; show("event"); };
   if ($("go-mail")) $("go-mail").onclick = () => show("mail");
+  if ($("go-mail-home")) $("go-mail-home").onclick = () => show("mail");
   if ($("go-locker")) $("go-locker").onclick = () => show("locker");
   if ($("go-live")) $("go-live").onclick = () => jumpToYourMatch();
 }
@@ -710,16 +719,49 @@ function renderHonours() {
   bindAxisSpend($("view-honours"));
 }
 
-/* ----------------------------------------------------------------- locker */
+/* ----------------------------------------------------------------- locker / skins */
+
+function rarityRank(r) {
+  return { extraordinary: 0, covert: 1, classified: 2, restricted: 3, milspec: 4 }[r] ?? 9;
+}
+
+function quoteDelta(n) {
+  if (!n) return `<small class="hint">持平</small>`;
+  return n > 0 ? `<small class="up">+${money(n)}</small>` : `<small class="down">${money(n)}</small>`;
+}
+
+function bindSkinPref() {
+  if (!$("skin-pref")) return;
+  $("skin-pref").onclick = () => post("/api/skins/pref", {
+    real: !!$("skin-real")?.checked,
+    steam_id: $("skin-sid")?.value || "",
+  });
+}
+
+function bindInventory() {
+  document.querySelectorAll("[data-eq]").forEach((b) => {
+    b.onclick = () => post("/api/skins/equip", {
+      id: b.dataset.eq,
+      side: b.dataset.side,
+      off: b.dataset.off === "1",
+    });
+  });
+  document.querySelectorAll("[data-sell]").forEach((b) => (b.onclick = () => post("/api/skins/sell", { id: b.dataset.sell })));
+}
 
 function renderLocker() {
   const c = S.career;
   const ops = c.ops || {};
   const shop = c.skins || {};
   const inv = shop.inventory || [];
-  const eq = shop.equipped || {};
+  const eqCT = shop.equipped_ct || {};
+  const eqT = shop.equipped_t || {};
+  if (UNBOX_NEXT) {
+    if (shop.pending) UNBOX = { playing: true, drop: shop.pending };
+    UNBOX_NEXT = false;
+  }
   let h = `<div class="page-head"><h2>经营与库存</h2>
-    <span class="hint">俱乐部发工资、管吃住；个人口袋买皮和开箱</span></div>`;
+    <span class="hint">俱乐部发工资、管吃住；个人口袋开箱，皮肤去「皮肤市场」买</span></div>`;
 
   if (c.crisis) {
     h += `<div class="card" style="margin-bottom:12px;border-color:#6a2a2a"><h3>经营危机</h3>
@@ -729,8 +771,44 @@ function renderLocker() {
         <button class="btn sm" id="found-go">现在解散并重开</button></div></div>`;
   }
 
-  h += `<div class="grid2" style="margin-bottom:12px">
-    <div class="card"><h3>俱乐部账本</h3>
+  if (c.unsigned) {
+    h += `<div class="card" style="margin-bottom:12px"><h3>自由市场</h3>
+      <p class="hint">你现在没有俱乐部，不能借款，也不能打官方赛和训练赛。去邮箱看入队合同，或继续逛皮肤市场。</p>
+      <div class="row"><button class="btn primary sm" id="go-mail-fa">打开邮箱</button></div></div>`;
+  }
+
+  const loan = c.loan || {};
+  if (!c.unsigned && !c.banned) {
+    const ratePct = Math.round((loan.rate || 0) * 100);
+    const due = (loan.principal || 0) + (loan.arrears || 0);
+    h += `<div class="card" style="margin-bottom:12px"><h3>借款</h3>`;
+    if (loan.active) {
+      h += `<p class="hint">向${esc(loan.kind_label || "俱乐部")}借的钱。月息 ${ratePct}%，每月从口袋扣；扣不起算一个月没还。连续三个月没付上利息会发最后通牒。</p>
+        <div class="grid4" style="margin-bottom:10px">
+          <div class="stat"><b>${money(loan.principal)}</b><small>剩余本金</small></div>
+          <div class="stat"><b>${money(loan.arrears)}</b><small>未付利息</small></div>
+          <div class="stat"><b>${loan.missed || 0} / 3</b><small>连续未还</small></div>
+          <div class="stat"><b>${money(loan.interest)}</b><small>下月利息</small></div>
+        </div>
+        <div class="row">
+          <input id="repay-amt" class="locker-input" type="number" min="1" value="${due || 1}">
+          <button class="btn primary sm" id="repay-go">还款</button>
+        </div>`;
+    } else {
+      const who = loan.kind_label || (c.mode === "create" ? "银行" : "俱乐部");
+      h += `<p class="hint">${c.mode === "create" ? "自建队向银行借，钱进俱乐部金库。" : "从俱乐部金库借到个人口袋，金库要留至少一个月开支。"} 同时只能欠一笔。</p>
+        <div class="stat" style="margin-bottom:10px"><b>${money(loan.cap || 0)}</b><small>当前可向${esc(who)}借</small></div>
+        <div class="row">
+          <input id="borrow-amt" class="locker-input" type="number" min="1" value="${Math.max(1, loan.cap || 0)}">
+          <button class="btn sm" id="borrow-go" ${loan.cap > 0 ? "" : "disabled"}>借款</button>
+        </div>`;
+    }
+    h += `</div>`;
+  }
+
+  h += `<div class="grid2" style="margin-bottom:12px">`;
+  if (!c.unsigned) {
+    h += `<div class="card"><h3>俱乐部账本</h3>
       <div class="grid4" style="margin-bottom:10px">
         <div class="stat"><b>${money(ops.cash)}</b><small>账上现金</small></div>
         <div class="stat"><b>${money(ops.total)}</b><small>每月支出</small></div>
@@ -746,66 +824,233 @@ function renderLocker() {
         <input id="don-amt" class="locker-input" type="number" min="1" value="5000">
         <button class="btn sm" id="don-go">捐给俱乐部</button>
       </div>` : ""}
-    </div>
-    <div class="card"><h3>个人口袋 ${money(c.pocket)}</h3>
-      <p class="hint">来源：每月工资 + 赛事奖金 12%。转会只能用俱乐部的钱。</p>
-      <p class="hint" style="margin-top:12px">游戏内换肤 · 暂未开放</p>
+    </div>`;
+  }
+  h += `<div class="card"><h3>个人口袋 ${money(c.pocket)}</h3>
+      <p class="hint">来源：每月工资 + 赛事奖金 12%。转会只能用俱乐部的钱。卖皮扣 10% 手续费。</p>
+      <label class="row" style="margin-top:12px;gap:8px;align-items:center">
+        <input type="checkbox" id="skin-real" ${c.real_skins ? "checked" : ""}> 开启游戏内换肤
+      </label>
+      <div class="row" style="margin-top:8px">
+        <input id="skin-sid" class="locker-input" value="${esc(c.steam_id || "")}" placeholder="17 位 SteamID">
+        <button class="btn sm" id="skin-pref">保存</button>
+      </div>
+      <p class="hint" style="margin-top:8px">${
+        !c.real_skins
+          ? "关掉时只在生涯里穿，不写进 CS2。"
+          : shop.plugin
+            ? "插件已装。只涂你填的 SteamID：枪、刀、手套。人机留给随机涂装，互不抢。局内 !ws 刷新，对着枪按检视键看外观。"
+            : "还没把换肤插件装进游戏。到「训练赛」页安装后，完全退出 CS2 再进。"
+      }</p>
+      <div class="row" style="margin-top:10px"><button class="btn sm" id="go-skins">去皮肤市场</button></div>
     </div>
   </div>`;
 
-  if (shop.pending) {
-    h += `<div class="card" style="margin-bottom:12px"><h3>刚开出 ${esc(shop.pending.name)}</h3>
-      <p class="hint">${esc(shop.pending.weapon)} · ${RARITY[shop.pending.rarity] || shop.pending.rarity} · 磨损 ${Number(shop.pending.wear || 0).toFixed(3)}</p>
+  const pending = shop.pending;
+  if (pending && !UNBOX?.playing) {
+    h += `<div class="card" style="margin-bottom:12px"><h3>刚开出 ${esc(pending.name)}</h3>
+      <p class="hint">${esc(pending.weapon)} · ${badge(pending.rarity, RARITY[pending.rarity] || pending.rarity)} · 磨损 ${Number(pending.wear || 0).toFixed(3)} · 现价 ${money(pending.spot)}</p>
       <div class="row"><button class="btn primary sm" id="drop-keep">进库存</button>
-        <button class="btn sm" id="drop-cash">换成 ${money(shop.pending.sell || 0)}</button></div></div>`;
+        <button class="btn sm" id="drop-cash">立刻卖 ${money(pending.sell || 0)}</button></div></div>`;
   }
 
   h += `<div class="grid2" style="margin-bottom:12px">
-    <div class="card"><h3>当前库存</h3>`;
-  if (!inv.length) h += `<p class="empty">还没有皮肤</p>`;
+    <div class="card"><h3>当前库存</h3>
+    <p class="hint">按阵营装：AK / Glock 只能给 T，M4 / USP 只能给 CT。刀和手套 CT、T 各穿一件。</p>`;
+  if (!inv.length) h += `<p class="empty">还没有皮肤。去皮肤市场买，或在右边开箱。</p>`;
   else {
-    h += `<table><thead><tr><th>饰品</th><th>稀有度</th><th class="num">磨损</th><th></th></tr></thead><tbody>`;
+    h += `<table><thead><tr><th>饰品</th><th>稀有度</th><th class="num">现价</th><th></th></tr></thead><tbody>`;
     for (const it of inv) {
-      const on = eq[it.slot] === it.id;
-      h += `<tr><td>${esc(it.name)}${on ? " · 已装备" : ""}</td>
+      const sides = it.sides || [];
+      const onCT = eqCT[it.slot] === it.id;
+      const onT = eqT[it.slot] === it.id;
+      const mark = [onCT ? "CT" : "", onT ? "T" : ""].filter(Boolean).join("/");
+      h += `<tr><td><button class="js-skin" data-look="${esc(it.skin_id || "")}">${esc(it.name)}</button>${mark ? ` · ${mark}` : ""}<br><small class="hint">磨损 ${Number(it.wear || 0).toFixed(3)}</small></td>
         <td>${badge(it.rarity, RARITY[it.rarity] || it.rarity)}</td>
-        <td class="num">${Number(it.wear || 0).toFixed(3)}</td>
-        <td><button class="btn sm" data-eq="${esc(it.id)}">${on ? "穿着" : "装备"}</button>
-          <button class="btn sm" data-sell="${esc(it.id)}">卖 ${money(it.sell)}</button></td></tr>`;
+        <td class="num">${money(it.spot)}${quoteDelta(0)}</td>
+        <td class="skin-acts">`;
+      if (sides.includes("ct")) {
+        h += `<button class="btn sm ${onCT ? "primary" : ""}" data-eq="${esc(it.id)}" data-side="ct" data-off="${onCT ? "1" : ""}">${onCT ? "卸 CT" : "装 CT"}</button>`;
+      }
+      if (sides.includes("t")) {
+        h += `<button class="btn sm ${onT ? "primary" : ""}" data-eq="${esc(it.id)}" data-side="t" data-off="${onT ? "1" : ""}">${onT ? "卸 T" : "装 T"}</button>`;
+      }
+      h += `<button class="btn sm" data-sell="${esc(it.id)}">卖 ${money(it.sell)}</button></td></tr>`;
     }
     h += `</tbody></table>`;
   }
   h += `</div><div class="card"><h3>开箱</h3>
-    <p class="hint">箱子+钥匙一次付清。开出后选留下或马上换成钱。</p>`;
+    <p class="hint">箱子+钥匙一次付清。现价每天会变，箱子价跟着调。</p>`;
   for (const box of shop.cases || []) {
     const cost = (box.price || 0) + (box.key || 0);
-    h += `<div class="row" style="justify-content:space-between;margin:8px 0">
+    h += `<div class="row" style="justify-content:space-between;margin:10px 0;align-items:center">
       <div><b>${esc(box.name)}</b><br><small class="hint">箱子 ${money(box.price)} + 钥匙 ${money(box.key)}</small></div>
-      <button class="btn sm" data-case="${esc(box.id)}">开 ${money(cost)}</button></div>`;
+      <button class="btn sm ${pending || UNBOX?.playing ? "" : "primary"}" data-case="${esc(box.id)}" ${pending || UNBOX?.playing || c.pocket < cost ? "disabled" : ""}>开 ${money(cost)}</button></div>`;
   }
   h += `</div></div>`;
 
-  h += `<div class="card"><h3>皮肤市场</h3>
-    <p class="hint">用个人口袋直接买进库存。</p>
-    <table><thead><tr><th>饰品</th><th>枪</th><th>稀有度</th><th class="num">售价</th><th></th></tr></thead><tbody>`;
-  for (const s of shop.market || []) {
-    h += `<tr><td>${esc(s.name)}</td><td>${esc(s.weapon)}</td>
-      <td>${badge(s.rarity, RARITY[s.rarity] || s.rarity)}</td>
-      <td class="num">${money(s.buy)}</td>
-      <td><button class="btn sm" data-buy="${esc(s.id)}" ${c.pocket < s.buy ? "disabled" : ""}>买入</button></td></tr>`;
-  }
-  h += `</tbody></table></div>`;
+  if (UNBOX?.playing && UNBOX.drop) h += unboxOverlayHTML(shop, UNBOX.drop);
 
   $("view-locker").innerHTML = h;
   if ($("go-locker")) $("go-locker").onclick = () => show("locker");
+  if ($("go-skins")) $("go-skins").onclick = () => show("skins");
   if ($("don-go")) $("don-go").onclick = () => post("/api/ops/donate", { amount: Number($("don-amt")?.value || 0) });
   if ($("found-go")) $("found-go").onclick = () => { if (confirm("队友会进转会市场，你留下重开新队？")) post("/api/ops/found", {}); };
-  if ($("drop-keep")) $("drop-keep").onclick = () => post("/api/skins/keep", {});
-  if ($("drop-cash")) $("drop-cash").onclick = () => post("/api/skins/cash", {});
-  document.querySelectorAll("[data-case]").forEach((b) => (b.onclick = () => post("/api/skins/case", { id: b.dataset.case })));
-  document.querySelectorAll("[data-buy]").forEach((b) => (b.onclick = () => post("/api/skins/buy", { id: b.dataset.buy })));
-  document.querySelectorAll("[data-eq]").forEach((b) => (b.onclick = () => post("/api/skins/equip", { id: b.dataset.eq })));
-  document.querySelectorAll("[data-sell]").forEach((b) => (b.onclick = () => post("/api/skins/sell", { id: b.dataset.sell })));
+  if ($("go-mail-fa")) $("go-mail-fa").onclick = () => show("mail");
+  if ($("borrow-go")) $("borrow-go").onclick = () => post("/api/ops/borrow", { amount: Number($("borrow-amt")?.value || 0) });
+  if ($("repay-go")) $("repay-go").onclick = () => post("/api/ops/repay", { amount: Number($("repay-amt")?.value || 0) });
+  bindSkinPref();
+  if ($("drop-keep")) $("drop-keep").onclick = () => { UNBOX = null; post("/api/skins/keep", {}); };
+  if ($("drop-cash")) $("drop-cash").onclick = () => { UNBOX = null; post("/api/skins/cash", {}); };
+  document.querySelectorAll("[data-case]").forEach((b) => (b.onclick = () => {
+    UNBOX_NEXT = true;
+    post("/api/skins/case", { id: b.dataset.case });
+  }));
+  bindInventory();
+  bindSkinLooks();
+  if (UNBOX?.playing) requestAnimationFrame(() => playUnbox(shop, UNBOX.drop));
+}
+
+function unboxOverlayHTML(shop, drop) {
+  const box = (shop.cases || []).find((x) => (x.drops || []).includes(drop.id)) || (shop.cases || [])[0] || {};
+  const pool = box.pool?.length ? box.pool : shop.market || [];
+  const strip = [];
+  for (let i = 0; i < 36; i++) strip.push(pool[i % Math.max(1, pool.length)] || drop);
+  strip[32] = drop;
+  UNBOX.strip = strip;
+  return `<div class="unbox-mask" id="unbox-mask">
+    <div class="unbox-panel">
+      <h3>正在打开 ${esc(box.name || "箱子")}</h3>
+      <div class="unbox-window"><div class="unbox-needle"></div><div class="unbox-strip" id="unbox-strip">
+        ${strip.map((s) => `<div class="unbox-item ${esc(s.rarity || "")}"><b>${esc((s.name || "").split(" | ").pop())}</b><small>${esc(s.weapon || "")}</small></div>`).join("")}
+      </div></div>
+      <div class="unbox-result" id="unbox-result" hidden></div>
+    </div>
+  </div>`;
+}
+
+function playUnbox(_shop, drop) {
+  const strip = $("unbox-strip");
+  if (!strip || !UNBOX?.playing) return;
+  const items = strip.children;
+  const land = items[32];
+  if (!land) return;
+  const windowEl = strip.parentElement;
+  const target = land.offsetLeft + land.offsetWidth / 2 - windowEl.clientWidth / 2;
+  strip.style.transform = `translateX(0)`;
+  requestAnimationFrame(() => {
+    strip.style.transition = "transform 4.2s cubic-bezier(.12,.7,.12,1)";
+    strip.style.transform = `translateX(${-target}px)`;
+  });
+  setTimeout(() => {
+    if (!UNBOX) return;
+    UNBOX.playing = false;
+    const box = $("unbox-result");
+    if (!box) return;
+    box.hidden = false;
+    box.innerHTML = `<div class="skin-tile ${esc(drop.rarity || "")}">
+      <small>${esc(drop.weapon || "")}</small>
+      <b>${esc(drop.name)}</b>
+      <span>${badge(drop.rarity, RARITY[drop.rarity] || drop.rarity)} · 磨损 ${Number(drop.wear || 0).toFixed(3)}</span>
+      <span>现价 ${money(drop.spot)} · 立刻卖 ${money(drop.sell)}</span>
+      <div class="row" style="margin-top:12px">
+        <button class="btn primary sm" id="drop-keep">进库存</button>
+        <button class="btn sm" id="drop-cash">立刻卖 ${money(drop.sell || 0)}</button>
+      </div>
+    </div>`;
+    if ($("drop-keep")) $("drop-keep").onclick = () => { UNBOX = null; post("/api/skins/keep", {}); };
+    if ($("drop-cash")) $("drop-cash").onclick = () => { UNBOX = null; post("/api/skins/cash", {}); };
+  }, 4400);
+}
+
+function bindSkinLooks() {
+  document.querySelectorAll("[data-look]").forEach((b) => {
+    b.onclick = () => openSkinLook(b.dataset.look);
+  });
+}
+
+function openSkinLook(skinId) {
+  const shop = S.career?.skins || {};
+  const row = (shop.market || []).find((s) => s.id === skinId);
+  if (!row) return;
+  let el = $("skin-look");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "skin-look";
+    document.body.appendChild(el);
+  }
+  el.innerHTML = `<div class="inspect-card skin-look-card">
+    <button class="inspect-x" id="skin-look-x">×</button>
+    <div class="skin-tile ${esc(row.rarity)} big">
+      <small>${esc(row.weapon)}</small>
+      <b>${esc(row.name)}</b>
+      <span>${badge(row.rarity, RARITY[row.rarity] || row.rarity)}</span>
+      <span>现价 ${money(row.spot)} · 卖出 ${money(row.sell)}</span>
+      <p class="hint">这是生涯里的饰品卡，不拉网上图片。游戏内开了换肤后，对着武器按检视键能看到真实外观。</p>
+    </div>
+  </div>`;
+  el.onclick = (e) => { if (e.target === el || e.target.id === "skin-look-x") el.remove(); };
+}
+
+function renderSkinMarket() {
+  const c = S.career;
+  if (!c.exists) { $("view-skins").innerHTML = `<p class="empty">先创建生涯</p>`; return; }
+  const shop = c.skins || {};
+  const rows = [...(shop.market || [])];
+  const weapons = shop.weapons || [];
+  if (SKIN_UI.weapon !== "all") {
+    for (let i = rows.length - 1; i >= 0; i--) if (rows[i].weapon !== SKIN_UI.weapon) rows.splice(i, 1);
+  }
+  rows.sort((a, b) => {
+    if (SKIN_UI.sort === "price") return (b.spot || 0) - (a.spot || 0);
+    if (SKIN_UI.sort === "price-asc") return (a.spot || 0) - (b.spot || 0);
+    if (SKIN_UI.sort === "name") return (a.name || "").localeCompare(b.name || "", "zh");
+    return rarityRank(a.rarity) - rarityRank(b.rarity) || (b.spot || 0) - (a.spot || 0);
+  });
+  let h = `<div class="page-head"><h2>皮肤市场</h2>
+    <span class="hint">个人口袋 ${money(c.pocket)} · 每天随市价走动 · 卖出扣 10%</span></div>`;
+  h += `<div class="card" style="margin-bottom:12px">
+    <div class="skin-filters">
+      <button class="chip ${SKIN_UI.weapon === "all" ? "on" : ""}" data-wpn="all">全部</button>
+      ${weapons.map((w) => `<button class="chip ${SKIN_UI.weapon === w ? "on" : ""}" data-wpn="${esc(w)}">${esc(w)}</button>`).join("")}
+    </div>
+    <div class="row" style="margin-top:10px">
+      <label>排序 <select id="skin-sort">
+        <option value="rarity" ${SKIN_UI.sort === "rarity" ? "selected" : ""}>稀有度</option>
+        <option value="price" ${SKIN_UI.sort === "price" ? "selected" : ""}>价格高到低</option>
+        <option value="price-asc" ${SKIN_UI.sort === "price-asc" ? "selected" : ""}>价格低到高</option>
+        <option value="name" ${SKIN_UI.sort === "name" ? "selected" : ""}>名字</option>
+      </select></label>
+    </div>
+  </div>`;
+  h += `<div class="skin-scroll">`;
+  if (!rows.length) h += `<p class="empty">这一类暂时没有上架</p>`;
+  else {
+    h += `<div class="skin-grid">`;
+    for (const s of rows) {
+      const sides = (s.sides || []).map((x) => x.toUpperCase()).join(" / ");
+      h += `<div class="skin-tile ${esc(s.rarity)}" data-look="${esc(s.id)}">
+        <small>${esc(s.weapon)} · ${esc(sides)}</small>
+        <b>${esc(s.name)}</b>
+        <span>${badge(s.rarity, RARITY[s.rarity] || s.rarity)} ${quoteDelta(s.delta)}</span>
+        <span class="skin-price">${money(s.spot)}</span>
+        <button class="btn sm" data-buy="${esc(s.id)}" ${c.pocket < s.spot ? "disabled" : ""}>买入</button>
+      </div>`;
+    }
+    h += `</div>`;
+  }
+  h += `</div>`;
+  $("view-skins").innerHTML = h;
+  document.querySelectorAll("[data-wpn]").forEach((b) => (b.onclick = () => { SKIN_UI.weapon = b.dataset.wpn; renderSkinMarket(); }));
+  if ($("skin-sort")) $("skin-sort").onchange = (e) => { SKIN_UI.sort = e.target.value; renderSkinMarket(); };
+  document.querySelectorAll("[data-buy]").forEach((b) => {
+    b.onclick = (e) => {
+      e.stopPropagation();
+      if (b.dataset.off) return;
+      post("/api/skins/buy", { id: b.dataset.buy });
+    };
+  });
+  bindSkinLooks();
 }
 
 /* ----------------------------------------------------------------- mail */
@@ -814,13 +1059,13 @@ function renderMail() {
   const c = S.career;
   const rows = [...(c.inbox || [])].reverse();
   let h = `<div class="page-head"><h2>邮件</h2>
-    <span class="hint">${c.unread || 0} 封未读 · 邀请、出线、奖金和赞助都在这里</span>
+    <span class="hint">${c.unread || 0} 封未读 · 邀请、合同、奖金和赞助都在这里</span>
     <button class="btn sm" id="mail-all">全部已读</button></div>`;
   if (!rows.length) h += `<p class="empty">信箱是空的</p>`;
   for (const m of rows) {
     const unread = !m.read;
     h += `<div class="mail-item ${unread ? "unread" : ""}">
-      <div class="mh">${badge(m.kind === "invite" ? "t1" : m.kind === "prize" ? "premier" : m.kind === "qualify" ? "major" : m.kind === "whisper" ? "upcoming" : m.kind === "discipline" ? "t2" : "done", MAIL_KIND[m.kind] || m.kind)}
+      <div class="mh">${badge(m.kind === "invite" ? "t1" : m.kind === "prize" ? "premier" : m.kind === "qualify" ? "major" : m.kind === "whisper" ? "upcoming" : m.kind === "discipline" ? "t2" : m.kind === "contract" ? "t1" : "done", MAIL_KIND[m.kind] || m.kind)}
         <b>${esc(m.title)}</b>
         <small>${esc(m.from || "")}</small>
         <span class="when">${esc(m.date || "")}</span></div>
@@ -830,6 +1075,12 @@ function renderMail() {
       h += `<button class="btn primary sm" data-acc="${esc(m.id)}">接受邀请</button>
         <button class="btn sm" data-dec="${esc(m.id)}">婉拒</button>`;
     } else if (m.kind === "invite") {
+      h += badge(m.status === "accepted" ? "done" : "upcoming", MAIL_STATUS[m.status] || m.status);
+    }
+    if (m.kind === "contract" && m.status === "open" && !c.banned) {
+      h += `<button class="btn primary sm" data-acc="${esc(m.id)}">接受合同</button>
+        <button class="btn sm" data-dec="${esc(m.id)}">婉拒</button>`;
+    } else if (m.kind === "contract") {
       h += badge(m.status === "accepted" ? "done" : "upcoming", MAIL_STATUS[m.status] || m.status);
     }
     if (m.kind === "whisper" && m.status === "open" && !c.banned) {
@@ -858,6 +1109,13 @@ function renderMail() {
 
 function renderMarket() {
   const c = S.career;
+  if (c.unsigned) {
+    $("view-market").innerHTML = `<div class="page-head"><h2>转会市场</h2></div>
+      <div class="card"><p class="hint">你现在是自由身，不能代俱乐部签人。先在邮箱接下合同。</p>
+      <div class="row"><button class="btn primary sm" id="go-mail-m">打开邮箱</button></div></div>`;
+    if ($("go-mail-m")) $("go-mail-m").onclick = () => show("mail");
+    return;
+  }
   const rows = c.market || [];
   let h = `<div class="page-head"><h2>转会市场</h2><span class="hint">签人会自动送走队里能力最低的一名（你除外）</span></div>`;
   h += `<div class="card"><div class="row" style="margin-bottom:10px">
@@ -1122,9 +1380,12 @@ function renderLivePanel(m) {
   const res = SERIES_RESULT;
   const cfg = SERIES_CS2 || {};
   let h = `<div class="card live-up play-panel" style="margin-top:16px">`;
+  const blockedLaunch = cfg.cs2_live && cfg.difficulty_pending;
   h += `<h3>${pending ? `第 ${n} 图 · ${mapName(pending)}` : "系列赛"}</h3>`;
   if (!cfg.ready && cfg.ready !== undefined) {
     h += `<p class="hint">自己打需要先装人机增强。到「训练赛」页填好 Steam / 游戏 / 人机增强目录，或直接按实力出战。</p>`;
+  } else if (blockedLaunch) {
+    h += `<p class="hint">刚改过难度，CS2 还开着，仍是旧档。请完全退出后再自己打。</p>`;
   }
   h += `<div class="row">
     <label>你的阵营 <select id="s-side">
@@ -1135,7 +1396,7 @@ function renderLivePanel(m) {
   </div>`;
   const goLabel = session ? "重开这张图" : pending ? `进入第 ${n} 图` : "自己打";
   h += `<div class="row">
-    <button class="btn primary" id="s-go">${goLabel}</button>
+    <button class="btn primary" id="s-go" ${blockedLaunch ? "disabled" : ""}>${goLabel}</button>
     <button class="btn" id="s-skip">${(m.maps || []).length ? "跳过剩余，按数值结算" : "跳过，按角色数值结算"}</button>
     ${session ? `<button class="btn ghost" id="s-commit">录入战绩</button>` : ""}
   </div>`;
@@ -1287,12 +1548,15 @@ function botSettingsCard(cfg) {
   const aims = cfg.aim_modes || ["head", "mixed", "body"];
   const nades = cfg.nade_modes || ["off", "less", "normal", "more", "max"];
   const ids = cfg.identity_modes || ["player", "bot"];
-  const live = cfg.installed_difficulty;
-  const liveNote = live
-    ? live === cfg.difficulty
-      ? `游戏里现在装的是 ${DIFF_LABEL[live] || live}`
-      : `游戏里现在还是 ${DIFF_LABEL[live] || live}，下一局开局时换成 ${DIFF_LABEL[cfg.difficulty] || cfg.difficulty}`
-    : "";
+    const live = cfg.installed_difficulty;
+    const pending = cfg.difficulty_pending;
+    const liveNote = live
+      ? live === cfg.difficulty
+        ? `游戏目录当前档是 ${DIFF_LABEL[live] || live}。改档后要点「进入训练赛 / 自己打」才会拷过去；CS2 开着改了档必须先退。`
+        : `已选 ${DIFF_LABEL[cfg.difficulty] || cfg.difficulty}，游戏里还是 ${DIFF_LABEL[live] || live}。关 CS2 后再进局才会换档。`
+      : pending
+        ? "改档后关着 CS2 再进局才会写入。"
+        : "进局时把对应难度整文件拷到正在用的 botprofile。";
   return `<div class="card" style="margin-bottom:12px"><h3>机器人设置</h3>
     <div class="form" style="max-width:none"><div class="row">
       ${pickRow("b-diff", "难度", diffs, cfg.difficulty, DIFF_LABEL)}
@@ -1300,7 +1564,7 @@ function botSettingsCard(cfg) {
       ${pickRow("b-nades", "道具预设", nades, cfg.bot_nades, NADE_LABEL)}
       ${pickRow("b-id", "队友对手身份", ids, cfg.bot_identity, ID_LABEL)}
     </div>
-    <p class="hint">简单 / 中等 / 极难用人机加强的三份 botprofile。改难度后若 CS2 还开着，要退出重开才会换档。瞄准和道具每局重设。${esc(liveNote)}</p>
+    <p class="hint">简单 / 中等 / 极难是游戏目录里三份 botprofile，进局时整文件拷贝，不会重打包。瞄准和道具每局重设。${esc(liveNote)}</p>
     </div></div>`;
 }
 
@@ -1336,6 +1600,13 @@ async function renderPlay() {
       <div class="card"><p class="hint">你已被禁赛，这份档案只能重开。</p></div>`;
     return;
   }
+  if (c.unsigned) {
+    $("view-play").innerHTML = `<div class="page-head"><h2>训练赛</h2></div>
+      <div class="card"><p class="hint">你现在是自由身，不能进训练赛。先在邮箱接下合同。</p>
+      <div class="row"><button class="btn primary sm" id="go-mail-p">打开邮箱</button></div></div>`;
+    if ($("go-mail-p")) $("go-mail-p").onclick = () => show("mail");
+    return;
+  }
   if (!PLAY.cs2) {
     try { PLAY.cs2 = await get("/api/cs2/status"); } catch { PLAY.cs2 = { ready: false }; }
   }
@@ -1362,18 +1633,29 @@ async function renderPlay() {
   } else h += `<p class="empty">—</p>`;
   h += `</div>`;
 
-  const setUp = cfg.ready && cfg.mod_installed;
+  const setUp = cfg.ready && cfg.mod_installed && cfg.levels_ok;
+  const live = !!cfg.cs2_live;
+  const blockedLaunch = live && cfg.difficulty_pending;
   h += `<div class="card" style="margin-bottom:12px"><h3>${setUp ? "游戏路径" : "首次设置（进 CS2 必做）"}</h3><div class="form">
     <label>steam.exe ${cfg.steam_ok ? "✓" : "✗"}<input id="p-steam" value="${esc(cfg.steam_exe || "")}"></label>
-    <label>csgo 目录 ${cfg.csgo_ok ? "✓" : "✗"}<input id="p-csgo" value="${esc(cfg.csgo_path || "")}"></label>
-    <label>人机增强目录 ${cfg.mod_ok ? "✓" : "✗"}<input id="p-mod" value="${esc(cfg.mod_source_path || "")}" placeholder="例如 CS2B 文件夹"></label>
+    <label>csgo 目录 ${cfg.csgo_ok ? "✓" : "✗"}<input id="p-csgo" value="${esc(cfg.csgo_path || "")}" placeholder="要到 game\\csgo 那一层，填游戏根目录也会自动补"></label>
+    <label>人机增强目录 ${cfg.mod_ok ? "✓" : "✗"}<input id="p-mod" value="${esc(cfg.mod_source_path || "")}"></label>
+    <label>换肤插件目录 ${cfg.skins_ok ? "✓" : "✗"}<input id="p-skins" value="${esc(cfg.skins_source_path || "")}" placeholder="可空，默认用生涯自带的修过读取的插件"></label>
     <div class="row"><button class="btn" id="p-save">保存路径</button>
-      <button class="btn primary" id="p-install" ${cfg.ready ? "" : "disabled"}>把人机增强装进游戏</button>
+      <button class="btn primary" id="p-install" ${cfg.ready && !live ? "" : "disabled"}>把人机增强装进游戏</button>
+      <button class="btn" id="p-sync" ${cfg.levels_ok && !live ? "" : "disabled"}>同步人机名单</button>
+      <button class="btn" id="p-skins-install" ${cfg.mod_installed && (cfg.skins_ok || cfg.skins_installed) && !live ? "" : "disabled"}>把换肤插件装进游戏</button>
     </div>
     <p class="hint">${
-      cfg.ready
-        ? "点「把人机增强装进游戏」，文件会复制进 game\\csgo。装完必须完全退出 CS2 再开。详细步骤见「添加人机增强.txt」。"
-        : "自己进 CS2 打必须先装人机增强。填好 steam.exe、game\\csgo、人机增强目录后保存。只玩生涯、按实力出战则不用填。"
+      live
+        ? "CS2 还开着：不能安装、不能同步。难度若刚改过，也必须先退游戏再进局。"
+        : cfg.ready
+        ? (
+            !cfg.mod_installed
+              ? "路径已保存。先点「把人机增强装进游戏」。装完后「把换肤插件装进游戏」才会亮。"
+              : "人机增强已在游戏里。要换肤再点「把换肤插件装进游戏」，然后到经营页打开换肤并填 SteamID。"
+          )
+        : "csgo 目录必须是 ...\\Counter-Strike Global Offensive\\game\\csgo。Steam「浏览本地文件」打开的是上一层，少了 game\\csgo。填根目录也可以，保存时会自动补上。"
     }</p>
   </div></div>`;
 
@@ -1387,8 +1669,14 @@ async function renderPlay() {
         <option value="ct" ${PLAY.side === "ct" ? "selected" : ""}>CT</option>
         <option value="t" ${PLAY.side === "t" ? "selected" : ""}>T</option></select></label>
     </div>
-    <div class="row"><button class="btn primary" id="p-go" ${!setUp ? "disabled" : ""}>进入训练赛</button>
-      <span class="hint">${setUp ? "进游戏后：与机器人游戏 → 竞技 → 选同一张图" : "没装人机增强就不能进 CS2，可先按实力出战"}</span></div>
+    <div class="row"><button class="btn primary" id="p-go" ${!setUp || blockedLaunch ? "disabled" : ""}>进入训练赛</button>
+      <span class="hint">${
+        blockedLaunch
+          ? "刚改过难度，请先完全退出 CS2 再进"
+          : setUp
+            ? "进游戏后：与机器人游戏 → 竞技 → 选同一张图"
+            : "没装人机增强（或游戏目录没有三档人机库）就不能进 CS2"
+      }</span></div>
   </div></div>`;
 
   h += `<div class="grid2" style="margin-bottom:12px">${lineup(c.team_name, true)}${opp ? lineup(opp.name) : ""}</div>`;
@@ -1424,6 +1712,7 @@ async function renderPlay() {
         steam_exe: $("p-steam").value.trim(),
         csgo_path: $("p-csgo").value.trim(),
         mod_source_path: $("p-mod").value.trim(),
+        skins_source_path: $("p-skins")?.value.trim() || "",
       });
       PLAY.cs2 = null;
       renderPlay();
@@ -1433,7 +1722,25 @@ async function renderPlay() {
     $("p-install").onclick = async (e) => {
       e.target.disabled = true;
       e.target.textContent = "复制中…";
-      await post("/api/cs2/install", {});
+      const out = await post("/api/cs2/install", {});
+      PLAY.cs2 = null;
+      renderPlay();
+    };
+  }
+  if ($("p-sync")) {
+    $("p-sync").onclick = async (e) => {
+      e.target.disabled = true;
+      e.target.textContent = "同步中…";
+      await post("/api/cs2/sync", {});
+      PLAY.cs2 = null;
+      renderPlay();
+    };
+  }
+  if ($("p-skins-install")) {
+    $("p-skins-install").onclick = async (e) => {
+      e.target.disabled = true;
+      e.target.textContent = "复制中…";
+      await post("/api/cs2/skins", {});
       PLAY.cs2 = null;
       renderPlay();
     };

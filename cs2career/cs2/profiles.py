@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+import shutil
 import struct
 from pathlib import Path
 from zlib import crc32
@@ -35,6 +36,9 @@ ROLE_STYLE = {
 DEFAULT_STYLE = ROLE_STYLE["rifle"]
 
 NAME_RE = re.compile(r'^\S+\s+"([^"]+)"', re.MULTILINE)
+PUNCT_RE = re.compile(r"[-_.\s]+")
+LEVELS = ("Low", "Medium", "High")
+STOCK_DIR = "_stock"
 
 
 def classify_tier(ability: float, note: str = "", on_roster: bool = False) -> str:
@@ -177,7 +181,7 @@ def add_people(db_text: str, people: list[dict]) -> tuple[str, int]:
     if not blocks:
         return db_text, 0
     header = "\n//---------------------------------------------------------------\n"
-    header += "// Career players added by CS2 Career 2.2\n"
+    header += "// Career players added by CS2 Career\n"
     return db_text.rstrip("\n") + "\n" + header + "".join(blocks), len(blocks)
 
 
@@ -189,9 +193,144 @@ def build_profile_vpk(dst: Path, base_vpk: Path, teams: list[dict]) -> int:
 
 
 def seed_mod_profiles(mod_source: Path, teams: list[dict]) -> int:
-    """Do not rewrite the mod's Low/Medium/High VPKs.
-
-    Those files are the Bot Improver difficulty pack. Writing them back
-    with our packer is what made 极难 feel like 简单.
-    """
+    """Do not rewrite the mod's Low/Medium/High VPKs at match launch."""
     return 0
+
+
+def fold_name(name: str) -> str:
+    return PUNCT_RE.sub("", (name or "").strip().lower())
+
+
+def name_keys(name: str) -> set[str]:
+    n = (name or "").strip()
+    if not n:
+        return set()
+    return {n.lower(), fold_name(n)}
+
+
+def known_keys(db_text: str) -> set[str]:
+    keys: set[str] = set()
+    for name in NAME_RE.findall(db_text):
+        keys |= name_keys(name)
+    return keys
+
+
+def people_from_stats() -> list[dict]:
+    from ..world.ability import load_player_stats
+
+    people: list[dict] = []
+    for name, row in load_player_stats().items():
+        people.append(
+            {
+                "name": name,
+                "ability": float(row.get("ability") or 70),
+                "role": row.get("role") or "rifle",
+                "note": "",
+                "on_roster": False,
+            }
+        )
+    people.sort(key=lambda p: (-float(p["ability"]), p["name"].lower()))
+    return people
+
+
+def missing_people(db_text: str, people: list[dict] | None = None) -> list[dict]:
+    people = people_from_stats() if people is None else people
+    known = known_keys(db_text)
+    out: list[dict] = []
+    seen: set[str] = set()
+    for person in people:
+        name = (person.get("name") or "").strip()
+        keys = name_keys(name)
+        if not name or '"' in name or keys & known or keys & seen:
+            continue
+        seen |= keys
+        known |= keys
+        out.append(person)
+    return out
+
+
+def read_level_db(level_dir: Path) -> str:
+    vpk = level_dir / "botprofile.vpk"
+    dbp = level_dir / "botprofile.db"
+    if vpk.is_file():
+        return read_db(vpk)
+    if dbp.is_file():
+        return dbp.read_text(encoding="utf-8")
+    raise FileNotFoundError(f"没有 botprofile：{level_dir}")
+
+
+def write_level(level_dir: Path, db_text: str) -> None:
+    level_dir.mkdir(parents=True, exist_ok=True)
+    dbp = level_dir / "botprofile.db"
+    if dbp.is_file():
+        dbp.write_bytes(db_text.encode("utf-8"))
+    write_vpk(level_dir / "botprofile.vpk", db_text)
+
+
+def backup_stock(overrides: Path) -> Path:
+    stock = overrides / STOCK_DIR
+    if (stock / "Medium" / "botprofile.vpk").is_file() or (stock / "Medium" / "botprofile.db").is_file():
+        return stock
+    for level in LEVELS:
+        for name in ("botprofile.db", "botprofile.vpk"):
+            src = overrides / level / name
+            if src.is_file():
+                dst = stock / level / name
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src, dst)
+    root = overrides / "botprofile.vpk"
+    if root.is_file():
+        shutil.copy2(root, stock / "botprofile.vpk")
+    return stock
+
+
+def _missing_rows(people: list[dict]) -> list[dict]:
+    return [
+        {
+            "name": person["name"],
+            "ability": float(person.get("ability") or 70),
+            "role": person.get("role") or "rifle",
+            "tier": classify_tier(person.get("ability") or 70),
+        }
+        for person in people
+    ]
+
+
+def sync_overrides(overrides: Path, people: list[dict] | None = None, write: bool = True, live_level: str = "Medium") -> dict:
+    """Append player_stats names onto game/csgo/overrides Low/Medium/High, then copy the selected difficulty to live."""
+    people = people_from_stats() if people is None else people
+    if live_level not in LEVELS:
+        live_level = "Medium"
+    report: dict = {"path": str(overrides), "levels": {}, "missing": [], "live": live_level}
+    if write:
+        backup_stock(overrides)
+    preview: list[dict] | None = None
+    for level in LEVELS:
+        level_dir = overrides / level
+        if not (level_dir / "botprofile.vpk").is_file() and not (level_dir / "botprofile.db").is_file():
+            continue
+        current = read_level_db(level_dir)
+        base = native_db_text(current)
+        stock = overrides / STOCK_DIR / level / "botprofile.vpk"
+        if stock.is_file():
+            try:
+                base = native_db_text(read_db(stock))
+            except (OSError, ValueError):
+                pass
+        missing_now = missing_people(current, people)
+        rows = _missing_rows(missing_now)
+        new_text, _ = add_people(base, people)
+        if write and new_text != current:
+            write_level(level_dir, new_text)
+        report["levels"][level] = {"missing": rows, "added": len(missing_now)}
+        if preview is None:
+            preview = rows
+    has_levels = any((overrides / lv / "botprofile.vpk").is_file() for lv in LEVELS)
+    if write and has_levels:
+        chosen = overrides / live_level / "botprofile.vpk"
+        if chosen.is_file():
+            shutil.copy2(chosen, overrides / "botprofile.vpk")
+    report["missing"] = preview or []
+    report["added"] = len(preview or [])
+    return report
+

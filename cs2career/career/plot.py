@@ -13,6 +13,7 @@ COACH_P = 0.42
 THROW_MULT = 0.40
 PAYOUT = 12000
 FAMOUS_ABILITY = 80
+FLEE_P = 0.10
 
 
 def famous_label(ability: float) -> str:
@@ -94,4 +95,69 @@ def ban_letter(player: str) -> dict:
             "调查已经结束。你的参赛资格被暂停，在此之前登记的席位一并作废。\n"
             "这份档案到此为止。若还想站上签表，只能另开一份新的生涯。"
         ),
+    }
+
+
+def loan_default_popup() -> dict:
+    return {
+        "id": "",
+        "when": "loan_default",
+        "kind": "plot",
+        "title": "最后通牒",
+        "text": (
+            "财务把账本摊在桌上。利息已经连续三个月没有进账。\n"
+            "俱乐部可以按合同把你除名，个人名下的钱和饰品一并清掉。\n"
+            "另一条路没有人愿意写进会议纪要：收拾东西走。成不成，看你自己。"
+        ),
+        "choices": [
+            {"id": "refuse", "label": "承担后果"},
+            {"id": "flee", "label": "带着东西走"},
+        ],
+    }
+
+
+def loan_flee_news(player: str, ability: float) -> dict:
+    label = famous_label(ability)
+    return {
+        "id": "",
+        "when": "loan_flee_ban",
+        "kind": "plot",
+        "title": "突发新闻",
+        "text": (
+            f"{label} {player} 被曝在拖欠俱乐部款项后试图转移个人资产。"
+            "赛事纪律委员会已宣布对其永久禁赛，并注销其当前所有官方席位。"
+        ),
+    }
+
+
+def loan_flee_ban_letter(player: str) -> dict:
+    return {
+        "title": "永久禁赛通知",
+        "from": "CS2 赛事纪律委员会",
+        "body": (
+            f"{player}：\n\n"
+            "经查，你在俱乐部债务尚未结清时转移个人财产，并拒绝配合财务清算。\n"
+            "现决定对你处以永久禁赛。已登记的赛事席位全部作废。\n"
+            "这份档案到此为止。若还想站上签表，只能另开一份新的生涯。"
+        ),
+    }
+
+
+def loan_release_letter(player: str, team: str, wiped: bool) -> dict:
+    if wiped:
+        body = (
+            f"{player}：\n\n"
+            f"{team} 已按合同解除与你的关系。个人账户与饰品库存已清零。\n"
+            "你现在是自由身。若有俱乐部愿意给你一份位置，信会送到这只邮箱。"
+        )
+    else:
+        body = (
+            f"{player}：\n\n"
+            f"你已经离开 {team}。目前没有俱乐部合同。\n"
+            "自由市场的报价会送到这只邮箱，接下其中一封才能重新上场。"
+        )
+    return {
+        "title": "你目前是自由身",
+        "from": "球员事务",
+        "body": body,
     }

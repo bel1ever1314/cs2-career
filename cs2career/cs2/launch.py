@@ -33,6 +33,8 @@ DEFAULTS = {
     "bot_nades": "normal",
     # "player" drops the BOT tag: managed bots publish a name, SteamID and ping.
     "bot_identity": "player",
+    "applied_difficulty": "",
+    "skins_source_path": "",
 }
 
 DIFFICULTIES = ("Low", "Medium", "High")
@@ -130,6 +132,29 @@ def find_csgo_path() -> str:
     return _cached("csgo", hunt)
 
 
+def resolve_csgo_path(raw: str | Path) -> Path:
+    """Accept the Steam game root, game, or game\\csgo and land on game\\csgo."""
+    text = str(raw or "").strip().strip('"')
+    if not text or text in (".", "./"):
+        return Path()
+    path = Path(text)
+    guesses = [path]
+    if (path / "game" / "csgo").is_dir():
+        guesses.append(path / "game" / "csgo")
+    if path.name.lower() == "game" and (path / "csgo").is_dir():
+        guesses.append(path / "csgo")
+    for cand in guesses:
+        norm = str(cand).replace("/", "\\").lower()
+        if "\\game\\csgo" in norm and cand.is_dir():
+            return cand
+    return path
+
+
+def is_csgo_dir(path: Path) -> bool:
+    text = str(path).replace("/", "\\").lower()
+    return bool(text) and text not in (".",) and path.is_dir() and "\\game\\csgo" in text
+
+
 def _improver_here(path: Path) -> bool:
     """A Bot Improver folder has CSS plus the difficulty VPKs. CareerMatch is ours."""
     return (
@@ -185,8 +210,11 @@ def _autofill(cfg: dict) -> dict:
     """Replace paths that do not exist on this machine with detected ones."""
     if not Path(cfg["steam_exe"]).is_file():
         cfg["steam_exe"] = find_steam_exe() or cfg["steam_exe"]
-    if not Path(cfg["csgo_path"]).is_dir():
-        cfg["csgo_path"] = find_csgo_path() or cfg["csgo_path"]
+    resolved = resolve_csgo_path(cfg.get("csgo_path") or "")
+    if is_csgo_dir(resolved):
+        cfg["csgo_path"] = str(resolved)
+    else:
+        cfg["csgo_path"] = find_csgo_path() or ""
     if not Path(cfg["mod_source_path"]).is_dir():
         cfg["mod_source_path"] = find_mod_source() or cfg["mod_source_path"]
     return cfg
@@ -220,18 +248,114 @@ def settings() -> dict:
 
 def save_settings(patch: dict) -> dict:
     cfg = settings()
-    cfg.update({k: v for k, v in patch.items() if k in DEFAULTS and v})
+    for key, val in patch.items():
+        if key not in DEFAULTS or not val:
+            continue
+        if key == "csgo_path":
+            cfg[key] = str(resolve_csgo_path(val))
+        else:
+            cfg[key] = val
     _clean(cfg)
     SETTINGS_PATH.write_text(json.dumps(cfg, indent=2, ensure_ascii=False), encoding="utf-8")
     return cfg
+
+
+def persist_settings(cfg: dict) -> dict:
+    _clean(cfg)
+    SETTINGS_PATH.write_text(json.dumps(cfg, indent=2, ensure_ascii=False), encoding="utf-8")
+    return cfg
+
+
+def cs2_is_live() -> bool:
+    return bool(live_cs2_pids())
+
+
+def require_cs2_closed(action: str = "改游戏文件") -> None:
+    if cs2_is_live():
+        raise ValueError(f"请先完全退出 CS2，再{action}。")
+
+
+def game_levels_ok(csgo: Path) -> bool:
+    return all((csgo / "overrides" / lv / "botprofile.vpk").is_file() for lv in DIFFICULTIES)
+
+
+def apply_live_difficulty(csgo: Path, level: str) -> None:
+    """Copy the selected pack onto the VPK CS2 mounts. File copy only, no repack."""
+    if level not in DIFFICULTIES:
+        level = "Medium"
+    src = csgo / "overrides" / level / "botprofile.vpk"
+    if not src.is_file():
+        raise FileNotFoundError("游戏目录里没有三档人机库。请先把人机增强装进游戏。")
+    dst = csgo / "overrides" / "botprofile.vpk"
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(src, dst)
+    cfg = settings()
+    cfg["applied_difficulty"] = level
+    persist_settings(cfg)
+
+
+def sync_live_profiles() -> dict:
+    require_cs2_closed("同步人机名单")
+    cfg = settings()
+    csgo = Path(cfg["csgo_path"])
+    if not csgo.is_dir():
+        raise FileNotFoundError("找不到 CS2 的 game\\csgo 目录。")
+    if not game_levels_ok(csgo):
+        raise FileNotFoundError("游戏目录里没有 Low/Medium/High。请先把人机增强装进游戏。")
+    from .profiles import sync_overrides
+
+    report = sync_overrides(csgo / "overrides", write=True, live_level=cfg["difficulty"])
+    cfg = settings()
+    cfg["applied_difficulty"] = cfg["difficulty"]
+    persist_settings(cfg)
+    added = int(report.get("added") or 0)
+    if added:
+        msg = f"已写入 game\\csgo\\overrides，数据包里新补了 {added} 个名字。完全退出 CS2 再开才会读到。"
+    else:
+        msg = "数据包里的名字游戏库都已有，没有新的要补。"
+    return {"ok": True, "added": added, "msg": msg, "report": report}
 
 
 def plugin_dir(csgo: Path) -> Path:
     return csgo / "addons" / "counterstrikesharp" / "plugins" / "CareerMatch"
 
 
-def skins_plugin_src() -> Path:
-    return vendor_root() / "InventorySimulator"
+def skins_plugin_src(cfg: dict | None = None) -> Path:
+    cfg = cfg or settings()
+    custom = Path(cfg.get("skins_source_path") or "")
+    if _skins_pack(custom):
+        return custom
+    bundled = vendor_root() / "InventorySimulator"
+    if _skins_pack(bundled):
+        return bundled
+    return custom
+
+
+def _skins_pack(path: Path) -> bool:
+    if not path.is_dir():
+        return False
+    return bool(_skins_plugin_dir(path))
+
+
+def _skins_plugin_dir(root: Path) -> Path | None:
+    for cand in (
+        root / "plugins" / "InventorySimulator",
+        root / "addons" / "counterstrikesharp" / "plugins" / "InventorySimulator",
+        root,
+    ):
+        if (cand / "InventorySimulator.dll").is_file():
+            return cand
+    return None
+
+
+def _skins_gamedata(root: Path) -> Path | None:
+    for cand in (
+        root / "gamedata" / "inventory-simulator.json",
+        root / "addons" / "counterstrikesharp" / "gamedata" / "inventory-simulator.json",
+    ):
+        if cand.is_file():
+            return cand
+    return None
 
 
 def skins_wanted(career=None) -> bool:
@@ -305,8 +429,58 @@ def restore_bot_randomizer(csgo: Path) -> int:
 
 
 def install_skins_plugin(csgo: Path, career=None) -> int:
-    """Skin plugins are not part of this build. Leave the game folder alone."""
-    return 0
+    """Player skins are optional. Bot cosmetics must stay loaded either way."""
+    if skins_wanted(career):
+        copied = _copy_skins_into(csgo)
+    else:
+        _remove_plugin(csgo, "InventorySimulator")
+        _remove_plugin(csgo, "InvsimCareer")
+        copied = 0
+    # Always last: entering a match used to park this, which stripped bot paints.
+    copied += restore_bot_randomizer(csgo)
+    return copied
+
+
+def _copy_skins_into(csgo: Path) -> int:
+    src = skins_plugin_src()
+    plugin_src = _skins_plugin_dir(src)
+    if plugin_src is None:
+        return 0
+    copied = _copy_tree(plugin_src, _plugin_live(csgo, "InventorySimulator"))
+    gamedata = _skins_gamedata(src)
+    if gamedata is not None:
+        dest = csgo / "addons" / "counterstrikesharp" / "gamedata" / "inventory-simulator.json"
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(gamedata, dest)
+        copied += 1
+    helper = vendor_root() / "InvsimCareer"
+    if (helper / "InvsimCareer.dll").is_file():
+        copied += _copy_tree(helper, _plugin_live(csgo, "InvsimCareer"))
+    return copied
+
+
+def install_skins_mod(csgo: Path | None = None) -> dict:
+    """Install the optional skin plugin. Needs Bot Improver / CSS already in game."""
+    require_cs2_closed("把换肤插件装进游戏")
+    cfg = settings()
+    csgo = resolve_csgo_path(csgo or cfg["csgo_path"])
+    if not is_csgo_dir(csgo):
+        raise FileNotFoundError(
+            f"csgo 目录对不上：{csgo}。请指到 ...\\Counter-Strike Global Offensive\\game\\csgo，"
+            "或填 Steam 里那层游戏根目录，保存时会自动补上 game\\csgo。"
+        )
+    if not css_installed(csgo):
+        raise FileNotFoundError("请先把人机增强装进游戏，换肤插件挂在同一套 CounterStrikeSharp 上。")
+    src = skins_plugin_src(cfg)
+    if _skins_plugin_dir(src) is None:
+        raise FileNotFoundError(
+            "找不到换肤插件 DLL。生涯自带一份修过本地读取的 Inventory Simulator；"
+            "也可在训练赛页填已编译插件的目录。"
+        )
+    files = _copy_skins_into(csgo)
+    if files <= 0:
+        raise FileNotFoundError("换肤插件没有拷进去。")
+    return {"ok": True, "files": files, "msg": f"已把 {files} 个换肤文件装进游戏。完全退出 CS2 后再开才会加载。"}
 
 
 def profiles_are_stale(csgo: Path) -> bool:
@@ -323,16 +497,11 @@ def profiles_are_stale(csgo: Path) -> bool:
 
 
 def installed_difficulty(csgo: Path, mod: Path) -> str:
-    """Which of the three profiles the game folder is actually holding."""
-    live = csgo / "overrides" / "botprofile.vpk"
-    if not live.is_file():
-        return ""
-    size = live.stat().st_size
-    for level in DIFFICULTIES:
-        src = mod / "overrides" / level / "botprofile.vpk"
-        if src.is_file() and src.stat().st_size == size:
-            return level
-    return "?"
+    """Last difficulty we copied onto the live VPK, not a file-size guess."""
+    applied = settings().get("applied_difficulty") or ""
+    if applied in DIFFICULTIES:
+        return applied
+    return ""
 
 
 def mod_installed(csgo: Path) -> bool:
@@ -345,14 +514,16 @@ def mod_installed(csgo: Path) -> bool:
 
 
 def install_mod(csgo: Path | None = None, mod: Path | None = None) -> dict:
-    """Copy Bot Improver into game/csgo. Does not install any skin plugin."""
+    """Copy Bot Improver into game/csgo, then sync player_stats into that copy."""
+    require_cs2_closed("把人机增强装进游戏")
     cfg = settings()
-    csgo = Path(csgo or cfg["csgo_path"])
+    csgo = resolve_csgo_path(csgo or cfg["csgo_path"])
     mod = Path(mod or cfg["mod_source_path"])
-    if not csgo.is_dir():
-        raise FileNotFoundError(f"CS2 目录不存在：{csgo}")
-    if "\\game\\csgo" not in str(csgo).replace("/", "\\").lower():
-        raise FileNotFoundError("csgo 目录必须指向 ...\\game\\csgo")
+    if not is_csgo_dir(csgo):
+        raise FileNotFoundError(
+            f"csgo 目录对不上：{csgo}。请指到 ...\\Counter-Strike Global Offensive\\game\\csgo，"
+            "或填 Steam 里那层游戏根目录，保存时会自动补上 game\\csgo。"
+        )
     if not _improver_here(mod):
         raise FileNotFoundError(
             f"这不是完整的人机增强目录：{mod}。应能看到 addons\\metamod、"
@@ -376,37 +547,46 @@ def install_mod(csgo: Path | None = None, mod: Path | None = None) -> dict:
     apply_bothider_config(csgo, cfg["bot_identity"])
     extra = ""
     try:
-        from ..world import build_teams
-
-        added = seed_mod_profiles(mod, build_teams("2026", 2026))
-        if added:
-            extra = f" 人机库补了 {added} 个新名字。"
-    except Exception:
-        extra = ""
+        synced = sync_live_profiles()
+        extra = " " + synced["msg"]
+    except (OSError, ValueError) as exc:
+        extra = f" 人机增强已装上，但名单同步失败：{exc}"
     return {
         "ok": True,
         "files": files,
-        "msg": f"已把 {files} 个人机增强文件装进游戏，完全退出 CS2 再开才生效。{extra}",
+        "msg": f"已把 {files} 个人机增强文件装进游戏。{extra}",
     }
 
 
 def status() -> dict:
     cfg = settings()
-    csgo = Path(cfg["csgo_path"])
+    csgo = resolve_csgo_path(cfg["csgo_path"])
+    if is_csgo_dir(csgo):
+        cfg["csgo_path"] = str(csgo)
     mod = Path(cfg["mod_source_path"])
+    levels = csgo.is_dir() and game_levels_ok(csgo)
+    applied = cfg.get("applied_difficulty") or ""
+    pending = bool(cfg.get("difficulty") and applied and cfg["difficulty"] != applied)
     return {
         **cfg,
         "csgo_ok": csgo.is_dir(),
         "mod_ok": _improver_here(mod) or (mod.is_dir() and (mod / "overrides").is_dir()),
         "mod_installed": csgo.is_dir() and mod_installed(csgo),
+        "levels_ok": levels,
         "steam_ok": Path(cfg["steam_exe"]).is_file(),
         "ready": csgo.is_dir() and mod.is_dir() and Path(cfg["steam_exe"]).is_file(),
         "cs2_live": bool(live_cs2_pids()),
-        "difficulties": [d for d in DIFFICULTIES if (mod / "overrides" / d / "botprofile.vpk").is_file()],
+        "difficulty_pending": pending,
+        "difficulties": [d for d in DIFFICULTIES if (mod / "overrides" / d / "botprofile.vpk").is_file()]
+        or list(DIFFICULTIES),
         "aim_modes": list(AIM_MODES),
         "nade_modes": list(NADE_MODES),
         "identity_modes": list(IDENTITY_MODES),
-        "installed_difficulty": installed_difficulty(csgo, mod) if csgo.is_dir() and mod.is_dir() else "",
+        "installed_difficulty": applied if applied in DIFFICULTIES else "",
+        "skins_source_path": cfg.get("skins_source_path") or "",
+        "skins_ok": _skins_pack(skins_plugin_src(cfg)),
+        "skins_installed": csgo.is_dir()
+        and (_plugin_live(csgo, "InventorySimulator") / "InventorySimulator.dll").is_file(),
     }
 
 
@@ -545,10 +725,10 @@ def write_career_cfg(csgo: Path, match: dict, opts: dict | None = None) -> None:
     (cfg_dir / "career_quick.cfg").write_text("\n".join(lines) + "\n", encoding="ascii")
 
 
-def invsim_lines() -> list[str]:
+def invsim_lines(steam_id: str = "") -> list[str]:
     # Do not write invsim_url here. Source cfg treats // as a comment, so
     # http://... becomes "http:" and the plugin cannot fetch anything.
-    return [
+    lines = [
         "invsim_fallback_team 1",
         "invsim_ws_enabled 1",
         "invsim_ws_immediately 0",
@@ -557,17 +737,32 @@ def invsim_lines() -> list[str]:
         "invsim_public_api_stattrak_increment 0",
         "invsim_public_api_spray_consume 0",
     ]
+    digits = "".join(ch for ch in str(steam_id or "") if ch.isdigit())
+    if digits:
+        lines.append(f"invsim_only_steamid {digits}")
+    return lines
 
 
-def write_invsim_cfg(csgo: Path | None = None) -> None:
-    """Keep Inventory Simulator pointed at the career skin API."""
+def write_invsim_cfg(csgo: Path | None = None, steam_id: str = "") -> None:
+    """Point Inventory Simulator at the career file. Never write http:// here."""
     if csgo is None:
         csgo = Path(settings()["csgo_path"])
     if not csgo.is_dir():
         return
     cfg_dir = csgo / "cfg"
     cfg_dir.mkdir(parents=True, exist_ok=True)
-    body = "\n".join(["invsim_file inventories.json", *invsim_lines(), ""])
+    inv_file = (
+        csgo
+        / "addons"
+        / "counterstrikesharp"
+        / "configs"
+        / "plugins"
+        / "InventorySimulator"
+        / "inventories.json"
+    )
+    # Forward slashes so Source cfg never sees // (comment).
+    file_arg = str(inv_file).replace("\\", "/")
+    body = "\n".join([f'invsim_file "{file_arg}"', *invsim_lines(steam_id), ""])
     (cfg_dir / "invsim_career.cfg").write_text(body, encoding="ascii")
     for name in ("listenserver.cfg", "server.cfg"):
         path = cfg_dir / name
@@ -671,32 +866,37 @@ def prepare_game(
     career=None,
 ) -> None:
     opts = _clean(dict(opts or DEFAULTS))
-    if not csgo.is_dir():
-        raise FileNotFoundError(f"CS2 目录不存在：{csgo}")
-    if "\\game\\csgo" not in str(csgo).replace("/", "\\").lower():
-        raise FileNotFoundError("csgo_path 必须指向 ...\\game\\csgo")
+    csgo = resolve_csgo_path(csgo)
+    if not is_csgo_dir(csgo):
+        raise FileNotFoundError(
+            f"csgo_path 对不上：{csgo}。请指到 ...\\game\\csgo，"
+            "或填 Steam 游戏根目录，保存时会自动补上。"
+        )
+    if not game_levels_ok(csgo):
+        raise FileNotFoundError("游戏目录里没有三档人机库。请先把人机增强装进游戏。")
     if not mod_source.is_dir():
         raise FileNotFoundError(f"找不到 mod 目录：{mod_source}")
 
-    src_vpk = difficulty_vpk(mod_source, opts["difficulty"])
-    if src_vpk.exists():
-        live_vpk = csgo / "overrides" / "botprofile.vpk"
-        (csgo / "overrides").mkdir(parents=True, exist_ok=True)
-        try:
-            # Career names need a profile of their own or the bot keeps a
-            # random one from the mod's list.
-            build_profile_vpk(live_vpk, src_vpk, teams or [])
-        except (OSError, ValueError, struct.error):
-            shutil.copy2(src_vpk, live_vpk)
+    want = opts["difficulty"]
+    applied = settings().get("applied_difficulty") or ""
+    if cs2_is_live() and applied and applied != want:
+        raise ValueError(
+            f"难度已改为{DIFFICULTY_LABEL.get(want, want)}，但 CS2 还开着，仍是"
+            f"{DIFFICULTY_LABEL.get(applied, applied)}。请完全退出后再进。"
+        )
+    if not cs2_is_live():
+        apply_live_difficulty(csgo, want)
     try:
-        seed_mod_profiles(mod_source, teams or [])
-    except Exception:
-        pass
-    try:
-        install_skins_plugin(csgo, career)
+        n = install_skins_plugin(csgo, career)
+        if skins_wanted(career) and n:
+            from ..career import skins as skinmod
+
+            skinmod.sync_live(career)
     except OSError:
         pass
 
+    dst = plugin_dir(csgo)
+    dst.mkdir(parents=True, exist_ok=True)
     _copy_career_match(csgo, mod_source)
 
     (dst / "match_request.json").write_text(

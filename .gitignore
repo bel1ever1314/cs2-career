@@ -2,6 +2,7 @@ save/
 dist/
 build/
 release/
+!release/.gitkeep
 __pycache__/
 *.pyc
 *.pyo
@@ -10,3 +11,5 @@ __pycache__/
 .vscode/
 *.dll
 !vendor/CareerMatch/CareerMatch.dll
+!vendor/InventorySimulator/plugins/InventorySimulator/InventorySimulator.dll
+!vendor/InvsimCareer/InvsimCareer.dll

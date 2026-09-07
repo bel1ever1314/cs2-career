@@ -1,5 +1,5 @@
 # coding=utf-8
-"""Build the 1.3 release: exe + docs. Bot Improver is not bundled."""
+"""Build the 1.4 release: exe + docs. Bot Improver is not bundled."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 SEP = ";" if os.name == "nt" else ":"
-OUT_NAME = "CS2Career-1.3"
+OUT_NAME = "CS2Career-1.4"
 
 
 def _pyi() -> int:
@@ -40,9 +40,10 @@ def _pyi() -> int:
         "--exclude-module", "unittest",
         "--exclude-module", "pydoc",
     ]
-    vendor = ROOT / "vendor" / "CareerMatch"
-    if vendor.is_dir():
-        args += ["--add-data", f"{vendor}{SEP}vendor{os.sep}CareerMatch"]
+    for name in ("CareerMatch", "InventorySimulator", "InvsimCareer"):
+        vendor = ROOT / "vendor" / name
+        if vendor.is_dir():
+            args += ["--add-data", f"{vendor}{SEP}vendor{os.sep}{name}"]
     pyi.run(args)
     exe = ROOT / "dist" / "CS2Career.exe"
     return 0 if exe.is_file() else 1

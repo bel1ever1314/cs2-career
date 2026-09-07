@@ -153,6 +153,26 @@ def sponsor_letter(month: str, rank: int, amount: int) -> dict:
     }
 
 
+def contract_letter(
+    team_name: str,
+    role_label: str,
+    replace_name: str,
+    player: str,
+) -> dict:
+    return {
+        "tone": "mid",
+        "title": f"{team_name} 向你伸出合同",
+        "from": f"{team_name} 经理",
+        "body": (
+            f"{player}：\n\n"
+            f"我们需要一名{role_label}。看过你近段时间的比赛，认为你能立刻进入首发。\n"
+            f"接下这份合同，{replace_name} 会离开阵容，回到自由市场。队里没有替补席。\n"
+            "名额只有这一个。拒绝的话，我们会去问下一个人。\n\n"
+            "请回复是否加盟。"
+        ),
+    }
+
+
 def new_mail(kind: str, date: str, payload: dict, extra: dict | None = None) -> dict:
     row = {
         "id": "",
