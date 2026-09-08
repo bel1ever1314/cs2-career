@@ -1,0 +1,14 @@
+E:\1.4.1\cs2-career\vendor\CareerMatch\bin\Release\net10.0\CareerMatch.deps.json
+E:\1.4.1\cs2-career\vendor\CareerMatch\bin\Release\net10.0\CareerMatch.dll
+E:\1.4.1\cs2-career\vendor\CareerMatch\bin\Release\net10.0\CareerMatch.pdb
+E:\1.4.1\cs2-career\vendor\CareerMatch\obj\Release\net10.0\CareerMatch.csproj.AssemblyReference.cache
+E:\1.4.1\cs2-career\vendor\CareerMatch\obj\Release\net10.0\CareerMatch.GeneratedMSBuildEditorConfig.editorconfig
+E:\1.4.1\cs2-career\vendor\CareerMatch\obj\Release\net10.0\CareerMatch.AssemblyInfoInputs.cache
+E:\1.4.1\cs2-career\vendor\CareerMatch\obj\Release\net10.0\CareerMatch.AssemblyInfo.cs
+E:\1.4.1\cs2-career\vendor\CareerMatch\obj\Release\net10.0\CareerMatch.csproj.CoreCompileInputs.cache
+E:\1.4.1\cs2-career\vendor\CareerMatch\obj\Release\net10.0\CareerMatch.sourcelink.json
+E:\1.4.1\cs2-career\vendor\CareerMatch\obj\Release\net10.0\CareerMatch.dll
+E:\1.4.1\cs2-career\vendor\CareerMatch\obj\Release\net10.0\refint\CareerMatch.dll
+E:\1.4.1\cs2-career\vendor\CareerMatch\obj\Release\net10.0\CareerMatch.pdb
+E:\1.4.1\cs2-career\vendor\CareerMatch\obj\Release\net10.0\ref\CareerMatch.dll
+E:\1.4.1\cs2-career\vendor\CareerMatch\obj\Release\net10.0\CareerMa.9671E04B.Up2Date
