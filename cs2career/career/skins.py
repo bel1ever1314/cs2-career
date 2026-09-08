@@ -81,8 +81,9 @@ def sides_for(slot: str) -> tuple[str, ...]:
     return SLOT_SIDES.get(slot or "", ("ct", "t"))
 
 
-def _wear() -> float:
-    return round(random.uniform(0.01, 0.38), 4)
+def _wear(slot: str = "") -> float:
+    lo = 0.06 if slot == "gloves" else 0.01
+    return round(random.uniform(lo, 0.38), 4)
 
 
 def _paint_of(skin: dict) -> int:
@@ -91,6 +92,7 @@ def _paint_of(skin: dict) -> int:
 
 _NAMED_DEF = {
     "weapon_knife_karambit": 507,
+    "weapon_knife_butterfly": 515,
     "weapon_bayonet": 500,
     "sport_gloves": 5030,
     "specialist_gloves": 5034,
@@ -116,7 +118,7 @@ def make_item(skin: dict, source: str, seq: int) -> dict:
         "weapon": skin["weapon"],
         "slot": skin["slot"],
         "rarity": skin["rarity"],
-        "wear": _wear(),
+        "wear": _wear(skin.get("slot") or ""),
         "source": source,
         "def": _def_of(skin),
         "paint": _paint_of(skin),
@@ -288,12 +290,19 @@ def _seed_of(row: dict) -> int:
 def _item_payload(row: dict) -> dict:
     cat = skin_map().get(row.get("skin_id") or "") or {}
     slot = row.get("slot") or cat.get("slot") or ""
-    paint = int(row.get("paint") or cat.get("paint") or 0)
-    defn = _def_of({**cat, **row, "slot": slot})
+    if cat:
+        paint = int(cat.get("paint") or 0)
+        defn = _def_of(cat)
+    else:
+        paint = int(row.get("paint") or 0)
+        defn = _def_of({**row, "slot": slot})
+    wear = float(row.get("wear") or 0.15)
+    if slot == "gloves":
+        wear = max(0.06, wear)
     return {
         "def": defn,
         "paint": paint,
-        "wear": float(row.get("wear") or 0.15),
+        "wear": wear,
         "seed": _seed_of(row),
         "stickers": [],
         "slot": slot,
@@ -365,6 +374,11 @@ def repair_items(items: list[dict]) -> bool:
             row["def"] = payload["def"]
             row["paint"] = payload["paint"]
             changed = True
+        if (row.get("slot") or payload.get("slot")) == "gloves":
+            wear = float(row.get("wear") or 0)
+            if wear < 0.06:
+                row["wear"] = 0.06
+                changed = True
     return changed
 
 

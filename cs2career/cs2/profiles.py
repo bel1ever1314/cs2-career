@@ -46,7 +46,7 @@ def classify_tier(ability: float, note: str = "", on_roster: bool = False) -> st
     gun = float(ability or 70)
     if gun >= 90:
         return "ProTop"
-    if gun >= 70:
+    if gun >= 60 or on_roster:
         return "ProSteady"
     return "RankRifler"
 
@@ -217,7 +217,9 @@ def known_keys(db_text: str) -> set[str]:
 
 def people_from_stats() -> list[dict]:
     from ..world.ability import load_player_stats
+    from ..world.teams import TEAMS
 
+    roster = {p[0] for _n, _r, _rk, _c, players in TEAMS for p in players}
     people: list[dict] = []
     for name, row in load_player_stats().items():
         people.append(
@@ -226,9 +228,27 @@ def people_from_stats() -> list[dict]:
                 "ability": float(row.get("ability") or 70),
                 "role": row.get("role") or "rifle",
                 "note": "",
-                "on_roster": False,
+                "on_roster": name in roster,
             }
         )
+    try:
+        from ..world.academy import load_names
+
+        have = {p["name"].lower() for p in people}
+        for name in load_names():
+            if name.lower() in have:
+                continue
+            people.append(
+                {
+                    "name": name,
+                    "ability": 65.0,
+                    "role": "rifle",
+                    "note": "academy",
+                    "on_roster": False,
+                }
+            )
+    except Exception:
+        pass
     people.sort(key=lambda p: (-float(p["ability"]), p["name"].lower()))
     return people
 
@@ -290,7 +310,7 @@ def _missing_rows(people: list[dict]) -> list[dict]:
             "name": person["name"],
             "ability": float(person.get("ability") or 70),
             "role": person.get("role") or "rifle",
-            "tier": classify_tier(person.get("ability") or 70),
+            "tier": classify_tier(person.get("ability") or 70, person.get("note") or "", bool(person.get("on_roster"))),
         }
         for person in people
     ]

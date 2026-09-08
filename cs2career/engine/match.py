@@ -19,7 +19,7 @@ FIRE_SHARE = 0.76
 COMMAND_SHARE = 0.24
 MAP_STRONG = 1.06
 MAP_WEAK = 0.95
-STAR_CURVE = 1.55
+STAR_CURVE = 1.24
 STAT_COMMAND = 0.10
 ROUND_LOGIT_K = 1.65
 
@@ -48,6 +48,11 @@ def map_mult(team: dict, opponent: dict, map_name: str) -> float:
 
 
 def map_impact(ability: float, form: float) -> float:
+    pop = RNG.random()
+    if pop < 0.10:
+        return RNG.uniform(1.40, 1.85)
+    if pop < 0.20:
+        return RNG.uniform(0.72, 0.90)
     tier = skill_tier(ability)
     form_t = clamp(form, 0.0, 100.0) / 100.0
     carry_p = tier.carry_p * (0.70 + 0.30 * form_t)
@@ -153,7 +158,7 @@ def allocate_deaths(weights: list[float], total: int, rounds: int) -> list[int]:
 
 def box_score(rows: list[dict], kills: int, deaths: int, rounds: int) -> list[dict]:
     kill_n = allocate_ints([max(0.05, r["frag"]) for r in rows], kills)
-    death_w = [0.60 + 0.40 * expected_dpr(r["ability"]) * RNG.uniform(0.94, 1.06) for r in rows]
+    death_w = [max(0.35, expected_dpr(r["ability"]) * RNG.uniform(0.92, 1.08)) for r in rows]
     death_n = allocate_deaths(death_w, deaths, rounds)
     lines = []
     for r, k, d in zip(rows, kill_n, death_n):

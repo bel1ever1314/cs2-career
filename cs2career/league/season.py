@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 from datetime import date, datetime
 
-from ..cs2 import cs2_to_map, read_result, result_usable, start_match, to_cs2_map
+from ..cs2 import cs2_to_map, pick_better_result, read_result, result_usable, start_match, to_cs2_map
 from ..engine import (
     after_event,
     after_series,
@@ -497,6 +497,21 @@ class Season:
             self.career.on_series_done(self)
             self.career.watch(self)
 
+    def try_ingest_pending_cs2(self) -> str:
+        """Commit a finished CS2 dump even if the match page is not open."""
+        for ev in self.events:
+            for match in ev.get("matches") or []:
+                if match.get("played") or not match.get("cs2_session"):
+                    continue
+                raw = read_result()
+                if result_usable(raw, match["cs2_session"]) != "":
+                    return ""
+                try:
+                    return self.commit_cs2_map(match["id"], raw)
+                except ValueError:
+                    return ""
+        return ""
+
     def launch_your_map(self, match_id: str, side: str = "ct") -> str:
         if self.career:
             block = self.career.gate_match(self, match_id)
@@ -544,11 +559,13 @@ class Season:
         session = match.get("cs2_session")
         if not session:
             raise ValueError("还没有进入当场比赛")
-        result = raw if raw is not None else read_result()
+        file_res = read_result()
+        result = pick_better_result(raw, file_res)
         err = result_usable(result, session)
         if err:
             raise ValueError(err)
-        if match.get("last_ended_at") and match["last_ended_at"] == result.get("ended_at"):
+        stamp = result.get("ended_at") or f"{result.get('ct_score')}-{result.get('t_score')}-{result.get('map')}"
+        if match.get("last_ended_at") and match["last_ended_at"] == stamp:
             return "这张图的战绩已经录入了"
         a = _find(self.teams, match["team_a"])
         b = _find(self.teams, match["team_b"])
@@ -563,7 +580,7 @@ class Season:
             del maps[idx + 1 :]
         else:
             maps.append(box)
-        match["last_ended_at"] = result.get("ended_at")
+        match["last_ended_at"] = stamp
         match["cs2_session"] = None
         n = idx + 1
         if self._series_over(match):
@@ -626,7 +643,7 @@ class Season:
         if match["played"] or match["team_b"] == "BYE":
             return
         if self.is_yours(match):
-            if self.career and getattr(self.career, "banned", False):
+            if self.career and (getattr(self.career, "banned", False) or getattr(self.career, "retired", False)):
                 self._forfeit_yours(ev, match)
             return
         a = _find(self.teams, match["team_a"])
@@ -687,6 +704,9 @@ class Season:
         return min(days) if days else None
 
     def next_stage(self) -> str:
+        ingested = self.try_ingest_pending_cs2()
+        if ingested:
+            return ingested
         if self.career:
             self.career.dispatch_invites(self)
         self.ensure_live()
@@ -740,6 +760,9 @@ class Season:
 
     def skip_to_next_event(self) -> str:
         """Finish every running event, then land on the next one's opening day."""
+        ingested = self.try_ingest_pending_cs2()
+        if ingested:
+            return ingested
         if self.career:
             self.career.dispatch_invites(self)
         yours = self.your_series()
@@ -1086,7 +1109,7 @@ class Season:
             s.history = blob.get("history", [])
             s.top20 = blob.get("top20", {})
             s.log = blob.get("log", [])
-            apply_roles(s.teams)
+            apply_roles(s.teams, s.era)
             s._calendar_changed = s.align_calendar()
             return s
         except (KeyError, ValueError, TypeError):

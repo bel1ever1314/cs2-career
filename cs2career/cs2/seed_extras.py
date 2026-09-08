@@ -13,13 +13,12 @@ from __future__ import annotations
 from pathlib import Path
 
 from ..paths import data_file
-from ..world import build_teams
 from .launch import settings
 from .profiles import (
     CAREER_MARK,
-    career_people,
     classify_tier,
     native_db_text,
+    people_from_stats,
     profile_block,
     read_db,
 )
@@ -45,7 +44,7 @@ def extras_text(people: list[dict]) -> str:
     lines = [
         f"//---------------------------------------------------------------\n",
         f"// {CAREER_MARK} 2.2\n",
-        "// 90+ ProTop (巨星) · 70+ ProSteady (职业) · <70 RankRifler (Rank)\n",
+        "// 90+ ProTop (巨星) · 60+ ProSteady (职业) · <60 RankRifler (Rank)\n",
     ]
     for person in people:
         lines.append(
@@ -61,7 +60,7 @@ def extras_text(people: list[dict]) -> str:
 
 
 def main() -> None:
-    people = career_people(build_teams("2026", 2026))
+    people = people_from_stats()
     cfg = settings()
     mod = Path(cfg.get("mod_source_path") or "")
     vpk = mod / "overrides" / "High" / "botprofile.vpk"
@@ -76,12 +75,12 @@ def main() -> None:
 
     buckets = {"ProTop": [], "ProSteady": [], "RankRifler": []}
     for person in sorted(missing, key=lambda p: (-float(p.get("ability") or 0), p.get("name") or "")):
-        buckets[classify_tier(person.get("ability") or 70)].append(person)
+        buckets[classify_tier(person.get("ability") or 70, person.get("note") or "", bool(person.get("on_roster")))].append(person)
 
     print(f"原生没有、生涯有：{len(missing)} 人")
     print(f"  巨星 ProTop   ≥90  {len(buckets['ProTop'])}")
-    print(f"  职业 ProSteady ≥70  {len(buckets['ProSteady'])}")
-    print(f"  Rank RankRifler <70  {len(buckets['RankRifler'])}")
+    print(f"  职业 ProSteady ≥60  {len(buckets['ProSteady'])}")
+    print(f"  Rank RankRifler <60  {len(buckets['RankRifler'])}")
     for label, rows in buckets.items():
         if not rows:
             continue

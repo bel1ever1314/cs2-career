@@ -17,7 +17,7 @@ from .. import cs2
 from ..career import Career, skins
 from ..league import Season, reset_season
 from ..paths import logo_dir, static_dir
-from ..world import ERA_META, apply_roles
+from ..world import ERA_META, apply_roles, build_teams
 
 MAX_UPLOAD = 3 * 1024 * 1024
 
@@ -47,16 +47,16 @@ class State:
         if len(self.career.story_queue) != before_stories:
             dirty = True
         before = len(self.career.inbox)
-        if self.career.unsigned and not self.career.banned:
+        if self.career.unsigned and not self.career.over():
             self.career._dispatch_contracts(self.season)
-        elif not self.career.unsigned:
+        elif not self.career.unsigned and not self.career.over():
             self.career.dispatch_invites(self.season)
         if len(self.career.inbox) != before:
             dirty = True
         return dirty
 
     def sync(self) -> None:
-        apply_roles(self.season.teams)
+        apply_roles(self.season.teams, self.season.era)
         you = self.career.my_player(self.season.teams) if self.career.exists else None
         if you:
             self.career.role = you["role"]
@@ -66,6 +66,15 @@ class State:
 
     def payload(self, msg: str = "") -> dict:
         self.sync()
+        ingested = ""
+        try:
+            ingested = self.season.try_ingest_pending_cs2()
+        except Exception:
+            ingested = ""
+        if ingested:
+            self.persist()
+            if not msg:
+                msg = ingested
         return {
             "ok": True,
             "msg": msg,
@@ -143,6 +152,39 @@ class Handler(SimpleHTTPRequestHandler):
         if path == "/api/state":
             self._json(STATE.payload()["state"])
             return
+        if path == "/api/setup":
+            era = (parse_qs(url.query).get("era") or ["2026"])[0]
+            if era not in ERA_META:
+                era = "2026"
+            meta = ERA_META[era]
+            teams = build_teams(era, meta["year"])
+            apply_roles(teams, era)
+            self._json(
+                {
+                    "era": era,
+                    "year": meta["year"],
+                    "teams": [
+                        {
+                            "id": t["id"],
+                            "name": t["name"],
+                            "rank": t.get("world_rank"),
+                            "region": t["region"],
+                            "command": t["command"],
+                            "players": [
+                                {
+                                    "name": p["name"],
+                                    "role": p["role"],
+                                    "ability": p["ability"],
+                                    "age": p["age"],
+                                }
+                                for p in t["players"]
+                            ],
+                        }
+                        for t in teams
+                    ],
+                }
+            )
+            return
         if path == "/api/inspect":
             q = parse_qs(url.query)
             player = (q.get("player") or [""])[0]
@@ -196,6 +238,9 @@ class Handler(SimpleHTTPRequestHandler):
         if getattr(STATE.career, "loan_default_pending", False):
             self._json({**STATE.payload(""), "ok": False, "msg": "先处理俱乐部的最后通牒。"}, 400)
             return
+        if STATE.career.over():
+            self._json({**STATE.payload(""), "ok": False, "msg": "这段生涯已经结束，只能重开。"}, 400)
+            return
         msg = STATE.season.next_stage()
         STATE.persist()
         self._json(STATE.payload(msg))
@@ -203,6 +248,9 @@ class Handler(SimpleHTTPRequestHandler):
     def post_api_skip(self):
         if getattr(STATE.career, "loan_default_pending", False):
             self._json({**STATE.payload(""), "ok": False, "msg": "先处理俱乐部的最后通牒。"}, 400)
+            return
+        if STATE.career.over():
+            self._json({**STATE.payload(""), "ok": False, "msg": "这段生涯已经结束，只能重开。"}, 400)
             return
         msg = STATE.season.skip_to_next_event()
         STATE.persist()
@@ -277,9 +325,16 @@ class Handler(SimpleHTTPRequestHandler):
         STATE.persist()
         self._json(STATE.payload(msg))
 
+    def post_api_retire(self):
+        msg = STATE.career.retire(STATE.season)
+        STATE.persist()
+        self._json(STATE.payload(msg))
+
     def post_api_roles(self):
-        mapping = self._body().get("roles") or {}
-        msg = STATE.career.set_roles(STATE.season, mapping)
+        body = self._body()
+        mapping = body.get("roles") or {}
+        clicked = str(body.get("player") or "")
+        msg = STATE.career.set_roles(STATE.season, mapping, clicked)
         STATE.persist()
         self._json(STATE.payload(msg))
 
@@ -313,7 +368,8 @@ class Handler(SimpleHTTPRequestHandler):
 
     def post_api_series_commit(self):
         body = self._body()
-        msg = STATE.season.commit_cs2_map(body.get("match_id") or "")
+        raw = body.get("result") if isinstance(body.get("result"), dict) else None
+        msg = STATE.season.commit_cs2_map(body.get("match_id") or "", raw)
         STATE.persist()
         self._json(STATE.payload(msg))
 
@@ -327,8 +383,8 @@ class Handler(SimpleHTTPRequestHandler):
         body = self._body()
         team = STATE.career.my_team(STATE.season.teams)
         opp = next((t for t in STATE.season.teams if t["id"] == body.get("opp")), None)
-        if getattr(STATE.career, "banned", False):
-            self._json({"ok": False, "msg": "你已被禁赛，这份档案只能重开。"}, 400)
+        if getattr(STATE.career, "banned", False) or getattr(STATE.career, "retired", False):
+            self._json({"ok": False, "msg": "这段生涯已经结束，只能重开。"}, 400)
             return
         if getattr(STATE.career, "unsigned", False) or not STATE.career.team_id:
             self._json({"ok": False, "msg": "你现在是自由身，先在邮箱接下合同再进训练赛。"}, 400)
@@ -437,6 +493,14 @@ class Handler(SimpleHTTPRequestHandler):
     def post_api_cs2_skins(self):
         try:
             out = cs2.install_skins_mod()
+        except (OSError, ValueError) as exc:
+            self._json({"ok": False, "msg": str(exc), "cs2": cs2.status()}, 400)
+            return
+        self._json({"ok": True, "msg": out["msg"], "cs2": cs2.status()})
+
+    def post_api_cs2_gamedata(self):
+        try:
+            out = cs2.update_skins_gamedata()
         except (OSError, ValueError) as exc:
             self._json({"ok": False, "msg": str(exc), "cs2": cs2.status()}, 400)
             return

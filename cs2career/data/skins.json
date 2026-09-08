@@ -5,28 +5,28 @@
       "name": "Revolution Case",
       "price": 220,
       "key": 160,
-      "drops": ["ak-headshot", "m4-in-n", "awp-duality", "de-sienna", "usp-print", "glock-umbral", "ak-ice", "m4-temukau", "awp-chromatic"]
+      "drops": ["ak-headshot", "m4-in-n", "awp-duality", "de-sienna", "usp-print", "glock-umbral", "ak-ice", "m4-temukau", "awp-chromatic", "knife-butterfly-fade", "gloves-vice", "ak-asiimov"]
     },
     {
       "id": "rec",
       "name": "Recoil Case",
       "price": 180,
       "key": 160,
-      "drops": ["ak-ice", "m4-temukau", "awp-chromatic", "de-print", "usp-ticket", "glock-winter", "ak-slate", "m4-cyber", "awp-mortis"]
+      "drops": ["ak-ice", "m4-temukau", "awp-chromatic", "de-print", "usp-ticket", "glock-winter", "ak-slate", "m4-cyber", "awp-mortis", "knife-butterfly-slaughter", "m4-printstream"]
     },
     {
       "id": "kil",
       "name": "Kilowatt Case",
       "price": 260,
       "key": 180,
-      "drops": ["ak-inheritance", "m4-black-lotus", "awp-chrome", "de-heat", "usp-torque", "glock-pink", "ak-bloodsport", "m4-neo", "knife-karambit-fade"]
+      "drops": ["ak-inheritance", "m4-black-lotus", "awp-chrome", "de-heat", "usp-torque", "glock-pink", "ak-bloodsport", "m4-neo", "knife-karambit-fade", "knife-butterfly-tiger", "usp-kill"]
     },
     {
       "id": "gal",
       "name": "Gallery Case",
       "price": 200,
       "key": 160,
-      "drops": ["ak-slate", "m4-cyber", "awp-mortis", "de-blaze", "usp-orion", "glock-water", "ak-redline", "m4-hot-rod", "gloves-sport-pandora"]
+      "drops": ["ak-slate", "m4-cyber", "awp-mortis", "de-blaze", "usp-orion", "glock-water", "ak-redline", "m4-hot-rod", "gloves-sport-pandora", "knife-butterfly-marble", "gloves-crimson-kimono"]
     }
   ],
   "market": ["ak-redline", "ak-slate", "ak-bloodsport", "m4-hot-rod", "m4-cyber", "awp-asiimov", "awp-chromatic", "de-blaze", "usp-orion", "glock-water", "knife-bayonet-vanilla", "gloves-specialist-fade"],
@@ -62,7 +62,16 @@
     {"id": "glock-water", "name": "Glock-18 | Water Elemental", "weapon": "Glock-18", "slot": "glock", "rarity": "classified", "buy": 1500, "sell": 920, "def": 4, "paint": 353},
     {"id": "knife-karambit-fade", "name": "Karambit | Fade", "weapon": "Karambit", "slot": "knife", "rarity": "extraordinary", "buy": 28000, "sell": 19000, "def": 507, "paint": 38},
     {"id": "knife-bayonet-vanilla", "name": "Bayonet | Vanilla", "weapon": "Bayonet", "slot": "knife", "rarity": "extraordinary", "buy": 9000, "sell": 6200, "def": 500, "paint": 0},
-    {"id": "gloves-sport-pandora", "name": "Sport Gloves | Pandora's Box", "weapon": "Gloves", "slot": "gloves", "rarity": "extraordinary", "buy": 16000, "sell": 11000, "def": 5030, "paint": 10048},
-    {"id": "gloves-specialist-fade", "name": "Specialist Gloves | Fade", "weapon": "Gloves", "slot": "gloves", "rarity": "extraordinary", "buy": 12000, "sell": 8000, "def": 5034, "paint": 10513}
+    {"id": "knife-butterfly-fade", "name": "Butterfly Knife | Fade", "weapon": "Butterfly Knife", "slot": "knife", "rarity": "extraordinary", "buy": 32000, "sell": 22000, "def": 515, "paint": 38},
+    {"id": "knife-butterfly-slaughter", "name": "Butterfly Knife | Slaughter", "weapon": "Butterfly Knife", "slot": "knife", "rarity": "extraordinary", "buy": 26000, "sell": 18000, "def": 515, "paint": 59},
+    {"id": "knife-butterfly-tiger", "name": "Butterfly Knife | Tiger Tooth", "weapon": "Butterfly Knife", "slot": "knife", "rarity": "extraordinary", "buy": 24000, "sell": 16500, "def": 515, "paint": 409},
+    {"id": "knife-butterfly-marble", "name": "Butterfly Knife | Marble Fade", "weapon": "Butterfly Knife", "slot": "knife", "rarity": "extraordinary", "buy": 30000, "sell": 20500, "def": 515, "paint": 413},
+    {"id": "gloves-sport-pandora", "name": "Sport Gloves | Pandora's Box", "weapon": "Gloves", "slot": "gloves", "rarity": "extraordinary", "buy": 16000, "sell": 11000, "def": 5030, "paint": 10037},
+    {"id": "gloves-vice", "name": "Sport Gloves | Vice", "weapon": "Gloves", "slot": "gloves", "rarity": "extraordinary", "buy": 18000, "sell": 12500, "def": 5030, "paint": 10048},
+    {"id": "gloves-crimson-kimono", "name": "Specialist Gloves | Crimson Kimono", "weapon": "Gloves", "slot": "gloves", "rarity": "extraordinary", "buy": 14000, "sell": 9500, "def": 5034, "paint": 10033},
+    {"id": "gloves-specialist-fade", "name": "Specialist Gloves | Fade", "weapon": "Gloves", "slot": "gloves", "rarity": "extraordinary", "buy": 12000, "sell": 8000, "def": 5034, "paint": 10063},
+    {"id": "ak-asiimov", "name": "AK-47 | Asiimov", "weapon": "AK-47", "slot": "ak47", "rarity": "covert", "buy": 7200, "sell": 4600, "def": 7, "paint": 801},
+    {"id": "m4-printstream", "name": "M4A1-S | Printstream", "weapon": "M4A1-S", "slot": "m4a1", "rarity": "covert", "buy": 6800, "sell": 4300, "def": 60, "paint": 984},
+    {"id": "usp-kill", "name": "USP-S | Kill Confirmed", "weapon": "USP-S", "slot": "usp", "rarity": "covert", "buy": 5400, "sell": 3400, "def": 61, "paint": 504}
   ]
 }

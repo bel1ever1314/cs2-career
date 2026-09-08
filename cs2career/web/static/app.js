@@ -7,16 +7,20 @@ let MATCH = null;         // focused match id
 let DETAIL = null;        // cached match detail
 let PLAY_TIMER = null;
 let SERIES_TIMER = null;
+let CS2_POLL_ID = "";
 let SERIES_RESULT = null;
+let SERIES_BEST = null;
 let SERIES_SIDE = "ct";
 let SERIES_CS2 = null;
 let SERIES_TRIED = "";
+let SERIES_COMMIT_ERR = "";
 let DRAFT = { era: "2026", mode: "join", role: "rifle", team_id: "", replace: "", region: "AS", logo: "" };
+let SETUP = { era: "", teams: null };
 let SKIN_UI = { weapon: "all", sort: "rarity" };
 let UNBOX_NEXT = false;
 let UNBOX = null;
 
-const ROLE = { awp: "主狙", igl: "指挥", entry: "突破手", lurk: "自由人", support: "辅助", rifle: "步枪手" };
+const ROLE = { awp: "主狙", igl: "指挥", entry: "突破手", lurk: "自由人", rifle: "步枪手" };
 const MAPS = {
   dust2: "Dust2", mirage: "Mirage", inferno: "Inferno", nuke: "Nuke",
   ancient: "Ancient", anubis: "Anubis", overpass: "Overpass", train: "Train",
@@ -101,6 +105,7 @@ function adopt(state) {
   TEAMS = {};
   for (const t of S.teams || []) TEAMS[t.name] = t;
   if (!FOCUS || !S.events.some((e) => e.id === FOCUS)) FOCUS = defaultEvent();
+  ensureCs2AutoIngest();
 }
 
 function defaultEvent() {
@@ -131,8 +136,8 @@ const badge = (kind, text) => `<span class="badge ${kind}">${esc(text)}</span>`;
 const roleBadge = (role) => badge(role || "rifle", ROLE[role] || role || "");
 
 const AXIS = {
-  entry: "突破", trade: "补枪", nade: "道具", clutch: "残局",
-  aim: "枪法", open: "开战", move: "身法", command: "指挥",
+  firepower: "火力", entrying: "突破", trading: "补枪", opening: "首杀",
+  clutching: "残局", sniping: "狙击", utility: "道具", command: "指挥",
 };
 const MAIL_KIND = { invite: "邀请", prize: "奖金", sponsor: "赞助", qualify: "出线", ops: "经营", whisper: "来信", discipline: "纪律", contract: "合同" };
 const RARITY = { milspec: "军规", restricted: "受限", classified: "保密", covert: "隐秘", extraordinary: "非凡" };
@@ -169,10 +174,11 @@ function axisPanel(stats, opts = {}) {
   let h = `<div class="axis-grid">`;
   for (const k of axisKeys()) {
     const v = Math.round(Number(stats?.[k] ?? 0));
+    const canSpend = spend && v < 100;
     h += `<div class="axis-row"><span>${esc(labels[k] || k)}</span>
       <div class="bar"><i style="width:${Math.min(100, v)}%"></i></div>
       <b>${v || "—"}</b>
-      ${spend ? `<button class="btn sm" data-axis="${k}">+</button>` : ""}</div>`;
+      ${canSpend ? `<button class="btn sm" data-axis="${k}">+</button>` : ""}</div>`;
   }
   return h + `</div>`;
 }
@@ -281,7 +287,7 @@ function paintInspect() {
   } else {
     inner += `<div class="page-head" style="margin-bottom:12px">
       <div><h2>${esc(row.name)}</h2>
-      <span class="hint">${ROLE[row.role] || row.role || ""} · ${row.team ? esc(row.team) : "自由人"} · 能力 ${row.ability != null ? Math.round(row.ability) : "—"}</span></div></div>`;
+      <span class="hint">${ROLE[row.role] || row.role || ""} · ${row.team ? esc(row.team) : "自由人"} · 能力 ${row.ability != null ? Math.round(row.ability) : "—"} · ${row.age != null ? row.age + "岁" : ""}${row.birthday ? " · " + esc(row.birthday) : ""}</span></div></div>`;
     inner += `<div class="card" style="margin-bottom:12px"><h3>个人能力</h3>${axisPanel(row.stats)}</div>`;
     inner += honoursMedals(row.honours) + honoursLists(row.honours);
   }
@@ -366,8 +372,8 @@ function renderShell() {
   const has = S.career?.exists;
   $("nav-career").style.display = has ? "" : "none";
   document.querySelectorAll("[data-view]").forEach((b) => b.classList.toggle("on", b.dataset.view === VIEW));
-  $("btn-next").disabled = !has || !!S.career?.banned || !!S.career?.loan_default_pending;
-  $("btn-skip").disabled = !has || !!S.career?.banned || !!S.career?.loan_default_pending;
+  $("btn-next").disabled = !has || !!S.career?.banned || !!S.career?.retired || !!S.career?.loan_default_pending;
+  $("btn-skip").disabled = !has || !!S.career?.banned || !!S.career?.retired || !!S.career?.loan_default_pending;
   const dot = $("mail-dot");
   if (dot) {
     const n = S.career?.unread || 0;
@@ -393,7 +399,7 @@ function renderShell() {
     </div>
     <button class="btn ghost sm" id="foot-reset">重开生涯</button>`;
   $("foot-reset").onclick = () => {
-    if (confirm(c.banned ? "这份档案已经结束。清空并重开？" : "清空当前生涯和赛季？")) post("/api/reset");
+    if (confirm(c.banned || c.retired ? "这份档案已经结束。清空并重开？" : "清空当前生涯和赛季？")) post("/api/reset");
   };
 }
 
@@ -423,9 +429,24 @@ function render() {
 
 /* ----------------------------------------------------------------- setup */
 
+async function loadSetupTeams(era) {
+  if (SETUP.era === era && SETUP.teams) return SETUP.teams;
+  const data = await get(`/api/setup?era=${encodeURIComponent(era)}`);
+  SETUP = { era, teams: data.teams || [] };
+  return SETUP.teams;
+}
+
 function renderSetup() {
   const eras = S.career.eras || {};
-  const teams = [...(S.teams || [])].sort((a, b) => (a.rank || 99) - (b.rank || 99));
+  if (SETUP.era !== DRAFT.era) {
+    loadSetupTeams(DRAFT.era).then(() => { if (VIEW === "setup") renderSetup(); }).catch(() => {});
+  }
+  const teams = [...(SETUP.era === DRAFT.era && SETUP.teams ? SETUP.teams : [])]
+    .sort((a, b) => (a.rank || 99) - (b.rank || 99));
+  if (!teams.length) {
+    $("view-setup").innerHTML = `<div class="page-head"><h2>开始生涯</h2></div><p class="hint">正在读取 ${esc(DRAFT.era)} 的名单…</p>`;
+    return;
+  }
   const picked = teams.find((t) => t.id === DRAFT.team_id) || teams[0];
   if (picked && !DRAFT.team_id) DRAFT.team_id = picked.id;
 
@@ -473,6 +494,7 @@ function renderSetup() {
   } else if (picked) {
     h += `<div class="row" style="margin-bottom:10px">${crest(picked.name, 38)}
       <div><b style="font-size:15px">${esc(picked.name)}</b><br><small class="hint">#${picked.rank} · ${REGION[picked.region]} · 赛训 ${picked.command}</small></div></div>
+      <p class="hint" style="margin:0 0 10px">这是 ${esc(DRAFT.era)} 的名单，和别的年代可能不同。</p>
       <table><tbody>${(picked.players || [])
         .map((p) => `<tr><td>${esc(p.name)}</td><td>${roleBadge(p.role)}</td><td class="num">${Math.round(p.ability)}</td><td class="num">${p.age}岁</td></tr>`)
         .join("")}</tbody></table>`;
@@ -481,14 +503,29 @@ function renderSetup() {
 
   $("view-setup").innerHTML = h;
 
-  document.querySelectorAll("[data-era]").forEach((b) => (b.onclick = () => { DRAFT.era = b.dataset.era; renderSetup(); }));
+  document.querySelectorAll("[data-era]").forEach((b) => (b.onclick = () => {
+    DRAFT.era = b.dataset.era;
+    DRAFT.replace = "";
+    SETUP = { era: "", teams: null };
+    renderSetup();
+  }));
   document.querySelectorAll("[data-mode]").forEach((b) => (b.onclick = () => { DRAFT.mode = b.dataset.mode; renderSetup(); }));
   document.querySelectorAll("[data-role]").forEach((b) => (b.onclick = () => { DRAFT.role = b.dataset.role; renderSetup(); }));
 
   const teamSel = $("in-team");
   if (teamSel) teamSel.onchange = () => { DRAFT.team_id = teamSel.value; DRAFT.replace = ""; renderSetup(); };
   const repSel = $("in-replace");
-  if (repSel) repSel.onchange = () => { DRAFT.replace = repSel.value; };
+  if (repSel) {
+    if (!DRAFT.replace) DRAFT.replace = repSel.value;
+    repSel.onchange = () => {
+      DRAFT.replace = repSel.value;
+      const row = (picked?.players || []).find((p) => p.name === DRAFT.replace);
+      if (row?.role) {
+        DRAFT.role = row.role;
+        document.querySelectorAll("[data-role]").forEach((b) => b.classList.toggle("on", b.dataset.role === DRAFT.role));
+      }
+    };
+  }
   const regSel = $("in-region");
   if (regSel) regSel.onchange = () => { DRAFT.region = regSel.value; };
   const logo = $("in-logo");
@@ -537,9 +574,10 @@ function renderHome() {
   let h = `<div class="page-head"><h2>${esc(c.unsigned ? "自由市场" : c.team_name)}</h2>
     <span class="hint">${S.year} 赛季 · ${esc(c.era)} ${esc((c.eras || {})[c.era]?.title || "")}</span></div>`;
 
-  if (c.banned) {
-    h += `<div class="card" style="margin-bottom:12px;border-color:#6a2a2a"><h3>已被禁赛</h3>
-      <p class="hint">赛事方暂停了你的参赛资格。这份档案到此为止，只能重开生涯。</p></div>`;
+  if (c.banned || c.retired) {
+    const end = c.ending || {};
+    h += `<div class="card" style="margin-bottom:12px;border-color:#6a2a2a"><h3>${esc(end.title || (c.retired ? "生涯已结束" : "已被禁赛"))}</h3>
+      <p class="hint" style="white-space:pre-wrap">${esc(end.text || "这份档案到此为止，只能重开生涯。")}</p></div>`;
   } else if (c.unsigned) {
     h += `<div class="card" style="margin-bottom:12px"><h3>你目前是自由身</h3>
       <p class="hint">不能打官方赛，也不能进训练赛。推日历等邮箱里的入队合同，皮肤市场仍可用。</p>
@@ -547,7 +585,7 @@ function renderHome() {
   }
 
   const ym = S.your_match;
-  if (ym?.match && !c.banned && !c.unsigned) {
+  if (ym?.match && !c.banned && !c.retired && !c.unsigned) {
     const pending = ym.match.pending_map;
     const n = (ym.match.maps_done || 0) + 1;
     h += `<div class="card live-up" style="margin-bottom:12px"><div class="row" style="justify-content:space-between">
@@ -645,13 +683,13 @@ function renderSquad() {
     <tr><th>选手</th><th>位置</th><th class="num">能力</th><th class="num">指挥</th><th class="num">状态</th><th class="num">年龄</th></tr></thead><tbody>`;
   for (const p of [...mine.players].sort((a, b) => b.ability - a.ability)) {
     h += `<tr class="${isMe(p.name) ? "me" : ""}"><td>${plink(p.name)}${p.you ? " ★" : ""}</td>
-      <td><select class="role-sel" data-role-name="${esc(p.name)}">${Object.keys(ROLE).map((k) =>
+      <td><select class="role-sel" data-role-name="${esc(p.name)}" data-prev="${p.role}">${Object.keys(ROLE).map((k) =>
         `<option value="${k}" ${p.role === k ? "selected" : ""}>${ROLE[k]}</option>`).join("")}</select></td>
       <td class="num">${Math.round(p.ability)}</td><td class="num">${Math.round(p.command || 0)}</td>
       <td class="num">${Math.round(p.form)}</td><td class="num">${p.age}</td></tr>`;
   }
   h += `</tbody></table>
-    <p class="hint" style="padding:10px 16px 14px">必须一名指挥、一名主狙。改位置会按公式重算个人能力，赛训取新 IGL 的指挥。</p></div>`;
+    <p class="hint" style="padding:10px 16px 14px">必须一名指挥、一名主狙。点主狙或指挥会和原来的人对调，不用先把别人改掉。</p></div>`;
 
   h += `<div class="cards">
     <div class="card"><h3>队伍</h3>
@@ -674,8 +712,8 @@ function renderSquad() {
   if (you) {
     const st = you.stats || {};
     h += `<div class="card" style="margin-top:12px"><h3>你的个人能力</h3>
-      <p class="hint" style="margin:-4px 0 10px">七个枪维按位置权重合成个人能力；指挥单独结算。参赛 +1 点，进决赛再 +1，年底清零。</p>
-      ${axisPanel(st, { spend: true })}</div>`;
+      <p class="hint" style="margin:-4px 0 10px">七个枪维按位置权重合成个人能力；指挥单独结算。参赛 +1 点，冠军再 +1，年底清零。</p>
+      ${axisPanel(st, { spend: !c.banned && !c.retired })}</div>`;
   }
 
   $("view-squad").innerHTML = h;
@@ -683,9 +721,19 @@ function renderSquad() {
   bindAxisSpend($("view-squad"));
   document.querySelectorAll("[data-role-name]").forEach((sel) => {
     sel.onchange = () => {
+      const name = sel.dataset.roleName;
+      const next = sel.value;
+      const prev = sel.dataset.prev || "rifle";
       const roles = {};
-      document.querySelectorAll("[data-role-name]").forEach((x) => { roles[x.dataset.roleName] = x.value; });
-      post("/api/roles", { roles });
+      document.querySelectorAll("[data-role-name]").forEach((x) => {
+        roles[x.dataset.roleName] = x.value;
+      });
+      if (next === "awp" || next === "igl") {
+        document.querySelectorAll("[data-role-name]").forEach((x) => {
+          if (x !== sel && x.value === next) roles[x.dataset.roleName] = prev;
+        });
+      }
+      post("/api/roles", { roles, player: name });
     };
   });
   const up = $("sq-logo");
@@ -711,12 +759,33 @@ function renderHonours() {
 
   let h = `<div class="page-head"><h2>${esc(c.player_name)} 的荣誉墙</h2>
     <span class="hint">${ROLE[c.role] || c.role} · ${esc(c.team_name)} · 属性点 ${c.attr_points || 0}</span></div>`;
+  if (c.ending?.text) {
+    h += `<div class="card" style="margin-bottom:12px;border-color:#6a2a2a"><h3>${esc(c.ending.title || "结局")}</h3>
+      <p class="hint" style="white-space:pre-wrap">${esc(c.ending.text)}</p>
+      <div class="row"><button class="btn" id="h-reset">重开生涯</button></div></div>`;
+  }
   h += `<div class="card" style="margin-bottom:12px"><h3>个人能力</h3>
-    <p class="hint" style="margin:-4px 0 10px">七个枪维按位置权重合成个人能力；指挥单独算。没用完的点每年清零。</p>
-    ${axisPanel(st, { spend: true })}</div>`;
+    <p class="hint" style="margin:-4px 0 10px">七个枪维按位置权重合成个人能力；指挥单独算。没用完的点每年清零。点满 100 不能再加。</p>
+    ${axisPanel(st, { spend: !c.over && !c.banned && !c.retired })}</div>`;
   h += honoursMedals(hon) + honoursLists(hon);
+  if (!c.over && !c.banned && !c.retired) {
+    h += `<div class="card" style="margin-top:12px"><h3>退役</h3>
+      <p class="hint">结束这段生涯。会按你的荣誉写下结局，这份档案只能重开。</p>
+      <button class="btn" id="h-retire">退役</button></div>`;
+  }
   $("view-honours").innerHTML = h;
   bindAxisSpend($("view-honours"));
+  if ($("h-retire")) {
+    $("h-retire").onclick = () => {
+      if (!confirm("确定退役？这段生涯会结束，只能重开。")) return;
+      post("/api/retire");
+    };
+  }
+  if ($("h-reset")) {
+    $("h-reset").onclick = () => {
+      if (confirm("清空当前生涯和赛季？")) post("/api/reset");
+    };
+  }
 }
 
 /* ----------------------------------------------------------------- locker / skins */
@@ -1352,8 +1421,8 @@ function renderMatch() {
     h += `</div></div>`;
   });
 
-  if (live && S.career?.banned) {
-    h += `<div class="card" style="margin-top:16px"><p class="hint">你已被禁赛，无法再上场。这份档案只能重开。</p></div>`;
+  if (live && (S.career?.banned || S.career?.retired)) {
+    h += `<div class="card" style="margin-top:16px"><p class="hint">这段生涯已经结束，无法再上场。这份档案只能重开。</p></div>`;
   } else if (live) {
     if (!SERIES_CS2) {
       get("/api/cs2/status").then((x) => { SERIES_CS2 = x; if (VIEW === "match") renderMatch(); }).catch(() => { SERIES_CS2 = { ready: false }; });
@@ -1377,7 +1446,7 @@ function renderLivePanel(m) {
   const n = (m.maps || []).length + 1;
   const pending = m.pending_map;
   const session = m.cs2_session;
-  const res = SERIES_RESULT;
+  const res = keepBestResult(SERIES_RESULT);
   const cfg = SERIES_CS2 || {};
   let h = `<div class="card live-up play-panel" style="margin-top:16px">`;
   const blockedLaunch = cfg.cs2_live && cfg.difficulty_pending;
@@ -1401,8 +1470,11 @@ function renderLivePanel(m) {
     ${session ? `<button class="btn ghost" id="s-commit">录入战绩</button>` : ""}
   </div>`;
   h += `<p class="hint">${session
-    ? "闪退或中途退出后可以重开同一张图覆盖。不想打了就跳过剩余。"
+    ? "比分到 13 会自动录入。退出后如果变成 0:0，点录入会用刚才看到的那份比分和战绩。"
     : "自己打要用 CS2 和人机增强；没装也可以按角色数值结算。"}</p>`;
+  if (SERIES_COMMIT_ERR) {
+    h += `<p class="hint" style="color:#c45">${esc(SERIES_COMMIT_ERR)}</p>`;
+  }
 
   if (res && res.status && res.status !== "none") {
     const final = res.status === "finished";
@@ -1421,6 +1493,7 @@ function bindLivePanel(m) {
     $("s-go").onclick = async () => {
       SERIES_TRIED = "";
       SERIES_RESULT = null;
+      SERIES_BEST = null;
       await post("/api/series/launch", { match_id: m.id, side: SERIES_SIDE });
       startSeriesPoll(m.id);
     };
@@ -1433,7 +1506,11 @@ function bindLivePanel(m) {
     };
   }
   if ($("s-commit")) {
-    $("s-commit").onclick = () => post("/api/series/commit", { match_id: m.id });
+    $("s-commit").onclick = async () => {
+      const out = await post("/api/series/commit", { match_id: m.id, result: SERIES_BEST || SERIES_RESULT });
+      SERIES_COMMIT_ERR = out.ok === false ? (out.msg || "战绩没有录上") : "";
+      if (VIEW === "match") renderMatch();
+    };
   }
 }
 
@@ -1442,23 +1519,66 @@ function stopSeriesPoll() {
     clearInterval(SERIES_TIMER);
     SERIES_TIMER = null;
   }
+  CS2_POLL_ID = "";
+}
+
+function decidedResult(res) {
+  if (!res) return false;
+  const ct = Number(res.ct_score || 0);
+  const t = Number(res.t_score || 0);
+  return ct !== t && Math.max(ct, t) >= 13;
+}
+function resultQuality(res) {
+  if (!res || res.status === "none") return -1;
+  const map = String(res.map || "").toLowerCase();
+  const empty = !map || map === "<empty>" || map === "empty";
+  const ct = Number(res.ct_score || 0);
+  const t = Number(res.t_score || 0);
+  const kills = (res.players || []).reduce((s, p) => s + Number(p.kills || 0), 0);
+  return (ct + t) * 100000 + kills * 10 + (decidedResult(res) ? 5 : 0) + (empty ? -1000 : 0);
+}
+function keepBestResult(res) {
+  if (resultQuality(res) > resultQuality(SERIES_BEST)) SERIES_BEST = res;
+  return SERIES_BEST && resultQuality(SERIES_BEST) > resultQuality(res) ? SERIES_BEST : res;
+}
+function stampOf(res) {
+  return res?.ended_at || (decidedResult(res) ? `decided-${res.ct_score}-${res.t_score}-${res.map || ""}` : "");
+}
+
+function sessionMatchId() {
+  return S?.your_match?.match?.session ? S.your_match.match.id : "";
+}
+
+function ensureCs2AutoIngest() {
+  const id = sessionMatchId();
+  if (!id) return;
+  if (SERIES_TIMER && CS2_POLL_ID === id) return;
+  startSeriesPoll(id);
 }
 
 function startSeriesPoll(matchId) {
   stopSeriesPoll();
+  CS2_POLL_ID = matchId || sessionMatchId();
   const tick = async () => {
-    if (VIEW !== "match" || MATCH !== matchId) return;
+    const id = matchId || sessionMatchId();
+    if (!id) {
+      stopSeriesPoll();
+      return;
+    }
     try {
-      const res = await get("/api/play/result");
+      const res = keepBestResult(await get("/api/play/result"));
       const prev = JSON.stringify(SERIES_RESULT);
       SERIES_RESULT = res;
-      if (res.status === "finished" && res.ended_at && res.ended_at !== SERIES_TRIED) {
-        SERIES_TRIED = res.ended_at;
-        const out = await post("/api/series/commit", { match_id: matchId });
+      if ((res.status === "finished" || decidedResult(res)) && stampOf(res) && stampOf(res) !== SERIES_TRIED) {
+        SERIES_TRIED = stampOf(res);
+        const out = await post("/api/series/commit", { match_id: id, result: SERIES_BEST || res });
         if (out.ok !== false) {
+          SERIES_COMMIT_ERR = "";
+          SERIES_BEST = null;
           SERIES_RESULT = { status: "none" };
           return;
         }
+        SERIES_COMMIT_ERR = out.msg || "战绩没有录上";
       }
       if (JSON.stringify(SERIES_RESULT) !== prev && VIEW === "match") renderMatch();
     } catch { /* game not writing yet */ }
@@ -1552,11 +1672,11 @@ function botSettingsCard(cfg) {
     const pending = cfg.difficulty_pending;
     const liveNote = live
       ? live === cfg.difficulty
-        ? `游戏目录当前档是 ${DIFF_LABEL[live] || live}。改档后要点「进入训练赛 / 自己打」才会拷过去；CS2 开着改了档必须先退。`
-        : `已选 ${DIFF_LABEL[cfg.difficulty] || cfg.difficulty}，游戏里还是 ${DIFF_LABEL[live] || live}。关 CS2 后再进局才会换档。`
+        ? `游戏目录当前档是 ${DIFF_LABEL[live] || live}。关着 CS2 时改档会立刻拷过去；游戏开着只能改瞄准/道具，难度要先退。`
+        : `已选 ${DIFF_LABEL[cfg.difficulty] || cfg.difficulty}，游戏里还是 ${DIFF_LABEL[live] || live}。请完全退出 CS2，再改一次难度。`
       : pending
-        ? "改档后关着 CS2 再进局才会写入。"
-        : "进局时把对应难度整文件拷到正在用的 botprofile。";
+        ? "改档后请先完全退出 CS2。"
+        : "简单/中等/极难是三份 botprofile。关着 CS2 保存就会拷到正在用的那份。";
   return `<div class="card" style="margin-bottom:12px"><h3>机器人设置</h3>
     <div class="form" style="max-width:none"><div class="row">
       ${pickRow("b-diff", "难度", diffs, cfg.difficulty, DIFF_LABEL)}
@@ -1564,7 +1684,7 @@ function botSettingsCard(cfg) {
       ${pickRow("b-nades", "道具预设", nades, cfg.bot_nades, NADE_LABEL)}
       ${pickRow("b-id", "队友对手身份", ids, cfg.bot_identity, ID_LABEL)}
     </div>
-    <p class="hint">简单 / 中等 / 极难是游戏目录里三份 botprofile，进局时整文件拷贝，不会重打包。瞄准和道具每局重设。${esc(liveNote)}</p>
+    <p class="hint">聊天框第二回合的 Medium/High 是人机增强按 botprofile 文件比对的。瞄准和道具每局重设，即使难度文件没换，手感也会变。${esc(liveNote)}</p>
     </div></div>`;
 }
 
@@ -1595,9 +1715,9 @@ function lineup(name, highlight) {
 async function renderPlay() {
   const c = S.career;
   if (!c.exists) { $("view-play").innerHTML = `<p class="empty">先创建生涯</p>`; return; }
-  if (c.banned) {
+  if (c.banned || c.retired) {
     $("view-play").innerHTML = `<div class="page-head"><h2>训练赛</h2></div>
-      <div class="card"><p class="hint">你已被禁赛，这份档案只能重开。</p></div>`;
+      <div class="card"><p class="hint">${esc(c.ending?.text || "这段生涯已经结束，这份档案只能重开。")}</p></div>`;
     return;
   }
   if (c.unsigned) {
@@ -1625,7 +1745,7 @@ async function renderPlay() {
     h += `<div class="grid2">
         <div class="stat"><b>${Math.round(you.ability)}</b><small>能力</small></div>
         <div class="stat"><b>${Math.round(you.form)}</b><small>状态</small></div>
-        <div class="stat"><b>${you.age}</b><small>年龄</small></div>
+        <div class="stat"><b>${you.age}</b><small>年龄${you.birthday ? " · " + esc(you.birthday) : ""}</small></div>
         <div class="stat"><b>${trained ? "今天已加成" : "打完加心态"}</b><small>训练</small></div>
       </div>
       <div class="bar" style="margin-top:12px"><i style="width:${Math.min(100, you.ability)}%"></i></div>
@@ -1645,6 +1765,7 @@ async function renderPlay() {
       <button class="btn primary" id="p-install" ${cfg.ready && !live ? "" : "disabled"}>把人机增强装进游戏</button>
       <button class="btn" id="p-sync" ${cfg.levels_ok && !live ? "" : "disabled"}>同步人机名单</button>
       <button class="btn" id="p-skins-install" ${cfg.mod_installed && (cfg.skins_ok || cfg.skins_installed) && !live ? "" : "disabled"}>把换肤插件装进游戏</button>
+      <button class="btn ghost" id="p-gamedata">更新换肤签名</button>
     </div>
     <p class="hint">${
       live
@@ -1741,6 +1862,15 @@ async function renderPlay() {
       e.target.disabled = true;
       e.target.textContent = "复制中…";
       await post("/api/cs2/skins", {});
+      PLAY.cs2 = null;
+      renderPlay();
+    };
+  }
+  if ($("p-gamedata")) {
+    $("p-gamedata").onclick = async (e) => {
+      e.target.disabled = true;
+      e.target.textContent = "更新中…";
+      await post("/api/cs2/gamedata", {});
       PLAY.cs2 = null;
       renderPlay();
     };

@@ -15,12 +15,21 @@ import struct
 import subprocess
 import sys
 import time
+import urllib.error
+import urllib.request
+import uuid
 from pathlib import Path
 
-from ..paths import frozen, save_file, vendor_root
+from ..paths import frozen, save_file, save_root, vendor_root
 from .profiles import build_profile_vpk, seed_mod_profiles
+from .result import pick_better_result, result_quality
 
 SETTINGS_PATH = save_file("cs2.json")
+
+SKINS_GAMEDATA_URLS = (
+    "https://raw.githubusercontent.com/ianlucas/cs2-css-inventory-simulator/main/gamedata/inventory-simulator.json",
+    "https://raw.githubusercontent.com/ianlucas/cs2-inventory-simulator-plugin/main/gamedata/inventory-simulator.json",
+)
 
 DEFAULTS = {
     "steam_exe": "",
@@ -257,7 +266,14 @@ def save_settings(patch: dict) -> dict:
             cfg[key] = val
     _clean(cfg)
     SETTINGS_PATH.write_text(json.dumps(cfg, indent=2, ensure_ascii=False), encoding="utf-8")
-    return cfg
+    csgo = Path(cfg.get("csgo_path") or "")
+    want = cfg.get("difficulty") or "Medium"
+    if is_csgo_dir(csgo) and game_levels_ok(csgo) and not cs2_is_live():
+        try:
+            apply_live_difficulty(csgo, want)
+        except OSError:
+            pass
+    return settings()
 
 
 def persist_settings(cfg: dict) -> dict:
@@ -348,14 +364,69 @@ def _skins_plugin_dir(root: Path) -> Path | None:
     return None
 
 
+def skins_gamedata_override() -> Path:
+    path = save_root() / "skins_gamedata" / "inventory-simulator.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path
+
+
 def _skins_gamedata(root: Path) -> Path | None:
+    override = skins_gamedata_override()
+    if override.is_file():
+        return override
     for cand in (
         root / "gamedata" / "inventory-simulator.json",
         root / "addons" / "counterstrikesharp" / "gamedata" / "inventory-simulator.json",
     ):
         if cand.is_file():
             return cand
+    bundled = vendor_root() / "InventorySimulator" / "gamedata" / "inventory-simulator.json"
+    if bundled.is_file():
+        return bundled
     return None
+
+
+def update_skins_gamedata() -> dict:
+    """Pull the author's latest function signatures. Does not replace the DLL."""
+    dest = skins_gamedata_override()
+    last_err: Exception | None = None
+    blob = b""
+    for url in SKINS_GAMEDATA_URLS:
+        try:
+            with urllib.request.urlopen(url, timeout=25) as resp:
+                blob = resp.read()
+            json.loads(blob.decode("utf-8"))
+            last_err = None
+            break
+        except (urllib.error.URLError, TimeoutError, ValueError, OSError) as exc:
+            last_err = exc
+            blob = b""
+    if not blob:
+        if dest.is_file():
+            return {
+                "ok": True,
+                "msg": f"下载失败（{last_err}）。仍在用 save\\skins_gamedata 里已有的 json。",
+            }
+        raise ValueError(
+            f"下载换肤签名失败：{last_err}。也可以把作者发的 inventory-simulator.json 放进 save\\skins_gamedata。"
+        )
+    dest.write_bytes(blob)
+    copied = False
+    try:
+        csgo = Path(settings().get("csgo_path") or "")
+        if csgo.is_dir():
+            gdest = csgo / "addons" / "counterstrikesharp" / "gamedata" / "inventory-simulator.json"
+            gdest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(dest, gdest)
+            copied = True
+    except OSError:
+        copied = False
+    msg = "已保存最新换肤签名。"
+    if copied:
+        msg += "并写入了游戏目录。完全退出 CS2 再开才会生效。"
+    else:
+        msg += "下次点「把换肤插件装进游戏」时会用这份。"
+    return {"ok": True, "msg": msg}
 
 
 def skins_wanted(career=None) -> bool:
@@ -681,6 +752,7 @@ def build_request(my_team: dict, opp: dict, player_name: str, map_code: str, sid
         "player": player_name,
         # Always ask for a full 5v5 so the game backfills any name we dropped.
         "quota": 9,
+        "nonce": uuid.uuid4().hex,
     }
 
 
@@ -688,6 +760,10 @@ def write_career_cfg(csgo: Path, match: dict, opts: dict | None = None) -> None:
     opts = _clean(dict(opts or DEFAULTS))
     cfg_dir = csgo / "cfg"
     cfg_dir.mkdir(parents=True, exist_ok=True)
+    total = match.get("quota") or len(match["ct"]["players"]) + len(match["t"]["players"])
+    # Safe to re-exec at halftime. Do NOT put warmup / bot_kick / bot_add /
+    # mp_human_team here: competitive cfg runs again at the side swap, and
+    # those commands yank everyone back to the opening sides.
     lines = [
         f"bh_identity_mode {opts['bot_identity']}",
         "mp_autoteambalance 0",
@@ -695,34 +771,18 @@ def write_career_cfg(csgo: Path, match: dict, opts: dict | None = None) -> None:
         "mp_autokick 0",
         "bot_auto_vacate 0",
         "bot_join_after_player 0",
-        f"mp_human_team {match['human_team']}",
-        # Kicking bots during a live round hands the other side a free round,
-        # so drop into warmup first and do the whole swap in there.
-        f"mp_warmuptime {WARMUP_SECONDS}",
-        f"mp_warmuptime_all_players_connected {WARMUP_SECONDS - 10}",
-        "mp_warmup_pausetimer 0",
-        "mp_warmup_start",
-        "bot_kick",
         "bot_quota_mode normal",
-        "bot_quota 0",
-    ]
-    for name in match["ct"]["players"]:
-        lines.append(f'bot_add_ct "{name}"')
-    for name in match["t"]["players"]:
-        lines.append(f'bot_add_t "{name}"')
-    total = match.get("quota") or len(match["ct"]["players"]) + len(match["t"]["players"])
-    lines += [
         f"bot_quota {total}",
-        "bot_quota_mode normal",
         f"mp_teamname_1 \"{match['ct']['name']}\"",
         f"mp_teamname_2 \"{match['t']['name']}\"",
         f"mp_teamlogo_1 {match['ct']['logo']}",
         f"mp_teamlogo_2 {match['t']['logo']}",
-        # Plugin presets reset on every launch, so restate them here.
         f"bot_aim {opts['bot_aim']}",
         f"bot_nades {opts['bot_nades']}",
     ]
-    (cfg_dir / "career_quick.cfg").write_text("\n".join(lines) + "\n", encoding="ascii")
+    body = "\n".join(lines) + "\n"
+    (cfg_dir / "career_rules.cfg").write_text(body, encoding="ascii")
+    (cfg_dir / "career_quick.cfg").write_text(body, encoding="ascii")
 
 
 def invsim_lines(steam_id: str = "") -> list[str]:
@@ -790,8 +850,9 @@ def _hook_cfg(path: Path) -> None:
         return
     text = path.read_text(encoding="utf-8", errors="ignore")
     body = "\n".join(_neutralise_quota(line) for line in text.splitlines())
-    if "exec career_quick.cfg" not in body:
-        body = body.rstrip() + "\nexec career_quick.cfg"
+    body = body.replace("exec career_quick.cfg", "exec career_rules.cfg")
+    if "exec career_rules.cfg" not in body:
+        body = body.rstrip() + "\nexec career_rules.cfg"
     path.write_text(body + "\n", encoding="utf-8")
 
 
@@ -830,8 +891,11 @@ def _copy_career_match(csgo: Path, mod_source: Path | None = None) -> int:
     dst.mkdir(parents=True, exist_ok=True)
     for name in ("CareerMatch.dll", "CareerMatch.deps.json"):
         if (src / name).is_file():
-            shutil.copy2(src / name, dst / name)
-            copied += 1
+            try:
+                shutil.copy2(src / name, dst / name)
+                copied += 1
+            except OSError:
+                pass
     return copied
 
 
@@ -886,6 +950,9 @@ def prepare_game(
         )
     if not cs2_is_live():
         apply_live_difficulty(csgo, want)
+    cfg = settings()
+    match["difficulty"] = want
+    match["applied_difficulty"] = cfg.get("applied_difficulty") or want
     try:
         n = install_skins_plugin(csgo, career)
         if skins_wanted(career) and n:
@@ -902,9 +969,10 @@ def prepare_game(
     (dst / "match_request.json").write_text(
         json.dumps(match, indent=2, ensure_ascii=False), encoding="utf-8"
     )
-    (dst / "match_result.json").write_text(
-        json.dumps(blank_result(match["map"]), indent=2, ensure_ascii=False), encoding="utf-8"
-    )
+    blank = json.dumps(blank_result(match["map"]), indent=2, ensure_ascii=False)
+    (dst / "match_result.json").write_text(blank, encoding="utf-8")
+    (dst / "match_result.best.json").write_text(blank, encoding="utf-8")
+    save_file("cs2_last.json").write_text(blank, encoding="utf-8")
     write_career_cfg(csgo, match, opts)
     hook_competitive_cfg(csgo)
     apply_bothider_config(csgo, opts["bot_identity"])
@@ -992,17 +1060,38 @@ def start_match(
     }
 
 
-def read_result() -> dict:
-    cfg = settings()
-    path = plugin_dir(Path(cfg["csgo_path"])) / "match_result.json"
+def _load_result_file(path: Path) -> dict | None:
     if not path.exists():
-        return {"status": "none"}
+        return None
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-    except ValueError:
-        return {"status": "none"}
-    if data.get("status") == "finished" and data.get("ended_at"):
-        _archive(data)
+    except (OSError, ValueError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _remember_result(data: dict) -> None:
+    if result_quality(data) < 1:
+        return
+    path = save_file("cs2_last.json")
+    old = _load_result_file(path)
+    if result_quality(data) <= result_quality(old):
+        return
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def read_result() -> dict:
+    cfg = settings()
+    plugin = plugin_dir(Path(cfg["csgo_path"]))
+    data = pick_better_result(
+        _load_result_file(plugin / "match_result.json"),
+        _load_result_file(plugin / "match_result.best.json"),
+        _load_result_file(save_file("cs2_last.json")),
+    )
+    if result_quality(data) > 0:
+        _remember_result(data)
+        if data.get("status") == "finished" and data.get("ended_at"):
+            _archive(data)
     return data
 
 

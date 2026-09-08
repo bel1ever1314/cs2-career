@@ -13,13 +13,15 @@ from ..engine import shift_mentality
 from ..engine.morale import scrim_mentality_gain
 from ..league import awards
 from ..paths import save_file
-from ..world.ability import ALL_AXES, AXIS_LABEL, AXES, ability_of, refresh_team_command, stats_for
+from ..world.ability import ALL_AXES, AXIS_LABEL, AXES, ability_of, refresh_team_command, restamp_command, stats_for
 from ..world.roles import ROLE_LABEL
 from ..world import (
     ERA_META,
     PLAYABLE_ROLES,
     age_of,
     agent_rows,
+    birth_label,
+    birthday_md,
     crest,
     maps_for,
     roster_names,
@@ -39,7 +41,7 @@ ORG_START_ABILITY = 74.0
 
 def _signed(cand: dict, year: int | None = None) -> dict:
     stats = cand.get("stats") or stats_for(cand["name"], cand["role"], float(cand["ability"]))
-    return {
+    out = {
         "name": cand["name"],
         "role": cand["role"],
         "ability": float(cand["ability"]),
@@ -49,6 +51,9 @@ def _signed(cand: dict, year: int | None = None) -> dict:
         "age": cand.get("age", 22),
         "igl_years": int(cand.get("igl_years") or 0),
     }
+    if cand.get("potential"):
+        out["potential"] = float(cand["potential"])
+    return out
 
 
 def transfer_fee(ability: float) -> int:
@@ -136,6 +141,13 @@ class Career:
         self.you_card: dict = {}
         self.loan_default_pending = False
         self.last_offer_month = ""
+        self.retired = False
+        self.ending = ""
+        self.ending_title = ""
+        self.ending_text = ""
+        self.academy_used: list[str] = []
+        self.last_birthday = ""
+        self.start_year = 2026
 
     # ---------------------------------------------------------------- storage
 
@@ -191,6 +203,13 @@ class Career:
             "you_card": self.you_card,
             "loan_default_pending": self.loan_default_pending,
             "last_offer_month": self.last_offer_month,
+            "retired": self.retired,
+            "ending": self.ending,
+            "ending_title": self.ending_title,
+            "ending_text": self.ending_text,
+            "academy_used": self.academy_used,
+            "last_birthday": self.last_birthday,
+            "start_year": self.start_year,
         }
 
     def save(self) -> None:
@@ -245,9 +264,36 @@ class Career:
         obj.you_card = dict(getattr(obj, "you_card", None) or {})
         obj.loan_default_pending = bool(getattr(obj, "loan_default_pending", False))
         obj.last_offer_month = str(getattr(obj, "last_offer_month", "") or "")
+        obj.retired = bool(getattr(obj, "retired", False))
+        obj.ending = str(getattr(obj, "ending", "") or "")
+        obj.ending_title = str(getattr(obj, "ending_title", "") or "")
+        obj.ending_text = str(getattr(obj, "ending_text", "") or "")
+        obj.academy_used = list(getattr(obj, "academy_used", None) or [])
+        obj.last_birthday = str(getattr(obj, "last_birthday", "") or "")
+        obj.start_year = int(getattr(obj, "start_year", 0) or getattr(obj, "year", 2026) or 2026)
+        if obj.role == "support":
+            obj.role = "rifle"
+            dirty = True
+        if (obj.you_card or {}).get("role") == "support":
+            obj.you_card["role"] = "rifle"
+            dirty = True
+        for row in obj.free or []:
+            if isinstance(row, dict) and row.get("role") == "support":
+                row["role"] = "rifle"
+                dirty = True
         if skins.repair_items(obj.inventory) or dirty:
             obj.save()
         return obj
+
+    def over(self) -> bool:
+        return bool(self.banned or self.retired)
+
+    def _apply_ending(self, key: str) -> dict:
+        ending = plot.ENDINGS[key]
+        self.ending = ending["id"]
+        self.ending_title = ending["title"]
+        self.ending_text = ending["text"]
+        return ending
 
     # ---------------------------------------------------------------- lookups
 
@@ -348,6 +394,13 @@ class Career:
         self.you_card = {}
         self.loan_default_pending = False
         self.last_offer_month = ""
+        self.retired = False
+        self.ending = ""
+        self.ending_title = ""
+        self.ending_text = ""
+        self.academy_used = []
+        self.last_birthday = ""
+        self.start_year = self.year
         self.log = [f"生涯开始：{era} {meta['title']}"]
 
         if mode == "create":
@@ -359,9 +412,14 @@ class Career:
             self.log.append(f"创建 {org}，你是 {self.player_name}。")
         else:
             team = next(t for t in season.teams if t["id"] == payload.get("team_id"))
-            slot = next((p for p in team["players"] if p["name"] == payload.get("replace")), None)
+            wanted = (payload.get("replace") or "").strip()
+            slot = next((p for p in team["players"] if p["name"] == wanted), None)
             if slot is None:
-                slot = next((p for p in team["players"] if p["role"] == self.role), team["players"][0])
+                names = "、".join(p["name"] for p in team["players"])
+                raise ValueError(
+                    f"{team['name']} 在 {era} 的名单是 {names}，没有 {wanted or '这个人'}。"
+                    "换年代后请重新选要接管的选手。"
+                )
             self.player_name = slot["name"]
             self.team_id = team["id"]
             self.replaced = slot["name"]
@@ -388,7 +446,7 @@ class Career:
 
     def _spawn_org(self, season, org: str, payload: dict) -> None:
         region = payload.get("region") if payload.get("region") in ("EU", "AM", "AS") else "AS"
-        roles = ["entry", "support", "awp", "igl"]
+        roles = ["entry", "rifle", "awp", "igl"]
         if self.role == "awp":
             roles[2] = "rifle"
         if self.role == "igl":
@@ -475,6 +533,9 @@ class Career:
         if not self.exists:
             return
         self._remember_you(season)
+        if self.over():
+            self.save()
+            return
         month = season.date[:7]
         if month != self.last_sponsor_month:
             for stamp in economy.months_after(self.last_sponsor_month, month):
@@ -498,11 +559,12 @@ class Career:
                 self.log.append(f"{year} 年未使用的 {leftover} 点属性已清零。")
             self._age_year(season, year)
             self.last_age_year = year
-        if self.unsigned and not self.banned and not self.loan_default_pending:
+        if self.unsigned and not self.over() and not self.loan_default_pending:
             self._dispatch_contracts(season)
-        elif not self.unsigned:
+        elif not self.unsigned and not self.over():
             self.dispatch_invites(season)
         skins.advance_day(self)
+        self._birthday_tick(season)
         self.save()
 
     def _pay_sponsors(self, season, month: str) -> None:
@@ -528,17 +590,55 @@ class Career:
             apply_player_year(row)
             row["fee"] = transfer_fee(row["ability"])
         self.log.append(f"{year} 转会期：年龄曲线生效。")
+        self._academy_intake(season, year)
         self._ai_window(season)
+
+    def _academy_intake(self, season, year: int) -> None:
+        from ..world.academy import intake
+
+        taken = roster_names(season.teams) | {r.get("name") for r in self.free} | set(self.hidden)
+        start = int(self.start_year or year)
+        rows = intake(year, start, self.academy_used, taken)
+        for row in rows:
+            row["fee"] = transfer_fee(row["ability"])
+            self.free.append(row)
+            self.academy_used.append(row["name"])
+            kind = "天才" if row.get("note") == "wonder" else "青训"
+            self.log.append(
+                f"{year} 青训营：{kind} {row['name']}（{int(row['ability'])}，潜力 {int(row.get('potential') or 0)}）进入转会市场。"
+            )
+
+    def _birthday_tick(self, season) -> None:
+        if self.over() or self.unsigned or not self.team_id:
+            return
+        date = season.date or ""
+        if len(date) < 10 or self.last_birthday == date:
+            return
+        self.last_birthday = date
+        try:
+            month, day = int(date[5:7]), int(date[8:10])
+        except ValueError:
+            return
+        team = self.my_team(season.teams)
+        if not team:
+            return
+        for player in team.get("players") or []:
+            name = player.get("name") or ""
+            if not name or name == self.player_name or player.get("you"):
+                continue
+            if birthday_md(name) == (month, day):
+                self._push_plot(plot.birthday_popup(name), f"bday.{date}.{name}")
 
     def _ai_window(self, season) -> None:
         table = {r["id"]: r for r in season.vrs.table(season.teams, season.date)}
         for t in season.teams:
             if t["id"] == self.team_id:
                 continue
-            if t.get("mentality", 70) > 66 and t.get("loss_streak", 0) < 3:
-                continue
+            aging_out = any(int(p.get("age") or 0) >= 31 for p in t.get("players") or [])
             weak = min(t["players"], key=lambda p: p["ability"])
-            if weak["ability"] >= 82:
+            if weak["ability"] >= 84 and not aging_out:
+                continue
+            if t.get("mentality", 70) > 66 and t.get("loss_streak", 0) < 3 and not aging_out:
                 continue
             row = table.get(t["id"], {})
             for cand in sorted(self.free, key=lambda x: -x["ability"])[:12]:
@@ -602,8 +702,8 @@ class Career:
 
     def finish_training(self, season) -> str:
         """Mentality bump after a real CS2 training match. Once per calendar day."""
-        if self.banned:
-            return "你已被禁赛，这份档案只能重开。"
+        if self.over():
+            return "这段生涯已经结束，只能重开。"
         if self.unsigned or not self.team_id:
             return "你现在是自由身，先在邮箱接下合同再进训练赛。"
         if self.last_scrim == season.date:
@@ -637,8 +737,8 @@ class Career:
         mine = next((r for r in table if r["id"] == self.team_id), None)
         if not mine:
             return "找不到你的队伍。"
-        if self.banned:
-            return "你已被禁赛，这份档案只能重开。"
+        if self.over():
+            return "这段生涯已经结束，只能重开。"
         if ev["type"] in ("major", "t1"):
             return "大赛不能自行报名。直邀或附加赛出线才会收到邀请。"
         if ev["type"] in ("cct", "qual") and mine["region"] != ev["region"]:
@@ -663,11 +763,21 @@ class Career:
 
         place = awards.placements(ev)
         spot = place.get(team["name"], "stage")
-        self.attr_points += 1
-        note = "属性点 +1"
-        if spot in ("champion", "final"):
-            self.attr_points += 1
-            note = "属性点 +2（参赛 + 决赛）"
+        series = [
+            m
+            for m in ev.get("matches") or []
+            if m.get("played")
+            and m.get("team_b") != "BYE"
+            and team["name"] in (m.get("team_a"), m.get("team_b"))
+        ]
+        n = len(series)
+        extra = 1 if spot == "champion" else 0
+        gained = n + extra
+        self.attr_points += gained
+        bits = [f"系列赛 {n}"]
+        if extra:
+            bits.append("冠军 +1")
+        note = f"属性点 +{gained}（{'，'.join(bits)}）"
         self.log.append(f"{ev['name']} 结束，{note}。今年剩余 {self.attr_points} 点。")
 
         pool = int(ev.get("prize") or 0)
@@ -1165,19 +1275,24 @@ class Career:
         self.loan_default_pending = False
         self.last_ops_month = season.date[:7] if season is not None else self.last_ops_month
         self.story_queue = [item for item in self.story_queue if item.get("when") != "loan_default"]
-        if banned:
+        if flee:
             you = self._you_stats(season)
             ability = float(you.get("ability") or 74)
+            ending = self._apply_ending("flee")
+            self.retired = True
             self._push_plot(plot.loan_flee_news(self.player_name, ability), f"loan.news.{self.mail_seq + 1}")
-            self._push_mail(
-                "discipline",
-                season.date if season is not None else "",
-                plot.loan_flee_ban_letter(self.player_name),
-                {"status": "closed"},
-            )
-            self.log.append("出逃被发现。你被永久禁赛。")
+            if banned:
+                self._push_mail(
+                    "discipline",
+                    season.date if season is not None else "",
+                    plot.loan_flee_ban_letter(self.player_name),
+                    {"status": "closed"},
+                )
+                self.log.append("出逃被发现。" + ending["title"] + "。")
+            else:
+                self.log.append("你带着东西离开了。" + ending["title"] + "。")
             self.save()
-            return "新闻已经发出来了。你被永久禁赛。"
+            return ending["title"]
         if kept:
             self.log.append("你离开了俱乐部，钱和皮肤还在。现在是自由身。")
             self._dispatch_contracts(season)
@@ -1475,7 +1590,7 @@ class Career:
         names = [p.get("name") for p in leavers]
         team["players"] = [you] if you else []
         region = team.get("region") or "AS"
-        need = ["entry", "support", "awp", "igl"]
+        need = ["entry", "rifle", "awp", "igl"]
         if self.role == "awp":
             need[2] = "rifle"
         if self.role == "igl":
@@ -1689,6 +1804,8 @@ class Career:
         return f"已给 {side.upper()} 装备 {item['name']}。"
 
     def spend_point(self, season, axis: str) -> str:
+        if self.over():
+            return "这段生涯已经结束。"
         if self.attr_points < 1:
             return "没有可用属性点。"
         if axis not in ALL_AXES:
@@ -1699,26 +1816,76 @@ class Career:
             return "找不到你的选手数据。"
         stats = you.get("stats") or stats_for(you["name"], you.get("role") or self.role, float(you.get("ability") or 74))
         you["stats"] = stats
+        label = AXIS_LABEL[axis]
         if axis == "command":
-            nxt = min(99, int(round(float(stats.get("command") or you.get("command") or 50))) + 1)
+            cur = int(round(float(stats.get("command") or you.get("command") or 50)))
+            if cur >= 100:
+                return f"{label} 已满，不能再点。"
+            nxt = min(100, cur + 1)
             stats["command"] = nxt
             you["command"] = nxt
+            note = f"{label} {cur} → {nxt}"
+        elif axis == "utility":
+            cur = int(round(float(stats.get(axis) or 70)))
+            if cur >= 100:
+                return f"{label} 已满，不能再点。"
+            nxt = min(100, cur + 1)
+            stats[axis] = nxt
             refresh_team_command(team)
-            label = AXIS_LABEL[axis]
-            note = f"{label} {nxt - 1} → {nxt}"
+            note = f"{label} {cur} → {nxt}，队指挥 {team.get('command')}"
         else:
-            nxt = min(99, int(round(float(stats.get(axis) or 70))) + 1)
+            cur = int(round(float(stats.get(axis) or 70)))
+            if cur >= 100:
+                return f"{label} 已满，不能再点。"
+            nxt = min(100, cur + 1)
             stats[axis] = nxt
             you["ability"] = ability_of(stats, you.get("role") or self.role)
-            label = AXIS_LABEL[axis]
-            note = f"{label} {nxt - 1} → {nxt}，个人能力 {you['ability']:.1f}"
+            note = f"{label} {cur} → {nxt}，个人能力 {you['ability']:.1f}"
         self.attr_points -= 1
         msg = f"投入 1 点到{label}。{note}。剩余 {self.attr_points} 点。"
         self.log.append(msg)
         self.save()
         return msg
 
-    def set_roles(self, season, mapping: dict) -> str:
+    def answer_birthday(self, season, name: str, choice: str) -> str:
+        team = self.my_team(season.teams) if season is not None else None
+        if choice == "train":
+            self.attr_points += 1
+            if team is not None:
+                shift_mentality(team, -1)
+            msg = f"{name} 生日你去训练了。属性点 +1，队心态 -1。"
+        else:
+            if team is not None:
+                shift_mentality(team, 2)
+            msg = f"你祝贺了 {name} 的生日。队心态 +2。"
+        self.log.append(msg)
+        self.save()
+        return msg
+
+    def retire(self, season) -> str:
+        if not self.exists:
+            return "还没有生涯。"
+        if self.over():
+            return "这段生涯已经结束。"
+        honours = awards.honours_for(season.records(), season.top20, self.player_name)
+        ending = plot.honour_ending(honours)
+        self.retired = True
+        self._apply_ending(ending["id"])
+        self._push_plot(
+            {
+                "when": "retire",
+                "kind": "plot",
+                "title": ending["title"],
+                "text": ending["text"],
+                "ending": ending["id"],
+            },
+            f"retire.{self.mail_seq + 1}",
+        )
+        self.log.append(f"你选择退役。{ending['title']}。")
+        self.save()
+        return ending["title"]
+
+    def set_roles(self, season, mapping: dict, clicked: str = "") -> str:
         team = self.my_team(season.teams)
         if not team:
             return "还没有队伍。"
@@ -1728,10 +1895,18 @@ class Career:
         roles = [mapping[n] for n in names]
         if any(r not in PLAYABLE_ROLES for r in roles):
             return "有不能用的位置。"
+        if clicked and clicked in mapping:
+            want = mapping[clicked]
+            if want in ("awp", "igl"):
+                old = next((p.get("role") or "rifle" for p in team["players"] if p["name"] == clicked), "rifle")
+                for n in names:
+                    if n != clicked and mapping.get(n) == want:
+                        mapping[n] = old if old != want else "rifle"
+                roles = [mapping[n] for n in names]
         if roles.count("igl") != 1:
-            return "必须有且只有一名指挥。"
+            raise ValueError("必须有且只有一名指挥。点指挥会和原来的指挥对调。")
         if roles.count("awp") != 1:
-            return "必须有且只有一名主狙。"
+            raise ValueError("必须有且只有一名主狙。点主狙会和原来的主狙对调。")
         for p in team["players"]:
             p["role"] = mapping[p["name"]]
             if p.get("you"):
@@ -1739,13 +1914,12 @@ class Career:
             st = p.get("stats")
             if st:
                 p["ability"] = ability_of(st, p["role"])
-                if "command" in st:
-                    p["command"] = st["command"]
-        team["custom_roles"] = True
+        restamp_command(team)
         refresh_team_command(team)
+        team["custom_roles"] = True
         self.log.append("调整了首发位置。")
         self.save()
-        return "位置已更新。指挥能力按新 IGL 结算。"
+        return "位置已更新。个人能力按新位置重算，队指挥仍按道具。"
 
     def inspect_player(self, season, name: str) -> dict | None:
         found = None
@@ -1770,6 +1944,7 @@ class Career:
             "ability": found.get("ability"),
             "command": found.get("command") or stats.get("command"),
             "age": found.get("age"),
+            "birthday": birth_label(name),
             "form": found.get("form"),
             "you": bool(found.get("you")),
             "team": team["name"] if team else None,
@@ -1975,6 +2150,8 @@ class Career:
             self.answer_fix(season, choice == "accept")
         if row and row.get("when") == "loan_default" and self.loan_default_pending:
             self.answer_loan_default(season, choice)
+        if row and row.get("when") == "teammate_birthday":
+            self.answer_birthday(season, row.get("player") or "", choice)
         self.story_queue = [item for item in self.story_queue if item.get("id") != story_id]
         if story_id and story_id not in self.seen_stories:
             self.seen_stories.append(story_id)
@@ -2009,8 +2186,8 @@ class Career:
     def gate_match(self, season, match_id: str = "") -> str:
         """Block a live series, or interrupt it with a quiet offer."""
         self._sync_throw(season)
-        if self.banned:
-            return "你已被禁赛，这份档案只能重开。"
+        if self.over():
+            return "这段生涯已经结束，只能重开。"
         if self.unsigned:
             return "你现在是自由身，先在邮箱接下合同。"
         if self.fix_pending:
@@ -2088,10 +2265,11 @@ class Career:
         ability = float((you or {}).get("ability") or 74)
         self.banned = True
         self.fix_pending = False
+        ending = self._apply_ending("fix")
         self._push_plot(plot.probe_popup(), f"fix.probe.{self.mail_seq + 1}")
         self._push_plot(plot.ban_popup(self.player_name, ability), f"fix.ban.{self.mail_seq + 2}")
         self._push_mail("discipline", season.date, plot.ban_letter(self.player_name), {"status": "closed"})
-        self.log.append("赛事方发了通报。你被暂时禁赛。")
+        self.log.append(f"赛事方发了通报。{ending['title']}。")
         self.save()
 
     def apply_throw_flag(self, season) -> None:
@@ -2148,6 +2326,8 @@ class Career:
             you["stats"] = stats_for(
                 you["name"], you.get("role") or self.role, float(you.get("ability") or 74)
             )
+        if you:
+            you["birthday"] = birth_label(you.get("name") or self.player_name)
         honours = (
             awards.honours_for(season.records(), season.top20, self.player_name)
             if self.exists
@@ -2189,6 +2369,17 @@ class Career:
             "axes": list(ALL_AXES),
             "axis_labels": AXIS_LABEL,
             "banned": self.banned,
+            "retired": self.retired,
+            "over": self.over(),
+            "ending": (
+                {
+                    "id": self.ending,
+                    "title": self.ending_title,
+                    "text": self.ending_text,
+                }
+                if self.over() and self.ending_text
+                else None
+            ),
             "fix_pending": self.fix_pending,
             "unsigned": self.unsigned,
             "loan": self._loan_public(season, team, table) if self.exists else None,

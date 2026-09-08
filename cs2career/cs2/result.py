@@ -34,23 +34,50 @@ def _norm_name(name: str) -> str:
     return text
 
 
+def result_quality(result: dict | None) -> int:
+    """Higher is a more complete dump. 0:0 empty maps lose to a real score."""
+    if not result or result.get("status") in (None, "none"):
+        return -1
+    raw_map = (result.get("map") or "").strip().lower()
+    if raw_map in ("", "<empty>", "empty"):
+        map_pen = -1000
+    else:
+        map_pen = 0
+    ct = int(result.get("ct_score") or 0)
+    t_score = int(result.get("t_score") or 0)
+    kills = sum(int(p.get("kills") or 0) for p in (result.get("players") or []))
+    decided = 1 if ct != t_score and max(ct, t_score) >= 13 else 0
+    finished = 1 if result.get("status") == "finished" else 0
+    return (ct + t_score) * 100000 + kills * 10 + decided * 5 + finished + map_pen
+
+
+def pick_better_result(*cands: dict | None) -> dict:
+    rows = [c for c in cands if c]
+    if not rows:
+        return {"status": "none"}
+    return max(rows, key=result_quality)
+
+
 def result_usable(result: dict | None, session: dict) -> str:
     """Empty string if this dump is a normal end for the current map."""
     if not result or result.get("status") in (None, "none"):
         return "还没有读到比分"
-    if result.get("status") != "finished":
-        return "比赛还没正常结束，中途退出不会记入战绩"
-    if not result.get("ended_at"):
-        return "没有终场时间，不算正常结束"
     started = session.get("started_at") or ""
-    if started and _ts(result.get("ended_at") or "") < _ts(started):
+    ended = _ts(result.get("ended_at") or "")
+    if started and ended and ended < _ts(started):
         return "这是上一场的残留战绩，请重开这张图"
-    got = to_sim_map(result.get("map") or "", session.get("map") or "")
+    raw_map = (result.get("map") or "").strip()
+    got = to_sim_map(raw_map, session.get("map") or "")
     want = session.get("map") or ""
-    if want and got and got != want:
+    empty_map = raw_map.lower() in ("", "<empty>", "empty")
+    if want and got and got != want and not empty_map:
         return f"读到的是 {got}，当前这张是 {want}"
     ct = int(result.get("ct_score") or 0)
     t_score = int(result.get("t_score") or 0)
+    decided = ct != t_score and max(ct, t_score) >= 13
+    finished = result.get("status") == "finished" or decided
+    if not finished:
+        return "比赛还没正常结束。打到 13 分就会自动记；如果刚退出，等一两秒再点录入。"
     if ct == t_score:
         return "比分是平局，不像正常结束"
     if max(ct, t_score) < 13:
