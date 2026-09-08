@@ -1,5 +1,5 @@
 # coding=utf-8
-"""Build the 1.4 release: exe + docs. Bot Improver is not bundled."""
+"""Build the 1.4.1 release: exe + docs. Bot Improver is not bundled."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 SEP = ";" if os.name == "nt" else ":"
-OUT_NAME = "CS2Career-1.4"
+OUT_NAME = "CS2Career-1.4.1"
 
 
 def _pyi() -> int:
