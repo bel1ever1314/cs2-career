@@ -1,0 +1,105 @@
+// CS2 Career 1.5 - sanitised Bot Improver templates only.
+// No real-player profiles belong in this file.
+Default
+    Skill = 70
+    Aggression = 60
+    ReactionTime = 0.15
+    AttackDelay = 0.06
+    Teamwork = 80
+    AimFocusInitial = 0
+    AimFocusDecay = 0.001
+    AimFocusOffsetScale = 0
+    AimfocusInterval = 0
+    WeaponPreference = none
+    Cost = 4
+    Difficulty = EXPERT+HARD+NORMAL+EASY
+    VoicePitch = 100
+    Skin = 0
+    LookAngleMaxAccelNormal = 8000
+    LookAngleStiffnessNormal = 1000
+    LookAngleDampingNormal = 70
+    LookAngleMaxAccelAttacking = 8000
+    LookAngleStiffnessAttacking = 1000
+    LookAngleDampingAttacking = 60
+End
+
+Template SniperPersonality
+    Teamwork = 100
+    Aggression = 55
+End
+Template RiflePersonality
+    Teamwork = 100
+    Aggression = 60
+End
+Template RusherPersonality
+    Teamwork = 90
+    Aggression = 100
+End
+Template CamperPersonality
+    Teamwork = 70
+    Aggression = 30
+End
+
+Template SniperPro
+    WeaponPreference = awp
+    WeaponPreference = ssg08
+    WeaponPreference = ak47
+    WeaponPreference = m4a1_silencer
+    WeaponPreference = deagle
+End
+Template RiflePro
+    WeaponPreference = ak47
+    WeaponPreference = m4a1_silencer
+    WeaponPreference = m4a1
+    WeaponPreference = aug
+    WeaponPreference = sg556
+    WeaponPreference = deagle
+End
+Template Rusher
+    WeaponPreference = mac10
+    WeaponPreference = mp9
+    WeaponPreference = p90
+    WeaponPreference = ak47
+    WeaponPreference = m4a1_silencer
+End
+Template Camper
+    WeaponPreference = m4a1_silencer
+    WeaponPreference = ak47
+    WeaponPreference = awp
+    WeaponPreference = xm1014
+    WeaponPreference = deagle
+End
+
+// Generated profiles override every strength-sensitive parameter.
+Template ProTop
+    Skill = 95
+    Difficulty = EXPERT+HARD+NORMAL+EASY
+End
+Template ProFast
+    Skill = 87
+    Difficulty = EXPERT+HARD+NORMAL+EASY
+End
+Template ProPrecise
+    Skill = 87
+    Difficulty = EXPERT+HARD+NORMAL+EASY
+End
+Template ProSteady
+    Skill = 80
+    Difficulty = EXPERT+HARD+NORMAL+EASY
+End
+Template ProSlow
+    Skill = 70
+    Difficulty = EXPERT+HARD+NORMAL+EASY
+End
+Template RankRifler
+    Skill = 60
+    Difficulty = EXPERT+HARD+NORMAL+EASY
+End
+Template RankDuelist
+    Skill = 60
+    Difficulty = EXPERT+HARD+NORMAL+EASY
+End
+Template RankOthers
+    Skill = 60
+    Difficulty = EXPERT+HARD+NORMAL+EASY
+End

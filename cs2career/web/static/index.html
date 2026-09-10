@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CS2 Career</title>
 <link rel="stylesheet" href="style.css?v=32">
+<link rel="stylesheet" href="desk.css?v=1">
+<link rel="stylesheet" href="theme.css?v=2">
 </head>
 <body>
 <div class="app">
@@ -17,7 +19,6 @@
       <button data-view="squad">阵容</button>
       <button data-view="honours">荣誉墙</button>
       <button data-view="locker">经营</button>
-      <button data-view="skins">皮肤市场</button>
       <button data-view="mail">邮件<span class="dot" id="mail-dot" hidden></span></button>
       <button data-view="market">转会</button>
       <button data-view="play">训练赛</button>
@@ -28,22 +29,33 @@
       <button data-view="schedule">赛程</button>
       <button data-view="event">赛事</button>
       <button data-view="ranking">世界排名</button>
-      <button data-view="players">选手榜</button>
+      <button data-view="players">年度 Top20</button>
+      <button data-view="data">选手数据</button>
     </div>
 
+    <div class="nav-group" id="nav-collection">
+      <h5>收藏</h5>
+      <button data-view="inventory">饰品库存</button>
+      <button data-view="skins">饰品市场</button>
+      <button data-view="cases">武器箱</button>
+    </div>
+    <div class="nav-group"><h5>系统</h5><button data-view="workshop">扩展工坊</button><button data-view="settings">游戏设置</button></div>
     <div class="side-foot" id="side-foot"></div>
   </aside>
 
   <main class="main">
     <header class="top">
+      <button class="btn sm" id="route-back" title="返回上一页">←</button>
+      <button class="btn sm" id="route-forward" title="前进">→</button>
       <span class="date" id="top-date">—</span>
       <span class="sep"></span>
       <span class="msg" id="top-msg"></span>
       <span class="acts">
-        <button class="btn" id="btn-next">下一天</button>
+        <button class="btn" id="btn-next" title="处理当前比赛，或推进到下一个有赛程的日期">推进赛程</button>
         <button class="btn primary" id="btn-skip">跳到下个赛事</button>
       </span>
     </header>
+    <nav class="breadcrumbs" id="breadcrumbs" aria-label="页面路径"></nav>
 
     <section class="view" id="view-setup"></section>
     <section class="view" id="view-home"></section>
@@ -59,8 +71,24 @@
     <section class="view" id="view-match"></section>
     <section class="view" id="view-ranking"></section>
     <section class="view" id="view-players"></section>
+    <section class="view" id="view-profile"></section>
+    <section class="view" id="view-data"></section>
+    <section class="view" id="view-inventory"></section>
+    <section class="view" id="view-cases"></section>
+    <section class="view" id="view-settings"></section>
+    <section class="view" id="view-workshop"></section>
   </main>
 </div>
-<script src="app.js?v=43"></script>
+<script src="desk/navigation.js"></script>
+<script src="desk/profiles.js"></script>
+<script src="desk/competitions.js"></script>
+<script src="desk/collection.js"></script>
+<script src="desk/economy.js"></script>
+<script src="desk/settings.js"></script>
+<script src="desk/setup.js"></script>
+<script src="desk/workshop.js"></script>
+<script src="desk/editorial.js"></script>
+<script src="desk/transfers.js"></script>
+<script src="app.js?v=44"></script>
 </body>
 </html>

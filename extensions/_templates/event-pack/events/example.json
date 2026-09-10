@@ -1,0 +1,7 @@
+{
+  "events": [{
+    "id":"author-cup-1","name":"Author Community Cup","short":"Community Cup",
+    "type":"t2","format":"single_elim","region":"AS","band":[18,49],
+    "vrs_weight":0.45,"size":8,"prize":60000,"dates":["04-11","04-12","04-13"]
+  }]
+}

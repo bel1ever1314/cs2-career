@@ -1,0 +1,285 @@
+// Bot Improver templates only; no upstream player list.
+// Source VPK SHA-256: 02e5e958f3e0372b5616d858014d5801a980c23961556da9206a97887c1b29d0
+Default
+        Skill = 100
+        Aggression = 100
+        ReactionTime = 0
+        AttackDelay = 0
+        Teamwork = 100
+        AimFocusInitial = 0                    // initial focus spread in degrees (from desired center)
+        AimFocusDecay = 0                             // how much focus shrinks per second (.25 = 25% of size after 1 sec)
+        AimFocusOffsetScale = 0              // controls accuracy when tracking to target (0 == perfect, should always be < 1)
+        AimfocusInterval = 0                  // how often focus is adjusted (smaller intervals means better movement tracking)
+        WeaponPreference = none
+        Cost = 4
+        Difficulty = NORMAL
+        VoicePitch = 100
+        Skin = 0
+		LookAngleMaxAccelNormal = 2000.0
+    	LookAngleStiffnessNormal = 100.0
+    	LookAngleDampingNormal = 25.0
+    	LookAngleMaxAccelAttacking = 3000.0
+    	LookAngleStiffnessAttacking = 150.0
+    	LookAngleDampingAttacking = 30.0
+End
+
+Template Camper    	
+		WeaponPreference = xm1014
+    	WeaponPreference = negev
+		WeaponPreference = mag7
+    	WeaponPreference = sawedoff
+    	WeaponPreference = nova
+    	WeaponPreference = p90
+    	WeaponPreference = bizon
+    	WeaponPreference = awp
+    	WeaponPreference = ak47
+    	WeaponPreference = m4a1_silencer
+    	WeaponPreference = sg556
+    	WeaponPreference = fiveseven
+		WeaponPreference = tec9
+    	WeaponPreference = elite		
+End
+
+Template CamperPersonality
+    	Teamwork = 50
+    	Aggression = 30
+End
+
+Template Duelist
+		WeaponPreference = ak47
+		WeaponPreference = aug
+		WeaponPreference = p90
+		WeaponPreference = tec9
+		WeaponPreference = fiveseven
+		WeaponPreference = bizon
+		WeaponPreference = ump45
+		WeaponPreference = mac10
+		WeaponPreference = mp9
+		WeaponPreference = xm1014
+		WeaponPreference = m4a1_silencer
+		WeaponPreference = sg556
+		WeaponPreference = m4a1
+		WeaponPreference = elite
+End
+
+Template Fastshot
+		WeaponPreference = awp
+        WeaponPreference = ssg08
+        WeaponPreference = deagle
+        WeaponPreference = xm1014
+        WeaponPreference = nova
+        WeaponPreference = m4a1
+        WeaponPreference = ak47
+        WeaponPreference = m4a1_silencer
+        WeaponPreference = sg556
+        WeaponPreference = mag7
+        WeaponPreference = sawedoff
+        WeaponPreference = p90
+        WeaponPreference = fiveseven
+        WeaponPreference = tec9
+End
+
+Template FastshotPersonality
+    	Teamwork = 80
+    	Aggression = 100
+End
+
+Template FreemanPersonality
+    	Teamwork = 40
+    	Aggression = 100
+End
+
+Template ProFast   // sniper rifler rusher
+	Skill = 100
+	ReactionTime = 0
+	AttackDelay = 0
+	AimFocusInitial = 0
+	AimFocusDecay = 0.001
+	AimFocusOffsetScale = 0
+	AimfocusInterval = 0
+	Difficulty = EXPERT+HARD+NORMAL+EASY
+End
+
+Template ProPrecise   // sniper scoper fastshot camper
+	Skill = 100
+	ReactionTime = 0.01
+	AttackDelay = 0
+	AimFocusInitial = 0
+	AimFocusDecay = 0.0000001
+	AimFocusOffsetScale = 0
+	AimfocusInterval = 0
+	Difficulty = EXPERT+HARD+NORMAL+EASY
+End
+
+Template ProSlow    // duelist sniper
+	Skill = 100
+    ReactionTime = 0.01
+    AttackDelay = 0
+    AimFocusInitial = 0.00000001
+	AimFocusDecay = 0.00000001
+	AimFocusOffsetScale = 0
+	AimfocusInterval = 0.00000001
+	Difficulty = EXPERT+HARD+NORMAL+EASY
+End
+
+Template ProSteady    // rifler
+    Skill = 100
+    ReactionTime = 0.0001
+    AttackDelay = 0
+    AimFocusInitial = 0.0001
+	AimFocusDecay = 0.0001
+	AimFocusOffsetScale = 0
+	AimfocusInterval = 0.0001
+    Difficulty = EXPERT+HARD+NORMAL+EASY
+End
+
+Template ProTop
+    Skill = 100
+	ReactionTime = 0
+	AttackDelay = 0
+	AimFocusInitial = 0
+	AimFocusDecay = 0.0000001
+	AimFocusOffsetScale = 0
+	AimfocusInterval = 0
+	Difficulty = EXPERT+HARD+NORMAL+EASY
+End
+
+Template RankDuelist    // duelist rusher
+	Skill = 49
+	ReactionTime = 0.1
+	AttackDelay = 0
+	AimFocusInitial = 0.25
+	AimFocusDecay = 0.05
+	AimFocusOffsetScale = 0
+	AimfocusInterval = 0.05
+	Difficulty = EXPERT+HARD+NORMAL+EASY
+End
+
+Template RankOthers    // sniper scoper rifler
+    Skill = 49
+    ReactionTime = 0.1
+    AttackDelay = 0
+    AimFocusInitial = 0.00001
+	AimFocusDecay = 0.0000001
+	AimFocusOffsetScale = 0.0000000000000000000000001
+	AimfocusInterval = 0.0000000000001
+    Difficulty = EXPERT+HARD+NORMAL+EASY
+End
+
+Template RankRifler    // rifler
+	Skill = 49
+	ReactionTime = 0.1
+	AttackDelay = 0.01
+	VoicePitch = 85
+	AimFocusInitial = 0.01
+	AimFocusDecay = 1
+	AimFocusOffsetScale = 0
+	AimfocusInterval = 0.01
+	Difficulty = EXPERT+HARD+NORMAL+EASY
+End
+
+Template RiflePersonality
+        Teamwork = 100
+        Aggression = 60
+End
+
+Template RiflePro
+		WeaponPreference = ak47
+		WeaponPreference = aug
+		WeaponPreference = sg556
+		WeaponPreference = famas
+		WeaponPreference = galilar
+		WeaponPreference = m4a1_silencer
+		WeaponPreference = deagle
+		WeaponPreference = fiveseven
+		WeaponPreference = tec9
+		WeaponPreference = m4a1
+		WeaponPreference = p90
+		WeaponPreference = mp9
+		WeaponPreference = mac10
+		WeaponPreference = elite
+End
+
+Template Rusher
+		WeaponPreference = p90
+    	WeaponPreference = mac10
+    	WeaponPreference = mp9
+    	WeaponPreference = tec9
+    	WeaponPreference = elite
+    	WeaponPreference = bizon
+    	WeaponPreference = ump45
+    	WeaponPreference = mp5sd
+    	WeaponPreference = mp7
+    	WeaponPreference = m4a1_silencer
+    	WeaponPreference = ak47
+    	WeaponPreference = m4a1
+		WeaponPreference = galilar
+		WeaponPreference = fiveseven
+End
+
+Template RusherPersonality
+    	Teamwork = 100
+    	Aggression = 100
+End
+
+Template Scoper
+		WeaponPreference = sg556
+        WeaponPreference = aug
+        WeaponPreference = awp
+        WeaponPreference = deagle
+        WeaponPreference = tec9
+        WeaponPreference = fiveseven
+        WeaponPreference = ssg08
+        WeaponPreference = m4a1_silencer
+        WeaponPreference = galilar
+        WeaponPreference = m4a1
+        WeaponPreference = p90
+        WeaponPreference = mac10
+        WeaponPreference = mp9
+        WeaponPreference = elite
+End
+
+Template ScoperPersonality
+	    Teamwork = 95
+    	Aggression = 60
+End
+
+Template SniperPersonality
+        Teamwork = 100
+        Aggression = 55
+End
+
+Template SniperPro
+		WeaponPreference = awp
+		WeaponPreference = ak47
+		WeaponPreference = aug
+		WeaponPreference = galilar
+		WeaponPreference = deagle
+		WeaponPreference = m4a1
+		WeaponPreference = sg556
+		WeaponPreference = m4a1_silencer
+		WeaponPreference = p90
+		WeaponPreference = mac10
+		WeaponPreference = famas
+		WeaponPreference = ssg08
+		WeaponPreference = tec9
+		WeaponPreference = fiveseven
+End
+
+Template SniperPure
+		WeaponPreference = awp
+        WeaponPreference = ssg08
+        WeaponPreference = ak47
+        WeaponPreference = deagle
+        WeaponPreference = fiveseven
+        WeaponPreference = tec9
+        WeaponPreference = m4a1
+        WeaponPreference = sg556
+        WeaponPreference = m4a1_silencer
+        WeaponPreference = p90
+        WeaponPreference = mac10
+        WeaponPreference = mp9
+        WeaponPreference = p250
+        WeaponPreference = elite
+End
+

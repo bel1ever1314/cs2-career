@@ -1,0 +1,81 @@
+/* Midnight Club — presentation tokens only; rarity colours retain their meaning.
+   Last stylesheet in index.html, shared by migrated and compatibility pages. */
+:root {
+  color-scheme: dark;
+  --bg:#101923; --panel:#192631; --panel-2:#22333f;
+  --line:#354956; --line-soft:#293b48; --text:#eeeae0;
+  --mute:#acbac3; --dim:#899aa6; --acc:#dfc58d;
+  --win:#94cbb5; --lose:#ed9b98; --gold:#dfc58d; --radius:9px;
+}
+.origin-grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:16px 0; }
+.origin-card { text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:20px; }
+.origin-card.selected { border-color:var(--acc);background:linear-gradient(125deg,#354039,#1a303d); }
+.origin-card>b { font-size:36px;display:block;color:var(--acc); }.origin-card small,.origin-card>span,.origin-card p { color:var(--mute); }
+.origin-card h3 { margin-top:8px; }.origin-card>div { margin-top:8px;font-size:12px; }
+@media(max-width:1000px){.origin-grid{grid-template-columns:1fr}.origin-card>b{font-size:25px}}
+body { background:radial-gradient(ellipse at 95% 0%,#273b49 0,transparent 48%),var(--bg); background-attachment:fixed; }
+.side { background:#101b25; border-right-color:#33434e; gap:14px; }
+.brand { padding:5px 8px 13px; border-bottom:1px solid var(--line); letter-spacing:.12em; }
+.brand b { color:var(--text); }.brand span { color:var(--acc); }
+.nav-group h5 { color:#8096a5; letter-spacing:.14em; font-size:10px; margin-bottom:7px; }
+.nav-group button { color:#b6c4cc; border-radius:5px; padding:5px 10px; }
+.nav-group button:hover { background:#20313c; color:var(--text); }
+.nav-group button.on { background:linear-gradient(90deg,#3c3d33,#252f32); color:#f1dfb5; box-shadow:inset 2px 0 var(--acc); }
+.top { background:#14212beF; border-bottom:1px solid var(--line); backdrop-filter:blur(12px); }
+.date { color:var(--acc); font-variant-numeric:tabular-nums; }
+.breadcrumbs { color:#92a7b5; }.crumb-key { color:#d1dce1; }
+.page-head { align-items:baseline; gap:12px; flex-wrap:wrap; }
+.page-head h2 { font-size:22px; letter-spacing:.02em; font-weight:650; }
+.card,.metric,.stat { background:var(--panel); border-color:var(--line); }
+.card { box-shadow:0 5px 20px #060d141f; }
+.card h3 { color:#e0e6e6; }.card>h3 { margin-bottom:12px; }
+.btn { background:#233440; border-color:#415663; color:#e2e7e7; }
+.btn:hover:not(:disabled) { background:#304654; border-color:#788b94; }
+.btn.primary { background:#dfc58d; border-color:#dfc58d; color:#1a262d; font-weight:650; }
+.btn.primary:hover:not(:disabled) { background:#eed9ac; border-color:#eed9ac; }
+.btn.ghost { background:transparent; }.btn:disabled { opacity:.38; cursor:not-allowed; }
+input,select,textarea { background:#13212c; border-color:#435865; color:var(--text); }
+input:focus,select:focus,textarea:focus { outline-color:var(--acc); }
+button:focus-visible { outline:2px solid var(--acc); outline-offset:3px; }
+input[type=checkbox] { accent-color:var(--acc); }
+.preview-tour { background:linear-gradient(110deg,#303b3c,#1b2a34); border-color:#667062; }
+.preview-tour>b { color:#dfc58d; }.preview-tour>span { color:#c0c9c6; }
+.preview-tag { border-color:#766e52; color:#ddcc9e; background:#292d28; }
+.is-playtest .breadcrumbs:after { content:'隔离流程测试 · 可保存推进 · 不连接CS2'; margin-left:auto; color:#ddcc9e; }
+.profile-banner { background:linear-gradient(115deg,#2b424e,#1c2a35); border-color:#49606b; }
+.initial-mark { background:#34433f; color:#e9d4a5; border-color:#a89a76; border-radius:8px; }
+.profile-metrics b,.metric b,.finance-main { font-variant-numeric:tabular-nums; letter-spacing:-.025em; }
+.player-card { background:#22333f; border-top-color:#849d9b; border-radius:5px; }
+.player-card strong { color:#e4d1a9; }
+.detail-tabs button { color:#aabbc7; }.detail-tabs button.selected { color:#ecdfbf; }
+.rating { color:#a1d8bf; }tr.me { background:#263d46; }
+tbody tr:hover { background:#253a4699; }.box-score th { background:#152530; }
+.match-banner { background:linear-gradient(100deg,#263c49,#192833); border-color:#4b606d; border-radius:8px; }
+.team-chip { background:#1c2d38; border-color:#3c515e; }
+.finance-account { background:linear-gradient(120deg,#203742,#1b2b36); border-color:#496775; }
+.finance-account.personal { background:linear-gradient(120deg,#373e38,#23333a); border-color:#776e55; }
+.finance-main { color:var(--text); }.finance-label,.finance-note { color:var(--mute); }
+.finance-tip { background:#1d303c; border-color:#627780; box-shadow:0 16px 45px #0008; }
+.finance-scope { display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; }
+.finance-scope span { padding:5px 10px; border:1px solid #4d626a; border-radius:4px; color:#d4dfdb; font-size:12px; }
+.notice { background:#34382f; border-color:#807956; color:#e2d9b7; }
+.compact-notice { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+#view-settings .form { max-width:none; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 22px; }
+#view-settings .form>.row,#view-settings .form>p { grid-column:1 / -1; }
+#view-settings .form input { width:100%; }
+.graph-viewport { background-color:#13212d; background-image:radial-gradient(#384a57 1px,transparent 1px); border-color:#435966; }
+.bracket-node { background:#223641; border-color:#4d6370; box-shadow:0 4px 12px #050d1733; }
+.node-title { background:#2c424f; color:#c4d0d3; }.node-title:hover { background:#3b5260; }
+.bracket-node.mine { border-color:var(--acc); }.node-team.winner { color:#a1d8bf; }
+.round summary { background:#263a46; }.round-pop { background:#203440; border-color:#657984; z-index:12; }
+.collection-card { background:linear-gradient(145deg,#2a404c,#192b36); border-color:#415b69; border-bottom-color:var(--rarity); box-shadow:0 6px 16px #07121c3d; }
+.skin-photo { background:radial-gradient(ellipse at center,#60798644,transparent 72%); }
+.collection-copy>small { color:#bfccd1; }.collection-copy>div small { color:#a5b6c1; }
+.case-card { background:linear-gradient(150deg,#32454c,#1a2c38); border-color:#596664; }
+.case-mark { color:#dfc58d; text-shadow:0 4px 30px #cfb67522; }
+.collection-dialog,.unbox-dialog { background:#1c303d; border-color:#697e88; }
+.pending-drop { background:#243843; }.reel-card { background:#2a404d; }
+.reel-needle { background:#f0d89d; }.reel-needle:before { border-top-color:#f0d89d; }
+* { scrollbar-width:thin; scrollbar-color:#586d7b #172833; }
+@media(max-width:1150px) { .side { gap:10px; padding:12px 8px; }.brand { padding-bottom:8px; }.nav-group button { padding:4px 8px; }.nav-group h5 { margin-bottom:4px; } }
+@media(max-width:900px) { #view-settings .form { grid-template-columns:1fr; } }

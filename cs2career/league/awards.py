@@ -164,7 +164,7 @@ def event_awards(ev: dict, store: dict) -> dict:
     rows = []
     for row in store.values():
         rec = dict(row)
-        rec["rating"] = kda_rating(row["k"], row["d"], row["a"], row["rounds"])
+        rec["rating"] = kda_rating(row["k"], row["d"], row["a"], row["rounds"], row.get("damage"), row.get("kast_rounds"))
         rec["kpr"] = round(row["k"] / max(1, row["rounds"]), 3)
         rec["place"] = place.get(row["team"], "stage")
         rec["score"] = round(rec["rating"] + PLACE_BONUS.get(rec["place"], 0.0), 4)
@@ -207,16 +207,20 @@ def event_awards(ev: dict, store: dict) -> dict:
 
 
 def _event_five(rows: list[dict]) -> list[dict]:
-    """Best five by event rating — the all-star five, not just the winners."""
+    """One player per most-played event role. Unknown legacy roles stay vacant."""
     out: list[dict] = []
-    used: set[tuple[str, str]] = set()
-    for row in sorted(rows, key=lambda r: (-r["rating"], -r["kpr"], -r["maps"])):
-        key = (row["player"], row["team"])
-        if key in used:
+    used = set()
+    for role in ('igl','lurk','rifle','awp','entry'):
+        pool = [r for r in rows if r.get('role') == role and
+                (r.get('player_id') or (r['team'],r['player'])) not in used]
+        if not pool:
             continue
-        used.add(key)
+        row = min(pool,key=lambda r:(-r['rating'],-r['kpr'],-r['maps'],r.get('player_id') or r['player'],r['team']))
+        used.add(row.get('player_id') or (row['team'],row['player']))
         out.append(
             {
+                "role": role,
+                "player_id": row.get('player_id',''),
                 "player": row["player"],
                 "team": row["team"],
                 "rating": row["rating"],
@@ -224,17 +228,19 @@ def _event_five(rows: list[dict]) -> list[dict]:
                 "place": row.get("place") or "stage",
             }
         )
-        if len(out) >= 5:
-            break
     return out
 
 
 def make_record(ev: dict) -> dict:
     """Freeze a finished event into something honours can read forever."""
+    from copy import deepcopy
     award = ev.get("awards") or {}
     mvp = award.get("mvp")
     return {
         "id": ev["id"],
+        "matches": deepcopy(ev.get("matches") or []),
+        "dates": list(ev.get("dates") or []),
+        "field": list(ev.get("field") or []),
         "name": ev["name"],
         "short": ev.get("short") or ev["name"],
         "class": event_class(ev),

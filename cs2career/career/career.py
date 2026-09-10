@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import random
 import re
+import shutil
 from datetime import datetime
 from pathlib import Path
 
@@ -14,7 +15,9 @@ from ..engine.morale import scrim_mentality_gain
 from ..league import awards
 from ..paths import save_file
 from ..world.ability import ALL_AXES, AXIS_LABEL, AXES, ability_of, refresh_team_command, restamp_command, stats_for
+from ..world.ability import calibrate_role, ensure_role_calibration, refresh_player_ability
 from ..world.roles import ROLE_LABEL
+from ..world.eras import player_id as stable_player_id
 from ..world import (
     ERA_META,
     PLAYABLE_ROLES,
@@ -30,6 +33,7 @@ from ..world import (
     tier_of,
 )
 from . import economy, mail, plot, skins, story, verse
+from .origins import DEFAULT_ORIGIN, origin_config, public_origins
 
 CAREER_PATH = save_file("career.json")
 
@@ -40,19 +44,30 @@ ORG_START_ABILITY = 74.0
 
 
 def _signed(cand: dict, year: int | None = None) -> dict:
+    ensure_role_calibration(cand)
     stats = cand.get("stats") or stats_for(cand["name"], cand["role"], float(cand["ability"]))
+    if not cand.get("stats"):
+        calibrate_role(stats, cand["role"], float(cand["ability"]))
     out = {
+        "player_id": cand.get("player_id") or stable_player_id(cand["name"]),
         "name": cand["name"],
         "role": cand["role"],
         "ability": float(cand["ability"]),
         "command": int(cand.get("command") or stats.get("command") or 0),
         "stats": stats,
-        "form": cand.get("form", float(cand["ability"]) - 8),
+        "form_delta": float(cand.get("form_delta") or 0),
+        "form": float(cand["ability"]) + float(cand.get("form_delta") or 0),
         "age": cand.get("age", 22),
         "igl_years": int(cand.get("igl_years") or 0),
     }
     if cand.get("potential"):
         out["potential"] = float(cand["potential"])
+    # Keep development provenance through either player or AI signings. A
+    # subsequent sale must not turn an academy graduate into an anonymous vet.
+    for key in ('note', 'region', 'academy_year'):
+        if key in cand:
+            out[key] = cand[key]
+    refresh_player_ability(out)
     return out
 
 
@@ -101,9 +116,11 @@ class Career:
         self.role = "rifle"
         self.team_id = ""
         self.mode = "join"
+        self.origin = DEFAULT_ORIGIN
         self.replaced = ""
         self.money = 0
         self.last_scrim = ""
+        self.training_session = None
         self.last_sponsor_month = ""
         self.last_age_year = 2026
         self.registered: list[str] = []
@@ -130,6 +147,7 @@ class Career:
         self.skin_seq = 0
         self.pending_drop = None
         self.ops_log: list[str] = []
+        self.cashflow: list[dict] = []
         self.fix_chance = plot.FIX_BASE
         self.fix_pending = False
         self.throwing = False
@@ -148,6 +166,8 @@ class Career:
         self.academy_used: list[str] = []
         self.last_birthday = ""
         self.start_year = 2026
+        self.current_date = ""
+        self.legacy_save_notice = ""
 
     # ---------------------------------------------------------------- storage
 
@@ -156,6 +176,7 @@ class Career:
 
     def to_json(self) -> dict:
         return {
+            "schema_version": 2,
             "exists": self.exists,
             "era": self.era,
             "year": self.year,
@@ -163,9 +184,11 @@ class Career:
             "role": self.role,
             "team_id": self.team_id,
             "mode": self.mode,
+            "origin": self.origin,
             "replaced": self.replaced,
             "money": self.money,
             "last_scrim": self.last_scrim,
+            "training_session": self.training_session,
             "last_sponsor_month": self.last_sponsor_month,
             "last_age_year": self.last_age_year,
             "registered": self.registered,
@@ -192,6 +215,7 @@ class Career:
             "skin_seq": self.skin_seq,
             "pending_drop": self.pending_drop,
             "ops_log": self.ops_log[-20:],
+            "cashflow": self.cashflow[-80:],
             "fix_chance": self.fix_chance,
             "fix_pending": self.fix_pending,
             "throwing": self.throwing,
@@ -210,20 +234,32 @@ class Career:
             "academy_used": self.academy_used,
             "last_birthday": self.last_birthday,
             "start_year": self.start_year,
+            "current_date": self.current_date,
         }
 
     def save(self) -> None:
-        CAREER_PATH.parent.mkdir(parents=True, exist_ok=True)
-        CAREER_PATH.write_text(json.dumps(self.to_json(), ensure_ascii=False, indent=2), encoding="utf-8")
+        target = self.path()
+        target.parent.mkdir(parents=True, exist_ok=True)
+        pending = target.with_suffix('.pending')
+        pending.write_text(json.dumps(self.to_json(), ensure_ascii=False, indent=2), encoding="utf-8")
+        pending.replace(target)
 
     @classmethod
     def load(cls) -> "Career":
         obj = cls()
-        if not CAREER_PATH.exists():
+        path = obj.path()
+        if not path.exists():
             return obj
         try:
-            blob = json.loads(CAREER_PATH.read_text(encoding="utf-8"))
-        except ValueError:
+            blob = json.loads(path.read_text(encoding="utf-8"))
+        except ValueError as exc:
+            raise ValueError('career.json 无法解析；原文件已保留，请从备份恢复，不会自动清空。') from exc
+        if int(blob.get("schema_version") or 0) != 2:
+            backup = path.with_name("career.v1.4-backup.json")
+            if not backup.exists():
+                shutil.copy2(path, backup)
+            obj.legacy_save_notice = f"检测到 1.4 存档，已备份为 {backup.name}；1.5 请新建生涯。"
+            obj.log.append(obj.legacy_save_notice)
             return obj
         for k, v in blob.items():
             setattr(obj, k, v)
@@ -249,6 +285,7 @@ class Career:
         skins.migrate_equipped(obj)
         dirty = skins.ensure_economy(obj)
         obj.ops_log = list(getattr(obj, "ops_log", None) or [])
+        obj.cashflow = list(getattr(obj, "cashflow", None) or [])
         obj.fix_chance = float(getattr(obj, "fix_chance", plot.FIX_BASE) or plot.FIX_BASE)
         obj.fix_pending = bool(getattr(obj, "fix_pending", False))
         obj.throwing = bool(getattr(obj, "throwing", False))
@@ -271,6 +308,8 @@ class Career:
         obj.academy_used = list(getattr(obj, "academy_used", None) or [])
         obj.last_birthday = str(getattr(obj, "last_birthday", "") or "")
         obj.start_year = int(getattr(obj, "start_year", 0) or getattr(obj, "year", 2026) or 2026)
+        obj.current_date = str(getattr(obj, "current_date", "") or "")
+        obj.origin = str(getattr(obj, "origin", DEFAULT_ORIGIN) or DEFAULT_ORIGIN)
         if obj.role == "support":
             obj.role = "rifle"
             dirty = True
@@ -327,16 +366,18 @@ class Career:
             self.log.append(f"{slot['name']} 换成 {name}（{int(ability)}）。")
             slot["name"] = name
             slot["ability"] = float(ability)
-            slot["form"] = max(52.0, float(ability) - 6)
+            slot["form_delta"] = 0.0
+            slot["form"] = float(ability)
             slot["age"] = age_of(name, season.year)
         self.rebuild_free(season.teams)
         return True
 
     def rebuild_free(self, teams: list[dict]) -> None:
         taken = roster_names(teams) | set(self.hidden)
+        taken = {name.strip().casefold() for name in taken}
         rows = []
         for row in agent_rows():
-            if row["name"] in taken:
+            if row["name"].strip().casefold() in taken:
                 continue
             row["age"] = age_of(row["name"], self.year)
             row["fee"] = transfer_fee(row["ability"])
@@ -352,11 +393,15 @@ class Career:
         role = payload.get("role") or "rifle"
 
         self.exists = True
+        self.legacy_save_notice = ""
         self.era = era
         self.year = meta["year"]
         self.role = role if role in PLAYABLE_ROLES else "rifle"
         self.mode = mode
-        self.money = START_POCKET
+        self.origin = str(payload.get("origin") or DEFAULT_ORIGIN)
+        start_cfg = origin_config(self.origin) if mode == "create" else {}
+        self.origin = start_cfg.get("id", DEFAULT_ORIGIN) if mode == "create" else "join"
+        self.money = int(start_cfg.get("pocket_money", START_POCKET))
         self.last_scrim = ""
         self.last_sponsor_month = meta["start"][:7]
         self.last_age_year = self.year
@@ -366,7 +411,7 @@ class Career:
         self.story_queue = []
         self.inbox = []
         self.mail_seq = 0
-        self.attr_points = 0
+        self.attr_points = int(start_cfg.get("attr_points", 0))
         self.last_ops_month = meta["start"][:7]
         self.crisis = False
         self.deficit = 0
@@ -383,6 +428,7 @@ class Career:
         self.pending_drop = None
         skins.ensure_economy(self)
         self.ops_log = []
+        self.cashflow = []
         self.fix_chance = plot.FIX_BASE
         self.fix_pending = False
         self.throwing = False
@@ -401,6 +447,7 @@ class Career:
         self.academy_used = []
         self.last_birthday = ""
         self.start_year = self.year
+        self.current_date = meta["start"]
         self.log = [f"生涯开始：{era} {meta['title']}"]
 
         if mode == "create":
@@ -424,50 +471,67 @@ class Career:
             self.team_id = team["id"]
             self.replaced = slot["name"]
             self.hidden.append(slot["name"])
+            ensure_role_calibration(slot)
             slot["role"] = self.role
+            refresh_player_ability(slot)
             slot["you"] = True
             self.log.append(f"加入 {team['name']}，接管 {slot['name']}（{int(slot['ability'])}）。")
 
         self.rebuild_free(season.teams)
         self._remember_you(season)
+        team = self.my_team(season.teams)
+        self._record_cashflow(meta["start"], "pocket", "opening", "个人期初资金", self.money, self.money)
+        if team:
+            self._record_cashflow(
+                meta["start"], "club", "opening", "俱乐部期初资金",
+                int(team.get("money") or 0), int(team.get("money") or 0),
+            )
         self.watch(season, when="start")
         self.dispatch_invites(season)
-        try:
-            from ..cs2.launch import settings
-            from ..cs2.profiles import seed_mod_profiles
-
-            added = seed_mod_profiles(Path(settings()["mod_source_path"]), season.teams)
-            if added:
-                self.log.append(f"人机库补录 {added} 个新名字。")
-        except Exception:
-            pass
         self.save()
         return self.log[-1]
 
     def _spawn_org(self, season, org: str, payload: dict) -> None:
+        cfg = origin_config(self.origin)
         region = payload.get("region") if payload.get("region") in ("EU", "AM", "AS") else "AS"
         roles = ["entry", "rifle", "awp", "igl"]
         if self.role == "awp":
             roles[2] = "rifle"
         if self.role == "igl":
             roles[3] = "rifle"
-        mates = starter_mates(region, roles)
-        you_stats = stats_for(self.player_name, self.role, ORG_START_ABILITY)
+        mates = starter_mates(
+            region,
+            roles,
+            # The static free-agent pool spans eras. A candidate can already
+            # be active in this era (e.g. 2025 mzinho); never clone that person.
+            skip=roster_names(season.teams) | {self.player_name},
+            min_ability=float(cfg["mate_min"]),
+            max_ability=float(cfg["mate_max"]),
+            preferred_notes=tuple(cfg.get("preferred_notes") or ()),
+        )
+        if len(mates) != len(roles):
+            raise ValueError("当前年代的自由选手不足以组成五人阵容，请检查选手数据包。")
+        player_ability = float(cfg["player_ability"])
+        you_stats = stats_for(self.player_name, self.role, player_ability)
+        calibrate_role(you_stats, self.role, player_ability)
         players = [
             {
                 "name": self.player_name,
+                "player_id": stable_player_id(self.player_name),
                 "role": self.role,
-                "ability": ORG_START_ABILITY,
+                "ability": player_ability,
                 "command": int(you_stats["command"]),
                 "stats": you_stats,
-                "form": 66,
+                "form_delta": 0.0,
+                "form": player_ability,
                 "age": 19,
                 "you": True,
             }
         ]
         for name, ability, role in mates:
             row = _signed({"name": name, "role": role, "ability": ability})
-            row["form"] = ability - 6
+            row["form_delta"] = 0.0
+            row["form"] = ability
             row["age"] = age_of(name, season.year)
             players.append(row)
         strong, weak = maps_for(len(season.teams), org)
@@ -477,11 +541,11 @@ class Career:
             "region": region,
             "tier": tier_of(45),
             "world_rank": 45,
-            "command": 58,
+            "command": int(cfg["command"]),
             "strong_maps": strong,
             "weak_maps": weak,
-            "money": 35000,
-            "mentality": 62,
+            "money": int(cfg["club_money"]),
+            "mentality": int(cfg["mentality"]),
             "series_streak": 0,
             "loss_streak": 0,
             "last_region": region,
@@ -513,7 +577,8 @@ class Career:
             "ability": float(you.get("ability") or 74),
             "command": int(you.get("command") or 0),
             "stats": you.get("stats") or stats_for(self.player_name, self.role, float(you.get("ability") or 74)),
-            "form": you.get("form", max(52.0, float(you.get("ability") or 74) - 8)),
+            "form_delta": float(you.get("form_delta") or 0),
+            "form": float(you.get("ability") or 74) + float(you.get("form_delta") or 0),
             "age": you.get("age") or 19,
             "igl_years": int(you.get("igl_years") or 0),
             "you": True,
@@ -532,7 +597,9 @@ class Career:
     def tick(self, season, _prev_date: str) -> None:
         if not self.exists:
             return
+        self.current_date = season.date
         self._remember_you(season)
+        self.settle_legacy_money_mail(season)
         if self.over():
             self.save()
             return
@@ -572,11 +639,10 @@ class Career:
         for t in season.teams:
             pay = sponsor_month(rank_map.get(t["id"], 40))
             if t["id"] == self.team_id and not self.unsigned:
-                self._push_mail(
-                    "sponsor",
-                    season.date,
-                    mail.sponsor_letter(month, rank_map.get(t["id"], 40), pay),
-                    {"amount": pay, "rank": rank_map.get(t["id"], 40), "month": month},
+                t["money"] = int(t.get("money") or 0) + pay
+                self._record_cashflow(month, "club", "sponsor", "月度赞助", pay, t["money"])
+                self.ops_log.append(
+                    f"{month} 赞助 ${pay:,} 自动入账（VRS 第 {rank_map.get(t['id'], 40)}）。"
                 )
             else:
                 t["money"] = t.get("money", 0) + pay
@@ -662,13 +728,19 @@ class Career:
 
     # ---------------------------------------------------------------- actions
 
-    def buy(self, season, player_name: str) -> str:
+    def buy(self, season, player_name: str, replace_id: str = '', player_id: str = '') -> str:
+        from .transfers import locked, outgoing as select_outgoing, identity
+        if self.over(): raise ValueError('当前生涯已经结束。')
         if self.unsigned or not self.team_id:
             return "你现在是自由身，先在邮箱接下合同。"
         team = self.my_team(season.teams)
         if not team:
             return "没有自己的队伍。"
-        cand = next((x for x in self.free if x["name"] == player_name), None)
+        if locked(season,team): raise ValueError('参赛期间不能变更阵容，请等赛事结束。')
+        selected = select_outgoing(self,team,replace_id)
+        found = [x for x in self.free if (identity(x)==player_id if player_id else x['name']==player_name)]
+        if len(found)>1: raise ValueError('选手身份不唯一，请按ID重新选择。')
+        cand = found[0] if found else None
         if not cand:
             return "自由市场没有这个人。"
         fee = transfer_fee(cand["ability"])
@@ -681,9 +753,14 @@ class Career:
         if chance < 0.18:
             return f"{cand['name']} 看不上现在的队伍，成功率只有 {chance:.0%}。"
         if random.random() > max(0.2, chance):
-            team["money"] -= int(fee * 0.08)
+            cost = int(fee * 0.08)
+            team["money"] -= cost
+            self._record_cashflow(
+                season.date, "club", "transfer", f"接触 {cand['name']} 的谈判费",
+                -cost, team["money"],
+            )
             return f"{cand['name']} 拒签，谈判费打了水漂。"
-        weak = min(team["players"], key=lambda p: (p.get("you") is True, p["ability"]))
+        weak = selected
         if weak.get("you"):
             return "不能把自己卖掉。"
         outgoing = dict(weak)
@@ -692,6 +769,9 @@ class Career:
         team["players"].append(_signed(cand))
         refresh_team_command(team)
         team["money"] -= fee
+        self._record_cashflow(
+            season.date, "club", "transfer", f"签下 {cand['name']}", -fee, team["money"]
+        )
         self.free = [x for x in self.free if x["name"] != cand["name"]]
         if outgoing["name"] not in self.hidden:
             self.free.append(outgoing)
@@ -699,6 +779,18 @@ class Career:
         self.log.append(msg)
         self.save()
         return msg
+
+    def remember_training(self, request: dict) -> None:
+        """Bind only a successfully launched practice request, never a series."""
+        from ..cs2.result import to_sim_map
+        ids = [request.get('human_player_id'), *[p.get('player_id') for side in ('ct','t')
+               for p in request.get(side,{}).get('players',[])]]
+        if not request.get('nonce') or len(ids) != 10 or len(set(ids)) != 10 or not all(ids):
+            raise ValueError('训练请求没有完整十人身份，不能登记训练奖励。')
+        self.training_session = dict(nonce=request['nonce'],map=to_sim_map(request.get('map','')),
+            expected_player_ids=ids, team_id=self.team_id, player=self.player_name,
+            date=self.current_date, started_at=datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'))
+        self.save()
 
     def finish_training(self, season) -> str:
         """Mentality bump after a real CS2 training match. Once per calendar day."""
@@ -711,9 +803,23 @@ class Career:
         team = self.my_team(season.teams)
         if not team:
             return "没有找到你的队伍。"
+        from ..cs2.launch import read_result
+        from ..cs2.result import result_usable, to_sim_map
+        session = self.training_session
+        if not isinstance(session, dict) or not session.get('nonce'):
+            raise ValueError('没有待核验的训练赛。先从训练页启动并完成一场真实CS2对局。')
+        if session.get('date') != season.date or session.get('team_id') != self.team_id or session.get('player') != self.player_name:
+            raise ValueError('训练记录与当前生涯日期或队伍不符，请重新开始训练赛。')
+        raw = read_result(request_nonce=session['nonce'])
+        error = result_usable(raw, session)
+        if error:
+            raise ValueError('训练未结算：' + error)
+        if not session.get('map') or to_sim_map(raw.get('map','')) != session['map']:
+            raise ValueError('训练地图不匹配，未发放训练加成。')
         before = float(team.get("mentality") or 70)
         gain = scrim_mentality_gain(before)
         self.last_scrim = season.date
+        self.training_session = None  # Consumed with the reward in the same save.
         if gain <= 0:
             msg = "训练赛打完。心态已经很高，热身几乎带不动了。"
         else:
@@ -783,11 +889,18 @@ class Career:
         pool = int(ev.get("prize") or 0)
         pay = int(pool * awards.PRIZE_SPLIT.get(spot, 0.0))
         if pay:
-            self._push_mail(
-                "prize",
-                season.date,
-                mail.prize_letter(ev, team["name"], spot, pay),
-                {"amount": pay, "event_id": ev["id"], "spot": spot},
+            club, pocket = economy.split_prize(pay)
+            team["money"] = int(team.get("money") or 0) + club
+            self.money += pocket
+            place = mail.PLACE_ZH.get(spot, spot)
+            self._record_cashflow(
+                season.date, "club", "prize", f"{ev['name']} {place}奖金", club, team["money"]
+            )
+            self._record_cashflow(
+                season.date, "pocket", "prize", f"{ev['name']} 奖金分成", pocket, self.money
+            )
+            self.ops_log.append(
+                f"{ev['name']} 奖金 ${pay:,} 自动结算：俱乐部 ${club:,}，个人 ${pocket:,}。"
             )
 
         champ = ev.get("champion") == team["name"]
@@ -815,6 +928,10 @@ class Career:
                 self.offer_invite(season, dest, earned=True)
         if ev.get("type") == "major":
             team["money"] = team.get("money", 0) + economy.MAJOR_APPEARANCE
+            self._record_cashflow(
+                season.date, "club", "appearance", f"{ev['name']} 出场费",
+                economy.MAJOR_APPEARANCE, team["money"],
+            )
             self.ops_log.append(f"{ev['name']} 出场费 ${economy.MAJOR_APPEARANCE:,} 进俱乐部。")
             self.log.append(f"打入 {ev['name']}，俱乐部收到出场费 ${economy.MAJOR_APPEARANCE:,}。")
         self.watch(season, ev)
@@ -832,14 +949,63 @@ class Career:
         self.inbox.append(row)
         return row
 
+    def _record_cashflow(
+        self, date: str, scope: str, category: str, label: str, amount: int, balance: int
+    ) -> None:
+        amount = int(amount or 0)
+        if not amount:
+            return
+        self.cashflow.append({
+            "date": str(date or self.current_date or ""),
+            "scope": "club" if scope == "club" else "pocket",
+            "category": str(category or "other"),
+            "label": str(label or "资金变动"),
+            "amount": amount,
+            "balance": int(balance or 0),
+        })
+        self.cashflow = self.cashflow[-80:]
+
+    def settle_legacy_money_mail(self, season) -> bool:
+        """Auto-credit old 1.5 prize/sponsor mail, then remove it from inbox."""
+        money_rows = [r for r in self.inbox if r.get("kind") in ("prize", "sponsor")]
+        if not money_rows:
+            return False
+        team = self.my_team(season.teams)
+        if not team:
+            return False
+        changed = False
+        for row in money_rows:
+            if row.get("status") not in ("claimed", "credited"):
+                amount = int(row.get("amount") or 0)
+                if row.get("kind") == "prize":
+                    club, pocket = economy.split_prize(amount)
+                    team["money"] = int(team.get("money") or 0) + club
+                    self.money += pocket
+                    label = row.get("title") or "旧赛事奖金"
+                    self._record_cashflow(row.get("date") or season.date, "club", "prize", label, club, team["money"])
+                    self._record_cashflow(row.get("date") or season.date, "pocket", "prize", label, pocket, self.money)
+                else:
+                    team["money"] = int(team.get("money") or 0) + amount
+                    self._record_cashflow(
+                        row.get("date") or season.date, "club", "sponsor",
+                        row.get("title") or "旧赞助款", amount, team["money"],
+                    )
+                changed = True
+        self.inbox = [r for r in self.inbox if r.get("kind") not in ("prize", "sponsor")]
+        if changed:
+            self.ops_log.append("旧邮箱中的未领奖金和赞助已自动补入账本。")
+        return True
+
     def unread_count(self) -> int:
         return sum(1 for row in self.inbox if not row.get("read"))
 
-    def eligible_invite(self, season, ev: dict) -> bool:
+    def eligible_invite(self, season, ev: dict, *, rank_row: dict | None = None) -> bool:
         if ev.get("status") != "upcoming":
             return False
-        table = season.vrs.table(season.teams, season.date)
-        mine = next((r for r in table if r["id"] == self.team_id), None)
+        if rank_row is None:
+            table = season.vrs.table(season.teams, season.date)
+            rank_row = next((r for r in table if r["id"] == self.team_id), None)
+        mine = rank_row
         if not mine:
             return False
         if ev["type"] == "major":
@@ -896,14 +1062,15 @@ class Career:
             except ValueError:
                 return 99
 
-        eligible = [e for e in upcoming if self.eligible_invite(season, e)]
+        table = {r["id"]: r for r in season.vrs.table(season.teams, season.date)}
+        mine = table.get(self.team_id)
+        eligible = [e for e in upcoming if mine and self.eligible_invite(season, e, rank_row=mine)]
         near = [e for e in eligible if days_until(e) <= 28]
         small = [e for e in eligible if e.get("type") in ("cct", "t2") and days_until(e) <= 50]
         chosen = []
         for ev in near + small + eligible[:3]:
             if ev not in chosen:
                 chosen.append(ev)
-        table = {r["id"]: r for r in season.vrs.table(season.teams, season.date)}
         rank = (table.get(self.team_id) or {}).get("rank", 40)
         for ev in chosen:
             earned = self.team_id in (season.qualified.get(ev["id"]) or [])
@@ -983,28 +1150,10 @@ class Career:
         return f"已婉拒 {name}。"
 
     def claim_mail(self, season, mail_id: str) -> str:
-        row = self._mail(mail_id)
-        if not row or row.get("kind") not in ("prize", "sponsor"):
-            return "这封邮件没有可领取的款项。"
-        if row.get("status") == "claimed":
-            return "已经领过了。"
-        amount = int(row.get("amount") or 0)
-        team = self.my_team(season.teams)
-        if not team:
-            return "还没有队伍。"
-        if row.get("kind") == "prize":
-            club, pocket = economy.split_prize(amount)
-            team["money"] = team.get("money", 0) + club
-            self.money += pocket
-            note = f"领取赛事分成：俱乐部队 ${club:,}，个人 ${pocket:,}。"
-        else:
-            team["money"] = team.get("money", 0) + amount
-            note = f"领取赞助 ${amount:,}，全部进俱乐部。"
-        row["status"] = "claimed"
-        row["read"] = True
-        self.log.append(note)
-        self.save()
-        return note
+        changed = self.settle_legacy_money_mail(season)
+        if changed:
+            self.save()
+        return "奖金和赞助现在会自动入账，不需要再到邮箱领取。"
 
     def _settle_month(self, season, month: str) -> None:
         team = self.my_team(season.teams)
@@ -1023,6 +1172,7 @@ class Career:
         you_pay = next((w["pay"] for w in burn["wages"] if w["name"] == self.player_name), 0)
         if cash < burn["total"]:
             team["money"] = 0
+            self._record_cashflow(month, "club", "operations", "当月经营支出", -cash, 0)
             self.crisis = True
             self.deficit = burn["total"] - cash
             self.ops_log.append(f"{month} 发不出工资。缺口 ${self.deficit:,}。")
@@ -1043,6 +1193,13 @@ class Career:
             return
         team["money"] = cash - burn["total"]
         self.money += you_pay
+        self._record_cashflow(
+            month, "club", "salary", "全队工资", -burn["salaries"], cash - burn["salaries"]
+        )
+        self._record_cashflow(
+            month, "club", "living", "训练、差旅与吃住", -burn["living"], team["money"]
+        )
+        self._record_cashflow(month, "pocket", "salary", "个人月薪", you_pay, self.money)
         self.crisis = False
         self.deficit = 0
         self.ops_log.append(
@@ -1061,6 +1218,8 @@ class Career:
             return "口袋里不够。"
         self.money -= pay
         team["money"] = team.get("money", 0) + pay
+        self._record_cashflow(season.date, "pocket", "donation", "注资俱乐部", -pay, self.money)
+        self._record_cashflow(season.date, "club", "donation", "球员个人注资", pay, team["money"])
         if self.crisis:
             if team["money"] >= self.deficit:
                 self.crisis = False
@@ -1140,9 +1299,12 @@ class Career:
                 return "俱乐部账上不够。"
             team["money"] = int(team.get("money") or 0) - pay
             self.money += pay
+            self._record_cashflow(season.date, "club", "loan", "借给球员", -pay, team["money"])
+            self._record_cashflow(season.date, "pocket", "loan", "俱乐部借款", pay, self.money)
             note = f"从俱乐部借了 ${pay:,}，进个人口袋。月息 {int(rate * 100)}%。"
         else:
             team["money"] = int(team.get("money") or 0) + pay
+            self._record_cashflow(season.date, "club", "loan", "银行借款", pay, team["money"])
             note = f"向银行借了 ${pay:,}，进俱乐部金库。月息 {int(rate * 100)}%。"
         self.loan = {
             "kind": kind,
@@ -1196,8 +1358,9 @@ class Career:
             paid_principal = bit
             if kind == "club" and team is not None:
                 team["money"] = int(team.get("money") or 0) + bit
-        if take:
-            self.money += take
+        # We subtract only the principal/interest actually paid above. An
+        # oversized input was never withdrawn, so "refunding" take here would
+        # create free money whenever the input exceeds the outstanding debt.
         if int(loan.get("principal") or 0) <= 0 and int(loan.get("arrears") or 0) <= 0:
             self.loan = None
             note = f"还清了。利息 ${paid_interest:,}，本金 ${paid_principal:,}。"
@@ -1210,6 +1373,11 @@ class Career:
             left = int((self.loan or {}).get("principal") or 0)
             miss = int((self.loan or {}).get("missed") or 0)
             note = f"还了{'、'.join(parts) or '一笔'}。还欠本金 ${left:,}，连续未付息 {miss} 个月。"
+        paid = paid_interest + paid_principal
+        if paid:
+            self._record_cashflow(season.date, "pocket", "loan", "偿还贷款", -paid, self.money)
+            if kind == "club" and team is not None:
+                self._record_cashflow(season.date, "club", "loan", "球员还款", paid, team["money"])
         self.ops_log.append(note)
         self.log.append(note)
         self.save()
@@ -1235,6 +1403,8 @@ class Career:
             loan["missed"] = 0
             if loan.get("kind") == "club" and team is not None:
                 team["money"] = int(team.get("money") or 0) + due
+                self._record_cashflow(month, "club", "interest", "球员借款利息", due, team["money"])
+            self._record_cashflow(month, "pocket", "interest", "贷款利息", -due, self.money)
             self.ops_log.append(f"{month} 利息 ${due:,} 已从口袋扣除。")
             return
         loan["arrears"] = int(loan.get("arrears") or 0) + due
@@ -1327,11 +1497,13 @@ class Career:
         self.free.append(
             {
                 "name": name,
+                "player_id": player.get("player_id") or stable_player_id(name),
                 "role": player.get("role") or "rifle",
                 "ability": ability,
                 "command": int(player.get("command") or 0),
                 "stats": player.get("stats") or stats_for(name, player.get("role") or "rifle", ability),
-                "form": player.get("form", max(52.0, ability - 8)),
+                "form_delta": float(player.get("form_delta") or 0),
+                "form": ability + float(player.get("form_delta") or 0),
                 "age": player.get("age") or age_of(name, season.year),
                 "igl_years": int(player.get("igl_years") or 0),
                 "region": region,
@@ -1365,11 +1537,13 @@ class Career:
         team.setdefault("players", []).append(
             {
                 "name": name,
+                "player_id": stable_player_id(name),
                 "role": role,
                 "ability": float(ability),
                 "command": int(st["command"]),
                 "stats": st,
-                "form": max(52.0, float(ability) - 6),
+                "form_delta": 0.0,
+                "form": float(ability),
                 "age": age_of(name, season.year),
                 "you": False,
             }
@@ -1539,6 +1713,7 @@ class Career:
         self._player_to_free(season, replace, region)
         team["players"] = [p for p in (team.get("players") or []) if p.get("name") != replace_name]
         card = dict(self.you_card or {})
+        ensure_role_calibration(card)
         card["name"] = self.player_name
         card["role"] = offer_role
         card["you"] = True
@@ -1546,7 +1721,7 @@ class Career:
             card["ability"] = 74.0
         if not card.get("stats"):
             card["stats"] = stats_for(self.player_name, offer_role, float(card["ability"]))
-        card["ability"] = ability_of(card["stats"], offer_role)
+        refresh_player_ability(card)
         incoming = _signed(card)
         incoming["you"] = True
         incoming["role"] = offer_role
@@ -1601,17 +1776,20 @@ class Career:
             team["players"].append(
                 {
                     "name": name,
+                    "player_id": stable_player_id(name),
                     "role": role,
                     "ability": float(ability),
                     "command": int(st["command"]),
                     "stats": st,
-                    "form": max(52.0, float(ability) - 6),
+                    "form_delta": 0.0,
+                    "form": float(ability),
                     "age": age_of(name, season.year),
                     "you": False,
                 }
             )
         refresh_team_command(team)
         team["money"] = 18000
+        self._record_cashflow(season.date, "club", "restart", "重组启动资金", 18000, team["money"])
         team["tier"] = "t4"
         self.mode = "create"
         self.crisis = False
@@ -1625,11 +1803,13 @@ class Career:
             ability = float(p.get("ability") or 70)
             outgoing = {
                 "name": name,
+                "player_id": p.get("player_id") or stable_player_id(name),
                 "role": p.get("role") or "rifle",
                 "ability": ability,
                 "command": int(p.get("command") or 0),
                 "stats": p.get("stats") or stats_for(name, p.get("role") or "rifle", ability),
-                "form": p.get("form", max(52.0, ability - 8)),
+                "form_delta": float(p.get("form_delta") or 0),
+                "form": ability + float(p.get("form_delta") or 0),
                 "age": p.get("age") or age_of(name, season.year),
                 "igl_years": int(p.get("igl_years") or 0),
                 "region": region,
@@ -1686,6 +1866,7 @@ class Career:
         if self.money < price:
             return f"口袋 ${self.money:,}，买不起 ${price:,}。"
         self.money -= price
+        self._record_cashflow("", "pocket", "skin", f"购买 {row['name']}", -price, self.money)
         self.skin_seq += 1
         self.inventory.append(skins.make_item(row, "market", self.skin_seq))
         msg = f"用个人口袋 {price:,} 买下 {row['name']}。"
@@ -1705,6 +1886,7 @@ class Career:
             return f"开箱需要 ${cost:,}（箱子+钥匙）。"
         drop = skins.open_case(case_id)
         self.money -= cost
+        self._record_cashflow("", "pocket", "case", f"开启 {box['name']}", -cost, self.money)
         spot = skins.quote_of(self, drop["id"])
         self.pending_drop = {
             **drop,
@@ -1743,6 +1925,7 @@ class Career:
         sid = drop.get("id") or drop.get("skin_id") or ""
         pay = skins.sell_proceeds(skins.quote_of(self, sid)) if sid else int(drop.get("sell") or 0)
         self.money += pay
+        self._record_cashflow("", "pocket", "skin", f"出售 {drop.get('name')}", pay, self.money)
         self.pending_drop = None
         msg = f"把 {drop.get('name')} 换成了 ${pay:,}（市价扣 10%）。"
         self.log.append(msg)
@@ -1762,6 +1945,7 @@ class Career:
         self._unequip_id(inv_id)
         pay = skins.sell_proceeds(skins.quote_of(self, item.get("skin_id") or ""))
         self.money += pay
+        self._record_cashflow("", "pocket", "skin", f"出售 {item['name']}", pay, self.money)
         msg = f"卖掉 {item['name']}，口袋 +${pay:,}（市价扣 10%）。"
         self.log.append(msg)
         self.save()
@@ -1816,6 +2000,7 @@ class Career:
             return "找不到你的选手数据。"
         stats = you.get("stats") or stats_for(you["name"], you.get("role") or self.role, float(you.get("ability") or 74))
         you["stats"] = stats
+        ensure_role_calibration(you)
         label = AXIS_LABEL[axis]
         if axis == "command":
             cur = int(round(float(stats.get("command") or you.get("command") or 50)))
@@ -1839,7 +2024,7 @@ class Career:
                 return f"{label} 已满，不能再点。"
             nxt = min(100, cur + 1)
             stats[axis] = nxt
-            you["ability"] = ability_of(stats, you.get("role") or self.role)
+            refresh_player_ability(you)
             note = f"{label} {cur} → {nxt}，个人能力 {you['ability']:.1f}"
         self.attr_points -= 1
         msg = f"投入 1 点到{label}。{note}。剩余 {self.attr_points} 点。"
@@ -1908,12 +2093,13 @@ class Career:
         if roles.count("awp") != 1:
             raise ValueError("必须有且只有一名主狙。点主狙会和原来的主狙对调。")
         for p in team["players"]:
+            ensure_role_calibration(p)
             p["role"] = mapping[p["name"]]
             if p.get("you"):
                 self.role = p["role"]
             st = p.get("stats")
             if st:
-                p["ability"] = ability_of(st, p["role"])
+                refresh_player_ability(p)
         restamp_command(team)
         refresh_team_command(team)
         team["custom_roles"] = True
@@ -1987,6 +2173,7 @@ class Career:
             "team": team["name"] if team else "",
             "role": self.role,
             "mode": self.mode,
+            "origin": self.origin,
             "class": awards.event_class(ev) if ev else "",
             "class_label": awards.CLASS_LABEL.get(awards.event_class(ev), "") if ev else "",
             "type": ev.get("type") if ev else "",
@@ -1997,6 +2184,10 @@ class Career:
         }
 
     def _enqueue(self, when: str, season, ev: dict | None = None) -> None:
+        # These are big-stage milestones, not any tournament's first match/GF.
+        # Enforce centrally so unfiltered extension stories follow the same rule.
+        if when in ('first_lan', 'first_final') and (not ev or ev.get('type') in ('cct','t2','qual') or awards.event_class(ev) not in ('major','premier','t1')):
+            return
         ctx = self._context(season, ev)
         ctx["when"] = when
         seen = set(self.seen_stories)
@@ -2085,7 +2276,7 @@ class Career:
                 "team": row.get("team") or "",
                 "rating": row.get("rating"),
                 "title": row.get("title") or "",
-                "role": roles.get(row.get("player") or "", ""),
+                "role": row.get("role") or roles.get(row.get("player") or "", ""),
                 "from_finalist": bool(row.get("from_finalist")),
             }
 
@@ -2146,6 +2337,11 @@ class Career:
 
     def ack_story(self, story_id: str, choice: str = "", season=None) -> None:
         row = next((item for item in self.story_queue if item.get("id") == story_id), None)
+        if row is None:
+            return  # Replayed acknowledgements cannot apply rewards twice.
+        choices = row.get("choices") or []
+        if choices and choice not in {item.get("id") for item in choices}:
+            raise ValueError("请选择剧情中提供的选项；本次尚未作出决定。")
         if row and row.get("when") == "fix_offer" and self.fix_pending:
             self.answer_fix(season, choice == "accept")
         if row and row.get("when") == "loan_default" and self.loan_default_pending:
@@ -2231,6 +2427,10 @@ class Career:
             self.fix_chance = min(plot.FIX_MAX, float(self.fix_chance or plot.FIX_BASE) + plot.FIX_ACCEPT)
             self.throwing = True
             self.money += plot.PAYOUT
+            self._record_cashflow(
+                season.date if season is not None else "", "pocket", "unknown",
+                "来源不明的转账", plot.PAYOUT, self.money,
+            )
             if season is not None:
                 self._sync_throw(season)
             self.log.append("你回了一封含糊的信。账上多了一笔说不清的钱。")
@@ -2287,6 +2487,26 @@ class Career:
         rank = (table.get(self.team_id) or {}).get("rank", 40) if self.team_id else 40
         burn = economy.month_burn((team or {}).get("players") or [], rank)
         you_pay = next((w["pay"] for w in burn["wages"] if w["name"] == self.player_name), 0)
+        sponsor = sponsor_month(rank) if team and not self.unsigned else 0
+        loan = self.loan if isinstance(self.loan, dict) else None
+        interest = economy.interest_due(
+            int((loan or {}).get("principal") or 0),
+            float((loan or {}).get("rate") or 0),
+        ) if loan else 0
+        club_interest = interest if loan and loan.get("kind") == "club" else 0
+        club_lines = [
+            {"label": f"当前排名赞助（VRS #{rank}）", "amount": sponsor},
+            {"label": "全队工资", "amount": -burn["salaries"]},
+            {"label": "训练、差旅与吃住", "amount": -burn["living"]},
+        ]
+        if club_interest:
+            club_lines.append({"label": "个人借款利息回款", "amount": club_interest})
+        pocket_lines = [{"label": "个人月薪", "amount": you_pay}]
+        if interest:
+            pocket_lines.append({"label": "贷款利息", "amount": -interest})
+        club_net = sum(row["amount"] for row in club_lines)
+        pocket_net = sum(row["amount"] for row in pocket_lines)
+        recent = list(reversed(self.cashflow[-14:]))
         return {
             "rank": rank,
             "salaries": burn["salaries"],
@@ -2297,6 +2517,23 @@ class Career:
             "cash": (team or {}).get("money", 0) if team else 0,
             "runway": int(((team or {}).get("money", 0) or 0) / burn["total"]) if burn["total"] else 0,
             "log": self.ops_log[-8:],
+            "finance": {
+                "club": {
+                    "balance": int((team or {}).get("money") or 0),
+                    "next_net": club_net,
+                    "next_balance": int((team or {}).get("money") or 0) + club_net,
+                    "lines": club_lines,
+                    "recent": [row for row in recent if row.get("scope") == "club"][:7],
+                },
+                "pocket": {
+                    "balance": int(self.money or 0),
+                    "next_net": pocket_net,
+                    "next_balance": int(self.money or 0) + pocket_net,
+                    "lines": pocket_lines,
+                    "recent": [row for row in recent if row.get("scope") == "pocket"][:7],
+                },
+                "note": "按当前排名、阵容和贷款估算；不包含尚未发生的赛事奖金、转会和皮肤交易。",
+            },
         }
 
     def public(self, season) -> dict:
@@ -2335,6 +2572,7 @@ class Career:
         )
         return {
             "exists": self.exists,
+            "legacy_save_notice": self.legacy_save_notice,
             "era": self.era,
             "year": self.year,
             "eras": ERA_META,
@@ -2342,6 +2580,8 @@ class Career:
             "player_name": self.player_name,
             "role": self.role,
             "mode": self.mode,
+            "origin": self.origin,
+            "origins": public_origins(),
             "team_id": self.team_id,
             "team_name": team["name"] if team else "",
             "money": team.get("money", 0) if team else 0,

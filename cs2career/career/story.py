@@ -28,15 +28,30 @@ TRIGGERS = (
 
 def load_stories() -> list[dict]:
     raw = json.loads(data_file("stories.json").read_text(encoding="utf-8"))
+    try:
+        from ..content import get_registry
+
+        for payload in get_registry().payloads("stories"):
+            raw.setdefault("stories", []).extend(payload.get("stories") or [])
+    except (OSError, TypeError, ValueError):
+        pass
     out = []
+    seen: set[str] = set()
     for row in raw.get("stories") or []:
-        if not row.get("id") or not row.get("when") or not (row.get("text") or "").strip():
+        if not row.get("id") or row["id"] in seen or not row.get("when") or not (row.get("text") or "").strip():
             continue
+        seen.add(row["id"])
         out.append(row)
     return out
 
 
 STORIES = load_stories()
+
+
+def reload_stories() -> list[dict]:
+    global STORIES
+    STORIES = load_stories()
+    return STORIES
 
 
 def _eq(want: Any, got: Any) -> bool:
@@ -52,7 +67,7 @@ def _eq(want: Any, got: Any) -> bool:
 def match(story: dict, ctx: dict) -> bool:
     if story.get("when") != ctx.get("when"):
         return False
-    for key in ("era", "year", "player", "team", "role", "mode", "class", "type", "band"):
+    for key in ("era", "year", "player", "team", "role", "mode", "origin", "class", "type", "band"):
         if key in story and not _eq(story[key], ctx.get(key)):
             return False
     return True
@@ -96,7 +111,7 @@ def pick(ctx: dict, when: str) -> dict | None:
             continue
         spec = sum(
             1
-            for key in ("era", "year", "player", "team", "role", "mode", "class", "type", "band")
+            for key in ("era", "year", "player", "team", "role", "mode", "origin", "class", "type", "band")
             if key in story
         )
         ranked.append((spec, story))

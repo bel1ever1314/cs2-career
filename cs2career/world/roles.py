@@ -1,7 +1,7 @@
 # coding=utf-8
-"""Player positions. Explicit per-team maps first, then name sets, then fallback.
+"""Player positions. Liquipedia squad/IGL + player |roles=, then name sets.
 
-Roster order never decides who holds the AWP.
+Roster order never decides who holds the AWP. Support is not a playable role.
 """
 
 from __future__ import annotations
@@ -11,109 +11,82 @@ ROLE_LABEL = {
     "igl": "指挥",
     "entry": "突破手",
     "lurk": "自由人",
-    "support": "辅助",
     "rifle": "步枪手",
 }
 
-ROLE_RANK = {"awp": 0, "igl": 1, "entry": 2, "lurk": 3, "support": 4, "rifle": 5}
+ROLE_RANK = {"awp": 0, "igl": 1, "entry": 2, "lurk": 3, "rifle": 4}
 
-PLAYABLE_ROLES = ("rifle", "awp", "entry", "lurk", "support", "igl")
+PLAYABLE_ROLES = ("rifle", "awp", "entry", "lurk", "igl")
 
-# Signature AWPers across all eras in this world.
-AWP = {
-    "ZywOo", "m0NESY", "sh1ro", "w0nderful", "device", "woxic", "torzsi", "Jee",
-    "nqz", "broky", "s1mple", "degster", "sunpayus", "oSee", "hallzerk", "kaze",
-    "xccurate", "DANK1NG", "saffee", "Jame", "molodoy", "EmiliaQAQ", "flayy", "zevy",
-    "gr1ks", "910", "dumau", "r1nkle", "Jorko", "Neityu", "kensizor", "Lucky",
-    "xKacpersky", "nilo", "Vexite", "slaxz-", "dgt", "noway", "cadiaN",
-    "Krabeni", "b1st", "poiii", "beastik", "Rainwaker", "koala", "sdy",
-    "fear", "MUTiRiS", "Woro2k", "Cxzi", "tomaszin", "dobu", "mizu", "controlez",
-    "FL4MUS", "d1Ledez", "JW", "headtr1ck", "HEN1", "xiaosaGe",
-    "Senzu", "yxngstxr", "afro", "SHOCK",
+# Explicit lineups. Era extras live on the same map; apply_roles keeps one IGL/AWP.
+# When two callers share a live five, pick the one who actually led that year.
+ERA_CALLER = {
+    "2024": {"G2": "HooXi"},
+    "2025": {"G2": "Snax"},
 }
-
-IGL = {
-    "apEX", "karrigan", "Aleksib", "FalleN", "Boombl4", "HooXi", "gla1ve", "chopper",
-    "siuhy", "Snax", "nitr0", "JT", "Zero", "captainMo", "advent", "kyxsan", "MAJ3R",
-    "Snappi", "Chr1zN", "tabseN", "arT", "blameF", "swisher", "dexter", "alex", "nexa",
-    "Xizt", "magixx", "xelex", "MATYS", "LNZ", "s1zzi", "Maka", "BnTeT",
-    "story", "dem0n", "tO0RO", "Trash", "stressarN", "Ltz", "bnox", "AZUWU", "doc",
-    "matys", "rmn", "Kvem", "luchov-", "yAmi", "n0rb3r7", "NEUZ", "saadzin", "bodyy",
-    "piriajr", "DarkMeister", "tarik", "Westmelon",
-}
-
-ENTRY = {
-    "YEKINDAR", "jcobbb", "XANTARES", "kyousuke", "dupreeh", "rigoN", "zont1x",
-    "EliGE", "Staehr", "brnz4n", "sjuush", "MartinezSa", "INS", "C4LLM3SU3", "JBa",
-    "VINI", "adamb", "xfl0ud", "Jeorge", "F0R3VER", "rain", "3gl", "MoDo",
-    "dav1deus", "kraghen", "lux", "rdnzao", "CYPHER", "krazy", "jackasio", "junior",
-    "zock", "AccuracyTG", "kade0", "ACCURACY", "hypex", "vsm", "xiELO", "bLitz",
-    "makazze", "jL", "JamYoung", "zorte", "luchov", "18yM", "k0nfig", "Stewie2K",
-    "donk", "chelo", "friberg",
-}
-
-LURK = {"ropz", "KSCERATO", "iM", "NAF", "Spinx", "jks", "electronic", "Ax1Le", "flusha", "GeT_RiGhT"}
-
-SUPPORT = {
-    "mezii", "TeSeS", "Magisk", "PR", "try", "nettik", "KRIMZ", "Lake", "Perfecto",
-    "interz", "Liazz", "tN1R", "cairne", "myltsi", "Ag1l", "s-chilla", "maxxkor",
-    "timpla", "Bymas", "raalz", "kisserek", "kye", "HUASOPEEK", "Sonic", "AquaRS",
-    "chengking", "Efire", "MiQ", "frontales", "Gizmy", "nicx", "jambo", "podi",
-    "Moseyuh", "Magisk",
-}
-
-# Explicit HLTV-style lineups. These override every set above.
 TEAM_ROLES: dict[str, dict[str, str]] = {
-    "Falcons": {"m0NESY": "awp", "NiKo": "rifle", "kyousuke": "entry", "TeSeS": "support", "karrigan": "igl", "degster": "awp", "dupreeh": "entry", "Magisk": "support", "Snappi": "igl"},
-    "Vitality": {"ZywOo": "awp", "ropz": "lurk", "flameZ": "entry", "mezii": "support", "apEX": "igl", "Spinx": "lurk"},
-    "Spirit": {"donk": "entry", "sh1ro": "awp", "zont1x": "support", "tN1R": "support", "magixx": "igl", "chopper": "igl"},
+    "Falcons": {"m0NESY": "awp", "NiKo": "entry", "kyousuke": "entry", "TeSeS": "entry", "karrigan": "igl", "degster": "awp", "dupreeh": "entry", "Magisk": "rifle", "Snappi": "igl", "kyxsan": "igl"},
+    "Vitality": {"ZywOo": "awp", "ropz": "lurk", "flameZ": "entry", "mezii": "rifle", "apEX": "igl", "Spinx": "lurk"},
+    "Spirit": {"donk": "entry", "sh1ro": "awp", "zont1x": "rifle", "tN1R": "rifle", "magixx": "igl", "chopper": "igl"},
     "FURIA": {"KSCERATO": "lurk", "yuurih": "rifle", "molodoy": "awp", "YEKINDAR": "entry", "FalleN": "igl", "chelo": "entry", "skullz": "rifle"},
-    "NAVI": {"w0nderful": "awp", "b1t": "rifle", "makazze": "entry", "iM": "lurk", "Aleksib": "igl", "jL": "entry"},
-    "Aurora": {"XANTARES": "entry", "woxic": "awp", "Jimpphat": "rifle", "Wicadia": "rifle", "kyxsan": "igl", "MAJ3R": "igl", "jottAAA": "rifle", "soulfly": "support"},
-    "BetBoom": {"Magnojez": "rifle", "zorte": "entry", "S1ren": "rifle", "d1Ledez": "awp", "Boombl4": "igl"},
-    "MOUZ": {"xertioN": "entry", "Spinx": "lurk", "torzsi": "awp", "PR": "support", "xelex": "igl", "Brollan": "rifle", "Jimpphat": "rifle", "siuhy": "igl"},
-    "G2": {"HeavyGod": "rifle", "huNter-": "rifle", "NertZ": "entry", "r1nkle": "awp", "MATYS": "igl", "NiKo": "rifle", "m0NESY": "awp", "nexa": "igl", "HooXi": "igl", "malbsMd": "rifle", "Snax": "igl"},
-    "The MongolZ": {"910": "awp", "bLitz": "entry", "Techno": "rifle", "tikuak": "rifle", "DarkMeister": "igl"},
-    "Legacy": {"latto": "rifle", "dumau": "awp", "n1ssim": "rifle", "try": "support", "arT": "igl"},
-    "FaZe": {"frozen": "rifle", "Twistzz": "rifle", "jcobbb": "entry", "Neityu": "awp", "JBOEN": "igl", "broky": "awp", "ropz": "lurk", "rain": "entry", "karrigan": "igl", "s1mple": "awp"},
-    "PARIVISION": {"Jame": "awp", "HObbit": "lurk", "zweih": "rifle", "xiELO": "entry", "slaxejezzz": "rifle"},
-    "paiN": {"biguzera": "rifle", "saffee": "awp", "snow": "rifle", "vsm": "entry", "piriajr": "igl"},
-    "GamerLegion": {"REZ": "rifle", "FL4MUS": "awp", "Tauson": "rifle", "hypex": "entry", "Snax": "igl", "volt": "support"},
-    "Liquid": {"EliGE": "entry", "NAF": "lurk", "malbsMd": "rifle", "Jorko": "awp", "JT": "igl", "Twistzz": "rifle", "YEKINDAR": "entry", "oSee": "awp", "nitr0": "igl"},
-    "Astralis": {"device": "awp", "jabbi": "entry", "Staehr": "rifle", "phzy": "rifle", "HooXi": "igl", "cadiaN": "awp", "br0": "support"},
-    "B8": {"kensizor": "awp", "npl": "rifle", "alex666": "rifle", "esenthial": "entry", "s1zzi": "igl"},
-    "3DMAX": {"Lucky": "awp", "Maka": "igl", "Graviti": "rifle", "misutaaa": "entry", "Kursy": "support"},
-    "TYLOO": {"JamYoung": "entry", "Mercury": "rifle", "Moseyuh": "support", "Jee": "awp", "Zero": "igl", "AttackeR": "rifle", "captainMo": "igl"},
-    "BIG": {"tabseN": "igl", "JDC": "rifle", "faveN": "rifle", "gr1ks": "awp", "blameF": "rifle"},
+    "NAVI": {"w0nderful": "awp", "b1t": "rifle", "makazze": "rifle", "iM": "entry", "Aleksib": "igl", "jL": "entry"},
+    "Aurora": {"XANTARES": "entry", "woxic": "awp", "Jimpphat": "rifle", "Wicadia": "rifle", "kyxsan": "igl", "MAJ3R": "igl", "jottAAA": "rifle", "soulfly": "rifle"},
+    "BetBoom": {"Magnojez": "rifle", "zorte": "awp", "S1ren": "rifle", "d1Ledez": "rifle", "Boombl4": "igl"},
+    "MOUZ": {"xertioN": "igl", "Spinx": "lurk", "torzsi": "awp", "PR": "rifle", "xelex": "rifle", "Brollan": "rifle", "Jimpphat": "rifle", "siuhy": "igl"},
+    "G2": {"HeavyGod": "rifle", "huNter-": "igl", "NertZ": "rifle", "r1nkle": "awp", "MATYS": "rifle", "NiKo": "rifle", "m0NESY": "awp", "nexa": "rifle", "HooXi": "igl", "malbsMd": "rifle", "Snax": "igl"},
+    "The MongolZ": {"910": "awp", "bLitz": "igl", "Techno": "rifle", "tikuak": "rifle", "DarkMeister": "rifle"},
+    "Legacy": {"latto": "rifle", "dumau": "rifle", "n1ssim": "rifle", "try": "awp", "arT": "igl"},
+    "FaZe": {"frozen": "rifle", "Twistzz": "igl", "jcobbb": "rifle", "Neityu": "rifle", "JBOEN": "awp", "broky": "awp", "ropz": "lurk", "rain": "entry", "karrigan": "igl", "s1mple": "awp"},
+    "PARIVISION": {"Jame": "igl", "HObbit": "rifle", "zweih": "rifle", "xiELO": "rifle", "slaxejezzz": "rifle"},
+    "paiN": {"biguzera": "igl", "saffee": "awp", "snow": "rifle", "vsm": "rifle", "piriajr": "entry"},
+    "GamerLegion": {"REZ": "rifle", "FL4MUS": "entry", "Tauson": "rifle", "hypex": "awp", "Snax": "igl", "volt": "rifle"},
+    "Liquid": {"EliGE": "entry", "NAF": "rifle", "malbsMd": "entry", "Jorko": "awp", "JT": "igl", "Twistzz": "rifle", "YEKINDAR": "entry", "oSee": "awp", "nitr0": "igl"},
+    "Astralis": {"device": "awp", "jabbi": "rifle", "Staehr": "rifle", "phzy": "awp", "HooXi": "igl", "cadiaN": "igl", "br0": "rifle"},
+    "B8": {"kensizor": "rifle", "npl": "rifle", "alex666": "igl", "esenthial": "rifle", "s1zzi": "awp"},
+    "3DMAX": {"Lucky": "rifle", "Maka": "igl", "Graviti": "rifle", "misutaaa": "rifle", "Kursy": "awp"},
+    "TYLOO": {"JamYoung": "rifle", "Mercury": "igl", "Moseyuh": "rifle", "Jee": "awp", "Zero": "rifle", "AttackeR": "rifle", "captainMo": "igl"},
+    "BIG": {"tabseN": "rifle", "JDC": "rifle", "faveN": "rifle", "gr1ks": "awp", "blameF": "igl"},
     "MIBR": {"insani": "rifle", "nqz": "awp", "brnz4n": "entry", "venomzera": "rifle", "LNZ": "igl"},
-    "NiP": {"stavn": "rifle", "xKacpersky": "awp", "sjuush": "entry", "cairne": "support", "Snappi": "igl", "isak": "rifle", "headtr1ck": "awp", "alex": "igl"},
-    "HEROIC": {"Brollan": "rifle", "nilo": "awp", "susp": "rifle", "MartinezSa": "entry", "Chr1zN": "igl", "yxngstxr": "awp"},
-    "FlyQuest": {"jks": "lurk", "INS": "entry", "Vexite": "awp", "nettik": "support", "story": "igl", "dexter": "igl", "Liazz": "support"},
-    "Lynn Vision": {"Westmelon": "igl", "Starry": "rifle", "EmiliaQAQ": "awp", "C4LLM3SU3": "entry", "z4KR": "rifle"},
-    "M80": {"swisher": "igl", "slaxz-": "awp", "s1n": "rifle", "JBa": "entry", "Lake": "support"},
-    "9z": {"dgt": "awp", "max": "rifle", "HUASOPEEK": "support", "luchov": "entry", "meyern": "igl"},
-    "Imperial": {"noway": "awp", "decenty": "rifle", "VINI": "entry", "chelo": "entry", "saadzin": "igl", "HEN1": "awp"},
-    "OG": {"cadiaN": "awp", "bodyy": "igl", "adamb": "entry", "arrozdoce": "rifle", "spooke": "support", "F1KU": "rifle", "NEOFRAG": "entry", "rallen": "support"},
-    "FUT": {"cmtry": "rifle", "Krabeni": "awp", "dziugss": "rifle", "xfl0ud": "entry", "dem0n": "igl"},
-    "NRG": {"Grim": "rifle", "hallzerk": "awp", "Sonic": "support", "Jeorge": "entry", "nitr0": "igl", "autimatic": "rifle", "RUSH": "entry"},
-    "Virtus.pro": {"mir": "rifle", "b1st": "awp", "AquaRS": "support", "F0R3VER": "entry", "tO0RO": "igl"},
-    "100 Thieves": {"rain": "entry", "sirah": "rifle", "poiii": "awp", "Gizmy": "support", "Magisk": "support", "floppy": "rifle", "JT": "igl"},
-    "Rare Atom": {"Summer": "awp", "L1haNg": "rifle", "chengking": "support", "3gl": "entry", "Trash": "igl"},
-    "SINNERS": {"SHOCK": "awp", "beastik": "rifle", "kisserek": "support", "MoDo": "entry", "stressarN": "igl"},
-    "Fluxo": {"zevy": "awp", "exit": "rifle", "kye": "support", "dav1deus": "entry", "Ltz": "igl"},
-    "9INE": {"flayy": "awp", "cej0t": "rifle", "raalz": "support", "kraghen": "entry", "bnox": "igl"},
-    "Luminosity": {"afro": "awp", "Rainwaker": "rifle", "Bymas": "support", "lux": "entry", "AZUWU": "igl"},
-    "Sharks": {"gafolo": "rifle", "koala": "awp", "maxxkor": "support", "rdnzao": "entry", "doc": "igl"},
-    "ENCE": {"gla1ve": "igl", "sdy": "awp", "podi": "support", "myltsi": "rifle", "rigoN": "entry"},
-    "fnatic": {"KRIMZ": "support", "fear": "awp", "jambo": "rifle", "CYPHER": "entry", "matys": "igl"},
-    "SAW": {"MUTiRiS": "awp", "ewjerkz": "rifle", "Ag1l": "support", "krazy": "entry", "rmn": "igl"},
-    "Passion UA": {"Woro2k": "awp", "jackasmo": "rifle", "s-chilla": "support", "jackasio": "entry", "Kvem": "igl"},
-    "Complexity": {"Cxzi": "awp", "floppy": "rifle", "nicx": "support", "junior": "entry", "Grim-": "rifle", "hallzerk": "awp"},
-    "BESTIA": {"tomaszin": "awp", "Noktse": "rifle", "timpla": "support", "zock": "entry", "luchov-": "igl"},
-    "ATOX": {"dobu": "awp", "kabal": "rifle", "MiQ": "support", "AccuracyTG": "entry", "yAmi": "igl"},
-    "HOTU": {"mizu": "awp", "finesher": "rifle", "frontales": "support", "kade0": "entry", "n0rb3r7": "igl"},
-    "Chinggis Warriors": {"controlez": "awp", "cool4st": "rifle", "Efire": "support", "ACCURACY": "entry", "NEUZ": "igl"},
+    "NiP": {"stavn": "awp", "xKacpersky": "rifle", "sjuush": "rifle", "cairne": "rifle", "Snappi": "igl", "isak": "rifle", "headtr1ck": "awp", "alex": "igl"},
+    "HEROIC": {"Brollan": "rifle", "nilo": "rifle", "susp": "rifle", "MartinezSa": "awp", "Chr1zN": "igl", "yxngstxr": "awp"},
+    "FlyQuest": {"jks": "rifle", "INS": "igl", "Vexite": "rifle", "nettik": "rifle", "story": "awp", "dexter": "igl", "Liazz": "rifle"},
+    "Lynn Vision": {"Westmelon": "igl", "Starry": "rifle", "EmiliaQAQ": "rifle", "C4LLM3SU3": "rifle", "z4KR": "awp"},
+    "M80": {"swisher": "entry", "slaxz-": "awp", "s1n": "igl", "JBa": "rifle", "Lake": "rifle"},
+    "9z": {"dgt": "lurk", "max": "igl", "HUASOPEEK": "entry", "luchov": "entry", "meyern": "awp"},
+    "Imperial": {"noway": "rifle", "decenty": "lurk", "VINI": "igl", "chelo": "entry", "saadzin": "awp", "HEN1": "awp"},
+    "OG": {"cadiaN": "igl", "bodyy": "rifle", "adamb": "rifle", "arrozdoce": "rifle", "spooke": "rifle", "F1KU": "rifle", "NEOFRAG": "entry", "rallen": "rifle"},
+    "FUT": {"cmtry": "awp", "Krabeni": "igl", "dziugss": "rifle", "xfl0ud": "rifle", "dem0n": "rifle"},
+    "NRG": {"Grim": "entry", "hallzerk": "awp", "Sonic": "rifle", "Jeorge": "rifle", "nitr0": "igl", "autimatic": "rifle", "RUSH": "entry"},
+    "Virtus.pro": {"mir": "igl", "b1st": "awp", "AquaRS": "rifle", "F0R3VER": "rifle", "tO0RO": "rifle"},
+    "100 Thieves": {"rain": "entry", "sirah": "rifle", "poiii": "rifle", "Gizmy": "igl", "Magisk": "rifle", "floppy": "rifle", "JT": "igl"},
+    "Rare Atom": {"Summer": "igl", "L1haNg": "rifle", "chengking": "rifle", "3gl": "awp", "Trash": "rifle"},
+    "SINNERS": {"SHOCK": "rifle", "beastik": "igl", "kisserek": "rifle", "MoDo": "awp", "stressarN": "rifle"},
+    "Fluxo": {"zevy": "awp", "exit": "igl", "kye": "rifle", "dav1deus": "entry", "Ltz": "rifle"},
+    "9INE": {"flayy": "awp", "cej0t": "rifle", "raalz": "igl", "kraghen": "rifle", "bnox": "rifle"},
+    "Luminosity": {"afro": "awp", "Rainwaker": "lurk", "Bymas": "lurk", "lux": "igl", "AZUWU": "rifle"},
+    "Sharks": {"gafolo": "igl", "koala": "rifle", "maxxkor": "awp", "rdnzao": "rifle", "doc": "rifle"},
+    "ENCE": {"gla1ve": "igl", "sdy": "rifle", "podi": "awp", "myltsi": "rifle", "rigoN": "entry"},
+    "fnatic": {"KRIMZ": "rifle", "fear": "igl", "jambo": "awp", "CYPHER": "entry", "matys": "rifle"},
+    "SAW": {"MUTiRiS": "igl", "ewjerkz": "rifle", "Ag1l": "rifle", "krazy": "rifle", "rmn": "rifle"},
+    "Passion UA": {"Woro2k": "awp", "jackasmo": "rifle", "s-chilla": "rifle", "jackasio": "rifle", "Kvem": "rifle"},
+    "Complexity": {"Cxzi": "rifle", "floppy": "rifle", "nicx": "rifle", "junior": "awp", "Grim-": "igl", "hallzerk": "awp"},
+    "BESTIA": {"tomaszin": "lurk", "Noktse": "igl", "timpla": "rifle", "zock": "lurk", "luchov-": "rifle"},
+    "ATOX": {"dobu": "igl", "kabal": "rifle", "MiQ": "rifle", "AccuracyTG": "awp", "yAmi": "rifle"},
+    "HOTU": {"mizu": "rifle", "finesher": "rifle", "frontales": "awp", "kade0": "igl", "n0rb3r7": "rifle"},
+    "Chinggis Warriors": {"controlez": "rifle", "cool4st": "igl", "Efire": "rifle", "ACCURACY": "rifle", "NEUZ": "rifle"},
 }
+
+
+def _names(role: str) -> set[str]:
+    return {n for players in TEAM_ROLES.values() for n, r in players.items() if r == role}
+
+
+AWP = _names("awp") | {"sunpayus", "kaze", "xccurate", "DANK1NG", "JW", "xiaosaGe", "Senzu"}
+IGL = _names("igl") | {"tabseN", "swisher", "advent", "Xizt", "BnTeT", "tarik", "nexa"}
+ENTRY = _names("entry") | {"dupreeh", "18yM", "k0nfig", "Stewie2K", "friberg"}
+LURK = _names("lurk") | {"electronic", "Ax1Le", "flusha", "GeT_RiGhT"}
+# Dual IGL/AWP or backup AWPer when the live five has no dedicated sniper.
+BACKUP_AWP = {"FalleN", "Jame", "cadiaN", "cool4st", "NAF", "Maka"}
 
 
 def known_role(name: str, team: str | None = None) -> str | None:
@@ -121,13 +94,12 @@ def known_role(name: str, team: str | None = None) -> str | None:
     if team:
         mapped = TEAM_ROLES.get(team, {}).get(name)
         if mapped:
-            return mapped
+            return mapped if mapped != "support" else "rifle"
     for role, names in (
         ("awp", AWP),
         ("igl", IGL),
         ("entry", ENTRY),
         ("lurk", LURK),
-        ("support", SUPPORT),
     ):
         if name in names:
             return role
@@ -143,17 +115,35 @@ def role_of(name: str, index: int = 0, last: int = 4, team: str | None = None) -
     return "rifle"
 
 
-def apply_roles(teams: list[dict]) -> None:
+def apply_roles(teams: list[dict], era: str | None = None, *, current_year: int | None = None) -> bool:
     """Re-derive roles from the role tables.
 
-    The career player keeps the role they chose, and a signing whose role we do
-    not know keeps whatever the transfer gave it. Every team ends up with exactly
-    one AWPer, since two primary AWPs on one lineup is not a real lineup.
+    The career player keeps the role they chose, except leftover 辅助 is folded
+    into 步枪手. Every team ends up with one IGL (or a 指挥狙) and one AWPer.
     """
+    from .ability import ensure_role_calibration, refresh_player_ability
+    calibrated = False
     for t in teams:
-        if t.get("custom_roles"):
-            continue
         players = t.get("players") or []
+        for p in players:
+            calibrated = ensure_role_calibration(p) or calibrated
+        year = current_year or (int(era) if era and str(era).isdigit() else None)
+        if year:
+            from .pool import age_of
+
+            for p in players:
+                # Age is persistent career state. Only repair missing values;
+                # browsing must not undo aging or a scenario's authored age.
+                if p.get("name") and p.get("age") is None:
+                    p["age"] = age_of(p["name"], year)
+        for p in players:
+            if p.get("role") == "support":
+                p["role"] = "rifle"
+        if t.get("custom_roles"):
+            _ensure_igl_awp(players, allow_no_awp=bool(t.get('allow_no_awp')))
+            for p in players:
+                refresh_player_ability(p)
+            continue
         last = len(players) - 1
         for j, p in enumerate(players):
             if p.get("you"):
@@ -161,15 +151,72 @@ def apply_roles(teams: list[dict]) -> None:
             role = known_role(p.get("name", ""), t.get("name"))
             if role is None:
                 role = p.get("role") or ("igl" if j == last else "rifle")
+            if role == "support":
+                role = "rifle"
             p["role"] = role
+        _ensure_igl_awp(players)
+        _force_era_caller(players, era, t.get("name"))
+        for p in players:
+            refresh_player_ability(p)
+        try:
+            from .ability import refresh_team_command, restamp_command
 
-        awps = [p for p in players if p.get("role") == "awp"]
-        if len(awps) > 1:
-            keeper = max(awps, key=lambda p: (bool(p.get("you")), p.get("ability", 0)))
-            for p in awps:
-                if p is not keeper:
-                    p["role"] = "rifle"
-        elif not awps:
-            pool = [p for p in players if not p.get("you") and p.get("role") != "igl"]
+            restamp_command(t)
+            refresh_team_command(t)
+        except Exception:
+            pass
+    return calibrated
+
+
+def _ensure_igl_awp(players: list[dict], *, allow_no_awp: bool = False) -> None:
+    _keep_one(players, "awp", key=lambda p: (bool(p.get("you")), float(p.get("ability") or 0)))
+    igls = [p for p in players if p.get("role") == "igl"]
+    if not igls and not any(p.get('is_igl') for p in players):
+        if not any(p.get("role") == "awp" and p.get("name") in IGL for p in players):
+            pool = [p for p in players if not p.get("you") and p.get("role") != "awp"]
+            if not pool:
+                pool = [p for p in players if not p.get("you")]
             if pool:
-                max(pool, key=lambda p: p.get("ability", 0))["role"] = "awp"
+                max(
+                    pool,
+                    key=lambda p: (
+                        p.get("name") in IGL,
+                        int(p.get("command") or 0),
+                        float(p.get("ability") or 0),
+                    ),
+                )["role"] = "igl"
+    _keep_one(players, "igl", key=lambda p: (bool(p.get("you")), int(p.get("command") or 0), float(p.get("ability") or 0)))
+    if not allow_no_awp and not any(p.get("role") == "awp" for p in players):
+        backup = [p for p in players if not p.get("you") and p.get("name") in BACKUP_AWP]
+        if backup:
+            max(backup, key=lambda p: float(p.get("ability") or 0))["role"] = "awp"
+        else:
+            pool = [p for p in players if not p.get("you") and p.get("role") != "igl"]
+            if not pool:
+                pool = [p for p in players if not p.get("you")]
+            if pool:
+                max(pool, key=lambda p: float(p.get("ability") or 0))["role"] = "awp"
+
+
+def _force_era_caller(players: list[dict], era: str | None, team: str | None) -> None:
+    want = ERA_CALLER.get(str(era) or "", {}).get(team or "")
+    if not want:
+        return
+    target = next((p for p in players if p.get("name") == want), None)
+    if not target or target.get("you"):
+        return
+    for p in players:
+        if p is not target and p.get("role") == "igl" and not p.get("you"):
+            p["role"] = "rifle"
+    if target.get("role") != "awp":
+        target["role"] = "igl"
+
+
+def _keep_one(players: list[dict], role: str, key) -> None:
+    holders = [p for p in players if p.get("role") == role]
+    if len(holders) <= 1:
+        return
+    keeper = max(holders, key=key)
+    for p in holders:
+        if p is not keeper:
+            p["role"] = "rifle"

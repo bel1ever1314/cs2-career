@@ -1,0 +1,4 @@
+{
+  "skins": [{"id":"author-ak-example","name":"AK-47 | Example","weapon":"AK-47","slot":"ak47","rarity":"restricted","buy":500,"sell":300,"def":7,"paint":0}],
+  "cases": [], "market": ["author-ak-example"]
+}

@@ -1,11 +1,15 @@
 save/
 dist/
+dist-new/
 build/
+build-*/
 release/
 !release/.gitkeep
 __pycache__/
 *.pyc
 *.pyo
+.desktop-deps/
+.qa/
 *.pdb
 .cursor/
 .vscode/
@@ -13,3 +17,11 @@ __pycache__/
 !vendor/CareerMatch/CareerMatch.dll
 !vendor/InventorySimulator/plugins/InventorySimulator/InventorySimulator.dll
 !vendor/InvsimCareer/InvsimCareer.dll
+!vendor/BotBuy/BotBuy.dll
+vendor/**/bin/
+vendor/**/obj/
+tools/**/bin/
+tools/**/obj/
+publish/
+vendor/CareerMatch/bin/
+vendor/CareerMatch/obj/

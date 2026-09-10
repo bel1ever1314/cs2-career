@@ -1,0 +1,7 @@
+{
+  "stories": [{
+    "id": "author.story.first-day", "when": "start", "mode": "create",
+    "origin": "academy", "title": "青训基地的第一天",
+    "text": "{player} 推开了 {team} 训练室的门。这里可以写你的剧情。"
+  }]
+}

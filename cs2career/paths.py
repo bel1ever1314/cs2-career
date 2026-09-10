@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import sys
+import os
 from pathlib import Path
 
 APP_NAME = "CS2Career"
@@ -26,6 +27,10 @@ def save_root() -> Path:
     Always next to the app (E: in this tree), never %LOCALAPPDATA% on C:.
     Frozen builds use <exe>/save; source uses sim/save.
     """
+    if os.environ.get('CS2CAREER_SAVE_DIR'):
+        base = Path(os.environ['CS2CAREER_SAVE_DIR']).resolve()
+        base.mkdir(parents=True, exist_ok=True)
+        return base
     if frozen():
         base = Path(sys.executable).resolve().parent / "save"
     else:
@@ -58,3 +63,15 @@ def vendor_root() -> Path:
     if frozen():
         return Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent)) / "vendor"
     return Path(__file__).resolve().parents[1] / "vendor"
+
+
+def extension_root() -> Path:
+    """User-authored packs live beside the source tree or released executable."""
+    if os.environ.get('CS2CAREER_EXTENSION_DIR'):
+        root = Path(os.environ['CS2CAREER_EXTENSION_DIR']).resolve()
+    elif frozen():
+        root = Path(sys.executable).resolve().parent / "extensions"
+    else:
+        root = Path(__file__).resolve().parents[1] / "extensions"
+    root.mkdir(parents=True, exist_ok=True)
+    return root

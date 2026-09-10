@@ -1,0 +1,17 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const src=fs.readFileSync('cs2career/web/static/desk/collection.js','utf8');
+const code=src.slice(src.indexOf('function affordability('),src.indexOf('function dialog('));
+const ctx=vm.createContext({money:n=>'$'+n});vm.runInContext(code,ctx);
+assert.equal(ctx.affordability(26000,26000).allowed,true);
+assert.equal(ctx.affordability(26451,26000).allowed,false);
+assert.match(ctx.affordability(26451,26000).reason,/451/);
+assert.equal(ctx.affordability(9028,26000).allowed,true);
+assert.equal(ctx.affordability(12036,26000).allowed,true);
+assert.equal(ctx.affordability(9028,undefined).allowed,false);
+assert.ok(src.includes('刷新余额与报价'));
+assert.ok(src.includes("images($('collection-modal'))"));
+console.log('Skin affordability: exact funds, shortage, affordable knife/gun, missing balance and refresh passed');
+const css=fs.readFileSync('cs2career/web/static/desk.css','utf8');
+assert.match(css,/\.collection-dialog>\.skin-photo[^}]*grid-template-rows:minmax\(0,1fr\)[^}]*overflow:hidden[^}]*pointer-events:none/);
+assert.match(css,/\.skin-photo>img\{[^}]*min-height:0[^}]*pointer-events:none/);
+console.log('Skin photo containment source guards passed (not a substitute for window hit-testing)');

@@ -83,12 +83,27 @@ class VRS:
         return points_from_earned(self.earned(team_id, as_of))
 
     def table(self, teams: list[dict], as_of: str) -> list[dict]:
+        # One pass in original result order gives exactly the same per-team
+        # floating-point sums as earned(), without rescanning every historical
+        # series for every club. No persistent cache: transfers, awards, decay
+        # and edited team lists must be visible on the very next call.
+        totals = {t['id']: 0.0 for t in teams}
+        today = parse_date(as_of)
+        weights = {}
+        for result in self.results:
+            key = result['team']
+            if key not in totals:
+                continue
+            stamp = result['date']
+            if stamp not in weights:
+                weights[stamp] = decay((today - parse_date(stamp)).days)
+            totals[key] += result['points'] * weights[stamp]
         rows = [
             {
                 "id": t["id"],
                 "name": t["name"],
                 "region": t["region"],
-                "vrs": self.live(t["id"], as_of),
+                "vrs": points_from_earned(totals[t['id']]),
             }
             for t in teams
         ]

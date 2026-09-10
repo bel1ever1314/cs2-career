@@ -1,0 +1,216 @@
+{
+  "schema_version": 1,
+  "model": "bot_improver_career_tuned_v2",
+  "source": "CS2BotImprover/overrides (local supplied project)",
+  "compatibility": {
+    "raw_acceleration_token": "99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999.9.9.9.9",
+    "policy": "Preserve only this exact upstream token in LookAngleMaxAccelNormal/Attacking. Stored as text; never converted to float or JSON Infinity. No claim of engine parsing semantics."
+  },
+  "presets": {
+    "Low": {
+      "source_vpk_sha256": "02e5e958f3e0372b5616d858014d5801a980c23961556da9206a97887c1b29d0",
+      "template": "botprofile_presets/Low.db",
+      "compatibility_replacements": 0
+    },
+    "Medium": {
+      "source_vpk_sha256": "ba754b610aaeb67a3088a796b92cf28c49ac725ac071760aaf24208583dcc585",
+      "template": "botprofile_presets/Medium.db",
+      "compatibility_replacements": 0
+    },
+    "High": {
+      "source_vpk_sha256": "b08bf74eb74f1a0c9e84fb12c4a92bdb972703d35303cc69f9258176f0a10176",
+      "template": "botprofile_presets/High.db",
+      "compatibility_replacements": 0
+    }
+  },
+  "mapping": {
+    "rating": "clamp(current role ability + 0.5 * form_delta, 45, 100); no difficulty offsets",
+    "tier_bands": {
+      "<65": "Rank by role",
+      "65-74": "ProSlow",
+      "75-84": "ProSteady",
+      "85-89": "ProFast/ProPrecise by attributes",
+      "90-100": "ProTop; Medium aim variants 90-94 / 95-97 / 98-100"
+    },
+    "note": "Difficulty never adds/subtracts career rating. Low/High use their Default aim. Medium chooses anonymous upstream aim presets by career tier; Top90/95/98 thresholds are career adaptation, not original player ratings. Shared Medium rank/pro/role templates; entry uses rifle weapons and rusher personality."
+  },
+  "medium_aim": {
+    "ProFast": {
+      "LookAngleMaxAccelNormal": 7000,
+      "LookAngleStiffnessNormal": 700,
+      "LookAngleDampingNormal": 50,
+      "LookAngleMaxAccelAttacking": 7000,
+      "LookAngleStiffnessAttacking": 2000,
+      "LookAngleDampingAttacking": 40
+    },
+    "ProPrecise": {
+      "LookAngleMaxAccelNormal": 5500,
+      "LookAngleStiffnessNormal": 1150,
+      "LookAngleDampingNormal": 100,
+      "LookAngleMaxAccelAttacking": 20000,
+      "LookAngleStiffnessAttacking": 900,
+      "LookAngleDampingAttacking": 50
+    },
+    "ProSteady": {
+      "LookAngleMaxAccelNormal": 5500,
+      "LookAngleStiffnessNormal": 1150,
+      "LookAngleDampingNormal": 100,
+      "LookAngleMaxAccelAttacking": 5500,
+      "LookAngleStiffnessAttacking": 1150,
+      "LookAngleDampingAttacking": 50
+    },
+    "ProTop98": {
+      "LookAngleMaxAccelNormal": "99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999.9.9.9.9",
+      "LookAngleStiffnessNormal": 3000,
+      "LookAngleDampingNormal": 45,
+      "LookAngleMaxAccelAttacking": "99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999.9.9.9.9",
+      "LookAngleStiffnessAttacking": 3000,
+      "LookAngleDampingAttacking": 39.7
+    },
+    "ProTop90": {
+      "LookAngleMaxAccelNormal": "99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999.9.9.9.9",
+      "LookAngleStiffnessNormal": 3000,
+      "LookAngleDampingNormal": 45,
+      "LookAngleMaxAccelAttacking": "99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999.9.9.9.9",
+      "LookAngleStiffnessAttacking": 3000,
+      "LookAngleDampingAttacking": 39.95
+    },
+    "ProTop95": {
+      "LookAngleMaxAccelNormal": "99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999.9.9.9.9",
+      "LookAngleStiffnessNormal": 3000,
+      "LookAngleDampingNormal": 45.1,
+      "LookAngleMaxAccelAttacking": "99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999.9.9.9.9",
+      "LookAngleStiffnessAttacking": 3000,
+      "LookAngleDampingAttacking": 39.9
+    },
+    "RankDuelist": {
+      "LookAngleMaxAccelNormal": 9000,
+      "LookAngleStiffnessNormal": 900,
+      "LookAngleDampingNormal": 99,
+      "LookAngleMaxAccelAttacking": 9000,
+      "LookAngleStiffnessAttacking": 990,
+      "LookAngleDampingAttacking": 90
+    },
+    "RankRifler": {
+      "LookAngleMaxAccelNormal": 9000,
+      "LookAngleStiffnessNormal": 900,
+      "LookAngleDampingNormal": 99,
+      "LookAngleMaxAccelAttacking": 9000,
+      "LookAngleStiffnessAttacking": 990,
+      "LookAngleDampingAttacking": 90
+    }
+  },
+  "medium_evidence": [
+    {
+      "tier": "ProFast",
+      "count": 385,
+      "parameters": {
+        "LookAngleMaxAccelNormal": 7000,
+        "LookAngleStiffnessNormal": 700,
+        "LookAngleDampingNormal": 50,
+        "LookAngleMaxAccelAttacking": 7000,
+        "LookAngleStiffnessAttacking": 2000,
+        "LookAngleDampingAttacking": 40
+      }
+    },
+    {
+      "tier": "ProPrecise",
+      "count": 146,
+      "parameters": {
+        "LookAngleMaxAccelNormal": 5500,
+        "LookAngleStiffnessNormal": 1150,
+        "LookAngleDampingNormal": 100,
+        "LookAngleMaxAccelAttacking": 20000,
+        "LookAngleStiffnessAttacking": 900,
+        "LookAngleDampingAttacking": 50
+      }
+    },
+    {
+      "tier": "ProSlow",
+      "count": 138,
+      "parameters": {}
+    },
+    {
+      "tier": "ProSteady",
+      "count": 538,
+      "parameters": {
+        "LookAngleMaxAccelNormal": 5500,
+        "LookAngleStiffnessNormal": 1150,
+        "LookAngleDampingNormal": 100,
+        "LookAngleMaxAccelAttacking": 5500,
+        "LookAngleStiffnessAttacking": 1150,
+        "LookAngleDampingAttacking": 50
+      }
+    },
+    {
+      "tier": "ProSteady",
+      "count": 2,
+      "parameters": {}
+    },
+    {
+      "tier": "ProTop",
+      "count": 5,
+      "parameters": {
+        "LookAngleMaxAccelNormal": "99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999.9.9.9.9",
+        "LookAngleStiffnessNormal": 3000,
+        "LookAngleDampingNormal": 45,
+        "LookAngleMaxAccelAttacking": "99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999.9.9.9.9",
+        "LookAngleStiffnessAttacking": 3000,
+        "LookAngleDampingAttacking": 39.7
+      }
+    },
+    {
+      "tier": "ProTop",
+      "count": 5,
+      "parameters": {
+        "LookAngleMaxAccelNormal": "99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999.9.9.9.9",
+        "LookAngleStiffnessNormal": 3000,
+        "LookAngleDampingNormal": 45,
+        "LookAngleMaxAccelAttacking": "99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999.9.9.9.9",
+        "LookAngleStiffnessAttacking": 3000,
+        "LookAngleDampingAttacking": 39.95
+      }
+    },
+    {
+      "tier": "ProTop",
+      "count": 13,
+      "parameters": {
+        "LookAngleMaxAccelNormal": "99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999.9.9.9.9",
+        "LookAngleStiffnessNormal": 3000,
+        "LookAngleDampingNormal": 45.1,
+        "LookAngleMaxAccelAttacking": "99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999.9.9.9.9",
+        "LookAngleStiffnessAttacking": 3000,
+        "LookAngleDampingAttacking": 39.9
+      }
+    },
+    {
+      "tier": "RankDuelist",
+      "count": 134,
+      "parameters": {
+        "LookAngleMaxAccelNormal": 9000,
+        "LookAngleStiffnessNormal": 900,
+        "LookAngleDampingNormal": 99,
+        "LookAngleMaxAccelAttacking": 9000,
+        "LookAngleStiffnessAttacking": 990,
+        "LookAngleDampingAttacking": 90
+      }
+    },
+    {
+      "tier": "RankOthers",
+      "count": 200,
+      "parameters": {}
+    },
+    {
+      "tier": "RankRifler",
+      "count": 142,
+      "parameters": {
+        "LookAngleMaxAccelNormal": 9000,
+        "LookAngleStiffnessNormal": 900,
+        "LookAngleDampingNormal": 99,
+        "LookAngleMaxAccelAttacking": 9000,
+        "LookAngleStiffnessAttacking": 990,
+        "LookAngleDampingAttacking": 90
+      }
+    }
+  ]
+}

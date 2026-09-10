@@ -9,19 +9,22 @@ Paths live in the save folder so a packaged build can be pointed at any install.
 from __future__ import annotations
 
 import json
+import hashlib
+import os
 import re
 import shutil
 import struct
 import subprocess
 import sys
 import time
+import tempfile
 import urllib.error
 import urllib.request
 import uuid
 from pathlib import Path
 
-from ..paths import frozen, save_file, save_root, vendor_root
-from .profiles import build_profile_vpk, seed_mod_profiles
+from ..paths import frozen, logo_dir, save_file, save_root, static_dir, vendor_root
+from .profiles import active_manifest, generate_match_vpk, stable_player_id
 from .result import pick_better_result, result_quality
 
 SETTINGS_PATH = save_file("cs2.json")
@@ -35,14 +38,12 @@ DEFAULTS = {
     "steam_exe": "",
     "csgo_path": "",
     "mod_source_path": "",
-    # Bot Improver knobs. Difficulty is a whole botprofile.vpk; aim and nades
-    # are plugin commands that reset to their defaults every launch.
+    # Difficulty is a generation preset in 1.5, not a persistent player DB.
     "difficulty": "Medium",
     "bot_aim": "mixed",
     "bot_nades": "normal",
     # "player" drops the BOT tag: managed bots publish a name, SteamID and ping.
     "bot_identity": "player",
-    "applied_difficulty": "",
     "skins_source_path": "",
 }
 
@@ -257,6 +258,9 @@ def settings() -> dict:
 
 def save_settings(patch: dict) -> dict:
     cfg = settings()
+    old_difficulty = cfg.get("difficulty")
+    if cs2_is_live() and patch.get("difficulty") and patch.get("difficulty") != cfg.get("difficulty"):
+        raise ValueError("CS2 运行时不能修改难度。请完全退出游戏后再选择。")
     for key, val in patch.items():
         if key not in DEFAULTS or not val:
             continue
@@ -266,13 +270,22 @@ def save_settings(patch: dict) -> dict:
             cfg[key] = val
     _clean(cfg)
     SETTINGS_PATH.write_text(json.dumps(cfg, indent=2, ensure_ascii=False), encoding="utf-8")
-    csgo = Path(cfg.get("csgo_path") or "")
-    want = cfg.get("difficulty") or "Medium"
-    if is_csgo_dir(csgo) and game_levels_ok(csgo) and not cs2_is_live():
-        try:
-            apply_live_difficulty(csgo, want)
-        except OSError:
-            pass
+    # A staged match is a generated artifact of the chosen difficulty. Rebuild
+    # it immediately while CS2 is closed so UI selection and active VPK agree.
+    if old_difficulty != cfg.get("difficulty"):
+        csgo = resolve_csgo_path(cfg.get("csgo_path") or "")
+        request_path = plugin_dir(csgo) / "match_request.json"
+        if is_csgo_dir(csgo) and request_path.is_file():
+            try:
+                match = json.loads(request_path.read_text(encoding="utf-8-sig"))
+                if match.get("active") and int(match.get("schema_version") or 0) == 2:
+                    install_match_avatars(csgo, match)
+                    generate_match_vpk(csgo, match, cfg["difficulty"])
+                    temp = request_path.with_suffix(".json.tmp")
+                    temp.write_text(json.dumps(match, indent=2, ensure_ascii=False), encoding="utf-8")
+                    os.replace(temp, request_path)
+            except (OSError, ValueError, TypeError) as exc:
+                raise ValueError(f"难度已保存，但待开始比赛重新生成失败：{exc}") from exc
     return settings()
 
 
@@ -292,44 +305,17 @@ def require_cs2_closed(action: str = "改游戏文件") -> None:
 
 
 def game_levels_ok(csgo: Path) -> bool:
-    return all((csgo / "overrides" / lv / "botprofile.vpk").is_file() for lv in DIFFICULTIES)
-
-
-def apply_live_difficulty(csgo: Path, level: str) -> None:
-    """Copy the selected pack onto the VPK CS2 mounts. File copy only, no repack."""
-    if level not in DIFFICULTIES:
-        level = "Medium"
-    src = csgo / "overrides" / level / "botprofile.vpk"
-    if not src.is_file():
-        raise FileNotFoundError("游戏目录里没有三档人机库。请先把人机增强装进游戏。")
-    dst = csgo / "overrides" / "botprofile.vpk"
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(src, dst)
-    cfg = settings()
-    cfg["applied_difficulty"] = level
-    persist_settings(cfg)
+    # Compatibility field used by the existing UI. 1.5 has one generated pack.
+    from .profiles import _template_text
+    try:
+        return all(bool(_template_text(level)) for level in DIFFICULTIES)
+    except (OSError, ValueError, KeyError, TypeError):
+        return False
 
 
 def sync_live_profiles() -> dict:
-    require_cs2_closed("同步人机名单")
-    cfg = settings()
-    csgo = Path(cfg["csgo_path"])
-    if not csgo.is_dir():
-        raise FileNotFoundError("找不到 CS2 的 game\\csgo 目录。")
-    if not game_levels_ok(csgo):
-        raise FileNotFoundError("游戏目录里没有 Low/Medium/High。请先把人机增强装进游戏。")
-    from .profiles import sync_overrides
-
-    report = sync_overrides(csgo / "overrides", write=True, live_level=cfg["difficulty"])
-    cfg = settings()
-    cfg["applied_difficulty"] = cfg["difficulty"]
-    persist_settings(cfg)
-    added = int(report.get("added") or 0)
-    if added:
-        msg = f"已写入 game\\csgo\\overrides，数据包里新补了 {added} 个名字。完全退出 CS2 再开才会读到。"
-    else:
-        msg = "数据包里的名字游戏库都已有，没有新的要补。"
-    return {"ok": True, "added": added, "msg": msg, "report": report}
+    return {"ok": True, "added": 0, "disabled": True,
+            "msg": "1.5 不同步人物数据库；开始比赛时会生成并校验本场恰好 9 人。"}
 
 
 def plugin_dir(csgo: Path) -> Path:
@@ -386,6 +372,82 @@ def _skins_gamedata(root: Path) -> Path | None:
     return None
 
 
+GAMEDATA_REQUIRED = {
+    "CAttributeList::SetOrAddAttributeValueByName",
+    "CCSPlayerInventory::GetItemInLoadout",
+    "GetItemSchema",
+    "CCSPlayer_WeaponServices::DropWeapon",
+}
+
+
+def _validate_gamedata(blob: bytes) -> dict:
+    try:
+        data = json.loads(blob.decode("utf-8-sig"))
+    except (UnicodeError, ValueError) as exc:
+        raise ValueError(f"gamedata 不是有效 JSON：{exc}") from exc
+    if not isinstance(data, dict) or not GAMEDATA_REQUIRED.issubset(data):
+        raise ValueError("gamedata 缺少 Inventory Simulator 必需键")
+    signatures = offsets = 0
+    for key, row in data.items():
+        if not isinstance(row, dict):
+            raise ValueError(f"gamedata 项 {key} 不是对象")
+        if "signatures" in row:
+            node = row["signatures"]
+            if not isinstance(node, dict) or not isinstance(node.get("library"), str):
+                raise ValueError(f"{key}.signatures 结构错误")
+            if not all(isinstance(node.get(os_name), str) and node[os_name].strip() for os_name in ("windows", "linux")):
+                raise ValueError(f"{key}.signatures 缺少平台值")
+            signatures += 1
+        elif "offsets" in row:
+            node = row["offsets"]
+            if not isinstance(node, dict) or not all(isinstance(node.get(os_name), int) for os_name in ("windows", "linux")):
+                raise ValueError(f"{key}.offsets 缺少整数平台值")
+            offsets += 1
+        else:
+            raise ValueError(f"{key} 既没有 signatures 也没有 offsets")
+    if signatures == 0 or offsets == 0:
+        raise ValueError("gamedata 必须同时包含 signatures 和 offsets")
+    return data
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else ""
+
+
+def _atomic_replace(path: Path, blob: bytes, backup: Path | None = None) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    handle, raw = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+    try:
+        with os.fdopen(handle, "wb") as stream:
+            stream.write(blob)
+            stream.flush()
+            os.fsync(stream.fileno())
+        _validate_gamedata(Path(raw).read_bytes())
+        if backup is not None and path.is_file():
+            shutil.copy2(path, backup)
+        os.replace(raw, path)
+    except BaseException:
+        try:
+            os.unlink(raw)
+        except OSError:
+            pass
+        raise
+
+
+def _gamedata_info(path: Path, source: str) -> dict:
+    return {"source": source, "path": str(path), "exists": path.is_file(),
+            "sha256": _sha256(path), "time": path.stat().st_mtime if path.is_file() else 0}
+
+
+def gamedata_status(csgo: Path | None = None) -> dict:
+    csgo = csgo or resolve_csgo_path(settings().get("csgo_path") or "")
+    built = vendor_root() / "InventorySimulator" / "gamedata" / "inventory-simulator.json"
+    cache = skins_gamedata_override()
+    game = csgo / "addons" / "counterstrikesharp" / "gamedata" / "inventory-simulator.json"
+    return {"bundled": _gamedata_info(built, "bundled"), "cached": _gamedata_info(cache, "official-cache"),
+            "installed": _gamedata_info(game, "game"), "pending_install": cache.is_file() and _sha256(cache) != _sha256(game)}
+
+
 def update_skins_gamedata() -> dict:
     """Pull the author's latest function signatures. Does not replace the DLL."""
     dest = skins_gamedata_override()
@@ -395,30 +457,40 @@ def update_skins_gamedata() -> dict:
         try:
             with urllib.request.urlopen(url, timeout=25) as resp:
                 blob = resp.read()
-            json.loads(blob.decode("utf-8"))
+            _validate_gamedata(blob)
             last_err = None
             break
         except (urllib.error.URLError, TimeoutError, ValueError, OSError) as exc:
             last_err = exc
             blob = b""
     if not blob:
-        if dest.is_file():
-            return {
-                "ok": True,
-                "msg": f"下载失败（{last_err}）。仍在用 save\\skins_gamedata 里已有的 json。",
-            }
-        raise ValueError(
-            f"下载换肤签名失败：{last_err}。也可以把作者发的 inventory-simulator.json 放进 save\\skins_gamedata。"
+        fallback = dest if dest.is_file() else _skins_gamedata(vendor_root() / "InventorySimulator")
+        message = (
+            f"下载或校验失败（{last_err}）。仍保留最后一份有效签名。"
+            if fallback is not None else f"下载换肤签名失败：{last_err}。"
         )
-    dest.write_bytes(blob)
+        return {"ok": False, "status": "rejected", "msg": message, "versions": gamedata_status()}
+    new_hash = hashlib.sha256(blob).hexdigest()
+    cache_changed = not dest.is_file() or _sha256(dest) != new_hash
+    if not cache_changed:
+        status_name = "unchanged"
+    else:
+        _atomic_replace(dest, blob, dest.with_name("inventory-simulator.previous.json"))
+        status_name = "cached"
     copied = False
     try:
         csgo = Path(settings().get("csgo_path") or "")
-        if csgo.is_dir():
+        if csgo.is_dir() and not cs2_is_live():
             gdest = csgo / "addons" / "counterstrikesharp" / "gamedata" / "inventory-simulator.json"
-            gdest.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(dest, gdest)
+            game_changed = _sha256(gdest) != new_hash
+            if game_changed:
+                _atomic_replace(gdest, blob, gdest.with_name("inventory-simulator.previous.json"))
             copied = True
+            status_name = "installed" if game_changed else status_name
+        elif csgo.is_dir() and cs2_is_live() and _sha256(
+            csgo / "addons" / "counterstrikesharp" / "gamedata" / "inventory-simulator.json"
+        ) != new_hash:
+            status_name = "cached"
     except OSError:
         copied = False
     msg = "已保存最新换肤签名。"
@@ -426,7 +498,8 @@ def update_skins_gamedata() -> dict:
         msg += "并写入了游戏目录。完全退出 CS2 再开才会生效。"
     else:
         msg += "下次点「把换肤插件装进游戏」时会用这份。"
-    return {"ok": True, "msg": msg}
+    return {"ok": True, "status": status_name, "sha256": new_hash, "msg": msg,
+            "versions": gamedata_status()}
 
 
 def skins_wanted(career=None) -> bool:
@@ -521,8 +594,10 @@ def _copy_skins_into(csgo: Path) -> int:
     gamedata = _skins_gamedata(src)
     if gamedata is not None:
         dest = csgo / "addons" / "counterstrikesharp" / "gamedata" / "inventory-simulator.json"
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(gamedata, dest)
+        blob = gamedata.read_bytes()
+        _validate_gamedata(blob)
+        if _sha256(dest) != hashlib.sha256(blob).hexdigest():
+            _atomic_replace(dest, blob, dest.with_name("inventory-simulator.previous.json"))
         copied += 1
     helper = vendor_root() / "InvsimCareer"
     if (helper / "InvsimCareer.dll").is_file():
@@ -568,11 +643,9 @@ def profiles_are_stale(csgo: Path) -> bool:
 
 
 def installed_difficulty(csgo: Path, mod: Path) -> str:
-    """Last difficulty we copied onto the live VPK, not a file-size guess."""
-    applied = settings().get("applied_difficulty") or ""
-    if applied in DIFFICULTIES:
-        return applied
-    return ""
+    """Difficulty proven by the active VPK manifest and SHA-256."""
+    manifest = active_manifest(csgo)
+    return manifest.get("difficulty", "") if manifest.get("valid") else ""
 
 
 def mod_installed(csgo: Path) -> bool:
@@ -585,7 +658,7 @@ def mod_installed(csgo: Path) -> bool:
 
 
 def install_mod(csgo: Path | None = None, mod: Path | None = None) -> dict:
-    """Copy Bot Improver into game/csgo, then sync player_stats into that copy."""
+    """Copy only Bot Improver's runtime; career matches provide their own nine identities."""
     require_cs2_closed("把人机增强装进游戏")
     cfg = settings()
     csgo = resolve_csgo_path(csgo or cfg["csgo_path"])
@@ -609,23 +682,28 @@ def install_mod(csgo: Path | None = None, mod: Path | None = None) -> dict:
     for src in mod.rglob("*"):
         if src.is_dir() or src.suffix.lower() == ".exe":
             continue
-        dst = csgo / src.relative_to(mod)
+        rel = src.relative_to(mod)
+        rel_key = "/".join(part.lower() for part in rel.parts)
+        # The enhancement plugins are reused; neither its BotProfile roster nor
+        # BotHider's thousands-of-players identity list belongs to career mode.
+        if "overrides" in [part.lower() for part in rel.parts] and src.name.lower() in (
+            "botprofile.db", "botprofile.vpk"
+        ):
+            continue
+        if rel_key == "addons/bothider/bot_info.json":
+            continue
+        dst = csgo / rel
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dst)
         files += 1
     files += _copy_career_match(csgo, mod)
+    files += _copy_botbuy_patch(csgo)
     hook_competitive_cfg(csgo)
     apply_bothider_config(csgo, cfg["bot_identity"])
-    extra = ""
-    try:
-        synced = sync_live_profiles()
-        extra = " " + synced["msg"]
-    except (OSError, ValueError) as exc:
-        extra = f" 人机增强已装上，但名单同步失败：{exc}"
     return {
         "ok": True,
         "files": files,
-        "msg": f"已把 {files} 个人机增强文件装进游戏。{extra}",
+        "msg": f"已把 {files} 个人机增强文件装进游戏。人物库未复制；每场开赛前生成 9 人档案。",
     }
 
 
@@ -635,9 +713,15 @@ def status() -> dict:
     if is_csgo_dir(csgo):
         cfg["csgo_path"] = str(csgo)
     mod = Path(cfg["mod_source_path"])
-    levels = csgo.is_dir() and game_levels_ok(csgo)
-    applied = cfg.get("applied_difficulty") or ""
-    pending = bool(cfg.get("difficulty") and applied and cfg["difficulty"] != applied)
+    levels = game_levels_ok(csgo)
+    manifest = active_manifest(csgo) if csgo.is_dir() else {}
+    applied = manifest.get("difficulty", "") if manifest.get("valid") else ""
+    pending = bool(applied and cfg.get("difficulty") != applied)
+    process_difficulty = ""
+    if csgo.is_dir() and cs2_is_live() and manifest.get("valid"):
+        active = csgo / "overrides" / "botprofile.vpk"
+        if active.stat().st_mtime < cs2_started_at():
+            process_difficulty = applied
     return {
         **cfg,
         "csgo_ok": csgo.is_dir(),
@@ -648,16 +732,30 @@ def status() -> dict:
         "ready": csgo.is_dir() and mod.is_dir() and Path(cfg["steam_exe"]).is_file(),
         "cs2_live": bool(live_cs2_pids()),
         "difficulty_pending": pending,
-        "difficulties": [d for d in DIFFICULTIES if (mod / "overrides" / d / "botprofile.vpk").is_file()]
-        or list(DIFFICULTIES),
+        "difficulties": list(DIFFICULTIES),
         "aim_modes": list(AIM_MODES),
         "nade_modes": list(NADE_MODES),
         "identity_modes": list(IDENTITY_MODES),
         "installed_difficulty": applied if applied in DIFFICULTIES else "",
+        "active_vpk_type": manifest.get("type", "career_match_9") if manifest else "",
+        "match_nonce": manifest.get("nonce", ""),
+        "profile_hash": manifest.get("manifest_hash", ""),
+        "profile_hash_short": str(manifest.get("manifest_hash", ""))[:8],
+        "profile_sync_count": int(manifest.get("count") or 0) if manifest.get("valid") else 0,
+        "actual_difficulty": applied,
+        "difficulty_model": manifest.get("difficulty_model", "") if manifest else "",
+        "preset_source_hash": manifest.get("preset_source_hash", "") if manifest else "",
+        "template_hash": manifest.get("template_hash", "") if manifest else "",
+        "generated_difficulty": manifest.get("difficulty", "") if manifest else "",
+        "cs2_process_difficulty": process_difficulty,
+        "bot_profiles": manifest.get("bots", []) if manifest.get("valid") else [],
+        "active_vpk_valid": bool(manifest.get("valid")),
+        "active_vpk_error": manifest.get("error", ""),
         "skins_source_path": cfg.get("skins_source_path") or "",
         "skins_ok": _skins_pack(skins_plugin_src(cfg)),
         "skins_installed": csgo.is_dir()
         and (_plugin_live(csgo, "InventorySimulator") / "InventorySimulator.dll").is_file(),
+        "gamedata": gamedata_status(csgo),
     }
 
 
@@ -678,10 +776,9 @@ def _powershell(script: str) -> str:
 
 
 def live_cs2_pids() -> list[int]:
-    """Only count a real running game. A 36 KB leftover cs2.exe is not one."""
+    """Even a small/starting process can load the VPK; never infer safety from RAM use."""
     out = _powershell(
         "(Get-Process -Name cs2 -ErrorAction SilentlyContinue | "
-        f"Where-Object {{ $_.WorkingSet64 -ge {LIVE_MEMORY_BYTES} }} | "
         "Select-Object -ExpandProperty Id) -join ','"
     )
     return [int(x) for x in out.split(",") if x.strip().isdigit()]
@@ -699,7 +796,6 @@ def cs2_started_at() -> float:
     """Unix seconds when the running game started, 0 if it is not running."""
     out = _powershell(
         "(Get-Process -Name cs2 -ErrorAction SilentlyContinue | "
-        f"Where-Object {{ $_.WorkingSet64 -ge {LIVE_MEMORY_BYTES} }} | "
         "Sort-Object StartTime | Select-Object -First 1 -ExpandProperty StartTime | "
         "Get-Date -UFormat %s)"
     )
@@ -721,9 +817,10 @@ def steam_running() -> bool:
 # ------------------------------------------------------------------ game files
 
 
-def _pick_bots(roster: list[dict], want: int, used: set[str]) -> list[str]:
-    """CS2 refuses a bot whose name is already on the server, so keep them unique."""
-    out: list[str] = []
+def _pick_bots(roster: list[dict], want: int, used: set[str]) -> list[dict]:
+    """Keep full career identity; the VPK generator assigns safe ASCII names."""
+    from ..world.ability import playing_ability
+    out: list[dict] = []
     for player in roster:
         if len(out) >= want:
             break
@@ -731,7 +828,19 @@ def _pick_bots(roster: list[dict], want: int, used: set[str]) -> list[str]:
         if name.lower() in used:
             continue
         used.add(name.lower())
-        out.append(name)
+        ability = playing_ability(player)
+        form_delta = player.get("form_delta")
+        if form_delta is None:
+            # 1.4 stored form on an ability-like scale. Convert at the boundary.
+            form_delta = float(player.get("form", ability)) - ability
+        out.append({
+            "player_id": str(player.get("player_id") or stable_player_id(name)),
+            "display_name": name,
+            "overall": ability,
+            "form_delta": max(-10.0, min(10.0, float(form_delta))),
+            "role": player.get("role") or "rifle",
+            "stats": dict(player.get("stats") or {}),
+        })
     return out
 
 
@@ -739,17 +848,19 @@ def build_request(my_team: dict, opp: dict, player_name: str, map_code: str, sid
     used = {player_name.lower()}
     mates = _pick_bots(my_team["players"], 4, used)
     enemies = _pick_bots(opp["players"], 5, used)
-    mine = {"name": my_team["name"], "logo": my_team["id"][:4], "players": mates}
-    theirs = {"name": opp["name"], "logo": opp["id"][:4], "players": enemies}
+    mine = {"team_id": my_team["id"], "name": my_team["name"], "logo": my_team["id"][:4], "players": mates}
+    theirs = {"team_id": opp["id"], "name": opp["name"], "logo": opp["id"][:4], "players": enemies}
     side = "t" if side == "t" else "ct"
     ct, t = (mine, theirs) if side == "ct" else (theirs, mine)
     return {
+        "schema_version": 2,
         "active": True,
         "map": map_code,
         "human_team": side,
         "ct": ct,
         "t": t,
         "player": player_name,
+        "human_player_id": stable_player_id(player_name),
         # Always ask for a full 5v5 so the game backfills any name we dropped.
         "quota": 9,
         "nonce": uuid.uuid4().hex,
@@ -764,6 +875,11 @@ def write_career_cfg(csgo: Path, match: dict, opts: dict | None = None) -> None:
     # Safe to re-exec at halftime. Do NOT put warmup / bot_kick / bot_add /
     # mp_human_team here: competitive cfg runs again at the side swap, and
     # those commands yank everyone back to the opening sides.
+    def cfg_text(value: object) -> str:
+        # Source treats semicolons/newlines as command separators. Team labels
+        # are cosmetic; identities remain the player_id values in the request.
+        return "".join(ch for ch in str(value) if ch not in '\\";\r\n').strip()
+
     lines = [
         f"bh_identity_mode {opts['bot_identity']}",
         "mp_autoteambalance 0",
@@ -773,16 +889,16 @@ def write_career_cfg(csgo: Path, match: dict, opts: dict | None = None) -> None:
         "bot_join_after_player 0",
         "bot_quota_mode normal",
         f"bot_quota {total}",
-        f"mp_teamname_1 \"{match['ct']['name']}\"",
-        f"mp_teamname_2 \"{match['t']['name']}\"",
+        f"mp_teamname_1 \"{cfg_text(match['ct']['name'])}\"",
+        f"mp_teamname_2 \"{cfg_text(match['t']['name'])}\"",
         f"mp_teamlogo_1 {match['ct']['logo']}",
         f"mp_teamlogo_2 {match['t']['logo']}",
         f"bot_aim {opts['bot_aim']}",
         f"bot_nades {opts['bot_nades']}",
     ]
     body = "\n".join(lines) + "\n"
-    (cfg_dir / "career_rules.cfg").write_text(body, encoding="ascii")
-    (cfg_dir / "career_quick.cfg").write_text(body, encoding="ascii")
+    (cfg_dir / "career_rules.cfg").write_text(body, encoding="utf-8")
+    (cfg_dir / "career_quick.cfg").write_text(body, encoding="utf-8")
 
 
 def invsim_lines(steam_id: str = "") -> list[str]:
@@ -884,23 +1000,177 @@ def apply_bothider_config(csgo: Path, identity: str = "player") -> None:
 
 
 def _copy_career_match(csgo: Path, mod_source: Path | None = None) -> int:
-    """Drop the career match plugin next to CounterStrikeSharp, if present."""
+    """Verified deployment; a missing/locked DLL must never silently launch an old plugin."""
+    require_cs2_closed("更新比赛回传插件")
     src = career_match_src(mod_source)
     dst = plugin_dir(csgo)
+    return _copy_verified_plugin(src, dst, "CareerMatch")
+
+
+def _copy_botbuy_patch(csgo: Path) -> int:
+    require_cs2_closed("更新生涯买枪补丁")
+    return _copy_verified_plugin(vendor_root() / "BotBuy", _plugin_live(csgo, "BotBuy"), "BotBuy")
+
+
+def _copy_verified_plugin(src: Path, dst: Path, plugin_name: str) -> int:
     copied = 0
+    names = (f"{plugin_name}.dll", f"{plugin_name}.deps.json")
+    for name in names:
+        if not (src / name).is_file():
+            raise FileNotFoundError(f"比赛回传插件缺少 {name}，请使用完整的CS2联调包。")
+    json.loads((src / names[1]).read_text(encoding='utf-8-sig'))
     dst.mkdir(parents=True, exist_ok=True)
-    for name in ("CareerMatch.dll", "CareerMatch.deps.json"):
-        if (src / name).is_file():
+    for name in names:
+        target = dst / name
+        digest = _sha256(src / name)
+        if _sha256(target) == digest:
+            continue
+        handle, raw = tempfile.mkstemp(prefix=f'.{name}.',suffix='.tmp',dir=dst)
+        os.close(handle)
+        pending = Path(raw)
+        try:
+            shutil.copy2(src / name,pending)
+            if _sha256(pending) != digest:
+                raise OSError(f"{name} 复制校验失败")
+            backup = target.with_name(name+'.career-backup')
+            if target.is_file() and not backup.exists():
+                shutil.copy2(target,backup)
+            os.replace(pending,target)
+            if _sha256(target) != digest:
+                raise OSError(f"{name} 安装校验失败")
+            copied += 1
+        finally:
+            pending.unlink(missing_ok=True)
+    return copied
+
+
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+AVATAR_MAX_BYTES = 16 * 1024
+STEAM_ID64_BASE = 76561197960265728
+
+
+def _safe_avatar_source(team: dict) -> tuple[Path, str]:
+    """Pick a curated/local team mark, falling back to our neutral avatar."""
+    team_id = re.sub(r"[^a-z0-9-]", "", str(team.get("team_id") or "").lower())
+    candidates = []
+    if team_id:
+        # A logo explicitly uploaded by the user is allowed only when it also
+        # meets BotHider's small, static PNG contract.
+        candidates.append((logo_dir() / f"{team_id}.png", "custom"))
+        candidates.append((static_dir() / "team_avatars" / f"{team_id}.png", "team"))
+    candidates.append((static_dir() / "team_avatars" / "default.png", "default"))
+    for path, kind in candidates:
+        try:
+            payload = path.read_bytes()
+        except OSError:
+            continue
+        if 0 < len(payload) <= AVATAR_MAX_BYTES and payload.startswith(PNG_SIGNATURE):
+            return path, kind
+    raise FileNotFoundError("缺少安全的默认 Bot 头像资源")
+
+
+def install_match_avatars(csgo: Path, match: dict) -> None:
+    """Bind both teams to local PNGs before hashing the nine-bot request."""
+    dst = plugin_dir(csgo) / "avatars"
+    dst.mkdir(parents=True, exist_ok=True)
+    nonce = re.sub(r"[^a-fA-F0-9]", "", str(match.get("nonce") or ""))[:16]
+    for side in ("ct", "t"):
+        source, kind = _safe_avatar_source(match[side])
+        payload = source.read_bytes()
+        target = dst / f"{nonce}-{side}.png"
+        handle, raw = tempfile.mkstemp(prefix=f".{target.name}.", suffix=".tmp", dir=dst)
+        try:
+            with os.fdopen(handle, "wb") as stream:
+                stream.write(payload)
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(raw, target)
+        except BaseException:
             try:
-                shutil.copy2(src / name, dst / name)
-                copied += 1
+                os.unlink(raw)
             except OSError:
                 pass
-    return copied
+            raise
+        digest = hashlib.sha256(payload).hexdigest()
+        # Forward slashes avoid Source command escaping while remaining a
+        # valid absolute Windows path for BotHider.
+        avatar_path = str(target.resolve()).replace("\\", "/")
+        for player in match[side].get("players") or []:
+            player.update({
+                "avatar_path": avatar_path,
+                "avatar_hash": digest,
+                "avatar_kind": kind,
+            })
+
+
+def install_match_identities(csgo: Path, match: dict) -> dict:
+    """Write exactly nine stable BotHider identities for the active career match.
+
+    BotHider needs a distinct SteamID for each synthetic player; duplicate or
+    missing IDs make CS2 collapse scoreboard rows and prevent avatar lookup.
+    The per-match file replaces Bot Improver's large identity database.
+    """
+    bots = sorted(match.get("bots") or [], key=lambda row: str(row.get("player_id") or ""))
+    if len(bots) != 9:
+        raise ValueError(f"本场 BotHider 身份必须恰好为 9 人，当前为 {len(bots)} 人")
+    ids = [str(bot.get("player_id") or "") for bot in bots]
+    profiles = [str(bot.get("profile_name") or "") for bot in bots]
+    if not all(ids) or len(set(ids)) != 9 or not all(profiles) or len(set(profiles)) != 9:
+        raise ValueError("本场 BotHider 的 player_id 或 profile_name 不唯一")
+
+    used: set[int] = set()
+    players: dict[str, dict] = {}
+    for bot in bots:
+        digest = hashlib.sha256(("c2c-bot:" + bot["player_id"]).encode("utf-8")).digest()
+        low = int.from_bytes(digest[:4], "little") & 0x7FFFFFFF
+        for offset in range(9):
+            account_id = 0x80000000 | ((low + offset) & 0x7FFFFFFF)
+            if account_id not in used:
+                break
+        else:
+            raise ValueError("无法为本场 Bot 分配唯一的合成 SteamID")
+        used.add(account_id)
+        steam_id = STEAM_ID64_BASE + account_id
+        bot["steam_id"] = steam_id
+        players[str(account_id)] = {
+            # BotHider matches this against the botprofile name at spawn.  The
+            # visible nickname is applied later by CareerMatch.
+            "player_name": bot["profile_name"],
+            "scoreboard_flair": 0,
+        }
+
+    # Side lists and match["bots"] normally share the same dictionaries, but
+    # update by player_id as well so the JSON contract never relies on aliasing.
+    steam_by_id = {bot["player_id"]: bot["steam_id"] for bot in bots}
+    for side in ("ct", "t"):
+        for bot in match.get(side, {}).get("players") or []:
+            bot["steam_id"] = steam_by_id[str(bot.get("player_id") or "")]
+
+    payload = {
+        "players": players,
+        "disabled_players": {},
+    }
+    target = csgo / "addons" / "BotHider" / "bot_info.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    handle, raw = tempfile.mkstemp(prefix=".bot_info.", suffix=".tmp", dir=target.parent)
+    try:
+        with os.fdopen(handle, "wb") as stream:
+            stream.write(json.dumps(payload, indent=4, ensure_ascii=True).encode("ascii"))
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(raw, target)
+    except BaseException:
+        try:
+            os.unlink(raw)
+        except OSError:
+            pass
+        raise
+    return payload
 
 
 def blank_result(map_code: str) -> dict:
     return {
+        "schema_version": 2,
         "status": "pending",
         "map": map_code,
         "winner": "",
@@ -911,14 +1181,6 @@ def blank_result(map_code: str) -> dict:
         "ended_at": "",
         "players": [],
     }
-
-
-def difficulty_vpk(mod_source: Path, level: str) -> Path:
-    """Each difficulty is its own botprofile.vpk under overrides/<Level>/."""
-    picked = mod_source / "overrides" / level / "botprofile.vpk"
-    if picked.is_file():
-        return picked
-    return mod_source / "overrides" / "botprofile.vpk"
 
 
 def prepare_game(
@@ -936,23 +1198,20 @@ def prepare_game(
             f"csgo_path 对不上：{csgo}。请指到 ...\\game\\csgo，"
             "或填 Steam 游戏根目录，保存时会自动补上。"
         )
-    if not game_levels_ok(csgo):
-        raise FileNotFoundError("游戏目录里没有三档人机库。请先把人机增强装进游戏。")
     if not mod_source.is_dir():
         raise FileNotFoundError(f"找不到 mod 目录：{mod_source}")
-
+    require_cs2_closed("生成并安装本场 9 人 BotProfile")
+    if not mod_installed(csgo):
+        raise ValueError("游戏中缺少人机增强运行组件，请先在游戏设置安装人机增强。")
+    _copy_career_match(csgo, mod_source)
+    _copy_botbuy_patch(csgo)
+    match["bot_identity"] = opts["bot_identity"]
     want = opts["difficulty"]
-    applied = settings().get("applied_difficulty") or ""
-    if cs2_is_live() and applied and applied != want:
-        raise ValueError(
-            f"难度已改为{DIFFICULTY_LABEL.get(want, want)}，但 CS2 还开着，仍是"
-            f"{DIFFICULTY_LABEL.get(applied, applied)}。请完全退出后再进。"
-        )
-    if not cs2_is_live():
-        apply_live_difficulty(csgo, want)
-    cfg = settings()
-    match["difficulty"] = want
-    match["applied_difficulty"] = cfg.get("applied_difficulty") or want
+    install_match_avatars(csgo, match)
+    manifest = generate_match_vpk(csgo, match, want)
+    if not manifest.get("manifest_hash") or manifest.get("count") != 9:
+        raise ValueError("本场 BotProfile 清单校验失败，已阻止开赛")
+    install_match_identities(csgo, match)
     try:
         n = install_skins_plugin(csgo, career)
         if skins_wanted(career) and n:
@@ -964,8 +1223,6 @@ def prepare_game(
 
     dst = plugin_dir(csgo)
     dst.mkdir(parents=True, exist_ok=True)
-    _copy_career_match(csgo, mod_source)
-
     (dst / "match_request.json").write_text(
         json.dumps(match, indent=2, ensure_ascii=False), encoding="utf-8"
     )
@@ -993,7 +1250,6 @@ def launch_cs2(steam_exe: str) -> None:
                 time.sleep(3)
                 break
             time.sleep(1)
-    kill_zombie_cs2()
     if live_cs2_pids():
         return "already_running"
     # Only -insecure, same as the official panel. A +map here blacks out CS2.
@@ -1021,8 +1277,11 @@ def start_match(
     side: str,
     teams: list[dict] | None = None,
     career=None,
+    *, purpose: str = "series",
 ) -> dict:
     cfg = settings()
+    if not Path(cfg['steam_exe']).is_file():
+        raise FileNotFoundError("找不到 steam.exe，请先在游戏设置保存有效路径。")
     match = build_request(my_team, opp, player_name, map_code, side)
     prepare_game(
         Path(cfg["csgo_path"]),
@@ -1033,22 +1292,17 @@ def start_match(
         career,
     )
     state = launch_cs2(cfg["steam_exe"])
+    if purpose == "training" and career is not None:
+        career.remember_training(match)
     you_side = "CT" if match["human_team"] == "ct" else "T"
     tune = (
         f"难度{DIFFICULTY_LABEL.get(cfg['difficulty'], cfg['difficulty'])}"
         f" · 瞄准{AIM_LABEL.get(cfg['bot_aim'], cfg['bot_aim'])}"
         f" · 道具{NADE_LABEL.get(cfg['bot_nades'], cfg['bot_nades'])}"
         f" · {IDENTITY_LABEL.get(cfg['bot_identity'], cfg['bot_identity'])}"
+        f" · Bot档案 9/9 · {match['bot_profile']['short_hash']}"
     )
-    if state == "already_running":
-        tip = (
-            f"对局文件已写入。CS2 还开着，请在游戏里重新选："
-            f"与机器人游戏 → 竞技 → {map_code}。"
-        )
-        if profiles_are_stale(Path(cfg["csgo_path"])):
-            tip += "注意：机器人名单和难度是 CS2 启动时读的，这次改动要退出 CS2 重开才生效。"
-    else:
-        tip = f"CS2 正在启动。进游戏后选：与机器人游戏 → 竞技 → {map_code}。"
+    tip = f"CS2 正在启动。进游戏后选：与机器人游戏 → 竞技 → {map_code}。"
     return {
         "ok": True,
         "match": match,
@@ -1080,14 +1334,18 @@ def _remember_result(data: dict) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def read_result() -> dict:
+def read_result(request_nonce: str | None = None) -> dict:
     cfg = settings()
     plugin = plugin_dir(Path(cfg["csgo_path"]))
-    data = pick_better_result(
+    candidates = [
         _load_result_file(plugin / "match_result.json"),
         _load_result_file(plugin / "match_result.best.json"),
         _load_result_file(save_file("cs2_last.json")),
-    )
+    ]
+    # A higher-scoring previous map must not shadow this request's result.
+    if request_nonce:
+        candidates = [r for r in candidates if r and r.get('request_nonce') == request_nonce]
+    data = pick_better_result(*candidates)
     if result_quality(data) > 0:
         _remember_result(data)
         if data.get("status") == "finished" and data.get("ended_at"):

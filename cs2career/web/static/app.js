@@ -7,6 +7,7 @@ let MATCH = null;         // focused match id
 let DETAIL = null;        // cached match detail
 let PLAY_TIMER = null;
 let SERIES_TIMER = null;
+let SERIES_POLL_GENERATION = 0;
 let CS2_POLL_ID = "";
 let SERIES_RESULT = null;
 let SERIES_BEST = null;
@@ -14,11 +15,8 @@ let SERIES_SIDE = "ct";
 let SERIES_CS2 = null;
 let SERIES_TRIED = "";
 let SERIES_COMMIT_ERR = "";
-let DRAFT = { era: "2026", mode: "join", role: "rifle", team_id: "", replace: "", region: "AS", logo: "" };
+let DRAFT = { era: "2026", mode: "create", origin:"academy", name:"", org:"", role: "rifle", team_id: "", replace: "", region: "AS", logo: "" };
 let SETUP = { era: "", teams: null };
-let SKIN_UI = { weapon: "all", sort: "rarity" };
-let UNBOX_NEXT = false;
-let UNBOX = null;
 
 const ROLE = { awp: "主狙", igl: "指挥", entry: "突破手", lurk: "自由人", rifle: "步枪手" };
 const MAPS = {
@@ -48,7 +46,7 @@ const team = (name) => TEAMS[name] || { name, crest: { kind: "mark", color: "#33
 /* ----------------------------------------------------------------- net */
 
 async function get(url) {
-  const res = await fetch(url, { cache: "no-store" });
+  const res = await fetch(url, { cache: "no-store", headers: { 'X-Career-Token': sessionStorage.getItem('career-token') || '' } });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
@@ -56,14 +54,15 @@ async function get(url) {
 async function post(url, body) {
   const res = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", 'X-Career-Token': sessionStorage.getItem('career-token') || '' },
     body: JSON.stringify(body || {}),
   });
   const data = await res.json().catch(() => ({ ok: false, msg: "服务器没有回应" }));
   if (data.state) adopt(data.state);
   if (data.ok === false) toast(data.msg || "失败", true);
-  else if (data.msg) toast(data.msg, false);
+  else if (data.msg && url !== '/api/skins/case') toast(data.msg, false);
   if (VIEW === "match" && MATCH) await refreshDetail();
+  window.CareerUI?.remember?.();
   render();
   takeStories(data.stories || data.state?.career?.stories);
   return data;
@@ -101,6 +100,8 @@ function toast(text, bad) {
 }
 
 function adopt(state) {
+  state.design_preview = state.design_preview ?? S?.design_preview ?? false;
+  state.playtest = state.playtest ?? S?.playtest ?? false;
   S = state;
   TEAMS = {};
   for (const t of S.teams || []) TEAMS[t.name] = t;
@@ -232,6 +233,7 @@ function honoursLists(hon) {
 
 let INSPECT = null;
 async function openInspect(kind, key) {
+  if (window.CareerUI) return CareerUI.inspect(kind, key);
   const q = kind === "player" ? `player=${encodeURIComponent(key)}` : `team=${encodeURIComponent(key)}`;
   try {
     INSPECT = await get(`/api/inspect?${q}`);
@@ -371,9 +373,11 @@ function renderShell() {
   $("top-date").textContent = `${S.date}`;
   const has = S.career?.exists;
   $("nav-career").style.display = has ? "" : "none";
+  $("nav-collection").style.display = has ? "" : "none";
   document.querySelectorAll("[data-view]").forEach((b) => b.classList.toggle("on", b.dataset.view === VIEW));
   $("btn-next").disabled = !has || !!S.career?.banned || !!S.career?.retired || !!S.career?.loan_default_pending;
   $("btn-skip").disabled = !has || !!S.career?.banned || !!S.career?.retired || !!S.career?.loan_default_pending;
+  if (S.design_preview) { $('btn-next').disabled=true; $('btn-skip').disabled=true; }
   const dot = $("mail-dot");
   if (dot) {
     const n = S.career?.unread || 0;
@@ -399,11 +403,12 @@ function renderShell() {
     </div>
     <button class="btn ghost sm" id="foot-reset">重开生涯</button>`;
   $("foot-reset").onclick = () => {
-    if (confirm(c.banned || c.retired ? "这份档案已经结束。清空并重开？" : "清空当前生涯和赛季？")) post("/api/reset");
+    show("setup");
   };
 }
 
 function show(name) {
+  if (window.CareerUI) return CareerUI.go(name);
   if (name === "train") name = "play";
   VIEW = name;
   document.querySelectorAll(".view").forEach((v) => v.classList.toggle("on", v.id === "view-" + name));
@@ -419,9 +424,10 @@ function render() {
   if (!S) return;
   document.querySelectorAll(".view").forEach((v) => v.classList.toggle("on", v.id === "view-" + VIEW));
   renderShell();
+  if (window.CareerUI && CareerUI.render()) return;
   const fn = {
-    setup: renderSetup, home: renderHome, squad: renderSquad, honours: renderHonours,
-    locker: renderLocker, skins: renderSkinMarket, mail: renderMail, market: renderMarket, play: renderPlay, schedule: renderSchedule,
+    home: renderHome, squad: renderSquad, honours: renderHonours,
+    mail: renderMail, market: renderMarket, play: renderPlay, schedule: renderSchedule,
     event: renderEvent, match: renderMatch, ranking: renderRanking, players: renderPlayers,
   }[VIEW];
   if (fn) fn();
@@ -429,144 +435,22 @@ function render() {
 
 /* ----------------------------------------------------------------- setup */
 
-async function loadSetupTeams(era) {
-  if (SETUP.era === era && SETUP.teams) return SETUP.teams;
-  const data = await get(`/api/setup?era=${encodeURIComponent(era)}`);
-  SETUP = { era, teams: data.teams || [] };
-  return SETUP.teams;
-}
-
-function renderSetup() {
-  const eras = S.career.eras || {};
-  if (SETUP.era !== DRAFT.era) {
-    loadSetupTeams(DRAFT.era).then(() => { if (VIEW === "setup") renderSetup(); }).catch(() => {});
-  }
-  const teams = [...(SETUP.era === DRAFT.era && SETUP.teams ? SETUP.teams : [])]
-    .sort((a, b) => (a.rank || 99) - (b.rank || 99));
-  if (!teams.length) {
-    $("view-setup").innerHTML = `<div class="page-head"><h2>开始生涯</h2></div><p class="hint">正在读取 ${esc(DRAFT.era)} 的名单…</p>`;
-    return;
-  }
-  const picked = teams.find((t) => t.id === DRAFT.team_id) || teams[0];
-  if (picked && !DRAFT.team_id) DRAFT.team_id = picked.id;
-
-  let h = `<div class="page-head"><h2>开始生涯</h2><span class="hint">选一个年代，加入现有队伍或自建队伍</span></div>`;
-
-  h += `<div class="card"><h3>年代</h3><div class="era-pick">`;
-  for (const [key, meta] of Object.entries(eras)) {
-    h += `<button class="era ${DRAFT.era === key ? "on" : ""}" data-era="${key}">
-      <b>${key} · ${esc(meta.title)}</b><small>${esc(meta.blurb)}</small></button>`;
-  }
-  h += `</div></div>`;
-
-  h += `<div class="grid2" style="margin-top:12px">`;
-  h += `<div class="card"><h3>方式</h3><div class="chips" style="margin-bottom:12px">
-      <button data-mode="join" class="${DRAFT.mode === "join" ? "on" : ""}">加入现役队伍</button>
-      <button data-mode="create" class="${DRAFT.mode === "create" ? "on" : ""}">自建队伍</button>
-    </div>
-    <div class="form">
-      <label>位置<div class="chips" id="role-pick">${(S.career.roles || Object.keys(ROLE))
-        .map((r) => `<button data-role="${r}" class="${DRAFT.role === r ? "on" : ""}">${ROLE[r] || r}</button>`)
-        .join("")}</div></label>`;
-
-  if (DRAFT.mode === "create") {
-    h += `<label>选手 ID<input id="in-name" value="${esc(DRAFT.name || "")}" placeholder="你的游戏 ID" maxlength="16"></label>
-      <label>队名<input id="in-org" value="${esc(DRAFT.org || "")}" placeholder="队伍名称" maxlength="24"></label>
-      <label>赛区<select id="in-region">${Object.entries(REGION)
-        .map(([k, v]) => `<option value="${k}" ${DRAFT.region === k ? "selected" : ""}>${v}</option>`)
-        .join("")}</select></label>
-      <label>队标（PNG，可选）<input type="file" id="in-logo" accept="image/png,image/jpeg"></label>
-      ${DRAFT.logo ? `<div class="row"><img class="crest" style="--sz:46px" src="${DRAFT.logo}"><span class="hint">已选好队标</span></div>` : ""}`;
-  } else {
-    h += `<label>队伍<select id="in-team">${teams
-      .map((t) => `<option value="${t.id}" ${DRAFT.team_id === t.id ? "selected" : ""}>#${t.rank} ${t.name}</option>`)
-      .join("")}</select></label>`;
-    const roster = picked?.players || [];
-    h += `<label>接管谁<select id="in-replace">${roster
-      .map((p) => `<option value="${esc(p.name)}" ${DRAFT.replace === p.name ? "selected" : ""}>${p.name} · ${ROLE[p.role] || p.role} · ${Math.round(p.ability)}</option>`)
-      .join("")}</select></label>`;
-  }
-  h += `<button class="btn primary" id="btn-create">开始</button></div></div>`;
-
-  h += `<div class="card"><h3>${DRAFT.mode === "create" ? "从零开始" : "队伍情报"}</h3>`;
-  if (DRAFT.mode === "create") {
-    h += `<p class="hint">自建队伍从世界第 45 位、四名新人和 $35,000 起步。本赛区 CCT 和小比赛会发邀请。对局可按角色数值结算；自己进 CS2 打需要另装人机增强。</p>`;
-  } else if (picked) {
-    h += `<div class="row" style="margin-bottom:10px">${crest(picked.name, 38)}
-      <div><b style="font-size:15px">${esc(picked.name)}</b><br><small class="hint">#${picked.rank} · ${REGION[picked.region]} · 赛训 ${picked.command}</small></div></div>
-      <p class="hint" style="margin:0 0 10px">这是 ${esc(DRAFT.era)} 的名单，和别的年代可能不同。</p>
-      <table><tbody>${(picked.players || [])
-        .map((p) => `<tr><td>${esc(p.name)}</td><td>${roleBadge(p.role)}</td><td class="num">${Math.round(p.ability)}</td><td class="num">${p.age}岁</td></tr>`)
-        .join("")}</tbody></table>`;
-  }
-  h += `</div></div>`;
-
-  $("view-setup").innerHTML = h;
-
-  document.querySelectorAll("[data-era]").forEach((b) => (b.onclick = () => {
-    DRAFT.era = b.dataset.era;
-    DRAFT.replace = "";
-    SETUP = { era: "", teams: null };
-    renderSetup();
-  }));
-  document.querySelectorAll("[data-mode]").forEach((b) => (b.onclick = () => { DRAFT.mode = b.dataset.mode; renderSetup(); }));
-  document.querySelectorAll("[data-role]").forEach((b) => (b.onclick = () => { DRAFT.role = b.dataset.role; renderSetup(); }));
-
-  const teamSel = $("in-team");
-  if (teamSel) teamSel.onchange = () => { DRAFT.team_id = teamSel.value; DRAFT.replace = ""; renderSetup(); };
-  const repSel = $("in-replace");
-  if (repSel) {
-    if (!DRAFT.replace) DRAFT.replace = repSel.value;
-    repSel.onchange = () => {
-      DRAFT.replace = repSel.value;
-      const row = (picked?.players || []).find((p) => p.name === DRAFT.replace);
-      if (row?.role) {
-        DRAFT.role = row.role;
-        document.querySelectorAll("[data-role]").forEach((b) => b.classList.toggle("on", b.dataset.role === DRAFT.role));
-      }
-    };
-  }
-  const regSel = $("in-region");
-  if (regSel) regSel.onchange = () => { DRAFT.region = regSel.value; };
-  const logo = $("in-logo");
-  if (logo) {
-    logo.onchange = () => {
-      const file = logo.files?.[0];
-      if (!file) return;
-      if (file.size > 3 * 1024 * 1024) return toast("图片要小于 3MB", true);
-      const fr = new FileReader();
-      fr.onload = () => { DRAFT.logo = fr.result; renderSetup(); };
-      fr.readAsDataURL(file);
-    };
-  }
-
-  $("btn-create").onclick = async () => {
-    const body = { era: DRAFT.era, mode: DRAFT.mode, role: DRAFT.role };
-    if (DRAFT.mode === "create") {
-      body.name = ($("in-name")?.value || "").trim();
-      body.org = ($("in-org")?.value || "").trim();
-      body.region = $("in-region")?.value || "AS";
-      if (!body.name || !body.org) return toast("选手 ID 和队名都要填", true);
-    } else {
-      body.team_id = $("in-team")?.value;
-      body.replace = $("in-replace")?.value;
-    }
-    const out = await post("/api/career/create", body);
-    if (out.ok && DRAFT.mode === "create" && DRAFT.logo) {
-      await post("/api/logo", { data: DRAFT.logo, team_id: S.career.team_id });
-    }
-    if (out.ok) show("home");
-  };
-}
-
 /* ----------------------------------------------------------------- home */
+
+function careerEventFocus(events, career) {
+  const invitations = new Set((career.inbox || []).filter(m => m.kind === 'invite' && m.status === 'open').map(m => m.event_id));
+  const registered = new Set(career.registered || []);
+  const ordered = [...events].sort((a,b) => (a.dates?.[0] || '').localeCompare(b.dates?.[0] || ''));
+  const yours = e => (e.field || []).includes(career.team_name) || registered.has(e.id);
+  const event = ordered.find(e => e.status === 'live' && yours(e)) || ordered.find(e => e.status === 'upcoming' && (yours(e) || invitations.has(e.id)));
+  return {event, invitations, registered};
+}
 
 function renderHome() {
   const c = S.career;
   if (!c.exists) { show("setup"); return; }
 
-  const live = S.events.find((e) => e.status === "live");
-  const next = S.events.find((e) => e.status === "upcoming");
+  const focus = careerEventFocus(S.events, c);
   const line = c.season_line;
   const cnt = c.honours?.counts || {};
   const myTop = (S.top20 || []).find((r) => r.player === c.player_name);
@@ -614,21 +498,23 @@ function renderHome() {
 
   h += `<div class="grid2" style="margin-top:12px">`;
 
-  h += `<div class="card"><h3>${live ? "正在进行" : "下一个赛事"}</h3>`;
-  const ev = live || next;
-  if (!ev) h += `<p class="empty">赛季日程已走完，点「下一天」进入新赛季</p>`;
+  const ev = focus.event;
+  h += `<div class="card"><h3>${ev?.status === 'live' ? "你正在参加" : "你的下个赛事"}</h3>`;
+  if (!ev) h += `<p class="empty">${S.events.some(e=>e.status!=='done') ? '暂无待确认邀请或已报名赛事。可推进赛程等待邀请，或查看世界赛事。' : '赛季日程已走完，点「推进赛程」进入新赛季。'}</p>`;
   else {
     const mine = (ev.field || []).includes(c.team_name);
+    const registered = focus.registered.has(ev.id);
+    const invited = focus.invitations.has(ev.id);
     h += `<div class="row" style="justify-content:space-between">
         <div><b style="font-size:15px">${esc(ev.name)}</b><br>
           <small class="hint">${dateSpan(ev.dates)} · ${REGION[ev.region]} · ${FORMAT[ev.format] || ev.format || ""}</small></div>
         ${badge(ev.class, CLS[ev.class] || ev.class)}
       </div>
       <div class="row" style="margin-top:10px">
-        ${mine ? badge("done", "你在参赛名单") : ev.status === "upcoming" ? badge("upcoming", "请到邮件确认邀请") : badge("upcoming", "暂未入围")}
+        ${mine ? badge("done", "你在参赛名单") : registered ? badge("done", "已接受邀请，等待开赛") : invited ? badge("upcoming", "请到邮件确认邀请") : badge("upcoming", "暂未入围")}
         <span class="hint">${eventPathHint(ev, true)}</span>
         <button class="btn sm" id="go-ev">查看</button>
-        ${ev.status === "upcoming" && !mine ? `<button class="btn sm" id="go-mail">打开邮箱</button>` : ""}
+        ${invited && !registered && !mine ? `<button class="btn sm" id="go-mail">打开邮箱</button>` : ""}
       </div>`;
   }
   h += `</div>`;
@@ -799,6 +685,32 @@ function quoteDelta(n) {
   return n > 0 ? `<small class="up">+${money(n)}</small>` : `<small class="down">${money(n)}</small>`;
 }
 
+function signedMoney(n) {
+  n = Math.round(Number(n || 0));
+  return `${n > 0 ? "+" : n < 0 ? "−" : ""}${money(Math.abs(n))}`;
+}
+
+function financeCard(title, account, accent = "") {
+  account = account || {};
+  const net = Math.round(Number(account.next_net || 0));
+  const arrow = net > 0 ? "↑" : net < 0 ? "↓" : "→";
+  const tone = net > 0 ? "up" : net < 0 ? "down" : "flat";
+  const lines = account.lines || [];
+  const recent = account.recent || [];
+  return `<div class="finance-account ${accent}" tabindex="0">
+    <span class="finance-label">${esc(title)}</span>
+    <div class="finance-main">${money(account.balance)}</div>
+    <div class="finance-delta ${tone}"><b>${arrow} ${signedMoney(net)}</b><span>预计下月</span></div>
+    <div class="finance-tip" role="tooltip">
+      <h4>下月固定收支</h4>
+      ${lines.length ? lines.map((row) => `<div class="finance-line"><span>${esc(row.label)}</span><b class="${row.amount > 0 ? "up" : row.amount < 0 ? "down" : ""}">${signedMoney(row.amount)}</b></div>`).join("") : `<p>暂无固定收支</p>`}
+      <div class="finance-line total"><span>预计净变化</span><b class="${tone}">${signedMoney(net)}</b></div>
+      <h4>最近资金流水</h4>
+      ${recent.length ? recent.map((row) => `<div class="finance-line history"><span><i>${esc((row.date || "").slice(0, 10))}</i>${esc(row.label)}</span><b class="${row.amount > 0 ? "up" : "down"}">${signedMoney(row.amount)}</b></div>`).join("") : `<p>暂无流水记录</p>`}
+    </div>
+  </div>`;
+}
+
 function bindSkinPref() {
   if (!$("skin-pref")) return;
   $("skin-pref").onclick = () => post("/api/skins/pref", {
@@ -807,328 +719,13 @@ function bindSkinPref() {
   });
 }
 
-function bindInventory() {
-  document.querySelectorAll("[data-eq]").forEach((b) => {
-    b.onclick = () => post("/api/skins/equip", {
-      id: b.dataset.eq,
-      side: b.dataset.side,
-      off: b.dataset.off === "1",
-    });
-  });
-  document.querySelectorAll("[data-sell]").forEach((b) => (b.onclick = () => post("/api/skins/sell", { id: b.dataset.sell })));
-}
 
-function renderLocker() {
-  const c = S.career;
-  const ops = c.ops || {};
-  const shop = c.skins || {};
-  const inv = shop.inventory || [];
-  const eqCT = shop.equipped_ct || {};
-  const eqT = shop.equipped_t || {};
-  if (UNBOX_NEXT) {
-    if (shop.pending) UNBOX = { playing: true, drop: shop.pending };
-    UNBOX_NEXT = false;
-  }
-  let h = `<div class="page-head"><h2>经营与库存</h2>
-    <span class="hint">俱乐部发工资、管吃住；个人口袋开箱，皮肤去「皮肤市场」买</span></div>`;
-
-  if (c.crisis) {
-    h += `<div class="card" style="margin-bottom:12px;border-color:#6a2a2a"><h3>经营危机</h3>
-      <p class="hint">发不出工资，缺口 ${money(c.deficit)}。捐满才能续命，否则下个月解散，队友进转会市场，你留下重开新队。</p>
-      <div class="row"><input id="don-amt" class="locker-input" type="number" min="1" value="${c.deficit || 1000}">
-        <button class="btn primary sm" id="don-go">捐给俱乐部</button>
-        <button class="btn sm" id="found-go">现在解散并重开</button></div></div>`;
-  }
-
-  if (c.unsigned) {
-    h += `<div class="card" style="margin-bottom:12px"><h3>自由市场</h3>
-      <p class="hint">你现在没有俱乐部，不能借款，也不能打官方赛和训练赛。去邮箱看入队合同，或继续逛皮肤市场。</p>
-      <div class="row"><button class="btn primary sm" id="go-mail-fa">打开邮箱</button></div></div>`;
-  }
-
-  const loan = c.loan || {};
-  if (!c.unsigned && !c.banned) {
-    const ratePct = Math.round((loan.rate || 0) * 100);
-    const due = (loan.principal || 0) + (loan.arrears || 0);
-    h += `<div class="card" style="margin-bottom:12px"><h3>借款</h3>`;
-    if (loan.active) {
-      h += `<p class="hint">向${esc(loan.kind_label || "俱乐部")}借的钱。月息 ${ratePct}%，每月从口袋扣；扣不起算一个月没还。连续三个月没付上利息会发最后通牒。</p>
-        <div class="grid4" style="margin-bottom:10px">
-          <div class="stat"><b>${money(loan.principal)}</b><small>剩余本金</small></div>
-          <div class="stat"><b>${money(loan.arrears)}</b><small>未付利息</small></div>
-          <div class="stat"><b>${loan.missed || 0} / 3</b><small>连续未还</small></div>
-          <div class="stat"><b>${money(loan.interest)}</b><small>下月利息</small></div>
-        </div>
-        <div class="row">
-          <input id="repay-amt" class="locker-input" type="number" min="1" value="${due || 1}">
-          <button class="btn primary sm" id="repay-go">还款</button>
-        </div>`;
-    } else {
-      const who = loan.kind_label || (c.mode === "create" ? "银行" : "俱乐部");
-      h += `<p class="hint">${c.mode === "create" ? "自建队向银行借，钱进俱乐部金库。" : "从俱乐部金库借到个人口袋，金库要留至少一个月开支。"} 同时只能欠一笔。</p>
-        <div class="stat" style="margin-bottom:10px"><b>${money(loan.cap || 0)}</b><small>当前可向${esc(who)}借</small></div>
-        <div class="row">
-          <input id="borrow-amt" class="locker-input" type="number" min="1" value="${Math.max(1, loan.cap || 0)}">
-          <button class="btn sm" id="borrow-go" ${loan.cap > 0 ? "" : "disabled"}>借款</button>
-        </div>`;
-    }
-    h += `</div>`;
-  }
-
-  h += `<div class="grid2" style="margin-bottom:12px">`;
-  if (!c.unsigned) {
-    h += `<div class="card"><h3>俱乐部账本</h3>
-      <div class="grid4" style="margin-bottom:10px">
-        <div class="stat"><b>${money(ops.cash)}</b><small>账上现金</small></div>
-        <div class="stat"><b>${money(ops.total)}</b><small>每月支出</small></div>
-        <div class="stat"><b>${money(ops.salaries)}</b><small>工资</small></div>
-        <div class="stat"><b>${ops.runway ?? 0} 月</b><small>还能撑</small></div>
-      </div>
-      <p class="hint">吃住 ${money(ops.living)} · 你的月薪 ${money(ops.your_salary)} · 奖金 12% 进个人，Major 出场费 $200,000 进俱乐部</p>
-      <table><thead><tr><th>队员</th><th class="num">月薪</th></tr></thead><tbody>
-        ${(ops.wages || []).map((w) => `<tr class="${w.name === c.player_name ? "me" : ""}"><td>${esc(w.name)}</td><td class="num">${money(w.pay)}</td></tr>`).join("")}
-      </tbody></table>
-      ${(ops.log || []).length ? `<div style="margin-top:10px">${ops.log.map((x) => `<div class="hint">${esc(x)}</div>`).join("")}</div>` : ""}
-      ${!c.crisis ? `<div class="row" style="margin-top:12px">
-        <input id="don-amt" class="locker-input" type="number" min="1" value="5000">
-        <button class="btn sm" id="don-go">捐给俱乐部</button>
-      </div>` : ""}
-    </div>`;
-  }
-  h += `<div class="card"><h3>个人口袋 ${money(c.pocket)}</h3>
-      <p class="hint">来源：每月工资 + 赛事奖金 12%。转会只能用俱乐部的钱。卖皮扣 10% 手续费。</p>
-      <label class="row" style="margin-top:12px;gap:8px;align-items:center">
-        <input type="checkbox" id="skin-real" ${c.real_skins ? "checked" : ""}> 开启游戏内换肤
-      </label>
-      <div class="row" style="margin-top:8px">
-        <input id="skin-sid" class="locker-input" value="${esc(c.steam_id || "")}" placeholder="17 位 SteamID">
-        <button class="btn sm" id="skin-pref">保存</button>
-      </div>
-      <p class="hint" style="margin-top:8px">${
-        !c.real_skins
-          ? "关掉时只在生涯里穿，不写进 CS2。"
-          : shop.plugin
-            ? "插件已装。只涂你填的 SteamID：枪、刀、手套。人机留给随机涂装，互不抢。局内 !ws 刷新，对着枪按检视键看外观。"
-            : "还没把换肤插件装进游戏。到「训练赛」页安装后，完全退出 CS2 再进。"
-      }</p>
-      <div class="row" style="margin-top:10px"><button class="btn sm" id="go-skins">去皮肤市场</button></div>
-    </div>
-  </div>`;
-
-  const pending = shop.pending;
-  if (pending && !UNBOX?.playing) {
-    h += `<div class="card" style="margin-bottom:12px"><h3>刚开出 ${esc(pending.name)}</h3>
-      <p class="hint">${esc(pending.weapon)} · ${badge(pending.rarity, RARITY[pending.rarity] || pending.rarity)} · 磨损 ${Number(pending.wear || 0).toFixed(3)} · 现价 ${money(pending.spot)}</p>
-      <div class="row"><button class="btn primary sm" id="drop-keep">进库存</button>
-        <button class="btn sm" id="drop-cash">立刻卖 ${money(pending.sell || 0)}</button></div></div>`;
-  }
-
-  h += `<div class="grid2" style="margin-bottom:12px">
-    <div class="card"><h3>当前库存</h3>
-    <p class="hint">按阵营装：AK / Glock 只能给 T，M4 / USP 只能给 CT。刀和手套 CT、T 各穿一件。</p>`;
-  if (!inv.length) h += `<p class="empty">还没有皮肤。去皮肤市场买，或在右边开箱。</p>`;
-  else {
-    h += `<table><thead><tr><th>饰品</th><th>稀有度</th><th class="num">现价</th><th></th></tr></thead><tbody>`;
-    for (const it of inv) {
-      const sides = it.sides || [];
-      const onCT = eqCT[it.slot] === it.id;
-      const onT = eqT[it.slot] === it.id;
-      const mark = [onCT ? "CT" : "", onT ? "T" : ""].filter(Boolean).join("/");
-      h += `<tr><td><button class="js-skin" data-look="${esc(it.skin_id || "")}">${esc(it.name)}</button>${mark ? ` · ${mark}` : ""}<br><small class="hint">磨损 ${Number(it.wear || 0).toFixed(3)}</small></td>
-        <td>${badge(it.rarity, RARITY[it.rarity] || it.rarity)}</td>
-        <td class="num">${money(it.spot)}${quoteDelta(0)}</td>
-        <td class="skin-acts">`;
-      if (sides.includes("ct")) {
-        h += `<button class="btn sm ${onCT ? "primary" : ""}" data-eq="${esc(it.id)}" data-side="ct" data-off="${onCT ? "1" : ""}">${onCT ? "卸 CT" : "装 CT"}</button>`;
-      }
-      if (sides.includes("t")) {
-        h += `<button class="btn sm ${onT ? "primary" : ""}" data-eq="${esc(it.id)}" data-side="t" data-off="${onT ? "1" : ""}">${onT ? "卸 T" : "装 T"}</button>`;
-      }
-      h += `<button class="btn sm" data-sell="${esc(it.id)}">卖 ${money(it.sell)}</button></td></tr>`;
-    }
-    h += `</tbody></table>`;
-  }
-  h += `</div><div class="card"><h3>开箱</h3>
-    <p class="hint">箱子+钥匙一次付清。现价每天会变，箱子价跟着调。</p>`;
-  for (const box of shop.cases || []) {
-    const cost = (box.price || 0) + (box.key || 0);
-    h += `<div class="row" style="justify-content:space-between;margin:10px 0;align-items:center">
-      <div><b>${esc(box.name)}</b><br><small class="hint">箱子 ${money(box.price)} + 钥匙 ${money(box.key)}</small></div>
-      <button class="btn sm ${pending || UNBOX?.playing ? "" : "primary"}" data-case="${esc(box.id)}" ${pending || UNBOX?.playing || c.pocket < cost ? "disabled" : ""}>开 ${money(cost)}</button></div>`;
-  }
-  h += `</div></div>`;
-
-  if (UNBOX?.playing && UNBOX.drop) h += unboxOverlayHTML(shop, UNBOX.drop);
-
-  $("view-locker").innerHTML = h;
-  if ($("go-locker")) $("go-locker").onclick = () => show("locker");
-  if ($("go-skins")) $("go-skins").onclick = () => show("skins");
-  if ($("don-go")) $("don-go").onclick = () => post("/api/ops/donate", { amount: Number($("don-amt")?.value || 0) });
-  if ($("found-go")) $("found-go").onclick = () => { if (confirm("队友会进转会市场，你留下重开新队？")) post("/api/ops/found", {}); };
-  if ($("go-mail-fa")) $("go-mail-fa").onclick = () => show("mail");
-  if ($("borrow-go")) $("borrow-go").onclick = () => post("/api/ops/borrow", { amount: Number($("borrow-amt")?.value || 0) });
-  if ($("repay-go")) $("repay-go").onclick = () => post("/api/ops/repay", { amount: Number($("repay-amt")?.value || 0) });
-  bindSkinPref();
-  if ($("drop-keep")) $("drop-keep").onclick = () => { UNBOX = null; post("/api/skins/keep", {}); };
-  if ($("drop-cash")) $("drop-cash").onclick = () => { UNBOX = null; post("/api/skins/cash", {}); };
-  document.querySelectorAll("[data-case]").forEach((b) => (b.onclick = () => {
-    UNBOX_NEXT = true;
-    post("/api/skins/case", { id: b.dataset.case });
-  }));
-  bindInventory();
-  bindSkinLooks();
-  if (UNBOX?.playing) requestAnimationFrame(() => playUnbox(shop, UNBOX.drop));
-}
-
-function unboxOverlayHTML(shop, drop) {
-  const box = (shop.cases || []).find((x) => (x.drops || []).includes(drop.id)) || (shop.cases || [])[0] || {};
-  const pool = box.pool?.length ? box.pool : shop.market || [];
-  const strip = [];
-  for (let i = 0; i < 36; i++) strip.push(pool[i % Math.max(1, pool.length)] || drop);
-  strip[32] = drop;
-  UNBOX.strip = strip;
-  return `<div class="unbox-mask" id="unbox-mask">
-    <div class="unbox-panel">
-      <h3>正在打开 ${esc(box.name || "箱子")}</h3>
-      <div class="unbox-window"><div class="unbox-needle"></div><div class="unbox-strip" id="unbox-strip">
-        ${strip.map((s) => `<div class="unbox-item ${esc(s.rarity || "")}"><b>${esc((s.name || "").split(" | ").pop())}</b><small>${esc(s.weapon || "")}</small></div>`).join("")}
-      </div></div>
-      <div class="unbox-result" id="unbox-result" hidden></div>
-    </div>
-  </div>`;
-}
-
-function playUnbox(_shop, drop) {
-  const strip = $("unbox-strip");
-  if (!strip || !UNBOX?.playing) return;
-  const items = strip.children;
-  const land = items[32];
-  if (!land) return;
-  const windowEl = strip.parentElement;
-  const target = land.offsetLeft + land.offsetWidth / 2 - windowEl.clientWidth / 2;
-  strip.style.transform = `translateX(0)`;
-  requestAnimationFrame(() => {
-    strip.style.transition = "transform 4.2s cubic-bezier(.12,.7,.12,1)";
-    strip.style.transform = `translateX(${-target}px)`;
-  });
-  setTimeout(() => {
-    if (!UNBOX) return;
-    UNBOX.playing = false;
-    const box = $("unbox-result");
-    if (!box) return;
-    box.hidden = false;
-    box.innerHTML = `<div class="skin-tile ${esc(drop.rarity || "")}">
-      <small>${esc(drop.weapon || "")}</small>
-      <b>${esc(drop.name)}</b>
-      <span>${badge(drop.rarity, RARITY[drop.rarity] || drop.rarity)} · 磨损 ${Number(drop.wear || 0).toFixed(3)}</span>
-      <span>现价 ${money(drop.spot)} · 立刻卖 ${money(drop.sell)}</span>
-      <div class="row" style="margin-top:12px">
-        <button class="btn primary sm" id="drop-keep">进库存</button>
-        <button class="btn sm" id="drop-cash">立刻卖 ${money(drop.sell || 0)}</button>
-      </div>
-    </div>`;
-    if ($("drop-keep")) $("drop-keep").onclick = () => { UNBOX = null; post("/api/skins/keep", {}); };
-    if ($("drop-cash")) $("drop-cash").onclick = () => { UNBOX = null; post("/api/skins/cash", {}); };
-  }, 4400);
-}
-
-function bindSkinLooks() {
-  document.querySelectorAll("[data-look]").forEach((b) => {
-    b.onclick = () => openSkinLook(b.dataset.look);
-  });
-}
-
-function openSkinLook(skinId) {
-  const shop = S.career?.skins || {};
-  const row = (shop.market || []).find((s) => s.id === skinId);
-  if (!row) return;
-  let el = $("skin-look");
-  if (!el) {
-    el = document.createElement("div");
-    el.id = "skin-look";
-    document.body.appendChild(el);
-  }
-  el.innerHTML = `<div class="inspect-card skin-look-card">
-    <button class="inspect-x" id="skin-look-x">×</button>
-    <div class="skin-tile ${esc(row.rarity)} big">
-      <small>${esc(row.weapon)}</small>
-      <b>${esc(row.name)}</b>
-      <span>${badge(row.rarity, RARITY[row.rarity] || row.rarity)}</span>
-      <span>现价 ${money(row.spot)} · 卖出 ${money(row.sell)}</span>
-      <p class="hint">这是生涯里的饰品卡，不拉网上图片。游戏内开了换肤后，对着武器按检视键能看到真实外观。</p>
-    </div>
-  </div>`;
-  el.onclick = (e) => { if (e.target === el || e.target.id === "skin-look-x") el.remove(); };
-}
-
-function renderSkinMarket() {
-  const c = S.career;
-  if (!c.exists) { $("view-skins").innerHTML = `<p class="empty">先创建生涯</p>`; return; }
-  const shop = c.skins || {};
-  const rows = [...(shop.market || [])];
-  const weapons = shop.weapons || [];
-  if (SKIN_UI.weapon !== "all") {
-    for (let i = rows.length - 1; i >= 0; i--) if (rows[i].weapon !== SKIN_UI.weapon) rows.splice(i, 1);
-  }
-  rows.sort((a, b) => {
-    if (SKIN_UI.sort === "price") return (b.spot || 0) - (a.spot || 0);
-    if (SKIN_UI.sort === "price-asc") return (a.spot || 0) - (b.spot || 0);
-    if (SKIN_UI.sort === "name") return (a.name || "").localeCompare(b.name || "", "zh");
-    return rarityRank(a.rarity) - rarityRank(b.rarity) || (b.spot || 0) - (a.spot || 0);
-  });
-  let h = `<div class="page-head"><h2>皮肤市场</h2>
-    <span class="hint">个人口袋 ${money(c.pocket)} · 每天随市价走动 · 卖出扣 10%</span></div>`;
-  h += `<div class="card" style="margin-bottom:12px">
-    <div class="skin-filters">
-      <button class="chip ${SKIN_UI.weapon === "all" ? "on" : ""}" data-wpn="all">全部</button>
-      ${weapons.map((w) => `<button class="chip ${SKIN_UI.weapon === w ? "on" : ""}" data-wpn="${esc(w)}">${esc(w)}</button>`).join("")}
-    </div>
-    <div class="row" style="margin-top:10px">
-      <label>排序 <select id="skin-sort">
-        <option value="rarity" ${SKIN_UI.sort === "rarity" ? "selected" : ""}>稀有度</option>
-        <option value="price" ${SKIN_UI.sort === "price" ? "selected" : ""}>价格高到低</option>
-        <option value="price-asc" ${SKIN_UI.sort === "price-asc" ? "selected" : ""}>价格低到高</option>
-        <option value="name" ${SKIN_UI.sort === "name" ? "selected" : ""}>名字</option>
-      </select></label>
-    </div>
-  </div>`;
-  h += `<div class="skin-scroll">`;
-  if (!rows.length) h += `<p class="empty">这一类暂时没有上架</p>`;
-  else {
-    h += `<div class="skin-grid">`;
-    for (const s of rows) {
-      const sides = (s.sides || []).map((x) => x.toUpperCase()).join(" / ");
-      h += `<div class="skin-tile ${esc(s.rarity)}" data-look="${esc(s.id)}">
-        <small>${esc(s.weapon)} · ${esc(sides)}</small>
-        <b>${esc(s.name)}</b>
-        <span>${badge(s.rarity, RARITY[s.rarity] || s.rarity)} ${quoteDelta(s.delta)}</span>
-        <span class="skin-price">${money(s.spot)}</span>
-        <button class="btn sm" data-buy="${esc(s.id)}" ${c.pocket < s.spot ? "disabled" : ""}>买入</button>
-      </div>`;
-    }
-    h += `</div>`;
-  }
-  h += `</div>`;
-  $("view-skins").innerHTML = h;
-  document.querySelectorAll("[data-wpn]").forEach((b) => (b.onclick = () => { SKIN_UI.weapon = b.dataset.wpn; renderSkinMarket(); }));
-  if ($("skin-sort")) $("skin-sort").onchange = (e) => { SKIN_UI.sort = e.target.value; renderSkinMarket(); };
-  document.querySelectorAll("[data-buy]").forEach((b) => {
-    b.onclick = (e) => {
-      e.stopPropagation();
-      if (b.dataset.off) return;
-      post("/api/skins/buy", { id: b.dataset.buy });
-    };
-  });
-  bindSkinLooks();
-}
-
-/* ----------------------------------------------------------------- mail */
 
 function renderMail() {
   const c = S.career;
   const rows = [...(c.inbox || [])].reverse();
   let h = `<div class="page-head"><h2>邮件</h2>
-    <span class="hint">${c.unread || 0} 封未读 · 邀请、合同、奖金和赞助都在这里</span>
+    <span class="hint">${c.unread || 0} 封未读 · 只保留邀请、合同和需要你处理的通知</span>
     <button class="btn sm" id="mail-all">全部已读</button></div>`;
   if (!rows.length) h += `<p class="empty">信箱是空的</p>`;
   for (const m of rows) {
@@ -1158,11 +755,6 @@ function renderMail() {
     } else if (m.kind === "whisper") {
       h += badge(m.status === "accepted" ? "t2" : "done", m.status === "accepted" ? "已回复" : "已回绝");
     }
-    if ((m.kind === "prize" || m.kind === "sponsor") && m.status !== "claimed") {
-      h += `<button class="btn primary sm" data-claim="${esc(m.id)}">领取 ${money(m.amount)}</button>`;
-    } else if (m.kind === "prize" || m.kind === "sponsor") {
-      h += badge("done", "已领取");
-    }
     if (unread) h += `<button class="btn ghost sm" data-read="${esc(m.id)}">标为已读</button>`;
     h += `</div></div>`;
   }
@@ -1170,7 +762,6 @@ function renderMail() {
   if ($("mail-all")) $("mail-all").onclick = () => post("/api/mail/read_all", {});
   document.querySelectorAll("[data-acc]").forEach((b) => (b.onclick = () => post("/api/mail/accept", { id: b.dataset.acc })));
   document.querySelectorAll("[data-dec]").forEach((b) => (b.onclick = () => post("/api/mail/decline", { id: b.dataset.dec })));
-  document.querySelectorAll("[data-claim]").forEach((b) => (b.onclick = () => post("/api/mail/claim", { id: b.dataset.claim })));
   document.querySelectorAll("[data-read]").forEach((b) => (b.onclick = () => post("/api/mail/read", { id: b.dataset.read })));
 }
 
@@ -1363,6 +954,7 @@ function renderEvent() {
 /* ----------------------------------------------------------------- match */
 
 async function openMatch(id) {
+  if (window.CareerUI) return CareerUI.match(id);
   MATCH = id;
   DETAIL = null;
   show("match");
@@ -1449,28 +1041,28 @@ function renderLivePanel(m) {
   const res = keepBestResult(SERIES_RESULT);
   const cfg = SERIES_CS2 || {};
   let h = `<div class="card live-up play-panel" style="margin-top:16px">`;
-  const blockedLaunch = cfg.cs2_live && cfg.difficulty_pending;
+  const blockedLaunch = !!cfg.cs2_live;
   h += `<h3>${pending ? `第 ${n} 图 · ${mapName(pending)}` : "系列赛"}</h3>`;
   if (!cfg.ready && cfg.ready !== undefined) {
-    h += `<p class="hint">自己打需要先装人机增强。到「训练赛」页填好 Steam / 游戏 / 人机增强目录，或直接按实力出战。</p>`;
+    h += `<p class="hint">自己打需要先装人机增强。到「游戏设置」页填好 Steam / 游戏 / 人机增强目录，或直接按实力出战。</p>`;
   } else if (blockedLaunch) {
-    h += `<p class="hint">刚改过难度，CS2 还开着，仍是旧档。请完全退出后再自己打。</p>`;
+    h += `<p class="hint">CS2 还开着，不能生成或覆盖本场 9 人档案。请完全退出后再自己打。</p>`;
   }
   h += `<div class="row">
     <label>你的阵营 <select id="s-side">
       <option value="ct" ${SERIES_SIDE === "ct" ? "selected" : ""}>CT</option>
       <option value="t" ${SERIES_SIDE === "t" ? "selected" : ""}>T</option>
     </select></label>
-    <span class="hint">${esc(botLine(cfg))} · 到「训练赛」页可改</span>
+    <span class="hint">${esc(botLine(cfg))} · 到「游戏设置」页可改</span>
   </div>`;
   const goLabel = session ? "重开这张图" : pending ? `进入第 ${n} 图` : "自己打";
   h += `<div class="row">
-    <button class="btn primary" id="s-go" ${blockedLaunch ? "disabled" : ""}>${goLabel}</button>
+    <button class="btn primary" id="s-go" ${blockedLaunch || !cfg.ready || !cfg.mod_installed || S.playtest ? "disabled" : ""}>${goLabel}</button>
     <button class="btn" id="s-skip">${(m.maps || []).length ? "跳过剩余，按数值结算" : "跳过，按角色数值结算"}</button>
     ${session ? `<button class="btn ghost" id="s-commit">录入战绩</button>` : ""}
   </div>`;
   h += `<p class="hint">${session
-    ? "比分到 13 会自动录入。退出后如果变成 0:0，点录入会用刚才看到的那份比分和战绩。"
+    ? "等待插件回传正式终场和完整十人战绩后自动录入；仅到13分不代表结束。失败可点「录入战绩」重试。"
     : "自己打要用 CS2 和人机增强；没装也可以按角色数值结算。"}</p>`;
   if (SERIES_COMMIT_ERR) {
     h += `<p class="hint" style="color:#c45">${esc(SERIES_COMMIT_ERR)}</p>`;
@@ -1481,7 +1073,8 @@ function renderLivePanel(m) {
     h += `<div class="scoreline"><span class="nm">${esc(res.ct_name || "CT")}</span>
       <b>${res.ct_score ?? 0} : ${res.t_score ?? 0}</b>
       <span class="nm">${esc(res.t_name || "T")}</span>
-      ${badge(final ? "done" : "live", final ? "终场，正在录入" : "进行中")}</div>`;
+      ${badge(final ? "done" : "live", final ? res.complete === true ? "终场，等待录入" : "回传校验失败" : "进行中")}</div>`;
+    if(final&&res.complete!==true)h+=`<p class="hint">${esc(res.validation_error||'终场数据尚不完整，请等待或重试。')}</p>`;
   }
   h += `</div>`;
   return h;
@@ -1494,8 +1087,8 @@ function bindLivePanel(m) {
       SERIES_TRIED = "";
       SERIES_RESULT = null;
       SERIES_BEST = null;
-      await post("/api/series/launch", { match_id: m.id, side: SERIES_SIDE });
-      startSeriesPoll(m.id);
+      const out=await post("/api/series/launch", { match_id: m.id, side: SERIES_SIDE });
+      if(out.ok!==false)startSeriesPoll(m.id);
     };
   }
   if ($("s-skip")) {
@@ -1509,12 +1102,13 @@ function bindLivePanel(m) {
     $("s-commit").onclick = async () => {
       const out = await post("/api/series/commit", { match_id: m.id, result: SERIES_BEST || SERIES_RESULT });
       SERIES_COMMIT_ERR = out.ok === false ? (out.msg || "战绩没有录上") : "";
-      if (VIEW === "match") renderMatch();
+      if (VIEW === "match") render();
     };
   }
 }
 
 function stopSeriesPoll() {
+  SERIES_POLL_GENERATION++;
   if (SERIES_TIMER) {
     clearInterval(SERIES_TIMER);
     SERIES_TIMER = null;
@@ -1551,25 +1145,32 @@ function sessionMatchId() {
 
 function ensureCs2AutoIngest() {
   const id = sessionMatchId();
-  if (!id) return;
+  if (!id) {stopSeriesPoll();return;}
   if (SERIES_TIMER && CS2_POLL_ID === id) return;
   startSeriesPoll(id);
 }
 
 function startSeriesPoll(matchId) {
   stopSeriesPoll();
+  const generation=SERIES_POLL_GENERATION;
+  let busy=false;
   CS2_POLL_ID = matchId || sessionMatchId();
   const tick = async () => {
+    if(busy||generation!==SERIES_POLL_GENERATION)return;
+    busy=true;
     const id = matchId || sessionMatchId();
     if (!id) {
       stopSeriesPoll();
+      busy=false;
       return;
     }
     try {
-      const res = keepBestResult(await get("/api/play/result"));
+      const incoming=await get("/api/play/result");
+      if(generation!==SERIES_POLL_GENERATION)return;
+      const res = keepBestResult(incoming);
       const prev = JSON.stringify(SERIES_RESULT);
       SERIES_RESULT = res;
-      if ((res.status === "finished" || decidedResult(res)) && stampOf(res) && stampOf(res) !== SERIES_TRIED) {
+      if (res.status === "finished" && res.complete === true && stampOf(res) && stampOf(res) !== SERIES_TRIED) {
         SERIES_TRIED = stampOf(res);
         const out = await post("/api/series/commit", { match_id: id, result: SERIES_BEST || res });
         if (out.ok !== false) {
@@ -1580,8 +1181,9 @@ function startSeriesPoll(matchId) {
         }
         SERIES_COMMIT_ERR = out.msg || "战绩没有录上";
       }
-      if (JSON.stringify(SERIES_RESULT) !== prev && VIEW === "match") renderMatch();
+      if (JSON.stringify(SERIES_RESULT) !== prev && VIEW === "match") render();
     } catch { /* game not writing yet */ }
+    finally {busy=false;}
   };
   SERIES_TIMER = setInterval(tick, 4000);
   tick();
@@ -1658,9 +1260,9 @@ function botLine(cfg) {
     + ` · 道具 ${NADE_LABEL[cfg.bot_nades] || cfg.bot_nades || "—"}`;
 }
 
-function pickRow(id, label, options, current, labels) {
+function pickRow(id, label, options, current, labels, disabled = false) {
   const opts = options.map((v) => `<option value="${esc(v)}" ${current === v ? "selected" : ""}>${esc(labels[v] || v)}</option>`).join("");
-  return `<label style="flex:1">${label}<select id="${id}">${opts}</select></label>`;
+  return `<label style="flex:1">${label}<select id="${id}" ${disabled ? "disabled" : ""}>${opts}</select></label>`;
 }
 
 function botSettingsCard(cfg) {
@@ -1670,21 +1272,17 @@ function botSettingsCard(cfg) {
   const ids = cfg.identity_modes || ["player", "bot"];
     const live = cfg.installed_difficulty;
     const pending = cfg.difficulty_pending;
-    const liveNote = live
-      ? live === cfg.difficulty
-        ? `游戏目录当前档是 ${DIFF_LABEL[live] || live}。关着 CS2 时改档会立刻拷过去；游戏开着只能改瞄准/道具，难度要先退。`
-        : `已选 ${DIFF_LABEL[cfg.difficulty] || cfg.difficulty}，游戏里还是 ${DIFF_LABEL[live] || live}。请完全退出 CS2，再改一次难度。`
-      : pending
-        ? "改档后请先完全退出 CS2。"
-        : "简单/中等/极难是三份 botprofile。关着 CS2 保存就会拷到正在用的那份。";
+    const liveNote = cfg.active_vpk_valid
+      ? `活动 VPK：${DIFF_LABEL[cfg.actual_difficulty] || cfg.actual_difficulty} · ${cfg.profile_sync_count}/9 · ${cfg.profile_hash_short || "—"} · ${cfg.difficulty_model === "bot_improver_career_tuned_v2" ? "原版增强＋生涯个人微调" : "旧版调校，下场重新生成"}。`
+      : "尚未生成比赛 VPK；开始下一场时会按当前难度生成。";
   return `<div class="card" style="margin-bottom:12px"><h3>机器人设置</h3>
     <div class="form" style="max-width:none"><div class="row">
-      ${pickRow("b-diff", "难度", diffs, cfg.difficulty, DIFF_LABEL)}
+      ${pickRow("b-diff", "难度", diffs, cfg.difficulty, DIFF_LABEL, !!cfg.cs2_live)}
       ${pickRow("b-aim", "瞄准预设", aims, cfg.bot_aim, AIM_LABEL)}
       ${pickRow("b-nades", "道具预设", nades, cfg.bot_nades, NADE_LABEL)}
       ${pickRow("b-id", "队友对手身份", ids, cfg.bot_identity, ID_LABEL)}
     </div>
-    <p class="hint">聊天框第二回合的 Medium/High 是人机增强按 botprofile 文件比对的。瞄准和道具每局重设，即使难度文件没换，手感也会变。${esc(liveNote)}</p>
+    <p class="hint">Low／High 沿用原版基础调校；Medium 另按生涯能力匹配个人微调模板。ProSlow、ProFast 等按当前位置能力与状态选档，不随难度加减评分。High 和 Medium 顶档保留原包特殊加速度文本；实际效果需游戏验证。CS2 运行时不能改档。${esc(liveNote)}</p>
     </div></div>`;
 }
 
@@ -1755,32 +1353,8 @@ async function renderPlay() {
 
   const setUp = cfg.ready && cfg.mod_installed && cfg.levels_ok;
   const live = !!cfg.cs2_live;
-  const blockedLaunch = live && cfg.difficulty_pending;
-  h += `<div class="card" style="margin-bottom:12px"><h3>${setUp ? "游戏路径" : "首次设置（进 CS2 必做）"}</h3><div class="form">
-    <label>steam.exe ${cfg.steam_ok ? "✓" : "✗"}<input id="p-steam" value="${esc(cfg.steam_exe || "")}"></label>
-    <label>csgo 目录 ${cfg.csgo_ok ? "✓" : "✗"}<input id="p-csgo" value="${esc(cfg.csgo_path || "")}" placeholder="要到 game\\csgo 那一层，填游戏根目录也会自动补"></label>
-    <label>人机增强目录 ${cfg.mod_ok ? "✓" : "✗"}<input id="p-mod" value="${esc(cfg.mod_source_path || "")}"></label>
-    <label>换肤插件目录 ${cfg.skins_ok ? "✓" : "✗"}<input id="p-skins" value="${esc(cfg.skins_source_path || "")}" placeholder="可空，默认用生涯自带的修过读取的插件"></label>
-    <div class="row"><button class="btn" id="p-save">保存路径</button>
-      <button class="btn primary" id="p-install" ${cfg.ready && !live ? "" : "disabled"}>把人机增强装进游戏</button>
-      <button class="btn" id="p-sync" ${cfg.levels_ok && !live ? "" : "disabled"}>同步人机名单</button>
-      <button class="btn" id="p-skins-install" ${cfg.mod_installed && (cfg.skins_ok || cfg.skins_installed) && !live ? "" : "disabled"}>把换肤插件装进游戏</button>
-      <button class="btn ghost" id="p-gamedata">更新换肤签名</button>
-    </div>
-    <p class="hint">${
-      live
-        ? "CS2 还开着：不能安装、不能同步。难度若刚改过，也必须先退游戏再进局。"
-        : cfg.ready
-        ? (
-            !cfg.mod_installed
-              ? "路径已保存。先点「把人机增强装进游戏」。装完后「把换肤插件装进游戏」才会亮。"
-              : "人机增强已在游戏里。要换肤再点「把换肤插件装进游戏」，然后到经营页打开换肤并填 SteamID。"
-          )
-        : "csgo 目录必须是 ...\\Counter-Strike Global Offensive\\game\\csgo。Steam「浏览本地文件」打开的是上一层，少了 game\\csgo。填根目录也可以，保存时会自动补上。"
-    }</p>
-  </div></div>`;
-
-  h += botSettingsCard(cfg);
+  const blockedLaunch = live;
+  h += `<div class="notice compact-notice"><span>${setUp?'游戏环境已就绪。':'尚未配置游戏环境。'} 正式比赛从赛程进入，路径、难度与换肤在设置中管理。</span><button class="btn sm" data-route="settings">游戏设置 →</button></div>`;
 
   h += `<div class="card" style="margin-bottom:12px"><div class="form" style="max-width:none">
     <div class="row">
@@ -1793,10 +1367,10 @@ async function renderPlay() {
     <div class="row"><button class="btn primary" id="p-go" ${!setUp || blockedLaunch ? "disabled" : ""}>进入训练赛</button>
       <span class="hint">${
         blockedLaunch
-          ? "刚改过难度，请先完全退出 CS2 再进"
+          ? "请先完全退出当前 CS2 进程，再生成本场 9 人档案"
           : setUp
             ? "进游戏后：与机器人游戏 → 竞技 → 选同一张图"
-            : "没装人机增强（或游戏目录没有三档人机库）就不能进 CS2"
+            : "没装人机增强插件或 1.5 基础模板就不能进 CS2"
       }</span></div>
   </div></div>`;
 
@@ -1823,58 +1397,9 @@ async function renderPlay() {
   }
 
   $("view-play").innerHTML = h;
-  bindBotSettings(() => { PLAY.cs2 = null; renderPlay(); });
   $("p-opp").onchange = (e) => { PLAY.opp = e.target.value; renderPlay(); };
   $("p-map").onchange = (e) => { PLAY.map = e.target.value; };
   $("p-side").onchange = (e) => { PLAY.side = e.target.value; };
-  if ($("p-save")) {
-    $("p-save").onclick = async () => {
-      await post("/api/cs2/settings", {
-        steam_exe: $("p-steam").value.trim(),
-        csgo_path: $("p-csgo").value.trim(),
-        mod_source_path: $("p-mod").value.trim(),
-        skins_source_path: $("p-skins")?.value.trim() || "",
-      });
-      PLAY.cs2 = null;
-      renderPlay();
-    };
-  }
-  if ($("p-install")) {
-    $("p-install").onclick = async (e) => {
-      e.target.disabled = true;
-      e.target.textContent = "复制中…";
-      const out = await post("/api/cs2/install", {});
-      PLAY.cs2 = null;
-      renderPlay();
-    };
-  }
-  if ($("p-sync")) {
-    $("p-sync").onclick = async (e) => {
-      e.target.disabled = true;
-      e.target.textContent = "同步中…";
-      await post("/api/cs2/sync", {});
-      PLAY.cs2 = null;
-      renderPlay();
-    };
-  }
-  if ($("p-skins-install")) {
-    $("p-skins-install").onclick = async (e) => {
-      e.target.disabled = true;
-      e.target.textContent = "复制中…";
-      await post("/api/cs2/skins", {});
-      PLAY.cs2 = null;
-      renderPlay();
-    };
-  }
-  if ($("p-gamedata")) {
-    $("p-gamedata").onclick = async (e) => {
-      e.target.disabled = true;
-      e.target.textContent = "更新中…";
-      await post("/api/cs2/gamedata", {});
-      PLAY.cs2 = null;
-      renderPlay();
-    };
-  }
   if ($("p-go")) {
     $("p-go").onclick = async () => {
       PLAY.expectTrain = true;
@@ -1973,7 +1498,10 @@ function paintStory() {
       </div>
       <div class="story-foot${choices.length ? " split" : ""}">${foot}</div>
     </div>`;
-  box.querySelector(".story-x").onclick = () => ackStory(choices.length ? "refuse" : "");
+  const close = box.querySelector(".story-x");
+  // A dismissal must never silently choose a loan or storyline outcome.
+  close.hidden = choices.length > 0;
+  close.onclick = () => ackStory("");
   box.querySelectorAll(".story-foot [data-choice]").forEach((b) => {
     b.onclick = () => ackStory(b.dataset.choice);
   });
@@ -1997,7 +1525,7 @@ function paintAwards(box, row) {
   const slots = [];
   if (mvp) slots.push({ kind: "mvp", label: mvp.title || "MVP", row: mvp });
   evp.forEach((p, i) => slots.push({ kind: "evp", label: evp.length > 1 ? `EVP ${i + 1}` : (p.title || "EVP"), row: p }));
-  five.forEach((p, i) => slots.push({ kind: "five", label: `最佳阵容 ${i + 1}`, row: p }));
+  five.forEach((p, i) => slots.push({ kind: "five", label: `最佳${ROLE[p.role] || '阵容 '+(i+1)}`, row: p }));
 
   let body = `<div class="story-card awards-card">
     <button class="story-x" type="button" aria-label="关闭">×</button>
@@ -2110,6 +1638,7 @@ function paintTop20(box, row) {
       <h2>${esc(p.verse || "")}</h2>
       <div class="reveal-slot show${me}"><em>第 ${p.rank} 名</em>${playerFace(p)}</div>
       <div class="verse-lines">${(p.lines || []).map((t) => `<p>${esc(t)}</p>`).join("")}</div>
+      ${window.CareerUI?.renderFeature?.(p.feature)||''}
     </div>`;
   } else {
     inner = `<p class="awards-lead">从第 ${page.rows[0].rank} 名往上</p><div class="reveal-row">`;
@@ -2173,21 +1702,29 @@ function paintTop20(box, row) {
   setTimeout(showOne, 280);
 }
 
+let STORY_ACK_BUSY = false;
 async function ackStory(choice) {
-  const row = STORY_Q.shift();
-  paintStory();
-  if (!row) return;
+  const row = STORY_Q[0];
+  if (!row || STORY_ACK_BUSY) return;
+  STORY_ACK_BUSY = true;
   try {
-    await fetch("/api/story/ack", {
+    const response = await fetch("/api/story/ack", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", 'X-Career-Token': sessionStorage.getItem('career-token') || '' },
       body: JSON.stringify({ id: row.id, choice: choice || "" }),
     });
-    const fresh = await get("/api/state");
-    adopt(fresh);
+    const data = await response.json();
+    if (!response.ok || data.ok === false) throw new Error(data.msg || '剧情确认失败，请重试');
+    STORY_Q = STORY_Q.filter(item => item.id !== row.id);
+    if (data.state) adopt(data.state);
     render();
-    takeStories(S.career?.stories);
-  } catch { /* keep going even if ack fails; it will reappear next load */ }
+    takeStories(data.stories || S.career?.stories);
+  } catch (error) {
+    toast(error.message || '剧情确认失败，请重试', true);
+  } finally {
+    STORY_ACK_BUSY = false;
+    paintStory();
+  }
 }
 
 document.addEventListener("keydown", (e) => {
@@ -2222,6 +1759,8 @@ document.addEventListener("keydown", (e) => {
 
 (async function boot() {
   try {
+    const token = new URLSearchParams(location.search).get('token');
+    if (token) { sessionStorage.setItem('career-token', token); history.replaceState(null, '', '/'); }
     adopt(await get("/api/state"));
     VIEW = S.career?.exists ? "home" : "setup";
     render();

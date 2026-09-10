@@ -1,5 +1,5 @@
 # coding=utf-8
-"""Inbox helpers and letter copy for invites, prize money, and sponsors."""
+"""Actionable inbox copy; prize/sponsor helpers remain for old-save compatibility."""
 
 from __future__ import annotations
 

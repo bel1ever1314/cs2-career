@@ -1,0 +1,15 @@
+{
+  "era": "2026",
+  "teams": [{
+    "id":"author-five","name":"Author Five","region":"AS","rank":49,
+    "command":58,"mentality":60,"money":80000,
+    "strong_maps":["dust2","mirage"],"weak_maps":["nuke","train"],
+    "players":[
+      {"name":"AuthorOne","role":"entry","ability":68,"age":19},
+      {"name":"AuthorTwo","role":"rifle","ability":67,"age":20},
+      {"name":"AuthorThree","role":"awp","ability":69,"age":19},
+      {"name":"AuthorFour","role":"lurk","ability":66,"age":21},
+      {"name":"AuthorFive","role":"igl","ability":64,"age":24}
+    ]
+  }]
+}

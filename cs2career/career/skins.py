@@ -62,7 +62,32 @@ def catalog() -> dict:
     global _CATALOG
     if _CATALOG is None:
         _CATALOG = json.loads(data_file("skins.json").read_text(encoding="utf-8"))
+        try:
+            from ..content import get_registry
+
+            skin_ids = {row.get("id") for row in _CATALOG.get("skins") or []}
+            case_ids = {row.get("id") for row in _CATALOG.get("cases") or []}
+            for payload in get_registry().payloads("skins"):
+                for row in payload.get("skins") or []:
+                    if isinstance(row, dict) and row.get("id") and row["id"] not in skin_ids:
+                        _CATALOG.setdefault("skins", []).append(row)
+                        skin_ids.add(row["id"])
+                for row in payload.get("cases") or []:
+                    if isinstance(row, dict) and row.get("id") and row["id"] not in case_ids:
+                        _CATALOG.setdefault("cases", []).append(row)
+                        case_ids.add(row["id"])
+                for skin_id in payload.get("market") or []:
+                    if skin_id in skin_ids and skin_id not in _CATALOG.setdefault("market", []):
+                        _CATALOG["market"].append(skin_id)
+        except (OSError, TypeError, ValueError):
+            pass
     return _CATALOG
+
+
+def reload_catalog() -> dict:
+    global _CATALOG
+    _CATALOG = None
+    return catalog()
 
 
 def skin_map() -> dict[str, dict]:

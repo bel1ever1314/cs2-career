@@ -35,7 +35,7 @@ def travel_delta(from_region: str, to_region: str) -> tuple[int, str]:
 
 def init_mentality(teams: list[dict]) -> None:
     for t in teams:
-        t["mentality"] = START_MENTALITY.get(t["tier"], 65)
+        t["mentality"] = round(float(t.get("opening_mentality", START_MENTALITY.get(t["tier"], 65))), 1)
         t["series_streak"] = 0
         t["loss_streak"] = 0
         t["last_region"] = t["region"]
@@ -43,7 +43,8 @@ def init_mentality(teams: list[dict]) -> None:
 
 
 def shift_mentality(team: dict, delta: float) -> float:
-    team["mentality"] = round(clamp(team.get("mentality", 65) + delta, 35.0, 100.0), 1)
+    floor = float(team.get("mentality_floor", 35.0))
+    team["mentality"] = round(clamp(team.get("mentality", 65) + delta, floor, 100.0), 1)
     return team["mentality"]
 
 

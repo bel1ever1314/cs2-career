@@ -80,4 +80,35 @@ def decorate(row: dict, year: int, era: str) -> dict:
         "majors": majors,
         "verse": verse_title(era, row["player"], majors, row["rank"]),
         "lines": verse_lines(row, year, era),
+        "feature": row.get('feature') or (feature_report(row, year) if row['rank'] <= 3 else None),
     }
+
+
+def feature_report(row: dict, year: int) -> dict:
+    """Frozen, evidence-led editorial. No invented matches, quotes or future wins."""
+    rank=int(row['rank']); name=row['player']; team=row.get('team') or '赛季记录中的队伍'
+    titles=int(row.get('titles') or 0); majors=int(row.get('majors') or 0)
+    angles={1:'把这一年写成自己的名字',2:'不是冠军的注脚',3:'领奖台上的第三种答案'}
+    leads={1:'第一名并不是某一场精彩集锦的结论。它要求一个名字在赛季结束之后，仍能经受对手强度、个人荣誉与比赛样本的共同检验。',
+           2:'第二名很容易被简化成一句“还差一步”。但把一整个赛季缩成与榜首的距离，会漏掉这位选手真正做成的事。',
+           3:'在二十个名字中站到第三位，需要的不只是偶尔闪光。铜色名次记录的是一段已经兑现的竞争力，而不是对未来的预支。'}
+    def metric(value): return '缺少记录' if value is None else f'{float(value):.2f}'
+    sample=f"本榜统计其对Top30对手的 {int(row.get('maps') or 0)} 张地图，Rating 为 {metric(row.get('rating'))}。这里的样本范围不是全年所有比赛，不能把它误读成对任意级别对手的平均表现。"
+    strong=f"对Top10的 Rating 为 {metric(row.get('rating_top10'))}（{int(row.get('maps_top10') or 0)} 图），对Top20为 {metric(row.get('rating_top20'))}（{int(row.get('maps_top20') or 0)} 图）。小样本的亮眼数字值得关注，也需要保留判断余地。"
+    honours=f"存档记录了 {titles} 次赛事冠军，其中 {majors} 次 Major；个人收获 {int(row.get('mvp') or 0)} 次 MVP 和 {int(row.get('evp') or 0)} 次 EVP。"
+    honours+=('没有团队冠军并不等于没有个人价值；这份排名更多需要由个人表现与荣誉支撑。' if not titles else '团队胜利给这段赛季提供了背景，但个人评选并不是把全队的奖杯平均分配。')
+    endings={1:'守住第一，比得到第一更难。下一年的排名仍从新的比赛开始；今年的荣誉会留下，却不会替他拿下下一张地图。',
+             2:'下一年的问题，不只是能否超过榜首，而是能否继续把高水平表现带到重要对手面前。第二名是一份完成的成绩单，不是一张失败证明。',
+             3:'更高的位置当然值得争取，但不必为了谈论未来而抹去现在。这个赛季，他已经让自己的名字留在前三之中。'}
+    return {'title':f'{name}：{angles.get(rank,"这一年的答案")}',
+            'subtitle':f'{year} 年度人物专栏 · Top {rank} · {team}',
+            'sections':[{'heading':'这一年的位置','text':f'{name} 位列 {year} 年度第 {rank}。'+leads[rank]},
+                        {'heading':'把表现放回样本','text':sample+'\n\n'+strong},
+                        {'heading':'荣誉与下一页','text':honours+'\n\n'+endings[rank]}]}
+
+
+def history_features(history: dict) -> dict:
+    """Read-only enrichment for old final lists; never change ranks/statistics."""
+    return {year:[dict(row,feature=row.get('feature') or feature_report(row,int(year)))
+                   if 1<=int(row.get('rank') or 0)<=3 else dict(row) for row in rows]
+            for year,rows in history.items()}

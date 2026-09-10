@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from datetime import date, datetime
 
 from ..cs2 import cs2_to_map, pick_better_result, read_result, result_usable, start_match, to_cs2_map
@@ -17,6 +18,7 @@ from ..engine import (
     series_ratings,
     shift_mentality,
     travel_delta,
+    update_player_forms,
     veto_maps,
 )
 from ..engine.rating import kda_rating
@@ -31,10 +33,38 @@ PRIZE_SPLIT = awards.PRIZE_SPLIT
 
 
 def load_calendar() -> dict:
-    return json.loads(data_file("calendar.json").read_text(encoding="utf-8"))
+    raw = json.loads(data_file("calendar.json").read_text(encoding="utf-8"))
+    seen = {row.get("id") for row in raw.get("events") or []}
+    try:
+        from ..content import get_registry
+
+        for payload in get_registry().payloads("events"):
+            for row in payload.get("events") or []:
+                if not isinstance(row, dict) or not row.get("id") or row["id"] in seen:
+                    continue
+                row = dict(row)
+                dates = []
+                for value in row.get("dates") or []:
+                    text = str(value)
+                    if len(text) == 5 and text[2] == "-":
+                        text = f"{raw.get('season', 2026)}-{text}"
+                    dates.append(text)
+                row["dates"] = dates
+                raw.setdefault("events", []).append(row)
+                seen.add(row["id"])
+    except (OSError, TypeError, ValueError):
+        pass
+    raw["events"].sort(key=lambda row: ((row.get("dates") or ["9999"])[0], row.get("id") or ""))
+    return raw
 
 
 CAL_RAW = load_calendar()
+
+
+def reload_calendar() -> dict:
+    global CAL_RAW
+    CAL_RAW = load_calendar()
+    return CAL_RAW
 
 
 MAJOR_TITLES = {
@@ -362,14 +392,23 @@ class Season:
 
     def _add_player(self, store: dict, team: str, p: dict, rounds: int) -> None:
         row = store.setdefault(
-            f"{team}|{p['name']}",
-            {"team": team, "player": p["name"], "maps": 0, "rounds": 0, "k": 0, "d": 0, "a": 0},
+            f"{team}|{p.get('player_id') or p['name']}",
+            {"team": team, "player_id": p.get("player_id", ""), "player": p["name"], "maps": 0,
+             "rounds": 0, "k": 0, "d": 0, "a": 0, "damage": 0, "kast_rounds": 0.0},
         )
         row["maps"] += 1
+        role = p.get('role')
+        if role in ('igl','lurk','rifle','awp','entry'):
+            role_maps = row.setdefault('role_maps', {})
+            role_maps[role] = role_maps.get(role,0) + 1
+            # Stable tie-break; no relabeling a star into an empty award slot.
+            row['role'] = max(('igl','lurk','rifle','awp','entry'),key=lambda r:role_maps.get(r,0))
         row["rounds"] += rounds
         row["k"] += p["k"]
         row["d"] += p["d"]
         row["a"] += p["a"]
+        row["damage"] += p.get("damage", 0)
+        row["kast_rounds"] += p.get("kast_rounds", p.get("kast", 0) * rounds)
 
     def _book_stats(self, ev: dict, match: dict, team_a: dict, team_b: dict) -> None:
         win, lose = (team_a, team_b) if match["winner"] == team_a["name"] else (team_b, team_a)
@@ -466,6 +505,10 @@ class Season:
     def open_your_series(self, ev: dict, match: dict) -> None:
         if match.get("played") or match.get("team_b") == "BYE":
             return
+        if "rank_a_at_match" not in match:
+            rank = self.vrs.rank_of(self.teams, self.date)
+            match["rank_a_at_match"] = rank.get(match["team_a"], 99)
+            match["rank_b_at_match"] = rank.get(match["team_b"], 99)
         match["human"] = True
         if not match.get("veto"):
             a = _find(self.teams, match["team_a"])
@@ -488,6 +531,7 @@ class Season:
         match["winner"] = winner
         match["series"] = f"{wa}-{wb}"
         match["ratings"] = series_ratings(match.get("maps") or [])
+        update_player_forms([a, b], match["ratings"])
         match["pending_map"] = None
         match["cs2_session"] = None
         after_series(a, b, {"winner": winner, "stage": match["stage"]})
@@ -499,11 +543,14 @@ class Season:
 
     def try_ingest_pending_cs2(self) -> str:
         """Commit a finished CS2 dump even if the match page is not open."""
+        import os
+        if os.environ.get('CS2CAREER_NO_GAME') == '1':
+            return ''
         for ev in self.events:
             for match in ev.get("matches") or []:
                 if match.get("played") or not match.get("cs2_session"):
                     continue
-                raw = read_result()
+                raw = read_result(request_nonce=match["cs2_session"].get("nonce"))
                 if result_usable(raw, match["cs2_session"]) != "":
                     return ""
                 try:
@@ -522,7 +569,7 @@ class Season:
         if match.get("played"):
             raise ValueError("这场已经打完了")
         session = match.get("cs2_session")
-        raw = read_result()
+        raw = read_result(request_nonce=(session or {}).get("nonce"))
         if session and result_usable(raw, session) == "":
             msg = self.commit_cs2_map(match_id, raw)
             if match.get("played"):
@@ -536,7 +583,7 @@ class Season:
         opp_name = match["team_b"] if match["team_a"] == mine["name"] else match["team_a"]
         opp = _find(self.teams, opp_name)
         side = "t" if side == "t" else "ct"
-        match["cs2_session"] = {
+        new_session = {
             "match_id": match_id,
             "map": pending,
             "cs2_map": to_cs2_map(pending),
@@ -549,6 +596,16 @@ class Season:
         out = start_match(
             mine, opp, self.career.player_name, to_cs2_map(pending), side, self.teams, self.career
         )
+        # Do not leave a phantom waiting-for-result session if preparation fails.
+        match["cs2_session"] = new_session
+        match["cs2_session"]["nonce"] = out["match"]["nonce"]
+        from ..world.eras import player_id
+        match['cs2_session']['role_by_id'] = {p.get('player_id') or player_id(p['name']):p.get('role','')
+            for t in (mine,opp) for p in t['players']}
+        match["cs2_session"]["expected_player_ids"] = [
+            out["match"]["human_player_id"],
+            *[bot["player_id"] for bot in out["match"].get("bots", [])],
+        ]
         n = match["cs2_session"]["map_index"] + 1
         return f"第 {n} 图 {pending}。{out['msg']}"
 
@@ -559,8 +616,11 @@ class Season:
         session = match.get("cs2_session")
         if not session:
             raise ValueError("还没有进入当场比赛")
-        file_res = read_result()
-        result = pick_better_result(raw, file_res)
+        file_res = read_result(request_nonce=session.get("nonce"))
+        candidates = [raw, file_res]
+        if session.get("nonce"):
+            candidates = [r for r in candidates if r and r.get("request_nonce") == session["nonce"]]
+        result = pick_better_result(*candidates)
         err = result_usable(result, session)
         if err:
             raise ValueError(err)
@@ -624,6 +684,10 @@ class Season:
         if not mine:
             return
         opp = match["team_b"] if match["team_a"] == mine["name"] else match["team_a"]
+        if "rank_a_at_match" not in match:
+            rank = self.vrs.rank_of(self.teams, self.date)
+            match["rank_a_at_match"] = rank.get(match["team_a"], 99)
+            match["rank_b_at_match"] = rank.get(match["team_b"], 99)
         need = match.get("best_of", 3) // 2 + 1
         wa, wb = (0, need) if match["team_a"] == mine["name"] else (need, 0)
         match["played"] = True
@@ -648,6 +712,9 @@ class Season:
             return
         a = _find(self.teams, match["team_a"])
         b = _find(self.teams, match["team_b"])
+        rank = self.vrs.rank_of(self.teams, self.date)
+        match["rank_a_at_match"] = rank.get(match["team_a"], 99)
+        match["rank_b_at_match"] = rank.get(match["team_b"], 99)
         best_of = match.get("best_of", 3)
         series = play_series(a, b, MAPS, match["stage"], best_of)
 
@@ -801,6 +868,9 @@ class Season:
     def roll_year(self) -> str:
         finished = [awards.make_record(ev) for ev in self.events if ev.get("status") == "done"]
         table = awards.top20(self.ratings_vs_field(), finished)
+        from ..career.verse import feature_report
+        for row in table[:3]:
+            row['feature'] = feature_report(row, self.year)
         self.top20[str(self.year)] = table
         self.history += finished
 
@@ -837,7 +907,7 @@ class Season:
             rec = dict(row)
             rec["kd"] = round(row["k"] / max(1, row["d"]), 2)
             rec["kpr"] = round(row["k"] / max(1, row["rounds"]), 3)
-            rec["rating"] = kda_rating(row["k"], row["d"], row["a"], row["rounds"])
+            rec["rating"] = kda_rating(row["k"], row["d"], row["a"], row["rounds"], row.get("damage"), row.get("kast_rounds"))
             rows.append(rec)
         rows.sort(key=lambda x: (-x["rating"], -x["kpr"]))
         return rows
@@ -847,7 +917,7 @@ class Season:
         rank = self.vrs.rank_of(self.teams, self.date)
 
         def blank() -> dict:
-            return {"maps": 0, "rounds": 0, "k": 0, "d": 0, "a": 0}
+            return {"maps": 0, "rounds": 0, "k": 0, "d": 0, "a": 0, "damage": 0, "kast_rounds": 0.0}
 
         def add(bucket: dict, p: dict, rounds: int) -> None:
             bucket["maps"] += 1
@@ -855,6 +925,8 @@ class Season:
             bucket["k"] += p.get("k", 0)
             bucket["d"] += p.get("d", 0)
             bucket["a"] += p.get("a", 0)
+            bucket["damage"] += p.get("damage", 0)
+            bucket["kast_rounds"] += p.get("kast_rounds", p.get("kast", 0) * rounds)
 
         acc: dict[str, dict] = {}
         for ev in self.events:
@@ -872,6 +944,7 @@ class Season:
                                 f"{team}|{p['name']}",
                                 {
                                     "team": team,
+                                    "player_id": p.get("player_id", ""),
                                     "player": p["name"],
                                     "top30": blank(),
                                     "top5": blank(),
@@ -901,14 +974,17 @@ class Season:
                 "maps": box["maps"],
                 "maps_top30": box["maps"],
                 "kpr": round(box["k"] / max(1, box["rounds"]), 3),
-                "rating": kda_rating(box["k"], box["d"], box["a"], box["rounds"]),
-                "rating_top30": kda_rating(box["k"], box["d"], box["a"], box["rounds"]),
+                "damage": box["damage"],
+                "adr": round(box["damage"] / max(1, box["rounds"]), 2),
+                "kast": round(box["kast_rounds"] / max(1, box["rounds"]), 4),
+                "rating": kda_rating(box["k"], box["d"], box["a"], box["rounds"], box["damage"], box["kast_rounds"]),
+                "rating_top30": kda_rating(box["k"], box["d"], box["a"], box["rounds"], box["damage"], box["kast_rounds"]),
             }
             for band in ("top5", "top10", "top20"):
                 b = row[band]
                 rec[f"maps_{band}"] = b["maps"]
                 rec[f"rating_{band}"] = (
-                    kda_rating(b["k"], b["d"], b["a"], b["rounds"]) if b["rounds"] else None
+                    kda_rating(b["k"], b["d"], b["a"], b["rounds"], b["damage"], b["kast_rounds"]) if b["rounds"] else None
                 )
             rows.append(rec)
         rows.sort(key=lambda x: (-x["rating"], -x["kpr"]))
@@ -1025,6 +1101,7 @@ class Season:
         return out
 
     def public(self) -> dict:
+        from ..career.verse import history_features
         vrs = self.vrs.table(self.teams, self.date)
         rank = {row["name"]: row["rank"] for row in vrs}
         teams = []
@@ -1046,6 +1123,7 @@ class Season:
                 }
             )
         blob = {
+            "schema_version": 2,
             "date": self.date,
             "year": self.year,
             "era": self.era,
@@ -1054,7 +1132,7 @@ class Season:
             "events": [self._event_public(ev) for ev in self.events],
             "ratings": self.ratings_vs_field()[:60],
             "top20": self.top20_live(),
-            "top20_history": self.top20,
+            "top20_history": history_features(self.top20),
             "records": self.records(),
             "log": self.log[-10:],
             "your_match": self._your_match_public(),
@@ -1070,8 +1148,11 @@ class Season:
     # ---------------------------------------------------------------- storage
 
     def save(self) -> None:
+        from ..random_state import capture
         STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
         blob = {
+            "schema_version": 2,
+            "random_state": capture(),
             "date": self.date,
             "year": self.year,
             "era": self.era,
@@ -1085,7 +1166,9 @@ class Season:
             "top20": self.top20,
             "log": self.log,
         }
-        STATE_PATH.write_text(json.dumps(blob, ensure_ascii=False), encoding="utf-8")
+        pending = STATE_PATH.with_suffix('.pending')
+        pending.write_text(json.dumps(blob, ensure_ascii=False), encoding="utf-8")
+        pending.replace(STATE_PATH)
 
     @classmethod
     def load_or_new(cls) -> "Season":
@@ -1095,6 +1178,11 @@ class Season:
             return s
         try:
             blob = json.loads(STATE_PATH.read_text(encoding="utf-8"))
+            if int(blob.get("schema_version") or 0) != 2:
+                backup = STATE_PATH.with_name("season.v1.4-backup.json")
+                if not backup.exists():
+                    shutil.copy2(STATE_PATH, backup)
+                return reset_season()
             s = cls.__new__(cls)
             s.teams = blob["teams"]
             s.date = blob["date"]
@@ -1109,11 +1197,13 @@ class Season:
             s.history = blob.get("history", [])
             s.top20 = blob.get("top20", {})
             s.log = blob.get("log", [])
-            apply_roles(s.teams, s.era)
+            s._role_calibration_changed = apply_roles(s.teams, s.era, current_year=s.year)
             s._calendar_changed = s.align_calendar()
+            from ..random_state import restore
+            restore(blob.get('random_state'))
             return s
-        except (KeyError, ValueError, TypeError):
-            return reset_season()
+        except (KeyError, ValueError, TypeError) as exc:
+            raise ValueError('season.json 损坏或字段不完整；原文件已保留，不会自动重置赛季。') from exc
 
     def align_calendar(self) -> bool:
         """Drop leftover 2025+ RMRs and insert missing T1 play-ins on old saves."""

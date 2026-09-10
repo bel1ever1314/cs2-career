@@ -1,0 +1,13 @@
+{
+  "eras": [{
+    "id":"2023","year":2023,"title":"玩家年代","blurb":"这个年代由扩展包提供。",
+    "start":"2023-01-08",
+    "rosters": {
+      "Vitality": [
+        {"name":"ZywOo","ability":94},{"name":"Spinx","ability":86},
+        {"name":"Magisk","ability":83},{"name":"dupreeh","ability":80},
+        {"name":"apEX","ability":75}
+      ]
+    }
+  }]
+}

@@ -1,0 +1,12 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const source=fs.readFileSync('cs2career/web/static/app.js','utf8');
+const ctx=vm.createContext({});
+vm.runInContext(source.slice(source.indexOf('function careerEventFocus('),source.indexOf('function renderHome()')),ctx);
+const events=[{id:'eu',status:'upcoming',dates:['2026-01-13']},{id:'as',status:'upcoming',dates:['2026-02-12']}];
+const career={team_name:'Test',inbox:[{kind:'invite',status:'open',event_id:'as'}],registered:[]};
+assert.equal(ctx.careerEventFocus(events,career).event.id,'as','never invent an invitation for the earliest world event');
+career.inbox[0].status='declined';assert.equal(ctx.careerEventFocus(events,career).event,undefined);
+career.registered=['as'];assert.equal(ctx.careerEventFocus(events,career).event.id,'as');
+events.push({id:'live',status:'live',field:['Test'],dates:['2026-01-10']});
+assert.equal(ctx.careerEventFocus(events,career).event.id,'live');
+console.log('Home focus: real invitations, declined invitations, registration and active participation passed');

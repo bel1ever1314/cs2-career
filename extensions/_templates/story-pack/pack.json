@@ -1,0 +1,1 @@
+{"schema_version":1,"id":"author.story.example","name":"示例剧情包","version":"1.0.0","enabled":true,"load_order":100,"types":["stories"]}

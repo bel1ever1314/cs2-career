@@ -1,0 +1,76 @@
+{
+  "schema_version": 2,
+  "type": "career_match_9",
+  "nonce": "contract-test",
+  "difficulty": "High",
+  "count": 9,
+  "vpk_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "difficulty_model": "bot_improver_base_career_tier_v1",
+  "preset_source_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "template_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "bots": [
+    {
+      "player_id": "p9",
+      "profile_name": "C2C_p9",
+      "side": "ct",
+      "profile_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "avatar_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    {
+      "player_id": "p8",
+      "profile_name": "C2C_p8",
+      "side": "ct",
+      "profile_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "avatar_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    {
+      "player_id": "p7",
+      "profile_name": "C2C_p7",
+      "side": "ct",
+      "profile_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "avatar_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    {
+      "player_id": "p6",
+      "profile_name": "C2C_p6",
+      "side": "ct",
+      "profile_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "avatar_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    {
+      "player_id": "p5",
+      "profile_name": "C2C_p5",
+      "side": "t",
+      "profile_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "avatar_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    {
+      "player_id": "p4",
+      "profile_name": "C2C_p4",
+      "side": "t",
+      "profile_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "avatar_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    {
+      "player_id": "p3",
+      "profile_name": "C2C_p3",
+      "side": "t",
+      "profile_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "avatar_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    {
+      "player_id": "p2",
+      "profile_name": "C2C_p2",
+      "side": "t",
+      "profile_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "avatar_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    {
+      "player_id": "p1",
+      "profile_name": "C2C_p1",
+      "side": "t",
+      "profile_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "avatar_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    }
+  ]
+}

@@ -1,356 +1,321 @@
 # coding=utf-8
-"""Put career players into the mod's bot database.
+"""Generate a self-contained nine-bot profile pack for one career match.
 
-The Bot Improver ships bot personalities as `botprofile.db` inside a one-file
-VPK. A bot only keeps the name we ask for if that name has a profile in there,
-so before every match we rebuild the VPK with the whole career roster added,
-each one tiered by ability and shaped by role.
+1.5 never copies Bot Improver's player database. The only persistent input is
+the sanitised template file shipped with this app.
 """
 
 from __future__ import annotations
 
 import hashlib
+import json
+import math
+import os
 import re
-import shutil
 import struct
+import tempfile
 from pathlib import Path
 from zlib import crc32
 
-from ..world import agent_rows
+from ..paths import save_root
+from . import improver_presets
 
 VPK_SIGNATURE = 0x55AA1234
 ENTRY_NAME = "botprofile"
 ENTRY_EXT = "db"
 NO_ARCHIVE = 0x7FFF
-
-# Bot Improver has no "Superstar" template. ProTop is the 23-name star tier
-# (ZywOo, donk, NiKo…). ProSteady is the common pro rifle; RankRifler is Rank.
+LEVELS = ("Low", "Medium", "High")
+PROFILE_RE = re.compile(r'^\S+\s+"(C2C_[A-Za-z0-9_]+)"\s*$', re.MULTILINE)
 ROLE_STYLE = {
     "awp": ("SniperPro", "SniperPersonality"),
-    "entry": ("Rusher", "RusherPersonality"),
-    "lurk": ("Camper", "CamperPersonality"),
-    "support": ("RiflePro", "ScoperPersonality"),
+    # Entry is a career position, not an SMG-only loadout. Keep the aggressive
+    # behavior while preferring affordable rifles over P90/MAC-10.
+    "entry": ("RiflePro", "RusherPersonality"),
+    "lurk": ("RiflePro", "CamperPersonality"),
+    "support": ("RiflePro", "RiflePersonality"),
     "igl": ("RiflePro", "RiflePersonality"),
     "rifle": ("RiflePro", "RiflePersonality"),
 }
-DEFAULT_STYLE = ROLE_STYLE["rifle"]
-
-NAME_RE = re.compile(r'^\S+\s+"([^"]+)"', re.MULTILINE)
-PUNCT_RE = re.compile(r"[-_.\s]+")
-LEVELS = ("Low", "Medium", "High")
-STOCK_DIR = "_stock"
 
 
-def classify_tier(ability: float, note: str = "", on_roster: bool = False) -> str:
-    """Map career ability onto Bot Improver identity templates."""
-    gun = float(ability or 70)
-    if gun >= 90:
-        return "ProTop"
-    if gun >= 60 or on_roster:
+def clamp(value: float, lo: float, hi: float) -> float:
+    return max(lo, min(hi, value))
+
+
+def stable_player_id(name: str) -> str:
+    folded = re.sub(r"[^a-z0-9]+", "_", (name or "").casefold()).strip("_")[:18]
+    digest = hashlib.sha256((name or "").strip().casefold().encode()).hexdigest()[:10]
+    return f"p_{folded or 'player'}_{digest}"
+
+
+def profile_name(player_id: str) -> str:
+    return "C2C_" + re.sub(r"[^A-Za-z0-9_]", "_", player_id or "")[:42]
+
+
+def effective_strength(overall: float, form_delta: float, difficulty: str) -> float:
+    if difficulty not in LEVELS:
+        raise ValueError(f"未知难度：{difficulty}")
+    if not all(math.isfinite(float(v)) for v in (overall, form_delta)):
+        raise ValueError('生涯能力和状态必须是有限数值')
+    # Difficulty selects upstream tuning; career strength selects its tier.
+    return round(clamp(float(overall) + .5 * float(form_delta), 45, 100), 3)
+
+
+def classify_tier(overall: float, role: str = "rifle", stats: dict | None = None) -> str:
+    value, role = float(overall), (role or "rifle").lower()
+    if value < 65:
+        if role == "entry":
+            return "RankDuelist"
+        if role in ("awp", "support", "igl"):
+            return "RankOthers"
+        return "RankRifler"
+    if value < 75:
+        return "ProSlow"
+    if value < 85:
         return "ProSteady"
-    return "RankRifler"
+    if value < 90:
+        stats = stats or {}
+        fast = float(stats.get("entrying") or 0) + float(stats.get("opening") or 0)
+        precise = float(stats.get("firepower") or 0) + float(stats.get("clutching") or 0)
+        return "ProFast" if fast >= precise else "ProPrecise"
+    return "ProTop"
 
 
-CAREER_MARK = "Career players added by CS2 Career"
+def bot_parameters(strength: float, overall: float, difficulty: str = 'Medium',
+                   role: str = 'rifle', stats: dict | None = None) -> dict[str, float | int | str]:
+    """Original anonymous tier parameters, selected by current career strength.
+
+    ``overall`` remains accepted for older callers, but does not add a second
+    star bonus. Difficulty changes the base tuning, never the career tier.
+    """
+    if not math.isfinite(float(strength)):
+        raise ValueError('Bot 强度必须是有限数值')
+    s = clamp(float(strength), 45, 100)
+    return improver_presets.parameters(difficulty, classify_tier(s, role, stats), s)
 
 
-def native_db_text(db_text: str) -> str:
-    """Strip our appendix so a previously seeded VPK still has a clean name list."""
-    cut = db_text.find(CAREER_MARK)
-    if cut < 0:
-        return db_text
-    return db_text[:cut].rstrip() + "\n"
+def _profile_block(bot: dict) -> str:
+    weapon, personality = ROLE_STYLE.get(bot["role"], ROLE_STYLE["rifle"])
+    lines = [f'{bot["tier"]}+{weapon}+{personality} "{bot["profile_name"]}"']
+    lines += [f"    {key} = {value}" for key, value in bot["parameters"].items()]
+    lines += [f"    VoicePitch = {90 + crc32(bot['player_id'].encode('ascii')) % 21}", "End", ""]
+    return "\n".join(lines)
+
+
+def prepare_bots(match: dict, difficulty: str) -> list[dict]:
+    rows: list[dict] = []
+    for side in ("ct", "t"):
+        for source in match.get(side, {}).get("players") or []:
+            if not isinstance(source, dict):
+                raise ValueError("1.5 比赛请求必须使用结构化 Bot 身份")
+            display = str(source.get("display_name") or source.get("name") or "").strip()
+            pid = str(source.get("player_id") or stable_player_id(display))
+            overall = float(source.get("overall", source.get("ability", 70)))
+            form_delta = float(source.get("form_delta", 0))
+            role = str(source.get("role") or "rifle").lower()
+            strength = effective_strength(overall, form_delta, difficulty)
+            stats = dict(source.get('stats') or {})
+            tier = classify_tier(strength, role, stats)
+            row = {
+                "player_id": pid,
+                "profile_name": profile_name(pid),
+                "display_name": display,
+                "side": side,
+                "overall": round(overall, 3),
+                "form_delta": round(form_delta, 3),
+                "effective_strength": strength,
+                "role": role,
+                "tier": tier,
+                "stats": stats,
+                "aim_preset": improver_presets.aim_band(difficulty, tier, strength),
+                # CareerMatch verifies this local PNG again before asking
+                # BotHider to publish it.  Every bot gets either a team crest
+                # or our bundled neutral avatar, never an arbitrary identity.
+                "avatar_path": str(source.get("avatar_path") or ""),
+                "avatar_hash": str(source.get("avatar_hash") or ""),
+                "avatar_kind": str(source.get("avatar_kind") or "default"),
+            }
+            row["parameters"] = bot_parameters(strength, overall, difficulty, role, stats)
+            row["profile_hash"] = hashlib.sha256(_profile_block(row).encode()).hexdigest()
+            if not _avatar_valid(row):
+                raise ValueError(f"{pid} 没有通过校验的本地安全头像")
+            rows.append(row)
+    ids, names = [r["player_id"] for r in rows], [r["profile_name"] for r in rows]
+    if len(rows) != 9:
+        raise ValueError(f"本场必须恰好有 9 个 Bot，当前为 {len(rows)} 个")
+    if len(set(ids)) != 9 or len(set(names)) != 9:
+        raise ValueError("本场 Bot 的 player_id 或 profile_name 重复")
+    return rows
+
+
+def _template_text(difficulty: str = 'Medium') -> str:
+    text = improver_presets.preset(difficulty)['text']
+    required = ("Default", "RankRifler", "RankDuelist", "RankOthers", "ProSlow", "ProSteady", "ProFast", "ProPrecise", "ProTop", "RiflePro", "SniperPro", "Rusher", "Camper", "RiflePersonality", "SniperPersonality", "RusherPersonality", "CamperPersonality")
+    missing = [n for n in required if not re.search(rf"(?m)^(?:Template )?{re.escape(n)}\b", text)]
+    if missing:
+        raise ValueError("BotProfile 模板缺失：" + ", ".join(missing))
+    return text.rstrip() + "\n\n"
+
+
+def vpk_bytes(db_text: str) -> bytes:
+    data = db_text.encode("utf-8")
+    tree = (f"{ENTRY_EXT}\0".encode() + b" \0" + f"{ENTRY_NAME}\0".encode()
+            + struct.pack("<IHHIIH", crc32(data), 0, NO_ARCHIVE, 0, len(data), 0xFFFF) + b"\0\0\0")
+    header = struct.pack("<IIIIIII", VPK_SIGNATURE, 2, len(tree), len(data), 0, 48, 0)
+    body = header + tree + data
+    return body + hashlib.md5(tree).digest() + hashlib.md5(b"").digest() + hashlib.md5(body).digest()
+
+
+def write_vpk(dst: Path, db_text: str) -> None:
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    dst.write_bytes(vpk_bytes(db_text))
 
 
 def read_db(vpk: Path) -> str:
-    """Pull botprofile.db out of a single-entry VPK."""
     blob = vpk.read_bytes()
     sig, version, tree_size = struct.unpack_from("<III", blob, 0)
     if sig != VPK_SIGNATURE:
         raise ValueError(f"不是 VPK 文件：{vpk}")
-    head = 12 if version == 1 else 28
-    cursor = head
-
-    def text() -> str:
+    head, cursor = (12 if version == 1 else 28), (12 if version == 1 else 28)
+    def read_string() -> str:
         nonlocal cursor
-        end = blob.index(b"\x00", cursor)
-        out = blob[cursor:end].decode("utf-8", "replace")
+        end = blob.index(b"\0", cursor)
+        value = blob[cursor:end].decode("utf-8", "replace")
         cursor = end + 1
-        return out
-
+        return value
     while True:
-        ext = text()
+        ext = read_string()
         if not ext:
             break
         while True:
-            folder = text()
+            folder = read_string()
             if not folder:
                 break
             while True:
-                name = text()
+                name = read_string()
                 if not name:
                     break
-                _crc, preload, _archive, offset, length, _term = struct.unpack_from(
-                    "<IHHIIH", blob, cursor
-                )
+                _crc, preload, _archive, offset, length, _term = struct.unpack_from("<IHHIIH", blob, cursor)
                 cursor += 18 + preload
                 if name == ENTRY_NAME and ext == ENTRY_EXT:
                     start = head + tree_size + offset
-                    return blob[start : start + length].decode("utf-8", "replace")
+                    return blob[start:start + length].decode("utf-8", "replace")
     raise ValueError(f"VPK 里没有 botprofile.db：{vpk}")
 
 
-def write_vpk(dst: Path, db_text: str) -> None:
-    """Write botprofile.db back out as a VPK v2 the game will mount."""
-    data = db_text.encode("utf-8")
-    tree = (
-        f"{ENTRY_EXT}\x00".encode("ascii")
-        + b" \x00"
-        + f"{ENTRY_NAME}\x00".encode("ascii")
-        + struct.pack("<IHHIIH", crc32(data), 0, NO_ARCHIVE, 0, len(data), 0xFFFF)
-        + b"\x00\x00\x00"
-    )
-    header = struct.pack("<IIIIIII", VPK_SIGNATURE, 2, len(tree), len(data), 0, 48, 0)
-    body = header + tree + data
-    body += hashlib.md5(tree).digest() + hashlib.md5(b"").digest()
-    body += hashlib.md5(body).digest()
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    dst.write_bytes(body)
-
-
-def db_names(db_text: str) -> set[str]:
-    return {name.lower() for name in NAME_RE.findall(db_text)}
-
-
-def profile_block(name: str, ability: float, role: str, note: str = "", on_roster: bool = False) -> str:
-    weapon, personality = ROLE_STYLE.get((role or "").lower(), DEFAULT_STYLE)
-    pitch = 92 + crc32(name.encode("utf-8")) % 21
-    tier = classify_tier(ability, note, on_roster)
-    return (
-        f"\n{tier}+{weapon}+{personality} \"{name}\"\n"
-        f"    VoicePitch = {pitch}\n"
-        "End\n"
-    )
-
-
-def career_people(teams: list[dict]) -> list[dict]:
-    """Everyone a match could put on the server: rosters plus free agents."""
-    people: list[dict] = []
-    for team in teams:
-        for player in team.get("players") or []:
-            people.append(
-                {
-                    "name": player.get("name") or "",
-                    "ability": float(player.get("ability") or 70),
-                    "role": player.get("role") or "rifle",
-                    "note": "",
-                    "on_roster": True,
-                }
-            )
-    people += [
-        {
-            "name": row["name"],
-            "ability": row["ability"],
-            "role": row["role"],
-            "note": row.get("note") or "",
-            "on_roster": False,
-        }
-        for row in agent_rows()
-    ]
-    return people
-
-
-def add_people(db_text: str, people: list[dict]) -> tuple[str, int]:
-    """Append profiles for names the mod does not already know."""
-    known = db_names(db_text)
-    blocks: list[str] = []
-    for person in people:
-        name = (person.get("name") or "").strip()
-        if not name or '"' in name or name.lower() in known:
-            continue
-        known.add(name.lower())
-        blocks.append(
-            profile_block(
-                name,
-                person.get("ability") or 70,
-                person.get("role") or "",
-                person.get("note") or "",
-                bool(person.get("on_roster")),
-            )
-        )
-    if not blocks:
-        return db_text, 0
-    header = "\n//---------------------------------------------------------------\n"
-    header += "// Career players added by CS2 Career\n"
-    return db_text.rstrip("\n") + "\n" + header + "".join(blocks), len(blocks)
-
-
-def build_profile_vpk(dst: Path, base_vpk: Path, teams: list[dict]) -> int:
-    """Rebuild the game's botprofile.vpk with the career roster inside."""
-    db_text, added = add_people(read_db(base_vpk), career_people(teams))
-    write_vpk(dst, db_text)
-    return added
-
-
-def seed_mod_profiles(mod_source: Path, teams: list[dict]) -> int:
-    """Do not rewrite the mod's Low/Medium/High VPKs at match launch."""
-    return 0
-
-
-def fold_name(name: str) -> str:
-    return PUNCT_RE.sub("", (name or "").strip().lower())
-
-
-def name_keys(name: str) -> set[str]:
-    n = (name or "").strip()
-    if not n:
-        return set()
-    return {n.lower(), fold_name(n)}
-
-
-def known_keys(db_text: str) -> set[str]:
-    keys: set[str] = set()
-    for name in NAME_RE.findall(db_text):
-        keys |= name_keys(name)
-    return keys
-
-
-def people_from_stats() -> list[dict]:
-    from ..world.ability import load_player_stats
-    from ..world.teams import TEAMS
-
-    roster = {p[0] for _n, _r, _rk, _c, players in TEAMS for p in players}
-    people: list[dict] = []
-    for name, row in load_player_stats().items():
-        people.append(
-            {
-                "name": name,
-                "ability": float(row.get("ability") or 70),
-                "role": row.get("role") or "rifle",
-                "note": "",
-                "on_roster": name in roster,
-            }
-        )
+def _atomic_bytes(path: Path, payload: bytes) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    handle, raw = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
     try:
-        from ..world.academy import load_names
-
-        have = {p["name"].lower() for p in people}
-        for name in load_names():
-            if name.lower() in have:
-                continue
-            people.append(
-                {
-                    "name": name,
-                    "ability": 65.0,
-                    "role": "rifle",
-                    "note": "academy",
-                    "on_roster": False,
-                }
-            )
-    except Exception:
-        pass
-    people.sort(key=lambda p: (-float(p["ability"]), p["name"].lower()))
-    return people
+        with os.fdopen(handle, "wb") as stream:
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(raw, path)
+    except BaseException:
+        try:
+            os.unlink(raw)
+        except OSError:
+            pass
+        raise
 
 
-def missing_people(db_text: str, people: list[dict] | None = None) -> list[dict]:
-    people = people_from_stats() if people is None else people
-    known = known_keys(db_text)
-    out: list[dict] = []
-    seen: set[str] = set()
-    for person in people:
-        name = (person.get("name") or "").strip()
-        keys = name_keys(name)
-        if not name or '"' in name or keys & known or keys & seen:
-            continue
-        seen |= keys
-        known |= keys
-        out.append(person)
-    return out
-
-
-def read_level_db(level_dir: Path) -> str:
-    vpk = level_dir / "botprofile.vpk"
-    dbp = level_dir / "botprofile.db"
-    if vpk.is_file():
-        return read_db(vpk)
-    if dbp.is_file():
-        return dbp.read_text(encoding="utf-8")
-    raise FileNotFoundError(f"没有 botprofile：{level_dir}")
-
-
-def write_level(level_dir: Path, db_text: str) -> None:
-    level_dir.mkdir(parents=True, exist_ok=True)
-    dbp = level_dir / "botprofile.db"
-    if dbp.is_file():
-        dbp.write_bytes(db_text.encode("utf-8"))
-    write_vpk(level_dir / "botprofile.vpk", db_text)
-
-
-def backup_stock(overrides: Path) -> Path:
-    stock = overrides / STOCK_DIR
-    if (stock / "Medium" / "botprofile.vpk").is_file() or (stock / "Medium" / "botprofile.db").is_file():
-        return stock
-    for level in LEVELS:
-        for name in ("botprofile.db", "botprofile.vpk"):
-            src = overrides / level / name
-            if src.is_file():
-                dst = stock / level / name
-                dst.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(src, dst)
-    root = overrides / "botprofile.vpk"
-    if root.is_file():
-        shutil.copy2(root, stock / "botprofile.vpk")
-    return stock
-
-
-def _missing_rows(people: list[dict]) -> list[dict]:
-    return [
-        {
-            "name": person["name"],
-            "ability": float(person.get("ability") or 70),
-            "role": person.get("role") or "rifle",
-            "tier": classify_tier(person.get("ability") or 70, person.get("note") or "", bool(person.get("on_roster"))),
-        }
-        for person in people
+def _manifest_hash(manifest: dict) -> str:
+    """Cross-language contract digest; CareerMatch recomputes these lines."""
+    lines = [
+        f"schema_version={int(manifest['schema_version'])}",
+        f"type={manifest['type']}",
+        f"nonce={manifest['nonce']}",
+        f"difficulty={manifest['difficulty']}",
+        f"count={int(manifest['count'])}",
+        f"vpk_sha256={manifest['vpk_sha256']}",
     ]
+    if manifest.get('difficulty_model'):
+        lines += [f"difficulty_model={manifest['difficulty_model']}",
+                  f"preset_source_hash={manifest['preset_source_hash']}",
+                  f"template_hash={manifest['template_hash']}"]
+    for bot in sorted(manifest.get("bots") or [], key=lambda row: row["player_id"]):
+        lines.append(
+            "bot=" + "|".join(str(bot[key]) for key in (
+                "player_id", "profile_name", "side", "profile_hash", "avatar_hash"
+            ))
+        )
+    return hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()
 
 
-def sync_overrides(overrides: Path, people: list[dict] | None = None, write: bool = True, live_level: str = "Medium") -> dict:
-    """Append player_stats names onto game/csgo/overrides Low/Medium/High, then copy the selected difficulty to live."""
-    people = people_from_stats() if people is None else people
-    if live_level not in LEVELS:
-        live_level = "Medium"
-    report: dict = {"path": str(overrides), "levels": {}, "missing": [], "live": live_level}
-    if write:
-        backup_stock(overrides)
-    preview: list[dict] | None = None
-    for level in LEVELS:
-        level_dir = overrides / level
-        if not (level_dir / "botprofile.vpk").is_file() and not (level_dir / "botprofile.db").is_file():
-            continue
-        current = read_level_db(level_dir)
-        base = native_db_text(current)
-        stock = overrides / STOCK_DIR / level / "botprofile.vpk"
-        if stock.is_file():
-            try:
-                base = native_db_text(read_db(stock))
-            except (OSError, ValueError):
-                pass
-        missing_now = missing_people(current, people)
-        rows = _missing_rows(missing_now)
-        new_text, _ = add_people(base, people)
-        if write and new_text != current:
-            write_level(level_dir, new_text)
-        report["levels"][level] = {"missing": rows, "added": len(missing_now)}
-        if preview is None:
-            preview = rows
-    has_levels = any((overrides / lv / "botprofile.vpk").is_file() for lv in LEVELS)
-    if write and has_levels:
-        chosen = overrides / live_level / "botprofile.vpk"
-        if chosen.is_file():
-            shutil.copy2(chosen, overrides / "botprofile.vpk")
-    report["missing"] = preview or []
-    report["added"] = len(preview or [])
-    return report
+def generate_match_vpk(csgo: Path, match: dict, difficulty: str, cache_root: Path | None = None) -> dict:
+    bots = prepare_bots(match, difficulty)
+    preset = improver_presets.preset(difficulty)
+    db_text = _template_text(difficulty) + "".join(_profile_block(bot) for bot in bots)
+    if PROFILE_RE.findall(db_text) != [b["profile_name"] for b in bots]:
+        raise ValueError("生成后的 BotProfile 清单与请求不一致")
+    payload, vpk_sha = vpk_bytes(db_text), hashlib.sha256(vpk_bytes(db_text)).hexdigest()
+    manifest = {
+        "schema_version": 2, "type": "career_match_9", "nonce": match["nonce"], "difficulty": difficulty, "count": 9,
+        "difficulty_model": improver_presets.MODEL,
+        "preset_source_hash": preset['source_hash'], "template_hash": preset['template_hash'],
+        "bots": [{k: b[k] for k in ("player_id", "profile_name", "display_name", "side", "overall", "form_delta", "effective_strength", "role", "tier", "stats", "aim_preset", "parameters", "profile_hash", "avatar_path", "avatar_hash", "avatar_kind")} for b in bots],
+        "vpk_sha256": vpk_sha,
+    }
+    manifest["manifest_hash"] = _manifest_hash(manifest)
+    # Validate all JSON numbers before replacing any active game artifact.
+    manifest_payload = json.dumps(manifest, indent=2, ensure_ascii=False, allow_nan=False).encode()
+    nonce = re.sub(r"[^a-fA-F0-9]", "", str(match["nonce"]))[:64]
+    _atomic_bytes((cache_root or (save_root() / "botprofiles")) / f"botprofile-{nonce}.vpk", payload)
+    active = csgo / "overrides" / "botprofile.vpk"
+    _atomic_bytes(active, payload)
+    _atomic_bytes(csgo / "overrides" / "botprofile.manifest.json", manifest_payload)
+    if hashlib.sha256(active.read_bytes()).hexdigest() != vpk_sha:
+        raise ValueError("活动 VPK 写入后的 SHA-256 校验失败")
+    match.update({"schema_version": 2, "difficulty": difficulty, "bots": manifest["bots"]})
+    match["bot_profile"] = {"type": "career_match_9", "nonce": match["nonce"], "count": 9, "difficulty": difficulty, "vpk_sha256": vpk_sha, "manifest_hash": manifest["manifest_hash"], "short_hash": manifest["manifest_hash"][:8]}
+    match['bot_profile'].update({key: manifest[key] for key in ('difficulty_model','preset_source_hash','template_hash')})
+    for side in ("ct", "t"):
+        match[side]["players"] = [b for b in manifest["bots"] if b["side"] == side]
+    return manifest
 
+
+def active_manifest(csgo: Path) -> dict:
+    path, active = csgo / "overrides" / "botprofile.manifest.json", csgo / "overrides" / "botprofile.vpk"
+    try:
+        data = json.loads(path.read_text(encoding="utf-8-sig"))
+        bots = data.get("bots") or []
+        ids = [bot.get("player_id") for bot in bots]
+        names = [bot.get("profile_name") for bot in bots]
+        model = data.get("difficulty_model")
+        if model:
+            if model != improver_presets.MODEL:
+                raise ValueError("不支持的 Bot 难度模型")
+            preset = improver_presets.preset(data["difficulty"])
+            if (data.get("preset_source_hash") != preset["source_hash"]
+                    or data.get("template_hash") != preset["template_hash"]):
+                raise ValueError("Bot 基础预设来源不一致")
+        data["valid"] = (
+            active.is_file()
+            and hashlib.sha256(active.read_bytes()).hexdigest() == data.get("vpk_sha256")
+            and data.get("count") == 9
+            and len(bots) == 9
+            and len(set(ids)) == 9
+            and len(set(names)) == 9
+            and data.get("manifest_hash") == _manifest_hash(data)
+            and all(_avatar_valid(bot) for bot in bots)
+        )
+        if not data["valid"]:
+            data["error"] = "活动 VPK 哈希或 9 人清单不一致"
+        return data
+    except (OSError, ValueError, KeyError, TypeError):
+        return {"valid": False, "error": "活动 BotProfile 清单不存在或损坏"}
+
+
+def _avatar_valid(bot: dict) -> bool:
+    """Validate the exact safe PNG bound into the match manifest."""
+    try:
+        path = Path(str(bot.get("avatar_path") or ""))
+        payload = path.read_bytes()
+        return (
+            0 < len(payload) <= 16 * 1024
+            and payload.startswith(b"\x89PNG\r\n\x1a\n")
+            and hashlib.sha256(payload).hexdigest() == bot.get("avatar_hash")
+        )
+    except OSError:
+        return False

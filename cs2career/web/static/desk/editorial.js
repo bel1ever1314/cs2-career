@@ -1,0 +1,2 @@
+/* Frozen annual features: text only, including all extension-authored copy. */
+CareerUI.renderFeature = feature => !feature ? '' : `<article class="annual-feature"><small>${esc(feature.subtitle)}</small><h2>${esc(feature.title)}</h2>${(feature.sections||[]).map(s=>`<section><h3>${esc(s.heading)}</h3>${String(s.text||'').split('\n\n').map(p=>`<p>${esc(p)}</p>`).join('')}</section>`).join('')}</article>`;

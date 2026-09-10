@@ -1,0 +1,2894 @@
+{
+  "schema_version": 1,
+  "era": "2024",
+  "as_of": "2024-01-08",
+  "revision": "2026-09-09.2",
+  "description": "独立2024开局组织与名单。seed是所收录战队间的游戏排序；source_rank才是来源中的真实排名，null代表未核验。并非整个世界所有职业组织。",
+  "teams": [
+    {
+      "id": "vitality",
+      "name": "Vitality",
+      "region": "EU",
+      "seed": 1,
+      "source_rank": 1,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "apEX",
+          "role": "igl",
+          "ability": 75,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "ZywOo",
+          "role": "awp",
+          "ability": 95,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "flameZ",
+          "role": "entry",
+          "ability": 83,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "Spinx",
+          "role": "lurk",
+          "ability": 86,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "mezii",
+          "role": "rifle",
+          "ability": 82,
+          "ability_source": "legacy-2024-target-estimate"
+        }
+      ]
+    },
+    {
+      "id": "faze",
+      "name": "FaZe",
+      "region": "EU",
+      "seed": 2,
+      "source_rank": 2,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "karrigan",
+          "role": "igl",
+          "ability": 74,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "rain",
+          "role": "entry",
+          "ability": 82,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "frozen",
+          "role": "rifle",
+          "ability": 86,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "ropz",
+          "role": "lurk",
+          "ability": 89,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "broky",
+          "role": "awp",
+          "ability": 84,
+          "ability_source": "legacy-2024-target-estimate"
+        }
+      ]
+    },
+    {
+      "id": "mouz",
+      "name": "MOUZ",
+      "region": "EU",
+      "seed": 3,
+      "source_rank": 3,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "provisional",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。 Brollan按2023年12月已出场的代打阵容暂列，不宣称1月8日已正式完成租借。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        },
+        {
+          "title": "Brollan 于2023-12-04被宣布为BLAST世界总决赛代打",
+          "url": "https://www.hltv.org/news/37676/mouz-confirm-brollan-as-blast-world-final-stand-in"
+        }
+      ],
+      "players": [
+        {
+          "name": "siuhy",
+          "role": "igl",
+          "ability": 77,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "torzsi",
+          "role": "awp",
+          "ability": 83,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "Jimpphat",
+          "role": "lurk",
+          "ability": 84,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "xertioN",
+          "role": "entry",
+          "ability": 86,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "Brollan",
+          "role": "rifle",
+          "ability": 85,
+          "ability_source": "legacy-2024-target-estimate",
+          "roster_status": "stand_in"
+        }
+      ]
+    },
+    {
+      "id": "navi",
+      "name": "NAVI",
+      "region": "EU",
+      "seed": 4,
+      "source_rank": 4,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "Aleksib",
+          "role": "igl",
+          "ability": 74,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "iM",
+          "role": "entry",
+          "ability": 81,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "b1t",
+          "role": "rifle",
+          "ability": 86,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "jL",
+          "role": "lurk",
+          "ability": 88,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "w0nderful",
+          "role": "awp",
+          "ability": 85,
+          "ability_source": "legacy-2024-target-estimate"
+        }
+      ]
+    },
+    {
+      "id": "virtus-pro",
+      "name": "Virtus.pro",
+      "region": "EU",
+      "seed": 5,
+      "source_rank": 5,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "mir",
+          "role": "entry",
+          "ability": 81,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "FL1T",
+          "role": "lurk",
+          "ability": 81,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Jame",
+          "role": "awp",
+          "ability": 81,
+          "ability_source": "same-era-band-estimate",
+          "is_igl": true
+        },
+        {
+          "name": "n0rb3r7",
+          "role": "rifle",
+          "ability": 81,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "fame",
+          "role": "rifle",
+          "ability": 81,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "monte",
+      "name": "Monte",
+      "region": "EU",
+      "seed": 6,
+      "source_rank": 6,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "sdy",
+          "role": "igl",
+          "ability": 81,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "br0",
+          "role": "rifle",
+          "ability": 72,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "Woro2k",
+          "role": "awp",
+          "ability": 81,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "DemQQ",
+          "role": "lurk",
+          "ability": 81,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "kRaSnaL",
+          "role": "entry",
+          "ability": 81,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "g2",
+      "name": "G2",
+      "region": "EU",
+      "seed": 7,
+      "source_rank": 7,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "NiKo",
+          "role": "entry",
+          "ability": 92,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "huNter-",
+          "role": "lurk",
+          "ability": 83,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "nexa",
+          "role": "rifle",
+          "ability": 76,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "HooXi",
+          "role": "igl",
+          "ability": 71,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "m0NESY",
+          "role": "awp",
+          "ability": 91,
+          "ability_source": "legacy-2024-target-estimate"
+        }
+      ]
+    },
+    {
+      "id": "complexity",
+      "name": "Complexity",
+      "region": "AM",
+      "seed": 8,
+      "source_rank": 8,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "EliGE",
+          "role": "entry",
+          "ability": 85,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "JT",
+          "role": "igl",
+          "ability": 72,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "floppy",
+          "role": "lurk",
+          "ability": 75,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "hallzerk",
+          "role": "awp",
+          "ability": 78,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "Grim",
+          "role": "rifle",
+          "ability": 77,
+          "ability_source": "legacy-2024-target-estimate"
+        }
+      ]
+    },
+    {
+      "id": "cloud9",
+      "name": "Cloud9",
+      "region": "EU",
+      "seed": 9,
+      "source_rank": 9,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。 当时没有专职主狙，保留无专职主狙的五人配置，不强制把步枪手改成主狙。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "HObbit",
+          "role": "rifle",
+          "ability": 81,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "electronic",
+          "role": "entry",
+          "ability": 81,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Boombl4",
+          "role": "igl",
+          "ability": 81,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Ax1Le",
+          "role": "lurk",
+          "ability": 81,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Perfecto",
+          "role": "rifle",
+          "ability": 81,
+          "ability_source": "same-era-band-estimate"
+        }
+      ],
+      "allow_no_awp": true
+    },
+    {
+      "id": "falcons",
+      "name": "Falcons",
+      "region": "EU",
+      "seed": 10,
+      "source_rank": 10,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "Snappi",
+          "role": "igl",
+          "ability": 72,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "Magisk",
+          "role": "lurk",
+          "ability": 80,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "Maden",
+          "role": "entry",
+          "ability": 81,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "SunPayus",
+          "role": "awp",
+          "ability": 81,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "BOROS",
+          "role": "rifle",
+          "ability": 81,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "furia",
+      "name": "FURIA",
+      "region": "AM",
+      "seed": 11,
+      "source_rank": 11,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "FalleN",
+          "role": "awp",
+          "ability": 77,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "chelo",
+          "role": "entry",
+          "ability": 78,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "arT",
+          "role": "igl",
+          "ability": 78,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "yuurih",
+          "role": "rifle",
+          "ability": 86,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "KSCERATO",
+          "role": "lurk",
+          "ability": 88,
+          "ability_source": "legacy-2024-target-estimate"
+        }
+      ]
+    },
+    {
+      "id": "apeks",
+      "name": "Apeks",
+      "region": "EU",
+      "seed": 12,
+      "source_rank": 12,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "STYKO",
+          "role": "rifle",
+          "ability": 78,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "jkaem",
+          "role": "entry",
+          "ability": 78,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "nawwk",
+          "role": "awp",
+          "ability": 78,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "sense",
+          "role": "igl",
+          "ability": 78,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "CacaNito",
+          "role": "lurk",
+          "ability": 78,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "spirit",
+      "name": "Spirit",
+      "region": "EU",
+      "seed": 13,
+      "source_rank": 13,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "chopper",
+          "role": "igl",
+          "ability": 76,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "sh1ro",
+          "role": "awp",
+          "ability": 90,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "magixx",
+          "role": "lurk",
+          "ability": 81,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "zont1x",
+          "role": "rifle",
+          "ability": 83,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "donk",
+          "role": "entry",
+          "ability": 94,
+          "ability_source": "legacy-2024-target-estimate"
+        }
+      ]
+    },
+    {
+      "id": "eternal-fire",
+      "name": "Eternal Fire",
+      "region": "EU",
+      "seed": 14,
+      "source_rank": 14,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "MAJ3R",
+          "role": "igl",
+          "ability": 74,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "XANTARES",
+          "role": "rifle",
+          "ability": 87,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "woxic",
+          "role": "awp",
+          "ability": 86,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "Calyx",
+          "role": "lurk",
+          "ability": 78,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Wicadia",
+          "role": "entry",
+          "ability": 83,
+          "ability_source": "legacy-2024-target-estimate"
+        }
+      ]
+    },
+    {
+      "id": "mibr",
+      "name": "MIBR",
+      "region": "AM",
+      "seed": 15,
+      "source_rank": 15,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "exit",
+          "role": "igl",
+          "ability": 78,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "saffee",
+          "role": "awp",
+          "ability": 78,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "drop",
+          "role": "rifle",
+          "ability": 78,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "brnz4n",
+          "role": "lurk",
+          "ability": 78,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "insani",
+          "role": "entry",
+          "ability": 78,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "big",
+      "name": "BIG",
+      "region": "EU",
+      "seed": 16,
+      "source_rank": 16,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "tabseN",
+          "role": "igl",
+          "ability": 78,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "mantuu",
+          "role": "awp",
+          "ability": 78,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "prosus",
+          "role": "entry",
+          "ability": 78,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Krimbo",
+          "role": "lurk",
+          "ability": 78,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "s1n",
+          "role": "rifle",
+          "ability": 78,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "betboom",
+      "name": "BetBoom",
+      "region": "EU",
+      "seed": 17,
+      "source_rank": 17,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "zorte",
+          "role": "awp",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "nafany",
+          "role": "igl",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "S1ren",
+          "role": "rifle",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "KaiR0N-",
+          "role": "entry",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "danistzz",
+          "role": "lurk",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "gamerlegion",
+      "name": "GamerLegion",
+      "region": "EU",
+      "seed": 18,
+      "source_rank": 18,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "Snax",
+          "role": "igl",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "acoR",
+          "role": "awp",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Keoz",
+          "role": "entry",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "isak",
+          "role": "lurk",
+          "ability": 76,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "volt",
+          "role": "rifle",
+          "ability": 72,
+          "ability_source": "legacy-2024-target-estimate"
+        }
+      ]
+    },
+    {
+      "id": "astralis",
+      "name": "Astralis",
+      "region": "EU",
+      "seed": 19,
+      "source_rank": 19,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "device",
+          "role": "awp",
+          "ability": 84,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "stavn",
+          "role": "rifle",
+          "ability": 84,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "blameF",
+          "role": "igl",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "jabbi",
+          "role": "lurk",
+          "ability": 83,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "Staehr",
+          "role": "entry",
+          "ability": 80,
+          "ability_source": "legacy-2024-target-estimate"
+        }
+      ]
+    },
+    {
+      "id": "the-mongolz",
+      "name": "The MongolZ",
+      "region": "AS",
+      "seed": 20,
+      "source_rank": 20,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "bLitz",
+          "role": "igl",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Techno",
+          "role": "rifle",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Senzu",
+          "role": "entry",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "mzinho",
+          "role": "lurk",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "910",
+          "role": "awp",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "9-pandas",
+      "name": "9 Pandas",
+      "region": "EU",
+      "seed": 21,
+      "source_rank": 21,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "seized",
+          "role": "igl",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "clax",
+          "role": "lurk",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "iDISBALANCE",
+          "role": "awp",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "glowiing",
+          "role": "rifle",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "d1Ledez",
+          "role": "entry",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "havu",
+      "name": "HAVU",
+      "region": "EU",
+      "seed": 22,
+      "source_rank": 22,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "sLowi",
+          "role": "rifle",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "uli",
+          "role": "entry",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "ottoNd",
+          "role": "awp",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Airax",
+          "role": "igl",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Banjo",
+          "role": "lurk",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "aurora",
+      "name": "Aurora",
+      "region": "EU",
+      "seed": 23,
+      "source_rank": 23,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "Lack1",
+          "role": "entry",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "SELLTER",
+          "role": "rifle",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "KENSI",
+          "role": "lurk",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Norwi",
+          "role": "igl",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "deko",
+          "role": "awp",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "koi",
+      "name": "KOI",
+      "region": "EU",
+      "seed": 24,
+      "source_rank": 24,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "JUST",
+          "role": "lurk",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "mopoz",
+          "role": "entry",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "stadodo",
+          "role": "awp",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "dav1g",
+          "role": "igl",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "adamS",
+          "role": "rifle",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "nip",
+      "name": "NiP",
+      "region": "EU",
+      "seed": 25,
+      "source_rank": 25,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "alex",
+          "role": "igl",
+          "ability": 71,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "es3tag",
+          "role": "rifle",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "k0nfig",
+          "role": "entry",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "REZ",
+          "role": "lurk",
+          "ability": 85,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "headtr1ck",
+          "role": "awp",
+          "ability": 78,
+          "ability_source": "legacy-2024-target-estimate"
+        }
+      ]
+    },
+    {
+      "id": "lynn-vision",
+      "name": "Lynn Vision",
+      "region": "AS",
+      "seed": 26,
+      "source_rank": 26,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "Westmelon",
+          "role": "igl",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "z4KR",
+          "role": "entry",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Starry",
+          "role": "lurk",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Jee",
+          "role": "awp",
+          "ability": 78,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "EmiliaQAQ",
+          "role": "rifle",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "9z",
+      "name": "9z",
+      "region": "AM",
+      "seed": 27,
+      "source_rank": 27,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "max",
+          "role": "igl",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "dgt",
+          "role": "lurk",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "buda",
+          "role": "rifle",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "MartinezSa",
+          "role": "awp",
+          "ability": 73,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "HUASOPEEK",
+          "role": "entry",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "3dmax",
+      "name": "3DMAX",
+      "region": "EU",
+      "seed": 28,
+      "source_rank": 28,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "hAdji",
+          "role": "rifle",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Maka",
+          "role": "awp",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Lucky",
+          "role": "igl",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Djoko",
+          "role": "entry",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Ex3rcice",
+          "role": "lurk",
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "tyloo",
+      "name": "TYLOO",
+      "region": "AS",
+      "seed": 29,
+      "source_rank": 29,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "advent",
+          "role": "igl",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "kaze",
+          "role": "awp",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "JamYoung",
+          "role": "lurk",
+          "ability": 86,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "Mercury",
+          "role": "entry",
+          "ability": 80,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "Moseyuh",
+          "role": "rifle",
+          "ability": 79,
+          "ability_source": "legacy-2024-target-estimate"
+        }
+      ]
+    },
+    {
+      "id": "forze",
+      "name": "FORZE",
+      "region": "EU",
+      "seed": 30,
+      "source_rank": 30,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "partial",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "shalfey",
+          "role": "igl",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "tN1R",
+          "role": "rifle",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "r3salt",
+          "role": "entry",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "gokushima",
+          "role": "awp",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "FORZE 2024 slot5",
+          "role": "lurk",
+          "ability": 71,
+          "identity_quality": "estimated",
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "m80",
+      "name": "M80",
+      "region": "AM",
+      "seed": 31,
+      "source_rank": 31,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "malbsMd",
+          "role": "entry",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "maNkz",
+          "role": "igl",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "slaxz-",
+          "role": "awp",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "swisher",
+          "role": "rifle",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "reck",
+          "role": "lurk",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "saw",
+      "name": "SAW",
+      "region": "EU",
+      "seed": 32,
+      "source_rank": 33,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "MUTiRiS",
+          "role": "igl",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "roman",
+          "role": "rifle",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "story",
+          "role": "awp",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "ewjerkz",
+          "role": "entry",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "arrozdoce",
+          "role": "lurk",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "bestia",
+      "name": "BESTIA",
+      "region": "AM",
+      "seed": 33,
+      "source_rank": 34,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "Noktse",
+          "role": "igl",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "meyern",
+          "role": "entry",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "deco",
+          "role": "awp",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "luchov",
+          "role": "rifle",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "tomaszin",
+          "role": "lurk",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "ence",
+      "name": "ENCE",
+      "region": "EU",
+      "seed": 34,
+      "source_rank": 36,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "gla1ve",
+          "role": "igl",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Goofy",
+          "role": "entry",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "dycha",
+          "role": "rifle",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "hades",
+          "role": "awp",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Kylar",
+          "role": "lurk",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "pain",
+      "name": "paiN",
+      "region": "AM",
+      "seed": 35,
+      "source_rank": 39,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "biguzera",
+          "role": "igl",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "n1ssim",
+          "role": "lurk",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "nqz",
+          "role": "awp",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "kauez",
+          "role": "rifle",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "lux",
+          "role": "entry",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "og",
+      "name": "OG",
+      "region": "EU",
+      "seed": 36,
+      "source_rank": 42,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "k1to",
+          "role": "igl",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "F1KU",
+          "role": "lurk",
+          "ability": 75,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "regali",
+          "role": "awp",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "HeavyGod",
+          "role": "rifle",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Nexius",
+          "role": "entry",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "sinners",
+      "name": "SINNERS",
+      "region": "EU",
+      "seed": 37,
+      "source_rank": 43,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "oskar",
+          "role": "awp",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "beastik",
+          "role": "igl",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "SHOCK",
+          "role": "rifle",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "AJTT",
+          "role": "lurk",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "NEOFRAG",
+          "role": "entry",
+          "ability": 74,
+          "ability_source": "legacy-2024-target-estimate"
+        }
+      ]
+    },
+    {
+      "id": "fnatic",
+      "name": "fnatic",
+      "region": "EU",
+      "seed": 38,
+      "source_rank": 45,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "KRIMZ",
+          "role": "rifle",
+          "ability": 78,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "bodyy",
+          "role": "igl",
+          "ability": 78,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "afro",
+          "role": "awp",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "kyuubii",
+          "role": "lurk",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "MATYS",
+          "role": "entry",
+          "ability": 74,
+          "ability_source": "legacy-2024-target-estimate"
+        }
+      ]
+    },
+    {
+      "id": "grayhound",
+      "name": "Grayhound",
+      "region": "AS",
+      "seed": 39,
+      "source_rank": 46,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "dexter",
+          "role": "igl",
+          "ability": 74,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "Liazz",
+          "role": "lurk",
+          "ability": 73,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "aliStair",
+          "role": "awp",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "INS",
+          "role": "rifle",
+          "ability": 78,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "Vexite",
+          "role": "entry",
+          "ability": 77,
+          "ability_source": "legacy-2024-target-estimate"
+        }
+      ]
+    },
+    {
+      "id": "b8",
+      "name": "B8",
+      "region": "EU",
+      "seed": 40,
+      "source_rank": 49,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "cptkurtka023",
+          "role": "entry",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "amster",
+          "role": "rifle",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "OWNER",
+          "role": "igl",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "r1nkle",
+          "role": "awp",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "npl",
+          "role": "lurk",
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "imperial",
+      "name": "Imperial",
+      "region": "AM",
+      "seed": 41,
+      "source_rank": 52,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "HEN1",
+          "role": "awp",
+          "ability": 75,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "felps",
+          "role": "entry",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "VINI",
+          "role": "igl",
+          "ability": 76,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "decenty",
+          "role": "lurk",
+          "ability": 78,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "noway",
+          "role": "rifle",
+          "ability": 80,
+          "ability_source": "legacy-2024-target-estimate"
+        }
+      ]
+    },
+    {
+      "id": "nrg",
+      "name": "NRG",
+      "region": "AM",
+      "seed": 42,
+      "source_rank": 83,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "daps",
+          "role": "igl",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Brehze",
+          "role": "lurk",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "oSee",
+          "role": "awp",
+          "ability": 79,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "FaNg",
+          "role": "entry",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "HexT",
+          "role": "rifle",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "legacy",
+      "name": "Legacy",
+      "region": "AM",
+      "seed": 43,
+      "source_rank": 84,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "coldzera",
+          "role": "awp",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "NEKIZ",
+          "role": "igl",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "dumau",
+          "role": "entry",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "b4rtiN",
+          "role": "rifle",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "latto",
+          "role": "lurk",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "fluxo",
+      "name": "Fluxo",
+      "region": "AM",
+      "seed": 44,
+      "source_rank": 92,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "PKL",
+          "role": "igl",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "vsm",
+          "role": "lurk",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Lucaozy",
+          "role": "entry",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "zevy",
+          "role": "awp",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "chayJESUS",
+          "role": "rifle",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "atox",
+      "name": "ATOX",
+      "region": "AS",
+      "seed": 45,
+      "source_rank": 120,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "partial",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "dobu",
+          "role": "igl",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "kabal",
+          "role": "lurk",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "MiQ",
+          "role": "rifle",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Zesta",
+          "role": "entry",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "ATOX 2024 slot5",
+          "role": "awp",
+          "ability": 68,
+          "identity_quality": "estimated",
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "passion-ua",
+      "name": "Passion UA",
+      "region": "EU",
+      "seed": 46,
+      "source_rank": 125,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "marat2k",
+          "role": "igl",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "jambo",
+          "role": "awp",
+          "ability": 73,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "s-chilla",
+          "role": "rifle",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "jackasmo",
+          "role": "entry",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "zeRRoFIX",
+          "role": "lurk",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "rare-atom",
+      "name": "Rare Atom",
+      "region": "AS",
+      "seed": 47,
+      "source_rank": 142,
+      "rank_quality": "verified",
+      "observed_at": "2024-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "observed_at": "2024-01-08"
+        }
+      ],
+      "players": [
+        {
+          "name": "Summer",
+          "role": "igl",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "somebody",
+          "role": "entry",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "expro",
+          "role": "rifle",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "kory",
+          "role": "lurk",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "phzy",
+          "role": "awp",
+          "ability": 78,
+          "ability_source": "legacy-2024-target-estimate"
+        }
+      ]
+    },
+    {
+      "id": "parivision",
+      "name": "PARIVISION",
+      "region": "EU",
+      "seed": 48,
+      "source_rank": null,
+      "rank_quality": "estimated",
+      "observed_at": "2024-01-07",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "PARIVISION 2024-01-07 五人公告同期报道",
+          "url": "https://csgo.com/news/103472-patsi-qikert-and-artfr0st-join-parivision"
+        }
+      ],
+      "players": [
+        {
+          "name": "ArtFr0st",
+          "role": "awp",
+          "ability": 73,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "Patsi",
+          "role": "entry",
+          "ability": 70,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "X5G7V",
+          "role": "rifle",
+          "ability": 68,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "Qikert",
+          "role": "lurk",
+          "ability": 66,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "Jerry",
+          "role": "igl",
+          "ability": 63,
+          "ability_source": "legacy-2024-target-estimate"
+        }
+      ]
+    },
+    {
+      "id": "liquid",
+      "name": "Liquid",
+      "region": "AM",
+      "seed": 49,
+      "source_rank": null,
+      "rank_quality": "estimated",
+      "observed_at": "2023-12-07",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "Liquid 完成五人重建 · 2023-12-07",
+          "url": "https://www.hltv.org/news/37711/official-twistzz-returns-to-liquid"
+        }
+      ],
+      "players": [
+        {
+          "name": "Twistzz",
+          "role": "rifle",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "NAF",
+          "role": "lurk",
+          "ability": 83,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "skullz",
+          "role": "rifle",
+          "ability": 76,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "cadiaN",
+          "role": "awp",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate",
+          "is_igl": true
+        },
+        {
+          "name": "YEKINDAR",
+          "role": "entry",
+          "ability": 82,
+          "ability_source": "legacy-2024-target-estimate"
+        }
+      ]
+    },
+    {
+      "id": "heroic",
+      "name": "HEROIC",
+      "region": "EU",
+      "seed": 50,
+      "source_rank": null,
+      "rank_quality": "estimated",
+      "observed_at": "2023-12-21",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "sources": [
+        {
+          "title": "Heroic完成重建 · 2023-12-21",
+          "url": "https://www.dust2.dk/nyheder/42850/heroic-henter-ny-igl"
+        }
+      ],
+      "players": [
+        {
+          "name": "sjuush",
+          "role": "rifle",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "TeSeS",
+          "role": "entry",
+          "ability": 81,
+          "ability_source": "legacy-2024-target-estimate"
+        },
+        {
+          "name": "nicoodoz",
+          "role": "awp",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "NertZ",
+          "role": "lurk",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "kyxsan",
+          "role": "igl",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "sharks",
+      "name": "Sharks",
+      "region": "AM",
+      "seed": 51,
+      "source_rank": null,
+      "rank_quality": "estimated",
+      "observed_at": "2024-01-08",
+      "roster_quality": "estimated",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "组织保留在游戏世界中；该日期的五人身份尚未核验，全部使用显式占位，不借用2026阵容。",
+      "sources": [
+        {
+          "title": "游戏收录组织清单，历史名单待核验",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8"
+        }
+      ],
+      "players": [
+        {
+          "name": "Sharks 2024 slot1",
+          "role": "igl",
+          "ability": 68,
+          "identity_quality": "estimated",
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Sharks 2024 slot2",
+          "role": "awp",
+          "ability": 68,
+          "identity_quality": "estimated",
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Sharks 2024 slot3",
+          "role": "entry",
+          "ability": 68,
+          "identity_quality": "estimated",
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Sharks 2024 slot4",
+          "role": "lurk",
+          "ability": 68,
+          "identity_quality": "estimated",
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Sharks 2024 slot5",
+          "role": "rifle",
+          "ability": 68,
+          "identity_quality": "estimated",
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "9ine",
+      "name": "9INE",
+      "region": "EU",
+      "seed": 52,
+      "source_rank": null,
+      "rank_quality": "estimated",
+      "observed_at": "2024-01-08",
+      "roster_quality": "estimated",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "组织保留在游戏世界中；该日期的五人身份尚未核验，全部使用显式占位，不借用2026阵容。",
+      "sources": [
+        {
+          "title": "游戏收录组织清单，历史名单待核验",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8"
+        }
+      ],
+      "players": [
+        {
+          "name": "9INE 2024 slot1",
+          "role": "igl",
+          "ability": 68,
+          "identity_quality": "estimated",
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "9INE 2024 slot2",
+          "role": "awp",
+          "ability": 68,
+          "identity_quality": "estimated",
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "9INE 2024 slot3",
+          "role": "entry",
+          "ability": 68,
+          "identity_quality": "estimated",
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "9INE 2024 slot4",
+          "role": "lurk",
+          "ability": 68,
+          "identity_quality": "estimated",
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "9INE 2024 slot5",
+          "role": "rifle",
+          "ability": 68,
+          "identity_quality": "estimated",
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "hotu",
+      "name": "HOTU",
+      "region": "EU",
+      "seed": 53,
+      "source_rank": null,
+      "rank_quality": "estimated",
+      "observed_at": "2024-01-08",
+      "roster_quality": "estimated",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "组织保留在游戏世界中；该日期的五人身份尚未核验，全部使用显式占位，不借用2026阵容。",
+      "sources": [
+        {
+          "title": "游戏收录组织清单，历史名单待核验",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8"
+        }
+      ],
+      "players": [
+        {
+          "name": "HOTU 2024 slot1",
+          "role": "igl",
+          "ability": 68,
+          "identity_quality": "estimated",
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "HOTU 2024 slot2",
+          "role": "awp",
+          "ability": 68,
+          "identity_quality": "estimated",
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "HOTU 2024 slot3",
+          "role": "entry",
+          "ability": 68,
+          "identity_quality": "estimated",
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "HOTU 2024 slot4",
+          "role": "lurk",
+          "ability": 68,
+          "identity_quality": "estimated",
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "HOTU 2024 slot5",
+          "role": "rifle",
+          "ability": 68,
+          "identity_quality": "estimated",
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    },
+    {
+      "id": "chinggis-warriors",
+      "name": "Chinggis Warriors",
+      "region": "AS",
+      "seed": 54,
+      "source_rank": null,
+      "rank_quality": "estimated",
+      "observed_at": "2024-01-08",
+      "roster_quality": "estimated",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "组织保留在游戏世界中；该日期的五人身份尚未核验，全部使用显式占位，不借用2026阵容。",
+      "sources": [
+        {
+          "title": "游戏收录组织清单，历史名单待核验",
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8"
+        }
+      ],
+      "players": [
+        {
+          "name": "Chinggis Warriors 2024 slot1",
+          "role": "igl",
+          "ability": 68,
+          "identity_quality": "estimated",
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Chinggis Warriors 2024 slot2",
+          "role": "awp",
+          "ability": 68,
+          "identity_quality": "estimated",
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Chinggis Warriors 2024 slot3",
+          "role": "entry",
+          "ability": 68,
+          "identity_quality": "estimated",
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Chinggis Warriors 2024 slot4",
+          "role": "lurk",
+          "ability": 68,
+          "identity_quality": "estimated",
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "Chinggis Warriors 2024 slot5",
+          "role": "rifle",
+          "ability": 68,
+          "identity_quality": "estimated",
+          "ability_source": "same-era-band-estimate"
+        }
+      ]
+    }
+  ]
+}

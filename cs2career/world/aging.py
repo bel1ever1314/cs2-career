@@ -7,7 +7,7 @@ Both curves have diminishing returns (approaching a ceiling or a floor).
 
 from __future__ import annotations
 
-from .ability import AXES, refresh_team_command
+from .ability import AXES, calibrate_role, refresh_player_ability, refresh_team_command, restamp_command
 
 GUN_LO, GUN_HI = 52.0, 99.0
 CMD_LO, CMD_HI = 40, 96
@@ -44,7 +44,6 @@ IGL_TENURE = {
     "dexter": 6,
     "MATYS": 2,
     "HooXi": 5,
-    "Zero": 4,
     "swisher": 4,
     "DarkMeister": 2,
     "Westmelon": 3,
@@ -103,11 +102,38 @@ def _nudge_axes(player: dict, old: float, new: float) -> None:
     factor = new / old
     for key in AXES:
         if key in stats:
-            stats[key] = int(round(_clamp(float(stats[key]) * factor, 40, 100)))
+            stats[key] = int(round(_clamp(float(stats[key]) * factor, 1, 100)))
+
+
+def shift_from_2026(stats: dict, ability: float, age_2026: int, age_era: int, role: str) -> tuple[float, dict]:
+    """Walk ability back (or forward) along gun_year_delta using calendar ages."""
+    out = dict(stats)
+    a = float(ability)
+    age = int(age_2026)
+    era = int(age_era)
+    while age > era:
+        a = _clamp(a - gun_year_delta(age, a), 40.0, 98.0)
+        age -= 1
+    while age < era:
+        age += 1
+        a = _clamp(a + gun_year_delta(age, a), 40.0, 98.0)
+    a = round(a, 1)
+    if ability > 1 and abs(a - ability) >= 0.05:
+        factor = a / ability
+        for key in AXES:
+            if key in out:
+                out[key] = round(_clamp(float(out[key]) * factor, 1, 100), 1)
+        out["ability"] = a
+        out["command"] = int(round(_clamp(float(out.get("command") or 0) * factor, 8, 96)))
+    else:
+        out["ability"] = a
+    calibrate_role(out, role, a)
+    return a, out
 
 
 def apply_player_year(player: dict) -> dict:
     """Age one year. Mutates the player. Returns a short log row."""
+    refresh_player_ability(player)
     before = {
         "ability": float(player.get("ability") or 70),
         "command": int(player.get("command") or 0),
@@ -115,10 +141,26 @@ def apply_player_year(player: dict) -> dict:
         "igl_years": int(player.get("igl_years") or 0),
     }
     player["age"] = before["age"] + 1
-    gun = _clamp(before["ability"] + gun_year_delta(player["age"], before["ability"]), GUN_LO, GUN_HI)
+    # Age the permanent baseline, not the selected role (otherwise changing
+    # position immediately before New Year changes permanent growth).
+    baseline = float(player.get("long_term_ability", before["ability"]))
+    gun = _clamp(baseline + gun_year_delta(player["age"], baseline), GUN_LO, GUN_HI)
+    potential = float(player.get("potential") or 0)
+    if potential > gun and player["age"] <= 23:
+        seed = sum(ord(ch) for ch in str(player.get("name") or "")) + int(player["age"])
+        if potential >= 94:
+            extra = 2.8 + (seed % 8) / 7.0 * 0.7
+        else:
+            extra = 1.5 + (seed % 21) / 20.0 * 2.0
+        gun = _clamp(min(potential, gun + extra), GUN_LO, GUN_HI)
     player["ability"] = round(gun, 1)
-    _nudge_axes(player, before["ability"], player["ability"])
-    player["form"] = max(52.0, player["ability"] - 8.0)
+    _nudge_axes(player, baseline, player["ability"])
+    stats = player.get("stats")
+    if stats:
+        calibrate_role(stats, stats["role_reference"], player["ability"])
+    player["form_delta"] = round(0.8 * float(player.get("form_delta") or 0), 2)
+    player["form"] = player["ability"] + player["form_delta"]
+    refresh_player_ability(player)
 
     if player.get("role") == "igl":
         cmd = _clamp(

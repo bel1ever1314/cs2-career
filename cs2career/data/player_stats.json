@@ -2733,7 +2733,10 @@
     "utility": 19.0,
     "command": 17,
     "role": "lurk",
-    "ability": 79.8
+      "ability": 90.0,
+      "form_delta": -3.0,
+      "long_rating": 1.11,
+      "recent_90_rating": 1.095
   },
   "RUSH": {
     "firepower": 40.0,

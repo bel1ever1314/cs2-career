@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "revision": "2026-09-09.1",
+  "description": "逐队核验的开年阵容补丁，不是完整年代包。未列出的队伍仍使用旧资料或明确标记的估算阵容。",
+  "rosters": [
+    {
+      "era": "2024",
+      "team": "PARIVISION",
+      "as_of": "2024-01-08",
+      "announced_at": "2024-01-07",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "note": "五人身份按开年前的阵容公告核验。能力沿用同年代排名档位模板，不代表已采集历史 Rating；五位置分配、年龄、七维和状态仍为游戏估算。此补丁只用于创建新生涯，不改写旧存档。",
+      "sources": [
+        {"title": "PARIVISION 阵容公告（经同期报道交叉核对）", "url": "https://t.me/parivision/209"},
+        {"title": "Patsi, Qikert and ArtFr0st join PARIVISION · 2024-01-07", "url": "https://csgo.com/news/103472-patsi-qikert-and-artfr0st-join-parivision"},
+        {"title": "Patsi and ArtFr0st confirmed on new CIS team · 2024-01-08", "url": "https://pley.gg/cs2/patsi-artfr0st-confirmed-new-cis-team/"}
+      ],
+      "players": [
+        {"name": "ArtFr0st", "role": "awp", "ability": 73},
+        {"name": "Patsi", "role": "entry", "ability": 70},
+        {"name": "X5G7V", "role": "rifle", "ability": 68},
+        {"name": "Qikert", "role": "lurk", "ability": 66},
+        {"name": "Jerry", "role": "igl", "ability": 63}
+      ]
+    }
+  ]
+}

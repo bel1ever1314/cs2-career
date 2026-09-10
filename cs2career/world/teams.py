@@ -1,8 +1,8 @@
 # coding=utf-8
-"""Opening world: 49 teams across EU / AM / AS.
+"""Opening-world builder: legacy rows or an independent dated organisation list.
 
-Team `command` is the IGL's eighth-axis 战术指挥. Every player has a command
-stat in data/player_stats.json; only the IGL's number buffs the team.
+Team `command` is the five-player utility mean (赛训). The IGL's command
+axis is only a stamp; it does not replace team command.
 """
 
 from __future__ import annotations
@@ -24,55 +24,55 @@ REGION_LABEL = {"EU": "欧洲", "AM": "美洲", "AS": "亚洲"}
 
 # name, region, world rank, command, [(player, ability), ...]
 TEAMS = [
-    ("Falcons", "EU", 1, 90, [("m0NESY", 93), ("NiKo", 90), ("kyousuke", 87), ("TeSeS", 81), ("karrigan", 73)]),
-    ("Vitality", "EU", 2, 93, [("ZywOo", 96), ("ropz", 88), ("flameZ", 84), ("mezii", 83), ("apEX", 74)]),
-    ("Spirit", "EU", 3, 91, [("donk", 95), ("sh1ro", 91), ("zont1x", 84), ("tN1R", 83), ("magixx", 80)]),
-    ("FURIA", "AM", 4, 88, [("KSCERATO", 89), ("yuurih", 87), ("molodoy", 84), ("YEKINDAR", 82), ("FalleN", 76)]),
-    ("NAVI", "EU", 5, 86, [("w0nderful", 88), ("b1t", 86), ("makazze", 84), ("iM", 82), ("Aleksib", 74)]),
-    ("Aurora", "EU", 6, 84, [("XANTARES", 87), ("woxic", 86), ("Jimpphat", 85), ("Wicadia", 83), ("kyxsan", 75)]),
-    ("BetBoom", "EU", 7, 82, [("Magnojez", 86), ("zorte", 83), ("S1ren", 82), ("d1Ledez", 80), ("Boombl4", 74)]),
-    ("MOUZ", "EU", 8, 81, [("xertioN", 87), ("Spinx", 84), ("torzsi", 83), ("PR", 78), ("xelex", 72)]),
-    ("G2", "EU", 9, 76, [("HeavyGod", 89), ("huNter-", 82), ("NertZ", 81), ("r1nkle", 80), ("MATYS", 72)]),
-    ("The MongolZ", "AS", 10, 83, [("910", 86), ("bLitz", 84), ("Techno", 82), ("tikuak", 80), ("DarkMeister", 74)]),
-    ("Legacy", "AM", 11, 71, [("latto", 86), ("dumau", 82), ("n1ssim", 80), ("try", 77), ("arT", 73)]),
-    ("FaZe", "EU", 12, 80, [("frozen", 87), ("Twistzz", 85), ("jcobbb", 81), ("Neityu", 78), ("JBOEN", 72)]),
-    ("PARIVISION", "EU", 13, 79, [("Jame", 84), ("HObbit", 82), ("zweih", 80), ("xiELO", 78), ("slaxejezzz", 73)]),
-    ("paiN", "AM", 14, 77, [("biguzera", 84), ("saffee", 83), ("snow", 80), ("vsm", 78), ("piriajr", 72)]),
-    ("GamerLegion", "EU", 15, 75, [("REZ", 85), ("FL4MUS", 82), ("Tauson", 80), ("hypex", 76), ("Snax", 72)]),
-    ("Liquid", "AM", 16, 74, [("EliGE", 85), ("NAF", 83), ("malbsMd", 81), ("Jorko", 76), ("JT", 72)]),
-    ("Astralis", "EU", 17, 73, [("jabbi", 83), ("device", 84), ("Staehr", 80), ("phzy", 78), ("HooXi", 71)]),
-    ("B8", "EU", 18, 72, [("npl", 81), ("alex666", 80), ("esenthial", 78), ("kensizor", 76), ("s1zzi", 70)]),
-    ("3DMAX", "EU", 19, 72, [("Maka", 82), ("Graviti", 80), ("Lucky", 79), ("misutaaa", 77), ("Kursy", 71)]),
-    ("TYLOO", "AS", 20, 68, [("JamYoung", 88), ("Mercury", 81), ("Moseyuh", 80), ("Jee", 79), ("Zero", 71)]),
-    ("BIG", "EU", 21, 60, [("tabseN", 80), ("JDC", 76), ("faveN", 75), ("gr1ks", 74), ("blameF", 74)]),
-    ("MIBR", "AM", 22, 70, [("insani", 84), ("nqz", 81), ("brnz4n", 78), ("venomzera", 76), ("LNZ", 71)]),
-    ("NiP", "EU", 23, 70, [("stavn", 84), ("xKacpersky", 83), ("sjuush", 80), ("cairne", 76), ("Snappi", 72)]),
-    ("HEROIC", "EU", 24, 63, [("Brollan", 86), ("nilo", 75), ("susp", 74), ("MartinezSa", 73), ("Chr1zN", 70)]),
-    ("FlyQuest", "AS", 25, 67, [("jks", 82), ("INS", 78), ("Vexite", 77), ("nettik", 76), ("story", 70)]),
-    ("Lynn Vision", "AS", 26, 66, [("Westmelon", 79), ("Starry", 82), ("EmiliaQAQ", 77), ("C4LLM3SU3", 75), ("z4KR", 70)]),
-    ("M80", "AM", 27, 65, [("swisher", 79), ("slaxz-", 78), ("s1n", 77), ("JBa", 76), ("Lake", 70)]),
-    ("9z", "AM", 28, 69, [("dgt", 81), ("max", 79), ("HUASOPEEK", 77), ("luchov", 75), ("meyern", 70)]),
-    ("Imperial", "AM", 29, 64, [("noway", 80), ("decenty", 78), ("VINI", 76), ("chelo", 75), ("saadzin", 70)]),
-    ("OG", "EU", 30, 66, [("cadiaN", 81), ("bodyy", 78), ("adamb", 76), ("arrozdoce", 75), ("spooke", 70)]),
-    ("FUT", "EU", 31, 64, [("cmtry", 80), ("Krabeni", 78), ("dziugss", 76), ("xfl0ud", 75), ("dem0n", 70)]),
-    ("NRG", "AM", 32, 63, [("Grim", 80), ("hallzerk", 79), ("Sonic", 76), ("Jeorge", 75), ("nitr0", 71)]),
-    ("Virtus.pro", "EU", 33, 62, [("mir", 79), ("b1st", 76), ("AquaRS", 75), ("F0R3VER", 74), ("tO0RO", 69)]),
-    ("100 Thieves", "EU", 34, 68, [("rain", 83), ("sirah", 76), ("poiii", 74), ("Gizmy", 70), ("Magisk", 77)]),
-    ("Rare Atom", "AS", 35, 62, [("Summer", 80), ("L1haNg", 77), ("chengking", 75), ("3gl", 74), ("Trash", 69)]),
-    ("SINNERS", "EU", 36, 60, [("SHOCK", 77), ("beastik", 75), ("kisserek", 74), ("MoDo", 73), ("stressarN", 68)]),
-    ("Fluxo", "AM", 37, 61, [("zevy", 78), ("exit", 76), ("kye", 74), ("dav1deus", 73), ("Ltz", 68)]),
-    ("9INE", "EU", 38, 59, [("flayy", 76), ("cej0t", 75), ("raalz", 74), ("kraghen", 73), ("bnox", 68)]),
-    ("Luminosity", "EU", 39, 58, [("afro", 78), ("Rainwaker", 75), ("Bymas", 74), ("lux", 73), ("AZUWU", 68)]),
-    ("Sharks", "AM", 40, 56, [("gafolo", 76), ("koala", 74), ("maxxkor", 73), ("rdnzao", 72), ("doc", 67)]),
-    ("ENCE", "EU", 41, 61, [("gla1ve", 74), ("sdy", 77), ("podi", 75), ("myltsi", 73), ("rigoN", 69)]),
-    ("fnatic", "EU", 42, 60, [("KRIMZ", 78), ("fear", 75), ("jambo", 73), ("CYPHER", 70), ("matys", 74)]),
-    ("SAW", "EU", 43, 62, [("MUTiRiS", 74), ("ewjerkz", 75), ("Ag1l", 73), ("krazy", 70), ("rmn", 72)]),
-    ("Passion UA", "EU", 44, 58, [("Kvem", 74), ("jackasmo", 73), ("s-chilla", 72), ("jackasio", 71), ("Woro2k", 76)]),
-    ("Complexity", "AM", 45, 64, [("floppy", 77), ("Cxzi", 76), ("nicx", 75), ("junior", 74), ("Grim-", 78)]),
-    ("BESTIA", "AM", 46, 57, [("Noktse", 73), ("tomaszin", 74), ("timpla", 72), ("zock", 68), ("luchov-", 75)]),
-    ("ATOX", "AS", 47, 60, [("dobu", 76), ("kabal", 75), ("MiQ", 74), ("AccuracyTG", 72), ("yAmi", 68)]),
-    ("HOTU", "AS", 48, 55, [("finesher", 74), ("mizu", 73), ("frontales", 72), ("kade0", 71), ("n0rb3r7", 67)]),
-    ("Chinggis Warriors", "AS", 49, 58, [("controlez", 75), ("cool4st", 73), ("Efire", 72), ("ACCURACY", 71), ("NEUZ", 68)]),
+    ("Falcons", "EU", 1, 60, [("m0NESY", 94), ("NiKo", 86), ("kyousuke", 94), ("TeSeS", 81), ("karrigan", 76)]),
+    ("Vitality", "EU", 2, 60, [("ZywOo", 98), ("ropz", 80), ("flameZ", 85), ("mezii", 78), ("apEX", 80)]),
+    ("Spirit", "EU", 3, 62, [("donk", 98), ("sh1ro", 91), ("zont1x", 77), ("tN1R", 80), ("magixx", 77)]),
+    ("FURIA", "AM", 4, 67, [("KSCERATO", 85), ("yuurih", 79), ("molodoy", 89), ("YEKINDAR", 82), ("FalleN", 75)]),
+    ("NAVI", "EU", 5, 55, [("w0nderful", 89), ("b1t", 82), ("makazze", 82), ("iM", 83), ("Aleksib", 77)]),
+    ("Aurora", "EU", 6, 42, [("XANTARES", 84), ("woxic", 85), ("Jimpphat", 82), ("Wicadia", 84), ("kyxsan", 78)]),
+    ("BetBoom", "EU", 7, 44, [("Magnojez", 82), ("zorte", 80), ("S1ren", 80), ("d1Ledez", 80), ("Boombl4", 79)]),
+    ("MOUZ", "EU", 8, 53, [("xertioN", 86), ("Spinx", 84), ("torzsi", 86), ("PR", 79), ("xelex", 83)]),
+    ("G2", "EU", 9, 60, [("HeavyGod", 80), ("huNter-", 83), ("NertZ", 81), ("r1nkle", 81), ("MATYS", 79)]),
+    ("The MongolZ", "AS", 10, 47, [("910", 85), ("bLitz", 83), ("Techno", 74), ("tikuak", 79), ("DarkMeister", 81)]),
+    ("Legacy", "AM", 11, 60, [("latto", 81), ("dumau", 84), ("n1ssim", 72), ("try", 90), ("arT", 75)]),
+    ("FaZe", "EU", 12, 47, [("frozen", 82), ("Twistzz", 83), ("jcobbb", 82), ("Neityu", 77), ("JBOEN", 84)]),
+    ("PARIVISION", "EU", 13, 42, [("Jame", 78), ("HObbit", 78), ("zweih", 78), ("xiELO", 80), ("slaxejezzz", 81)]),
+    ("paiN", "AM", 14, 45, [("biguzera", 78), ("saffee", 76), ("snow", 76), ("vsm", 76), ("piriajr", 73)]),
+    ("GamerLegion", "EU", 15, 47, [("REZ", 82), ("FL4MUS", 78), ("Tauson", 79), ("hypex", 81), ("Snax", 74)]),
+    ("Liquid", "AM", 16, 40, [("EliGE", 86), ("NAF", 78), ("malbsMd", 77), ("Jorko", 80), ("JT", 77)]),
+    ("Astralis", "EU", 17, 62, [("jabbi", 80), ("device", 83), ("Staehr", 87), ("phzy", 80), ("HooXi", 75)]),
+    ("B8", "EU", 18, 44, [("npl", 86), ("alex666", 75), ("esenthial", 80), ("kensizor", 84), ("s1zzi", 85)]),
+    ("3DMAX", "EU", 19, 46, [("Maka", 77), ("Graviti", 75), ("Lucky", 76), ("misutaaa", 77), ("Kursy", 79)]),
+    ("TYLOO", "AS", 20, 40, [("JamYoung", 80), ("Mercury", 78), ("Moseyuh", 76), ("Jee", 80), ("Zero", 79)]),
+    ("BIG", "EU", 21, 43, [("tabseN", 76), ("JDC", 79), ("faveN", 78), ("gr1ks", 82), ("blameF", 81)]),
+    ("MIBR", "AM", 22, 46, [("insani", 84), ("nqz", 81), ("brnz4n", 79), ("venomzera", 82), ("LNZ", 76)]),
+    ("NiP", "EU", 23, 47, [("stavn", 82), ("xKacpersky", 81), ("sjuush", 77), ("cairne", 80), ("Snappi", 72)]),
+    ("HEROIC", "EU", 24, 41, [("Brollan", 79), ("nilo", 81), ("susp", 80), ("MartinezSa", 81), ("Chr1zN", 78)]),
+    ("FlyQuest", "AS", 25, 44, [("jks", 78), ("INS", 76), ("Vexite", 80), ("nettik", 76), ("story", 77)]),
+    ("Lynn Vision", "AS", 26, 44, [("Westmelon", 82), ("Starry", 82), ("EmiliaQAQ", 75), ("C4LLM3SU3", 76), ("z4KR", 79)]),
+    ("M80", "AM", 27, 43, [("swisher", 76), ("slaxz-", 81), ("s1n", 73), ("JBa", 77), ("Lake", 81)]),
+    ("9z", "AM", 28, 51, [("dgt", 82), ("max", 75), ("HUASOPEEK", 83), ("luchov", 85), ("meyern", 79)]),
+    ("Imperial", "AM", 29, 40, [("noway", 76), ("decenty", 75), ("VINI", 74), ("chelo", 75), ("saadzin", 76)]),
+    ("OG", "EU", 30, 40, [("cadiaN", 75), ("bodyy", 74), ("adamb", 75), ("arrozdoce", 74), ("spooke", 74)]),
+    ("FUT", "EU", 31, 53, [("cmtry", 79), ("Krabeni", 80), ("dziugss", 85), ("xfl0ud", 87), ("dem0n", 87)]),
+    ("NRG", "AM", 32, 40, [("Grim", 79), ("hallzerk", 82), ("Sonic", 82), ("Jeorge", 78), ("nitr0", 77)]),
+    ("Virtus.pro", "EU", 33, 40, [("mir", 75), ("b1st", 78), ("AquaRS", 74), ("F0R3VER", 74), ("tO0RO", 74)]),
+    ("100 Thieves", "EU", 34, 40, [("rain", 74), ("sirah", 76), ("poiii", 79), ("Gizmy", 76), ("Magisk", 77)]),
+    ("Rare Atom", "AS", 35, 40, [("Summer", 73), ("L1haNg", 76), ("chengking", 74), ("3gl", 75), ("Trash", 75)]),
+    ("SINNERS", "EU", 36, 40, [("SHOCK", 73), ("beastik", 72), ("kisserek", 75), ("MoDo", 76), ("stressarN", 78)]),
+    ("Fluxo", "AM", 37, 40, [("zevy", 74), ("exit", 75), ("kye", 72), ("dav1deus", 76), ("Ltz", 74)]),
+    ("9INE", "EU", 38, 40, [("flayy", 78), ("cej0t", 74), ("raalz", 72), ("kraghen", 74), ("bnox", 74)]),
+    ("Luminosity", "EU", 39, 40, [("afro", 76), ("Rainwaker", 72), ("Bymas", 77), ("lux", 78), ("AZUWU", 79)]),
+    ("Sharks", "AM", 40, 40, [("gafolo", 73), ("koala", 73), ("maxxkor", 74), ("rdnzao", 74), ("doc", 79)]),
+    ("ENCE", "EU", 41, 40, [("gla1ve", 75), ("sdy", 74), ("podi", 75), ("myltsi", 74), ("rigoN", 75)]),
+    ("fnatic", "EU", 42, 40, [("KRIMZ", 77), ("fear", 73), ("jambo", 80), ("CYPHER", 77), ("fnatic 2026 slot5", 76)]),
+    ("SAW", "EU", 43, 40, [("MUTiRiS", 73), ("ewjerkz", 74), ("Ag1l", 74), ("krazy", 75), ("rmn", 74)]),
+    ("Passion UA", "EU", 44, 40, [("Kvem", 76), ("jackasmo", 77), ("s-chilla", 74), ("jackasio", 74), ("Woro2k", 76)]),
+    ("Complexity", "AM", 45, 40, [("floppy", 74), ("Cxzi", 75), ("nicx", 76), ("junior", 77), ("Grim-", 77)]),
+    ("BESTIA", "AM", 46, 40, [("Noktse", 75), ("tomaszin", 76), ("timpla", 74), ("zock", 76), ("luchov-", 77)]),
+    ("ATOX", "AS", 47, 40, [("dobu", 75), ("kabal", 74), ("MiQ", 76), ("AccuracyTG", 74), ("yAmi", 72)]),
+    ("HOTU", "AS", 48, 40, [("finesher", 79), ("mizu", 81), ("frontales", 81), ("kade0", 76), ("n0rb3r7", 77)]),
+    ("Chinggis Warriors", "AS", 49, 40, [("controlez", 74), ("cool4st", 76), ("Efire", 74), ("ACCURACY", 74), ("NEUZ", 73)]),
 ]
 
 
@@ -88,6 +88,20 @@ def tier_of(rank: int) -> str:
     if rank <= 40:
         return "t3"
     return "t4"
+
+
+def opening_team_context(rank: int) -> tuple[float, float, float]:
+    """Opening command, mentality and map preparation estimates.
+
+    Rank is used once as a same-era data-quality fallback, never as a live
+    match multiplier and never to alter a player's permanent overall.
+    """
+    r = max(1, min(49, int(rank)))
+    if r <= 10:
+        return 100.0, 100.0, 100.0
+    if r <= 30:
+        return 72.0 - 1.1 * (r - 11), 60.0, 55.0
+    return 1.0, 0.0, 0.0
 
 
 TIER_LABEL = {
@@ -138,50 +152,153 @@ def maps_for(i: int, name: str) -> tuple[list[str], list[str]]:
 
 
 def build_teams(era: str = "2026", year: int | None = None) -> list[dict]:
-    from .ability import ability_of, igl_command, stats_for
-    from .aging import starting_igl_years
-    from .eras import ERA_ROSTERS
+    from .ability import ability_of, calibrate_role, refresh_team_command, restamp_command, stats_for
+    from .aging import shift_from_2026, starting_igl_years
+    from .eras import ERA_PACK_VERSION, opening_rank, player_id, roster_for, validate_era_packs
     from .pool import age_of
     from .roles import role_of
+    from .era_data import correction_for, team_rows_for
 
     year = year or int(era)
-    overrides = ERA_ROSTERS.get(era, {})
+    validate_era_packs(TEAMS)
     out = []
-    for i, (name, region, rank, command, roster) in enumerate(TEAMS):
+    for i, (name, region, roster_rank, command, roster) in enumerate(team_rows_for(era, TEAMS)):
+        rank = opening_rank(era, name, roster_rank)
+        command_base, opening_mentality, map_adaptation = opening_team_context(rank)
         strong, weak = maps_for(i, name)
-        used = overrides.get(name, roster)
+        used, era_source, data_quality = roster_for(era, name, roster, rank)
+        correction = correction_for(era, name)
+        authored = {p['name']: p for p in correction.get('players', [])}
+        provenance = {k: v for k, v in correction.items() if k != 'players'}
         players = []
         for j, (pname, ability) in enumerate(used):
-            role = role_of(pname, j, len(used) - 1, name)
-            stats = stats_for(pname, role, float(ability))
+            role = authored[pname]['role'] if pname in authored else role_of(pname, j, len(used) - 1, name)
+            if correction:
+                # A dated estimate must not import the global (2026) player
+                # statistics or age-shift them a second time.
+                from .ability import generate_axes, generate_command
+                stats = {**generate_axes(pname, role, ability), 'command': generate_command(pname, role, ability)}
+                calibrate_role(stats, role, ability)
+            else:
+                stats = stats_for(pname, role, float(ability))
             gun = float(stats["ability"]) if "ability" in stats else ability_of(stats, role)
             age = age_of(pname, year)
+            if year != 2026 and not correction:
+                gun, stats = shift_from_2026(stats, gun, age_of(pname, 2026), age, role)
             players.append(
                 {
+                    "player_id": player_id(pname),
                     "name": pname,
                     "role": role,
+                    "is_igl": bool(authored.get(pname, {}).get('is_igl', False)),
+                    "roster_status": authored.get(pname, {}).get('roster_status', 'active'),
                     "ability": gun,
-                    "command": int(stats["command"]),
+                    "long_term_ability": gun,
+                    "command": int(stats.get("command") or 0),
                     "stats": stats,
-                    "form": max(52, gun - 8),
+                    "form_delta": float(stats.get("form_delta") or 0),
+                    "form": gun + float(stats.get("form_delta") or 0),
                     "age": age,
                     "igl_years": starting_igl_years(pname, role, age),
+                    "source": era_source,
+                    "data_quality": data_quality,
+                    "era_provenance": provenance,
                 }
             )
-        out.append(
-            {
-                "id": slug(name),
-                "name": name,
-                "region": region,
-                "tier": tier_of(rank),
-                "world_rank": rank,
-                "command": igl_command(players) or command,
-                "strong_maps": strong,
-                "weak_maps": weak,
-                "money": 220000 - rank * 2800,
-                "players": players,
+        team = {
+            "id": correction.get('id') or slug(name),
+            "org_id": correction.get('id') or slug(name),
+            "era_pack_version": ERA_PACK_VERSION,
+            "era": era,
+            "source": era_source,
+            "data_quality": data_quality,
+            "era_provenance": provenance,
+            "custom_roles": bool(correction),
+            "allow_no_awp": bool(correction.get('allow_no_awp', False)),
+            "name": name,
+            "region": region,
+            "tier": tier_of(rank),
+            "world_rank": rank,
+            "command": command,
+            "command_base": command_base,
+            "opening_mentality": opening_mentality,
+            "mentality_floor": 0.0 if rank > 30 else 35.0,
+            "map_adaptation": map_adaptation,
+            "team_context_source": f"{era}-opening-rank-band-estimate",
+            "strong_maps": strong,
+            "weak_maps": weak,
+            "money": 220000 - rank * 2800,
+            "players": players,
+        }
+        restamp_command(team, command_base)
+        out.append(team)
+    # Team packs may add a new organisation or replace one by id. They use the
+    # same runtime shape as built-ins, so every downstream system stays generic.
+    try:
+        from ..content import get_registry
+
+        payloads = get_registry().payloads("teams")
+    except (OSError, TypeError, ValueError):
+        payloads = []
+    by_id = {team["id"]: i for i, team in enumerate(out)}
+    for payload in payloads:
+        payload_era = str(payload.get("era") or "")
+        if payload_era and payload_era != str(era):
+            continue
+        for raw in payload.get("teams") or []:
+            if not isinstance(raw, dict) or not raw.get("name"):
+                continue
+            tid = str(raw.get("id") or slug(str(raw["name"])))
+            people = raw.get("players") or []
+            if len(people) != 5:
+                continue
+            players = []
+            for j, person in enumerate(people):
+                if not isinstance(person, dict) or not person.get("name"):
+                    players = []
+                    break
+                pname = str(person["name"])
+                role = str(person.get("role") or role_of(pname, j, 4, str(raw["name"])))
+                ability = max(45.0, min(98.0, float(person.get("ability") or 70)))
+                stats = stats_for(pname, role, ability)
+                calibrate_role(stats, role, ability)
+                players.append({
+                    "player_id": str(person.get("player_id") or player_id(pname)),
+                    "name": pname, "role": role, "ability": ability,
+                    "long_term_ability": ability,
+                    "command": int(stats.get("command") or 0), "stats": stats,
+                    "form_delta": float(person.get("form_delta") or 0),
+                    "form": ability + float(person.get("form_delta") or 0),
+                    "age": int(person.get("age") or age_of(pname, year)),
+                    "igl_years": int(person.get("igl_years") or 0),
+                    "source": f"extension:{payload.get('_pack_id')}", "data_quality": "extension",
+                })
+            if len(players) != 5 or len({p["player_id"] for p in players}) != 5:
+                continue
+            rank = max(1, int(raw.get("rank") or 50))
+            strong, weak = maps_for(len(out), str(raw["name"]))
+            team = {
+                "id": tid, "org_id": tid, "era_pack_version": ERA_PACK_VERSION,
+                "era": str(era), "source": f"extension:{payload.get('_pack_id')}",
+                "data_quality": "extension", "name": str(raw["name"]),
+                "custom_roles": True,
+                "region": str(raw.get("region") or "EU"), "tier": tier_of(rank),
+                "world_rank": rank, "command": int(raw.get("command") or 58),
+                "command_base": float(raw.get("command") or 58),
+                "opening_mentality": float(raw.get("mentality") or 60),
+                "mentality_floor": 0.0 if rank > 30 else 35.0,
+                "map_adaptation": float(raw.get("map_adaptation") or 55),
+                "team_context_source": f"extension:{payload.get('_pack_id')}",
+                "strong_maps": list(raw.get("strong_maps") or strong),
+                "weak_maps": list(raw.get("weak_maps") or weak),
+                "money": int(raw.get("money") or 80000), "players": players,
             }
-        )
+            restamp_command(team, team["command_base"])
+            if tid in by_id:
+                out[by_id[tid]] = team
+            else:
+                by_id[tid] = len(out)
+                out.append(team)
     return out
 
 

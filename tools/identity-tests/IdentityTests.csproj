@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings>
+    <NuGetAudit>false</NuGetAudit>
+  </PropertyGroup>
+  <ItemGroup><Compile Include="../../vendor/CareerMatch/IdentityBindings.cs" Link="IdentityBindings.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../../vendor/CareerMatch/SessionHealth.cs" Link="SessionHealth.cs" /></ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../vendor/CareerMatch/ManifestDigest.cs" Link="ManifestDigest.cs" />
+    <Compile Include="../../vendor/CareerMatch/ActorOwnership.cs" Link="ActorOwnership.cs" />
+    <Compile Include="../../vendor/CareerMatch/TakeoverResolver.cs" Link="TakeoverResolver.cs" />
+    <Compile Include="../../vendor/CareerMatch/TeamScoreMapping.cs" Link="TeamScoreMapping.cs" />
+    <Compile Include="../../vendor/CareerMatch/RosterReadiness.cs" Link="RosterReadiness.cs" />
+    <None Include="../../tests/fixtures/bot_manifest_contract.json" Link="bot_manifest_contract.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../tests/fixtures/takeover_control_snapshots.json" Link="takeover_control_snapshots.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

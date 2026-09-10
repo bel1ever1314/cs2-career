@@ -1,0 +1,1486 @@
+[
+  {
+    "live": [
+      {
+        "Team": "ct",
+        "IsBot": false,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": true,
+        "Id": "human",
+        "Original": "bot2",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot1",
+        "Original": "bot1",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot2",
+        "Original": "human",
+        "WasControlled": true
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot3",
+        "Original": "bot3",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot4",
+        "Original": "bot4",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot5",
+        "Original": "bot5",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot6",
+        "Original": "bot6",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot7",
+        "Original": "bot7",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot8",
+        "Original": "bot8",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot9",
+        "Original": "bot9",
+        "WasControlled": false
+      }
+    ],
+    "expected": "bot2",
+    "eventBotId": "human"
+  },
+  {
+    "live": [
+      {
+        "Team": "ct",
+        "IsBot": false,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": true,
+        "Id": "human",
+        "Original": "bot4",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot1",
+        "Original": "bot1",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot2",
+        "Original": "bot2",
+        "WasControlled": true
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot3",
+        "Original": "bot3",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot4",
+        "Original": "human",
+        "WasControlled": true
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot5",
+        "Original": "bot5",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot6",
+        "Original": "bot6",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot7",
+        "Original": "bot7",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot8",
+        "Original": "bot8",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot9",
+        "Original": "bot9",
+        "WasControlled": false
+      }
+    ],
+    "expected": "bot4",
+    "eventBotId": "human"
+  },
+  {
+    "live": [
+      {
+        "Team": "ct",
+        "IsBot": false,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": true,
+        "Id": "human",
+        "Original": "bot1",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot1",
+        "Original": "human",
+        "WasControlled": true
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot2",
+        "Original": "bot2",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot3",
+        "Original": "bot3",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot4",
+        "Original": "bot4",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot5",
+        "Original": "bot5",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot6",
+        "Original": "bot6",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot7",
+        "Original": "bot7",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot8",
+        "Original": "bot8",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot9",
+        "Original": "bot9",
+        "WasControlled": false
+      }
+    ],
+    "expected": "bot1",
+    "eventBotId": "human"
+  },
+  {
+    "live": [
+      {
+        "Team": "ct",
+        "IsBot": false,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": true,
+        "Id": "human",
+        "Original": "bot2",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot1",
+        "Original": "bot1",
+        "WasControlled": true
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot2",
+        "Original": "human",
+        "WasControlled": true
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot3",
+        "Original": "bot3",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot4",
+        "Original": "bot4",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot5",
+        "Original": "bot5",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot6",
+        "Original": "bot6",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot7",
+        "Original": "bot7",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot8",
+        "Original": "bot8",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot9",
+        "Original": "bot9",
+        "WasControlled": false
+      }
+    ],
+    "expected": "bot2",
+    "eventBotId": "human"
+  },
+  {
+    "live": [
+      {
+        "Team": "ct",
+        "IsBot": false,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": true,
+        "Id": "human",
+        "Original": "bot3",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot1",
+        "Original": "bot1",
+        "WasControlled": true
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot2",
+        "Original": "bot2",
+        "WasControlled": true
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot3",
+        "Original": "human",
+        "WasControlled": true
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot4",
+        "Original": "bot4",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot5",
+        "Original": "bot5",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot6",
+        "Original": "bot6",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot7",
+        "Original": "bot7",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot8",
+        "Original": "bot8",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot9",
+        "Original": "bot9",
+        "WasControlled": false
+      }
+    ],
+    "expected": "bot3",
+    "eventBotId": "human"
+  },
+  {
+    "live": [
+      {
+        "Team": "ct",
+        "IsBot": false,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": true,
+        "Id": "human",
+        "Original": "bot2",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot1",
+        "Original": "bot1",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot2",
+        "Original": "human",
+        "WasControlled": true
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot3",
+        "Original": "bot3",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot4",
+        "Original": "bot4",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot5",
+        "Original": "bot5",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot6",
+        "Original": "bot6",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot7",
+        "Original": "bot7",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot8",
+        "Original": "bot8",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot9",
+        "Original": "bot9",
+        "WasControlled": false
+      }
+    ],
+    "expected": "bot2",
+    "eventBotId": "human"
+  },
+  {
+    "live": [
+      {
+        "Team": "ct",
+        "IsBot": false,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": true,
+        "Id": "human",
+        "Original": "bot4",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot1",
+        "Original": "bot1",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot2",
+        "Original": "bot2",
+        "WasControlled": true
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot3",
+        "Original": "bot3",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot4",
+        "Original": "human",
+        "WasControlled": true
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot5",
+        "Original": "bot5",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot6",
+        "Original": "bot6",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot7",
+        "Original": "bot7",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot8",
+        "Original": "bot8",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot9",
+        "Original": "bot9",
+        "WasControlled": false
+      }
+    ],
+    "expected": "bot4",
+    "eventBotId": "human"
+  },
+  {
+    "live": [
+      {
+        "Team": "ct",
+        "IsBot": false,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": true,
+        "Id": "human",
+        "Original": "bot2",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot1",
+        "Original": "bot1",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot2",
+        "Original": "human",
+        "WasControlled": true
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot3",
+        "Original": "bot3",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot4",
+        "Original": "bot4",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot5",
+        "Original": "bot5",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot6",
+        "Original": "bot6",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot7",
+        "Original": "bot7",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot8",
+        "Original": "bot8",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot9",
+        "Original": "bot9",
+        "WasControlled": false
+      }
+    ],
+    "expected": "bot2",
+    "eventBotId": "human"
+  },
+  {
+    "live": [
+      {
+        "Team": "ct",
+        "IsBot": false,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": true,
+        "Id": "human",
+        "Original": "bot2",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot1",
+        "Original": "bot1",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot2",
+        "Original": "human",
+        "WasControlled": true
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot3",
+        "Original": "bot3",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot4",
+        "Original": "bot4",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot5",
+        "Original": "bot5",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot6",
+        "Original": "bot6",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot7",
+        "Original": "bot7",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot8",
+        "Original": "bot8",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot9",
+        "Original": "bot9",
+        "WasControlled": false
+      }
+    ],
+    "expected": "bot2",
+    "eventBotId": "human"
+  },
+  {
+    "live": [
+      {
+        "Team": "ct",
+        "IsBot": false,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": true,
+        "Id": "human",
+        "Original": "bot1",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot1",
+        "Original": "human",
+        "WasControlled": true
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot2",
+        "Original": "bot2",
+        "WasControlled": true
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot3",
+        "Original": "bot3",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot4",
+        "Original": "bot4",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot5",
+        "Original": "bot5",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot6",
+        "Original": "bot6",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot7",
+        "Original": "bot7",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot8",
+        "Original": "bot8",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot9",
+        "Original": "bot9",
+        "WasControlled": false
+      }
+    ],
+    "expected": "bot1",
+    "eventBotId": "human"
+  },
+  {
+    "live": [
+      {
+        "Team": "ct",
+        "IsBot": false,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": true,
+        "Id": "human",
+        "Original": "bot3",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot1",
+        "Original": "bot1",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot2",
+        "Original": "bot2",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot3",
+        "Original": "human",
+        "WasControlled": true
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot4",
+        "Original": "bot4",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot5",
+        "Original": "bot5",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot6",
+        "Original": "bot6",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot7",
+        "Original": "bot7",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot8",
+        "Original": "bot8",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot9",
+        "Original": "bot9",
+        "WasControlled": false
+      }
+    ],
+    "expected": "bot3",
+    "eventBotId": "human"
+  },
+  {
+    "live": [
+      {
+        "Team": "ct",
+        "IsBot": false,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": true,
+        "Id": "human",
+        "Original": "bot1",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot1",
+        "Original": "human",
+        "WasControlled": true
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot2",
+        "Original": "bot2",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot3",
+        "Original": "bot3",
+        "WasControlled": true
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot4",
+        "Original": "bot4",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot5",
+        "Original": "bot5",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot6",
+        "Original": "bot6",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot7",
+        "Original": "bot7",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot8",
+        "Original": "bot8",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot9",
+        "Original": "bot9",
+        "WasControlled": false
+      }
+    ],
+    "expected": "bot1",
+    "eventBotId": "human"
+  },
+  {
+    "live": [
+      {
+        "Team": "ct",
+        "IsBot": false,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": true,
+        "Id": "human",
+        "Original": "bot4",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot1",
+        "Original": "bot1",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot2",
+        "Original": "bot2",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot3",
+        "Original": "bot3",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot4",
+        "Original": "human",
+        "WasControlled": true
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot5",
+        "Original": "bot5",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot6",
+        "Original": "bot6",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot7",
+        "Original": "bot7",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot8",
+        "Original": "bot8",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot9",
+        "Original": "bot9",
+        "WasControlled": false
+      }
+    ],
+    "expected": "bot4",
+    "eventBotId": "human"
+  },
+  {
+    "live": [
+      {
+        "Team": "ct",
+        "IsBot": false,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": true,
+        "Id": "human",
+        "Original": "bot1",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot1",
+        "Original": "human",
+        "WasControlled": true
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot2",
+        "Original": "bot2",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot3",
+        "Original": "bot3",
+        "WasControlled": false
+      },
+      {
+        "Team": "ct",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot4",
+        "Original": "bot4",
+        "WasControlled": true
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot5",
+        "Original": "bot5",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot6",
+        "Original": "bot6",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": true,
+        "Controlling": false,
+        "Id": "bot7",
+        "Original": "bot7",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot8",
+        "Original": "bot8",
+        "WasControlled": false
+      },
+      {
+        "Team": "t",
+        "IsBot": true,
+        "Pawn": 0,
+        "Dead": false,
+        "Controlling": false,
+        "Id": "bot9",
+        "Original": "bot9",
+        "WasControlled": false
+      }
+    ],
+    "expected": "bot1",
+    "eventBotId": "human"
+  }
+]
