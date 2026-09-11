@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "rules": [
+    {"id":"close-game","when":"round_end","speaker":"coach","color":"blue","priority":5,"probability":0.7,"max_per_match":1,"conditions":{"round":{"min":16},"lead":{"min":-1,"max":1}},"text":["比分还咬着，下一回合先把信息交流做好。"]},
+    {"id":"trailing","when":"round_end","speaker":"coach","color":"blue","probability":0.65,"cooldown_rounds":8,"max_per_match":2,"conditions":{"lead":{"max":-4},"loss_streak":{"min":2}},"text":["先把这一分拿下来，不用一口气追回全部。","节奏慢一点，把钱和道具安排好。"]},
+    {"id":"momentum","when":"round_end","speaker":"teammate","color":"green","probability":0.65,"max_per_match":2,"conditions":{"win_streak":{"min":3}},"text":["就这样打，保持交流。","连着拿了几分，别急，我们继续。"]},
+    {"id":"multikill","when":"round_end","speaker":"teammate","color":"gold","priority":20,"cooldown_rounds":4,"max_per_match":2,"conditions":{"round_kills":{"min":3}},"text":["漂亮，{player}！这回合拿了 {round_kills} 个。","这波处理得好，{player}。"]},
+    {"id":"rough-start","when":"round_end","speaker":"teammate","probability":0.7,"max_per_match":1,"conditions":{"round":{"min":6,"max":10},"kills":{"max":2},"deaths":{"min":4}},"text":["没关系，{player}，一起补枪，下一分继续。"]}
+  ]
+}

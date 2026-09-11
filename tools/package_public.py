@@ -8,12 +8,16 @@ import re
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = '1.5.0-rc.20260910.4'
+VERSION = '1.5.0-steady.1'
 DOCS = ('README.md','LICENSE','THIRD_PARTY_NOTICES.md','RECOVERED_SOURCE.md',
         'RELEASE_NOTES.md','PUBLISHING.md','DEVELOPER_GUIDE.zh-CN.md',
         'EXTENSION_ARCHITECTURE.zh-CN.md','CS2_INTEGRATION.zh-CN.md',
-        'DESKTOP_REBUILD_STATUS.zh-CN.md','开始游玩-FAQ.txt')
-RUNTIME_DOCS = ('开始游玩-FAQ.txt','LICENSE','THIRD_PARTY_NOTICES.md','RECOVERED_SOURCE.md')
+        'DESKTOP_REBUILD_STATUS.zh-CN.md','开始游玩-FAQ.txt','剧情扩展说明.txt',
+        '本队路径与界面平滑说明.txt','自动模拟和辅助设置说明.txt',
+        '比分观赛和Major赛制说明.txt','自己改剧情和打包.txt')
+RUNTIME_DOCS = ('开始游玩-FAQ.txt','剧情扩展说明.txt','本队路径与界面平滑说明.txt',
+                '自动模拟和辅助设置说明.txt','比分观赛和Major赛制说明.txt',
+                'LICENSE','THIRD_PARTY_NOTICES.md','RECOVERED_SOURCE.md')
 ROOT_FILES = DOCS + ('requirements-desktop.txt','main.py','preview_main.py','playtest_main.py',
                      'build_desktop_preview.py','build_exe.py','.gitignore')
 SKIP = {'bin','obj','__pycache__','.git','.agents','.codex','save','.qa','.desktop-deps'}
@@ -110,5 +114,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--exe',type=Path,required=True)
     parser.add_argument('--output',type=Path,default=ROOT/'publish'/VERSION)
+    parser.add_argument('--version',default=VERSION)
     args = parser.parse_args()
-    print(json.dumps(build(ROOT,args.exe.resolve(),args.output.resolve()),indent=2))
+    print(json.dumps(build(ROOT,args.exe.resolve(),args.output.resolve(),args.version),indent=2))

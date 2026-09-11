@@ -155,7 +155,8 @@ class RoleAbilityTests(unittest.TestCase):
             state=ApplicationState()
             p=state.career.my_player(state.season.teams)
             self.assertEqual(67.2,p['ability'])
-            self.assertTrue(any(all((folder/name).is_file() and (folder/name).read_bytes()==data for name,data in originals.items())
+            import gzip
+            self.assertTrue(any(all((folder/(name+'.gz')).is_file() and gzip.decompress((folder/(name+'.gz')).read_bytes())==data for name,data in originals.items())
                 for folder in (root/'backups').iterdir()))
             mapping={p['name']:p['role'] for p in state.career.my_team(state.season.teams)['players']}
             mapping[p['name']]='lurk'

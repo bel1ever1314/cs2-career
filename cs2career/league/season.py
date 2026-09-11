@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import json
 import shutil
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from ..cs2 import cs2_to_map, pick_better_result, read_result, result_usable, start_match, to_cs2_map
 from ..engine import (
@@ -89,7 +89,16 @@ def calendar_for(year: int) -> dict:
         title = (MAJOR_TITLES.get(year) or {}).get(ev["id"])
         if title:
             ev["name"], ev["short"] = title
+        if ev.get("type") == "major":
+            ev["format"] = "major_stages"
+            ev["size"] = 32 if year >= 2025 else 24
+            # Five Swiss rounds per stage, followed by QF/SF/GF. Preserve the
+            # calendar's final day; expand its opening date, not its ending.
+            days = 18 if year >= 2025 else 13
+            end = date.fromisoformat(ev["dates"][-1])
+            ev["dates"] = [(end - timedelta(days=i)).isoformat() for i in reversed(range(days))]
         kept.append(ev)
+    kept.sort(key=lambda e: e["dates"][0])
     blob["events"] = kept
     return blob
 
@@ -144,9 +153,10 @@ class Season:
         tm = self.team_map()
         return [tm[row["id"]] for row in self.vrs.table(self.teams, self.date)]
 
-    def records(self) -> list[dict]:
-        done = [awards.make_record(ev) for ev in self.events if ev.get("status") == "done"]
-        return self.history + done
+    def records(self, *, include_matches: bool = True) -> list[dict]:
+        done = [awards.make_record(ev, include_matches=include_matches) for ev in self.events if ev.get("status") == "done"]
+        history = self.history if include_matches else [{**r, 'matches': []} for r in self.history]
+        return history + done
 
     # ---------------------------------------------------------------- invites
 
@@ -237,6 +247,9 @@ class Season:
         if not mine:
             return picked[:size]
         accepted = ev["id"] in (career.registered or [])
+        from ..career.incidents import competition_paused
+        if competition_paused(career, self.date):
+            accepted = False
         if ev.get("type") in ("major", "t1") and not self._earned_slot(ev, mine):
             accepted = False
         picked = [t for t in picked if t["id"] != mine["id"]]
@@ -307,7 +320,11 @@ class Season:
         self._schedule(ev, opening)
         self.log.append(f"{ev['name']} 开赛，{len(ev['field'])} 支队伍。")
         if self.career:
+            from ..career import arcs
+            arcs.event_open(self.career, self, ev)
             self.career.maybe_major_coach(self, ev)
+            if self.career.team_id in {t['id'] for t in field}:
+                self.career.emit_incidents(self, 'event_started', ev['id'], ev.get('type', ''))
             self.career.watch(self, ev)
 
     def advance_event(self, ev: dict) -> None:
@@ -357,6 +374,9 @@ class Season:
         self.log.append(f"{ev['name']} 冠军：{ev['champion']}{tail}")
         if self.career:
             self.career.award_event(self, ev)
+            from ..career import arcs, news
+            news.event_done(self.career, self, ev)
+            arcs.event_done(self.career, self, ev)
             if not any(e.get("status") in ("upcoming", "live") for e in self.events):
                 self.career.on_top20_eve(self)
 
@@ -464,6 +484,9 @@ class Season:
         return None
 
     def your_series(self) -> tuple[dict, dict] | None:
+        from ..career.incidents import competition_paused
+        if competition_paused(self.career, self.date):
+            return None
         open_ones: list[tuple[dict, dict]] = []
         due_ones: list[tuple[dict, dict]] = []
         today = _d(self.date)
@@ -486,6 +509,9 @@ class Season:
         return ev, match
 
     def yours_ready(self, match: dict) -> bool:
+        from ..career.incidents import competition_paused
+        if competition_paused(self.career, self.date):
+            return False
         if match.get("played") or not self.is_yours(match):
             return False
         if match.get("human") or match.get("veto") or match.get("maps") or match.get("cs2_session"):
@@ -503,6 +529,9 @@ class Season:
         return ev, match
 
     def open_your_series(self, ev: dict, match: dict) -> None:
+        from ..career.incidents import competition_paused
+        if competition_paused(self.career, self.date):
+            return
         if match.get("played") or match.get("team_b") == "BYE":
             return
         if "rank_a_at_match" not in match:
@@ -536,6 +565,9 @@ class Season:
         match["cs2_session"] = None
         after_series(a, b, {"winner": winner, "stage": match["stage"]})
         self._book_stats(ev, match, a, b)
+        if self.career:
+            from ..career import arcs
+            arcs.on_series(self.career, self, ev, match)
         self.advance_event(ev)
         if self.career:
             self.career.on_series_done(self)
@@ -560,11 +592,13 @@ class Season:
         return ""
 
     def launch_your_map(self, match_id: str, side: str = "ct") -> str:
+        ev, match = self._require_yours(match_id)
+        if match.get('played'):
+            raise ValueError('这场已经打完了')
         if self.career:
             block = self.career.gate_match(self, match_id)
             if block:
                 raise ValueError(block)
-        ev, match = self._require_yours(match_id)
         self.open_your_series(ev, match)
         if match.get("played"):
             raise ValueError("这场已经打完了")
@@ -651,11 +685,13 @@ class Season:
         return f"第 {n} 图结束 {box['score']}。下一张：{nxt}。"
 
     def skip_your_series(self, match_id: str) -> str:
+        ev, match = self._require_yours(match_id)
+        if match.get('played'):
+            raise ValueError('这场已经打完了')
         if self.career:
             block = self.career.gate_match(self, match_id)
             if block:
                 raise ValueError(block)
-        ev, match = self._require_yours(match_id)
         if match.get("played"):
             raise ValueError("这场已经打完了")
         self.open_your_series(ev, match)
@@ -695,6 +731,9 @@ class Season:
         match["series"] = f"{wa}-{wb}"
         match["maps"] = match.get("maps") or []
         match["forfeit"] = True
+        from ..career.incidents import competition_paused
+        if competition_paused(self.career, self.date):
+            match['forfeit_reason'] = '生涯事件：主动暂停参赛'
         match["pending_map"] = None
         match["cs2_session"] = None
         a = _find(self.teams, match["team_a"])
@@ -707,7 +746,8 @@ class Season:
         if match["played"] or match["team_b"] == "BYE":
             return
         if self.is_yours(match):
-            if self.career and (getattr(self.career, "banned", False) or getattr(self.career, "retired", False)):
+            from ..career.incidents import competition_paused
+            if self.career and (getattr(self.career, "banned", False) or getattr(self.career, "retired", False) or competition_paused(self.career, self.date)):
                 self._forfeit_yours(ev, match)
             return
         a = _find(self.teams, match["team_a"])
@@ -771,6 +811,10 @@ class Season:
         return min(days) if days else None
 
     def next_stage(self) -> str:
+        if self.career:
+            from ..career.incidents import pending
+            if pending(self.career):
+                return '先处理待决定的生涯事件。'
         ingested = self.try_ingest_pending_cs2()
         if ingested:
             return ingested
@@ -794,7 +838,8 @@ class Season:
         guard = 0
         while guard < 60:
             guard += 1
-            pending = [(e, m) for e, m in self.due_matches() if not self.is_yours(m)]
+            from ..career.incidents import competition_paused
+            pending = [(e, m) for e, m in self.due_matches() if not self.is_yours(m) or competition_paused(self.career, self.date)]
             if not pending:
                 break
             for ev, m in pending:
@@ -827,6 +872,10 @@ class Season:
 
     def skip_to_next_event(self) -> str:
         """Finish every running event, then land on the next one's opening day."""
+        if self.career:
+            from ..career.incidents import pending
+            if pending(self.career):
+                return '先处理待决定的生涯事件。'
         ingested = self.try_ingest_pending_cs2()
         if ingested:
             return ingested
@@ -991,7 +1040,7 @@ class Season:
         return rows
 
     def top20_live(self) -> list[dict]:
-        finished = [awards.make_record(ev) for ev in self.events if ev.get("status") == "done"]
+        finished = [awards.make_record(ev, include_matches=False) for ev in self.events if ev.get("status") == "done"]
         return awards.top20(self.ratings_vs_field(), finished)
 
     # ---------------------------------------------------------------- payload
@@ -1081,7 +1130,7 @@ class Season:
             "matches": slim,
         }
         fmt = out["format"]
-        if fmt == "swiss_playoff" and ev.get("field"):
+        if fmt in ("swiss_playoff", "major_stages") and ev.get("field"):
             state = formats.swiss_state(ev)
             out["swiss"] = sorted(
                 (
@@ -1133,7 +1182,7 @@ class Season:
             "ratings": self.ratings_vs_field()[:60],
             "top20": self.top20_live(),
             "top20_history": history_features(self.top20),
-            "records": self.records(),
+            "records": self.records(include_matches=False),
             "log": self.log[-10:],
             "your_match": self._your_match_public(),
         }
@@ -1167,7 +1216,8 @@ class Season:
             "log": self.log,
         }
         pending = STATE_PATH.with_suffix('.pending')
-        pending.write_text(json.dumps(blob, ensure_ascii=False), encoding="utf-8")
+        from ..json_bytes import encode
+        pending.write_bytes(encode(blob))
         pending.replace(STATE_PATH)
 
     @classmethod
@@ -1206,27 +1256,43 @@ class Season:
             raise ValueError('season.json 损坏或字段不完整；原文件已保留，不会自动重置赛季。') from exc
 
     def align_calendar(self) -> bool:
-        """Drop leftover 2025+ RMRs and insert missing T1 play-ins on old saves."""
+        """Update future calendar entries without rewriting played/live brackets."""
         want = [_blank_event(json.loads(json.dumps(e))) for e in calendar_for(self.year)["events"]]
         want_ids = {e["id"] for e in want}
         before = [e["id"] for e in self.events]
+        changed = False
         kept = []
         for ev in self.events:
             if ev["id"] in want_ids:
                 src = next(e for e in want if e["id"] == ev["id"])
+                if ev.get("status") == "upcoming" and not ev.get("matches") and src.get("type") == "major":
+                    for key in ("format", "size", "dates"):
+                        if ev.get(key) != src[key]:
+                            ev[key] = src[key]
+                            changed = True
                 for key in ("direct", "scope", "feeds", "qualify", "gate"):
                     if key in src:
                         ev[key] = src[key]
                 kept.append(ev)
             elif ev.get("status") == "done":
                 kept.append(ev)
+            # Never change a final already launched in CS2 or with a saved map.
+            if ev.get("type") in ("t1", "major") and ev.get("status") != "done":
+                for m in ev.get("matches") or []:
+                    if (m.get("stage") == "GF" and not m.get("played") and not m.get("maps")
+                            and not m.get("cs2_session") and m.get("team_b") != "BYE"
+                            and m.get("best_of") != 5):
+                        m["best_of"] = 5
+                        m.pop("veto", None)
+                        m.pop("pending_map", None)
+                        changed = True
         have = {e["id"] for e in kept}
         for ev in want:
             if ev["id"] not in have:
                 kept.append(ev)
         kept.sort(key=lambda e: (e.get("dates") or [""])[0])
         self.events = kept
-        return [e["id"] for e in kept] != before
+        return changed or [e["id"] for e in kept] != before
 
 
 def reset_season(year: int = 2026, era: str = "2026") -> Season:

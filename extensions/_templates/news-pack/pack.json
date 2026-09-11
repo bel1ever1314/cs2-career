@@ -1,0 +1,9 @@
+{
+  "id": "author.world.news.example",
+  "name": "新闻与NA考核配置示例",
+  "version": "1.0.0",
+  "schema_version": 1,
+  "types": ["incidents"],
+  "author": "示例作者",
+  "description": "修改报道标题、正文和NA考核条件。复制到extensions根目录才启用。"
+}

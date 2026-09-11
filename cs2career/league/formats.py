@@ -3,7 +3,10 @@
 
 single_elim   8 teams, seeded bracket, BO3 all the way (CCT / RMR / World Final)
 swiss_playoff 16 teams, Valve Swiss (3 wins in, 3 losses out) then 8-team BO3
-              playoff. This is the Major format, also used by IEM premiers.
+              playoff, used by IEM premiers and legacy saved Majors.
+major_stages  32 teams (2025+): 16 enter stage 1, 8 seeded into stage 2,
+              8 seeded into stage 3. Each Swiss stage advances 8 of 16.
+              Historical 24-team events have two stages. T1+/Major GF is BO5.
 gsl_playoff   16 teams, four GSL groups of four, top two advance to an 8-team
               BO3 playoff. This is the ESL Pro League / BLAST shape.
 
@@ -55,7 +58,7 @@ def _mk(
         "stage": stage,
         "label": label or STAGE_LABEL.get(stage, stage),
         "date": day,
-        "best_of": best_of,
+        "best_of": 5 if stage == "GF" and b != "BYE" and ev.get("type") in ("t1", "major") else best_of,
         "team_a": a,
         "team_b": b,
         "meta": meta or {},
@@ -97,6 +100,11 @@ def field_size(available: int, want: int) -> int:
 
 def resolve_format(ev: dict, available: int) -> tuple[str, int]:
     """Fall back to a smaller shape when a region cannot fill the field."""
+    if ev.get("format") == "major_stages":
+        size = int(ev.get("size", 32))
+        if size not in (24, 32) or available < size:
+            raise ValueError(f"Major 分阶段赛制需要完整的 {size} 支队伍，当前只有 {available} 支。")
+        return "major_stages", size
     want = field_size(available, ev.get("size", 8))
     fmt = ev.get("format", "single_elim")
     if fmt in ("swiss_playoff", "gsl_playoff") and want < 16:
@@ -151,6 +159,8 @@ def _advance_playoff(ev: dict, day_offset: int) -> list[dict]:
 
 
 def swiss_state(ev: dict) -> dict[str, dict]:
+    if ev.get("major_stage"):
+        return swiss_state(_major_view(ev))
     seeds = {name: i for i, name in enumerate(ev.get("field", []))}
     state = {
         name: {"name": name, "w": 0, "l": 0, "opps": [], "seed": seeds.get(name, 99)}
@@ -442,6 +452,76 @@ def _start_playoff_from_gsl(ev: dict) -> list[dict]:
 
 
 # --------------------------------------------------------------------------
+# Multi-stage Major. Reuse the ordinary Swiss solver through a shallow view;
+# only this stage's fixtures/entrants are visible to it. Saved fixture IDs stay
+# stage-qualified, so earlier wins, losses and rematches never leak forward.
+
+
+def _major_view(ev: dict, stage: int | None = None) -> dict:
+    stage = stage or ev["major_stage"]
+    prefix = f"M{stage}-"
+    return {
+        **{k: ev[k] for k in ("id", "type") if k in ev},
+        "field": ev["major_fields"][str(stage)],
+        "matches": [{**m, "stage": m["stage"][len(prefix):]} for m in ev["matches"]
+                    if m["stage"].startswith(prefix)],
+        "dates": ev["dates"][(stage - 1) * 5:] or ev["dates"][-1:],
+        "phase": "swiss", "swiss_round": ev.get("swiss_round", 1),
+    }
+
+
+def major_tables(ev: dict) -> list[dict]:
+    return [{"stage": int(stage), "rows": list(swiss_state(_major_view(ev, int(stage))).values())}
+            for stage in ev.get("major_fields", {})]
+
+
+def _tag_major(fixtures: list[dict], stage: int) -> list[dict]:
+    for m in fixtures:
+        m["stage"] = f"M{stage}-{m['stage']}"
+        m["id"] = f"M{stage}-{m['id']}"
+        m["label"] = f"第{stage}阶段 · {m['label']}"
+        m["meta"]["major_stage"] = stage
+    return fixtures
+
+
+def _open_major_stage(ev: dict, stage: int, field: list[str]) -> list[dict]:
+    if len(field) != 16 or len(set(field)) != 16:
+        raise ValueError("Major 每阶段必须有16支不同队伍，禁止补随机队伍或轮空。")
+    ev["phase"] = "swiss"
+    ev["major_stage"] = stage
+    ev["swiss_round"] = 1
+    ev.setdefault("major_fields", {})[str(stage)] = list(field)
+    return _tag_major(_open_swiss(_major_view(ev), field), stage)
+
+
+def _open_major(ev: dict, field: list[str]) -> list[dict]:
+    ev["major_stage_count"] = (len(field) - 8) // 8
+    ev["major_fields"] = {}
+    # field is seed ordered. Top eight await the last Swiss stage; the next
+    # eight await stage two in the 32-team format. Remaining sixteen start now.
+    return _open_major_stage(ev, 1, field[-16:])
+
+
+def _advance_major(ev: dict) -> list[dict]:
+    view = _major_view(ev)
+    fixtures = _advance_swiss(view)
+    ev["swiss_round"] = view["swiss_round"]
+    stage = ev["major_stage"]
+    if view["phase"] != "playoff":
+        return _tag_major(fixtures, stage)
+    state = swiss_state(view)
+    qualified = sorted((r for r in state.values() if r["w"] == 3),
+                       key=lambda r: (r["l"], -r["buchholz"], r["seed"]))
+    if len(qualified) != 8:
+        raise ValueError("Major 阶段晋级人数不是8队，保留现场，禁止补位。")
+    if stage < ev["major_stage_count"]:
+        start = (ev["major_stage_count"] - stage - 1) * 8
+        direct = ev["field"][start:start + 8]
+        return _open_major_stage(ev, stage + 1, direct + [r["name"] for r in qualified])
+    return _start_playoff_from_swiss(ev, qualified, state)
+
+
+# --------------------------------------------------------------------------
 # dispatcher
 
 
@@ -451,6 +531,8 @@ def open_event(ev: dict, field: list[str]) -> list[dict]:
     ev["field"] = field
     ev["resolved_format"] = fmt
     ev["matches"] = []
+    if fmt == "major_stages":
+        return _open_major(ev, field)
     if fmt == "swiss_playoff":
         return _open_swiss(ev, field)
     if fmt == "gsl_playoff":
@@ -461,6 +543,8 @@ def open_event(ev: dict, field: list[str]) -> list[dict]:
 def advance_event(ev: dict) -> list[dict]:
     fmt = ev.get("resolved_format") or ev.get("format", "single_elim")
     phase = ev.get("phase")
+    if fmt == "major_stages" and phase == "swiss":
+        return _advance_major(ev)
     if fmt == "swiss_playoff" and phase == "swiss":
         return _advance_swiss(ev)
     if fmt == "gsl_playoff" and phase == "groups":

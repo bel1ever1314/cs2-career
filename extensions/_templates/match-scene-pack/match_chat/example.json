@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "rules": [
+    {
+      "id": "coach-first-round", "when": "round_end", "speaker": "coach",
+      "channel": "team", "color": "blue", "priority": 80,
+      "probability": 1, "cooldown_rounds": 1, "max_per_match": 1,
+      "conditions": {"round": {"min": 1, "max": 1}},
+      "text": ["第一分结束，下一分按计划来。"]
+    },
+    {
+      "id": "teammate-first-round", "when": "round_end", "speaker": "teammate",
+      "channel": "team", "color": "green", "priority": 80,
+      "probability": 1, "cooldown_rounds": 1, "max_per_match": 1,
+      "conditions": {"round": {"min": 1, "max": 1}},
+      "text": ["收到！{player}，我们一起走。"]
+    },
+    {
+      "id": "third-round-background", "when": "round_end", "speaker": "coach",
+      "priority": 100, "probability": 1, "max_per_match": 1,
+      "conditions": {"round": {"min": 3, "max": 3}},
+      "text": ["这句是普通聊天，第三回合有剧情，所以你不应该看到这句。"]
+    }
+  ],
+  "scenes": [
+    {
+      "id": "third-round-huddle", "when": "round_end",
+      "priority": -10, "probability": 1, "cooldown_rounds": 1, "max_per_match": 1,
+      "conditions": {"round": {"min": 3, "max": 3}},
+      "sequence": [
+        {"speaker":"coach","color":"blue","channel":"team","text":"[剧情1] 三分打完了，比分 {score_for}:{score_against}。把交流保持住。"},
+        {"speaker":"teammate","color":"green","channel":"team","delay_seconds":2,"text":"[剧情2] 收到，我先报信息，你们准备补枪。"},
+        {"speaker":"coach","color":"blue","channel":"team","delay_seconds":2,"text":"[剧情3] 好，先把眼前这一分打好。"}
+      ]
+    }
+  ]
+}

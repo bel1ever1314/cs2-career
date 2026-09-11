@@ -1,10 +1,8 @@
 """Native career desk. Window/commands here; composition in pages and setup."""
 from __future__ import annotations
 import queue
-import shutil
 import threading
 import traceback
-from datetime import datetime
 import tkinter as tk
 from tkinter import messagebox, ttk
 from ..application import ApplicationState
@@ -223,12 +221,8 @@ class DesktopApp(Pages, tk.Tk):
         if self.state.career.exists and not self.testing:
             if not messagebox.askyesno("开始新生涯","当前生涯将先自动备份，再建立新档。继续吗？",parent=self):
                 return
-            backup = save_root()/"backups"/datetime.now().strftime("%Y%m%d-%H%M%S-%f")
-            backup.mkdir(parents=True)
-            for name in ("career.json","season.json"):
-                path = save_root()/name
-                if path.is_file():
-                    shutil.copy2(path,backup/name)
+            # ApplicationState.create_career performs the verified backup;
+            # do not make a second, uncompressed copy in this legacy shell.
         try:
             msg = self.state.create_career(payload)
         except Exception as exc:

@@ -1,0 +1,63 @@
+一、这次新增的文案入口
+
+cs2career/data/career_arcs.json
+搜索 major_final_loss，就能找到Major决赛失败的剧情。
+title是标题，text数组中的每一项是一套完整正文，choices里的label是按钮文字。
+保留major_final_loss、选项id和action，改标题、正文、按钮文字即可。
+可以使用{player}玩家、{team}队伍、{event}赛事、{opponent}决赛对手、{final_score}决赛比分。
+同一届Major只触发一次；需要亲自参加这场正式决赛并落败。模拟或CS2正式回传都可。
+不是参赛邀请、旁观别队决赛、轮空、弃权；旧比赛不会因为你改了文案而补演。
+本章默认只是一段剧情，不送属性点；有需要可在选项中加reward。
+
+cs2career/data/career_retirement.json
+普通的“主动退役”文案和判断都在这个新文件里。
+endings.legend：传奇，默认2个Major冠军、6个赛事冠军、3次年度Top20。
+endings.veteran：老将，需要同时满足下面四条，不能只凭冠军判老将。
+rules.veteran_min_age：至少28岁。
+rules.veteran_min_years：从已保存的首张正式比赛地图起，满5个完整周年。
+rules.veteran_min_active_seasons：至少5个有实际比赛记录的年份。
+rules.veteran_min_maps：至少200张有本人记录的正式地图。
+endings.early_success：有荣誉但没有达到老将条件的离场，不宣称年老或多年征战。
+endings.plain：其他普通退役，不假定打过许多年或从未获过冠军。
+传奇条件优先；其余按老将、有荣誉、普通离场依次判断。缺历史记录不凭空补年资。
+恋爱、舆论、NA解说等剧情强制结局，仍在career_arcs.json的endings里面，不在这里。
+退休文件的text是一段字符串，不是数组。分段写\n\n。规则填写正整数。
+
+二、改完怎样生效？
+
+运行源码：在项目主目录打开PowerShell，执行：
+& "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe" main.py
+修改之后关闭程序再重新运行即可，不用打包。
+本机确认可用的是以上Python 3.12安装路径。如果你的py启动器能识别它，也可用py -3.12代替。
+使用其他Python时，需要对应环境也装好依赖。
+
+运行EXE：源码文件改动不会自动进入旧EXE，需要按下面步骤重新打包。
+外置extensions扩展包：通常只需重启，不用重打包；战队和赛事开局数据仍只影响新生涯。
+已生成的剧情、邮件和结局保存的是当时的文本，不会被新文字改写。
+文案验证最好使用单独的新测试生涯，不要为了看新内容手动篡改正式战绩。
+
+三、自己打包EXE
+
+先关闭要被替换的EXE。在项目主目录执行这一行：
+& "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe" build_desktop_preview.py --integration --name CS2Career-MyBuild
+
+完成后找到：release/CS2Career-MyBuild/CS2Career-MyBuild.exe
+虽然脚本名字有preview，带上--integration就是正常可连接CS2的桌面版本，不是只读预览。
+不要漏掉--integration。--name可以改，但只能用英文字母、数字、横线和下划线。
+以后再次使用同一个name，会覆盖该构建目录里的同名EXE；请先关闭它。
+换个name会得到单独文件夹，不会自动复制你的存档。
+
+仅改Python或data里的文案，直接执行以上命令，复用vendor中现成的插件DLL即可。
+不要为此运行build_exe.py：那个脚本还会编译CS2插件并生成发布压缩包，且带有旧的固定版本名。
+本机打包依赖已经可用。如果换电脑缺PyInstaller，可先在对应Python安装：
+& "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe" -m pip install pyinstaller -r requirements-desktop.txt
+仍需保留源码中的vendor插件资源；缺失时打包脚本会明确报错，不会生成缺插件的集成包。
+
+四、继续原存档与发给别人
+
+要继续原存档：关闭旧程序，把新EXE单独复制到原程序所在目录，再运行它。
+不要覆盖save、extensions，也不要同时运行两个共用save的程序。
+如果直接从新构建目录启动，使用的是该目录旁的save，看不到旧目录进度是正常的。
+
+生成EXE不等于完成公开发布整理。发给别人时不要把自己的save、配置、日志一起压缩。
+需要公开发布包时再整理许可证、FAQ、扩展模板与源码；不要随手压缩整个开发目录。

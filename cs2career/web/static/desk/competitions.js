@@ -23,7 +23,7 @@
    let h=ui.head(ev.name,`${m.label||m.stage} · BO${m.best_of} · ${m.date||''}`)+`<div class="match-banner"><div>${crest(m.team_a,50)}${ui.link('team',m.team_a,m.team_a)}</div><strong>${esc(m.series||'VS')}</strong><div>${ui.link('team',m.team_b,m.team_b)}${crest(m.team_b,50)}</div></div><div class="filterbar">${ui.link('event',ev.id,'查看赛事晋级路径 →')}<span class="hint">${m.played?'比赛已结束':maps.length?'系列赛进行中':'赛前资料'}</span></div>`;
    if(m.veto?.steps?.length)h+=`<div class="veto">${m.veto.steps.map(v=>`<span class="step ${esc(v.action)}"><small>${esc(v.action.toUpperCase())}</small><b>${mapName(v.map)}</b><span>${esc(v.team||'决胜图')}</span></span>`).join('')}</div>`;
    h+=ui.tabs([['all','全场'],...maps.map((mp,i)=>[String(i),'第'+(i+1)+'图 · '+mapName(mp.map)+' '+mp.score])],tab);
-   if(!maps.length)h+=`<div class="notice">${m.team_b==='BYE'?'本场轮空，没有十人战绩。':'本场尚未保存地图战绩。未开赛或回传不完整时，不能把缺失统计补成0。'}</div>`;
+   if(!maps.length)h+=`<div class="notice">${m.forfeit?esc(m.forfeit_reason||'本场弃权')+'；保留赛果，不生成十人战绩。':m.team_b==='BYE'?'本场轮空，没有十人战绩。':'本场尚未保存地图战绩。未开赛或回传不完整时，不能把缺失统计补成0。'}</div>`;
    else if(tab==='all'){
      if(!m.data_complete)h+='<div class="notice">部分地图缺少完整十人战绩，以下仅汇总已保存的数据。</div>';
      for(const tm of [m.team_a,m.team_b])h+=`<div class="card pad0"><h3>${ui.link('team',tm,tm)} <small class="hint">全场汇总</small></h3>${stats(m.totals.filter(p=>p.team===tm))}</div>`;
@@ -35,7 +35,7 @@
        h+=`<div class="card"><h3>逐回合比分与事件</h3>${rounds(mp)}</div>`;}
    }
    if(!m.played&&detail.yours&&!S.design_preview)h+=renderLivePanel(m);
-   host.innerHTML=h;
+   ui.paint(host,h);
    host.querySelectorAll('.round').forEach(rd=>rd.ontoggle=()=>{
      if(!rd.open)return;
      const p=rd.querySelector('.round-pop'),rect=rd.getBoundingClientRect();
@@ -46,6 +46,7 @@
  };
  function node(m){return `<article class="bracket-node ${m.team_a===myTeamName()||m.team_b===myTeamName()?'mine':''}" data-node="${esc(m.id)}"><button class="node-title" data-open-match="${esc(m.id)}">${esc(m.label||m.stage)} <span>${m.played?esc(m.series||'已结束'):'BO'+m.best_of}</span></button>${[m.team_a,m.team_b].map(tm=>`<div class="node-team ${tm===m.winner?'winner':''}">${tm==='BYE'?'轮空':crest(tm,20)+ui.link('team',tm,tm)}<span>${tm===m.winner?'✓':''}</span></div>`).join('')}<small>${esc(m.date||'')} ${m.meta?.record?'· '+esc(m.meta.record):''}</small></article>`;}
  function drawGraph(ev){
+   const stageLabel=s=>{const m=/^M(\d+)-SW(\d+)$/.exec(s);return m?`第${m[1]}阶段 · 第${m[2]}轮`:({QF:'四分之一决赛',SF:'半决赛',GF:'决赛',G1:'小组首轮',G2:'胜者 / 淘汰赛',G3:'小组决胜局'}[s]||s);};
    const stages=[...new Set(ev.matches.map(m=>m.stage))], positions={},counts={};
    stages.forEach((s,i)=>{const rows=ev.matches.filter(m=>m.stage===s);counts[s]=rows.length;let previousY=-98;rows.forEach((m,j)=>{
      const incoming=(ev.links||[]).filter(l=>l.target===m.id&&positions[l.source]);
@@ -60,37 +61,60 @@
    const width=Math.max(600,stages.length*320+20),height=Math.max(340,...Object.values(positions).map(p=>p.y+165));
    let h=`<div class="graph-tools"><button class="btn sm" data-zoom="-">−</button><button class="btn sm" data-zoom="+">＋</button><button class="btn sm" data-zoom="fit">适应窗口</button><button class="btn sm" id="graph-mine">定位我的战队</button><span class="hint">拖动空白平移 · 点击比赛标题看战报 · 虚线为败者去向</span></div><div class="graph-viewport"><div class="graph-space" style="width:${width}px;height:${height}px"><div class="graph-board" style="width:${width}px;height:${height}px"><svg class="bracket-lines" width="${width}" height="${height}" aria-hidden="true">`;
    for(const link of ev.links||[]){const a=positions[link.source],b=positions[link.target];if(!a||!b)continue;const x=a.x+280,y=a.y+70,x2=b.x,y2=b.y+70;h+=`<path d="M${x} ${y} H${(x+x2)/2} V${y2} H${x2}" fill="none" stroke="${link.outcome==='loser'?'#686f80':'#c68458'}" stroke-width="2" ${link.outcome==='loser'?'stroke-dasharray="5 5"':''}/>`;}
-   h+='</svg>'+stages.map((s,i)=>`<h3 class="graph-stage" style="left:${20+i*320}px">${esc({QF:'四分之一决赛',SF:'半决赛',GF:'决赛',G1:'小组首轮',G2:'胜者 / 淘汰赛',G3:'小组决胜局'}[s]||s)}</h3>`).join('');
-   for(const m of ev.matches){const p=positions[m.id];h+=`<div class="graph-position" style="left:${p.x}px;top:${p.y}px">${node(m)}</div>`;}
+   h+='</svg>'+stages.map((s,i)=>`<h3 class="graph-stage" style="left:${20+i*320}px">${esc(stageLabel(s))}</h3>`).join('');
+   for(const m of ev.matches){const p=positions[m.id];h+=`<div class="graph-position" data-ui-key="match:${esc(m.id)}" style="left:${p.x}px;top:${p.y}px">${node(m)}</div>`;}
    return h+'</div></div></div><p class="hint">只展示已生成对阵；尚未确定的下一阶段将在引擎配对后出现。瑞士轮连线表示实际参赛路径，不预设未来对手。</p>';
  }
- function graphControls(host){
+ function graphControls(host, saved){
    const viewport=host.querySelector('.graph-viewport'),board=host.querySelector('.graph-board'),space=host.querySelector('.graph-space');if(!board)return;
-   let zoom=1,drag=null;const w=board.offsetWidth,h=board.offsetHeight;
+   let zoom=saved?.zoom||1,drag=null;const w=board.offsetWidth,h=board.offsetHeight;
    const apply=()=>{board.style.transform=`scale(${zoom})`;space.style.width=w*zoom+'px';space.style.height=h*zoom+'px';};
    host.querySelectorAll('[data-zoom]').forEach(b=>b.onclick=()=>{zoom=b.dataset.zoom==='fit'?Math.min(1,viewport.clientWidth/w,viewport.clientHeight/h):Math.max(.35,Math.min(1.6,zoom+(b.dataset.zoom==='+'?.15:-.15)));apply();});
-   $('graph-mine').onclick=()=>{const m=board.querySelector('.mine');if(m){const p=m.parentElement;viewport.scrollTo({left:p.offsetLeft*zoom-20,top:p.offsetTop*zoom-40,behavior:'smooth'});}else toast('你没有参加这个赛事。',false);};
+   host.querySelector('#graph-mine').onclick=()=>{const m=board.querySelector('.mine');if(m){const p=m.parentElement;viewport.scrollTo({left:p.offsetLeft*zoom-20,top:p.offsetTop*zoom-40,behavior:'smooth'});}else toast('你没有参加这个赛事。',false);};
    viewport.onpointerdown=e=>{if(e.target.closest('button'))return;drag={x:e.clientX,y:e.clientY,left:viewport.scrollLeft,top:viewport.scrollTop};viewport.setPointerCapture(e.pointerId);};
    viewport.onpointermove=e=>{if(drag){viewport.scrollLeft=drag.left-(e.clientX-drag.x);viewport.scrollTop=drag.top-(e.clientY-drag.y);}};
    viewport.onpointerup=viewport.onpointercancel=()=>drag=null;
+   if(saved){apply();viewport.scrollLeft=saved.left;viewport.scrollTop=saved.top;}
+   return {snapshot:()=>({zoom,left:viewport.scrollLeft,top:viewport.scrollTop})};
  }
+ ui.drawTournamentGraph=drawGraph;
+ ui.bindTournamentGraph=graphControls;
  ui.pages.event=async(r,host,active)=>{
    const ev=await get('/api/event?id='+encodeURIComponent(r.key||FOCUS));if(!active())return;
    const directory=await get('/api/events');if(!active())return;
    const tab=r.tab||'graph';
-   let h=ui.head(ev.name,`${(ev.dates||[]).join(' / ')} · ${FORMAT[ev.resolved_format||ev.format]||ev.format||'历史赛事'} · ${STATUS[ev.status]||'已结束'} · 奖金 ${money(ev.prize||0)}`);
+   const dates=ev.dates||[], dateLabel=dates.length>1?`${dates[0]} — ${dates[dates.length-1]}`:dates[0]||'';
+   let h=ui.head(ev.name,`${dateLabel} · ${FORMAT[ev.resolved_format||ev.format]||ev.format||'历史赛事'} · ${STATUS[ev.status]||'已结束'} · 奖金 ${money(ev.prize||0)}`);
    if(Array.isArray(directory))h+=`<div class="filterbar"><label>本季与历史赛事 <select id="event-directory">${[...directory].sort((a,b)=>(b.dates?.[0]||'').localeCompare(a.dates?.[0]||'')).map(e=>`<option value="${esc(e.id)}" ${e.id===ev.id?'selected':''}>${esc(e.dates?.[0]||'日期未知')} · ${esc(e.name)} · ${esc(STATUS[e.status]||'已结束')}</option>`).join('')}</select></label></div>`;
    h+=ui.tabs([['graph','赛制进程'],['list','比赛列表'],['field','参赛队伍'],['awards','赛事荣誉']],tab);
+   if(ev.status!=='done' && !ev.archived && ((ev.field||[]).includes(myTeamName()) || (S.career?.registered||[]).includes(ev.legacy_id||String(ev.id||'').split('::').pop())))
+     h+='<div class="filterbar"><button class="btn primary" id="event-auto-start">自动模拟本届赛事 / 继续</button><span class="hint">遇到事件、生死战或决赛时暂停，由你选择。</span></div>';
    if(tab==='field')h+=`<div class="team-grid">${(ev.field||[...new Set(ev.matches.flatMap(m=>[m.team_a,m.team_b]))]).filter(t=>t!=='BYE').map(t=>`<div class="card">${crest(t,36)} ${ui.link('team',t,t)}</div>`).join('')}</div>`;
    else if(tab==='awards')h+=`<div class="card"><h3>冠军</h3>${ev.champion?ui.link('team',ev.champion,ev.champion):'尚未产生'}<h3>MVP</h3>${ev.awards?.mvp?ui.link('player',ev.awards.mvp.player,ev.awards.mvp.player):'尚未产生'}<h3>EVP</h3>${(ev.awards?.evp||[]).map(p=>ui.link('player',p.player,p.player)).join(' · ')||'尚未产生'}<h3>最佳阵容</h3><p class="hint">按本届赛事已记录的主要位置分别评选。旧战报缺少位置时不猜测补位。</p>${(ev.awards?.five||[]).map(p=>`<p>${esc(ROLE[p.role]||'旧记录未注明位置')} · ${ui.link('player',p.player_id||p.player,p.player)} · Rating ${ui.num(p.rating,2)}</p>`).join('')||'尚未产生'}</div>`;
    else if(!ev.matches?.length)h+=ui.empty('对阵尚未生成。接受邀请并推进至开赛后显示；未确定的对手不会被虚构。');
    else if(tab==='list')h+=`<div class="match-list">${ev.matches.map(node).join('')}</div>`;
    else{
-     if(ev.swiss_table?.length)h+=`<div class="card"><h3>瑞士轮状态</h3><div class="swiss-groups">${ev.swiss_table.map(t=>`<span>${ui.link('team',t.team||t.name,t.team||t.name)} ${t.w||0}–${t.l||0} ${t.w>=3?'晋级':t.l>=3?'淘汰':''}</span>`).join('')}</div></div>`;
-     h+=drawGraph(ev);
+     if(ev.major_tables?.length){
+       h+=`<div class="notice">${(ev.field||[]).length}队 Major · ${ev.major_stage_count}个瑞士轮阶段，每阶段16队、8队晋级，战绩重新从0–0开始 · 八强淘汰赛 · 决赛 BO5</div>`;
+       for(const stage of ev.major_tables)h+=`<details class="card" ${stage.stage===ev.major_stage?'open':''}><summary>第${stage.stage}阶段 · ${stage.rows.length}支队伍</summary><div class="swiss-groups">${[...stage.rows].sort((a,b)=>b.w-a.w||a.l-b.l).map(t=>`<span>${ui.link('team',t.name,t.name)} ${t.w}–${t.l} ${t.w>=3?'晋级':t.l>=3?'淘汰':''}</span>`).join('')}</div></details>`;
+       const joined=new Set(ev.major_tables.flatMap(s=>s.rows.map(t=>t.name))),waiting=(ev.field||[]).filter(t=>!joined.has(t));
+       if(waiting.length)h+=`<p class="hint">直邀队伍等待后续阶段：${waiting.map(t=>ui.link('team',t,t)).join(' · ')}</p>`;
+     }else if(ev.swiss_table?.length)h+=`<div class="card"><h3>瑞士轮状态</h3><div class="swiss-groups">${ev.swiss_table.map(t=>`<span>${ui.link('team',t.team||t.name,t.team||t.name)} ${t.w||0}–${t.l||0} ${t.w>=3?'晋级':t.l>=3?'淘汰':''}</span>`).join('')}</div></div>`;
+     if(ev.major_tables?.length){
+       const selected=r.phase||((ev.phase==='playoff'||ev.status==='done')?'playoff':String(ev.major_stage));
+       h+=`<div class="filterbar"><label>查看阶段 <select id="major-graph-phase"><option value="all" ${selected==='all'?'selected':''}>全部晋级路径</option>${Array.from({length:ev.major_stage_count},(_,i)=>`<option value="${i+1}" ${selected===String(i+1)?'selected':''}>第${i+1}阶段</option>`).join('')}<option value="playoff" ${selected==='playoff'?'selected':''}>八强淘汰赛</option></select></label></div>`;
+       const matches=ev.matches.filter(m=>selected==='all'||(selected==='playoff'?['QF','SF','GF'].includes(m.stage):m.meta?.major_stage===Number(selected)));
+       h+=matches.length?drawGraph({...ev,matches}):ui.empty('这个阶段尚未产生对阵。前一阶段结束后会生成真实配对。');
+     }else h+=drawGraph(ev);
    }
-   host.innerHTML=h;graphControls(host);
+   const graphKey=JSON.stringify([r.key,tab,r.phase]);
+   const camera=host._graphKey===graphKey?host._graphControls?.snapshot():null;
+   ui.paint(host,h);host._graphControls=graphControls(host,camera);host._graphKey=graphKey;
+   const autoStart=host.querySelector('#event-auto-start');
+   if(autoStart)autoStart.onclick=()=>window.CareerAssist.run(ev.id);
    const chooser=host.querySelector('#event-directory');
    if(chooser)chooser.onchange=e=>ui.go('event',{key:e.target.value,tab:'graph'});
+   const phase=host.querySelector('#major-graph-phase');
+   if(phase)phase.onchange=e=>ui.go('event',{key:ev.id,tab:'graph',phase:e.target.value});
  };
 })();

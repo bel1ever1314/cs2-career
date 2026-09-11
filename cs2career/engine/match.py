@@ -12,7 +12,7 @@ import random
 
 from .morale import after_series, mentality_mult
 from .rating import career_rating, clamp, expected_dpr, expected_rating, skill_tier
-from ..world.ability import playing_ability
+from ..world.ability import playing_ability, effective_form_delta
 
 RNG = random.Random(20260905)
 
@@ -54,7 +54,7 @@ def snapshot_players(team: dict, opponent: dict, map_name: str) -> list[dict]:
     rows = []
     for p in team["players"]:
         p = dict(p, ability=playing_ability(p))
-        form_value = float(p.get("form_delta", float(p.get("form", p["ability"])) - p["ability"]))
+        form_value = effective_form_delta(p)
         p["form"] = p["ability"] + form_value
         tier = skill_tier(p["ability"])
         impact = map_impact(p["ability"], p.get("form", p["ability"] + form_value))
@@ -298,6 +298,11 @@ def veto_maps(team_a: dict, team_b: dict, maps: list[str], best_of: int) -> dict
 
     if best_of <= 1:
         plan = [("ban", team_a if i % 2 == 0 else team_b) for i in range(len(pool) - 1)]
+    elif best_of == 5:
+        if len(pool) < 5:
+            raise ValueError("BO5 至少需要五张不同地图。")
+        plan = [("ban", team_a if i % 2 == 0 else team_b) for i in range(len(pool) - 5)]
+        plan += [("pick", team_a), ("pick", team_b), ("pick", team_a), ("pick", team_b)]
     else:
         plan = [
             ("ban", team_a),

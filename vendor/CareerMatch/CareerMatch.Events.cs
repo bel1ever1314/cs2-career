@@ -42,6 +42,8 @@ public sealed partial class CareerMatchPlugin
 
     private HookResult OnFreezeEnd(EventRoundFreezeEnd ev, GameEventInfo info)
     {
+        // A scene may span intermission and freeze time, never the next firefight.
+        _chatPlayback.Cancel();
         CaptureRoundPawns();
         return HookResult.Continue;
     }

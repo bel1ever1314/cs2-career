@@ -34,7 +34,11 @@
      const a=row.summary;
      h+=`<div class="metric-grid">${metric('Rating',ui.num(a.rating,2))+metric('K / D / A',a.maps?`${a.k} / ${a.d} / ${a.a}`:'—')+metric('ADR',ui.num(a.adr,1))+metric('KAST',a.kast==null?'—':ui.num(a.kast*100,1)+'%')}</div><div class="grid2"><div class="card"><h3>最近10图 · Rating</h3>${trend(row.recent)}</div><div class="card"><h3>个人能力 · 打法维度</h3>${row.historical?ui.empty('旧战报未保存年龄、长期能力及七维档案，不补造数值。'):axisPanel(row.stats)}</div></div><div class="card pad0"><h3>近期表现</h3>${history(row.recent,'player')}</div>`;
    }
-   host.innerHTML=h;
+   ui.paint(host,h);
+   if(isTeam&&S.career?.exists&&row.id!==S.career.team_id){
+     host.insertAdjacentHTML('afterbegin','<button class="btn primary" id="profile-apply-transfer">申请加盟这支队伍</button>');
+     $('profile-apply-transfer').onclick=()=>ui.go('market',{source:'personal',team_id:row.id||row.team_id||r.key});
+   }
    $('profile-range').value=r.range||'season';
    $('profile-range').onchange=e=>ui.go('profile',{...r,range:e.target.value,page:1},true);
    if($('records-prev'))$('records-prev').onclick=()=>ui.go('profile',{...r,page:row.page-1},true);
@@ -42,14 +46,15 @@
  };
  ui.pages.players=(r,host)=>{
    const tab=r.tab||'live', years=Object.keys(S.top20_history||{}).sort().reverse();
-   host.innerHTML=ui.head('年度 Top20','个人年度荣誉 · 与队伍排名独立')+ui.tabs([['live','当年暂定榜'],...years.map(y=>[y,y+' 最终榜'])],tab)+`<p class="hint">${tab==='live'?'赛季尚未结算，这是动态候选榜；样本不足时不会强行列满20人。':'已结算历史榜单'}</p>`+top20Table(tab==='live'?S.top20||[]:S.top20_history[tab]||[]);
-   if(tab!=='live')host.innerHTML+=(S.top20_history[tab]||[]).filter(p=>p.rank<=3&&p.feature).map(p=>`<details class="card"><summary>Top ${p.rank} · ${esc(p.feature.title)}</summary>${ui.renderFeature(p.feature)}</details>`).join('');
+   let h=ui.head('年度 Top20','个人年度荣誉 · 与队伍排名独立')+ui.tabs([['live','当年暂定榜'],...years.map(y=>[y,y+' 最终榜'])],tab)+`<p class="hint">${tab==='live'?'赛季尚未结算，这是动态候选榜；样本不足时不会强行列满20人。':'已结算历史榜单'}</p>`+top20Table(tab==='live'?S.top20||[]:S.top20_history[tab]||[]);
+   if(tab!=='live')h+=(S.top20_history[tab]||[]).filter(p=>p.rank<=3&&p.feature).map(p=>`<details class="card"><summary>Top ${p.rank} · ${esc(p.feature.title)}</summary>${ui.renderFeature(p.feature)}</details>`).join('');
+   ui.paint(host,h);
    bindInspect(host);
  };
  ui.pages.data=(r,host)=>{
    const rows=(S.ratings||[]).filter(p=>(p.player||'').toLowerCase().includes((r.search||'').toLowerCase())&&(!r.team||p.team===r.team));
    rows.sort((a,b)=>(b[r.sort||'rating']||0)-(a[r.sort||'rating']||0));
-   host.innerHTML=ui.head('选手数据','本赛季全对手表现 · 点击名字打开资料')+`<div class="filterbar"><input id="data-search" placeholder="搜索选手" value="${esc(r.search||'')}"><select id="data-team"><option value="">所有战队</option>${S.teams.map(t=>`<option ${t.name===r.team?'selected':''}>${esc(t.name)}</option>`).join('')}</select><select id="data-sort"><option value="rating">Rating</option><option value="maps">地图数量</option><option value="kpr">KPR</option></select><button class="btn" id="data-filter">筛选</button></div><div class="card pad0">${ratingTable(rows,{inspect:true})}</div>`;
+   ui.paint(host,ui.head('选手数据','本赛季全对手表现 · 点击名字打开资料')+`<div class="filterbar"><input id="data-search" placeholder="搜索选手" value="${esc(r.search||'')}"><select id="data-team"><option value="">所有战队</option>${S.teams.map(t=>`<option ${t.name===r.team?'selected':''}>${esc(t.name)}</option>`).join('')}</select><select id="data-sort"><option value="rating">Rating</option><option value="maps">地图数量</option><option value="kpr">KPR</option></select><button class="btn" id="data-filter">筛选</button></div><div class="card pad0">${ratingTable(rows,{inspect:true})}</div>`);
    $('data-sort').value=r.sort||'rating';$('data-filter').onclick=()=>ui.go('data',{search:$('data-search').value,team:$('data-team').value,sort:$('data-sort').value},true);bindInspect(host);
  };
 })();

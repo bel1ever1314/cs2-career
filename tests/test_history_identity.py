@@ -55,7 +55,7 @@ class HistoryIdentityTests(unittest.TestCase):
         state.season.teams = []
         state.season.date, state.season.year = '2027-01-08', 2027
         state.season.top20 = {}
-        state.season.records = lambda: []
+        state.season.records = lambda **kwargs: []
         state.career = SimpleNamespace(free=[])
         result = presentation.inspect(state, 'player', 'a0', span='all')
         self.assertTrue(result['historical'])

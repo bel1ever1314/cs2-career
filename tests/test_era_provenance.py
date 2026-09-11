@@ -52,7 +52,7 @@ class EraProvenanceTests(unittest.TestCase):
         original = deepcopy(old)
         career = SimpleNamespace(free=[old], inspect_player=Mock(return_value={'name': name}))
         season = SimpleNamespace(teams=[], events=[], history=[], year=2024, date='2024-02-01',
-                                 records=lambda: [], top20={})
+                                 records=lambda **kwargs: [], top20={})
         out = presentation.inspect(SimpleNamespace(career=career, season=season), 'player', old['player_id'])
         self.assertEqual('estimated', out['data_provenance']['status'])
         self.assertEqual(name, out['name'])

@@ -2,6 +2,16 @@
 (() => {
 CareerUI.pages.locker = (_route,host) => {
   const c = S.career;
+  if(c.player_only){
+    const f=c.ops?.finance||{};
+    CareerUI.paint(host,CareerUI.head('个人合同与财务','你是签约选手，俱乐部人事与经营由管理层负责')+
+      `<div class="finance-board">${financeCard('个人口袋',f.pocket||{balance:c.pocket},'personal')}${financeCard('俱乐部账户（仅查看）',f.club||{balance:c.money})}</div>`+
+      `<div class="card"><p>工资与个人赛事分成自动入账。原队金库、队史荣誉和银行债务没有随你转会。</p><p>当前月薪 ${money(c.ops?.your_salary||0)}。个人欠款仍须偿还，收款方保留为原债权俱乐部。</p><button class="btn" id="personal-contracts">查看我的转会</button></div>`+
+      (c.loan?.active?`<div class="card"><h3>个人借款</h3><p>本金 ${money(c.loan.principal)} · 欠息 ${money(c.loan.arrears)}</p><input id="repay-amt" type="number" min="1" value="${c.loan.principal+c.loan.arrears}"><button class="btn" id="repay-go">偿还个人借款</button></div>`:''));
+    $('personal-contracts').onclick=()=>CareerUI.go('market',{source:'personal'});
+    if($('repay-go'))$('repay-go').onclick=()=>post('/api/ops/repay',{amount:Number($('repay-amt').value)});
+    return;
+  }
   const ops = c.ops || {};
   let h = `<div class="page-head"><h2>俱乐部经营</h2>
     <span class="hint">资金自动结算；把鼠标移到金额上可查看来源和下月明细</span></div>`;
@@ -80,7 +90,7 @@ CareerUI.pages.locker = (_route,host) => {
     <p class="hint">饰品交易明细仍计入个人资金流水；物品管理、交易和开箱分别在收藏分区操作。</p>
     <div class="finance-scope"><span>赛事奖金</span><span>合同工资</span><span>借贷与还款</span></div>
   </div></div>`;
-  host.innerHTML = h;
+  CareerUI.paint(host,h);
   if ($("don-go")) $("don-go").onclick = () => post("/api/ops/donate", { amount: Number($("don-amt")?.value || 0) });
   if ($("found-go")) $("found-go").onclick = () => { if (confirm("队友会进转会市场，你留下重开新队？")) post("/api/ops/found", {}); };
   if ($("go-mail-fa")) $("go-mail-fa").onclick = () => show("mail");

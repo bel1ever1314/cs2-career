@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "overrides": [
+    {"when":"fix_offer","title":"一封越过底线的邀约","text":"【虚构生涯情节，与现实人物无关】陌生人提出用报酬换取你在下一场放弃公平竞争。你知道，这可能毁掉整段生涯。","labels":{"refuse":"拒绝，按自己的实力打","accept":"接受邀约（承担纪律风险）"}}
+  ],
+  "incidents": [
+    {
+      "id":"coach-leaves","when":"before_match","title":"临时教练提出离队",
+      "text":"【虚构事件】俱乐部临时聘请的教练因为私人安排决定离开。指挥需要接过赛前准备工作。你打算怎样应对？",
+      "conditions":{"mode":"create"},"probability":0.1,"max_per_career":1,
+      "choices":[
+        {"id":"analyst","label":"花费俱乐部 $3,000 请临时分析师","effects":[{"type":"club_money","amount":-3000},{"type":"flag","key":"coach_departed","value":true},{"type":"flag","key":"analyst_hired","value":true}]},
+        {"id":"igl","label":"由指挥兼任准备工作（心态 -3）","effects":[{"type":"mentality","amount":-3},{"type":"flag","key":"coach_departed","value":true}]}
+      ]
+    },
+    {
+      "id":"new-routine","when":"after_series","title":"重新分工后的第一场",
+      "text":"【虚构事件】比赛结束，队伍开始适应新的准备方式。今天的复盘可以由大家各讲一个问题。",
+      "conditions":{"flags":{"coach_departed":true}},"max_per_career":1,
+      "choices":[{"id":"review","label":"一起复盘（心态 +2）","effects":[{"type":"mentality","amount":2},{"type":"flag","key":"coach_departed","value":false}]}]
+    }
+  ]
+}

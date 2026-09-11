@@ -1,0 +1,40 @@
+转会剧情链：只写文字与选择，不需要编程
+
+一、安装
+把整个 transfer-story-pack 文件夹复制到运行的 EXE 旁边 extensions 根目录，然后在工坊重新扫描。
+_templates 是模板目录，里面的包不会自动启用。需要本次 TransferTest 新程序。
+
+二、最容易的验证
+1. 在“转会市场 → 我的转会”申请加盟其他队伍；或接受邮箱中的补强邀约。
+2. 试训有概率失败，这不是错误；失败后30天可申请其他队，同队90天。
+3. 成功后确认加盟，完成内置离队告别，再出现本包“新队服的重量”。
+4. 选择倾听或主动分享，下一次推进日期会出现不同后续。这就是 flag 选择链。
+5. 以后正式赛事再次遇见原队时，会出现重逢事件；同一场不重复。
+本示例没有金钱或属性奖励，不影响比赛概率。
+
+三、支持的 when 触发点
+transfer_offer_received：收到球队主动邀约。
+transfer_application_success：主动申请通过。
+transfer_application_failed：主动申请失败。
+transfer_stayed：成功申请或邀约后，最终选择留下。
+transfer_departed：已经正式离开原队（告别完成后处理扩展）。
+transfer_joined：已经正式加盟新队（告别完成后处理扩展）。
+transfer_former_team：对阵老东家，准备进入比赛时触发。
+原有 day、before_match 等触发点继续可用，可以接 flags 后续。
+
+四、条件与文字
+转会触发条件支持 old_team_id、new_team_id、transfer_role、transfer_source。
+transfer_source 为 application 或 offer。
+transfer_departed/transfer_joined 还支持 farewell_choice：thanks、promise、quiet，对应内置告别选项。
+队伍必须填游戏内稳定ID，不要填显示名称；位置使用 rifle/awp/igl/entry/lurk。
+转会事件文字及选项支持 {player}、{old_team}、{new_team}、{transfer_role} 四种平面占位符。
+普通 day 事件没有本次转会上下文；不要在 day 的文字里写转会占位符。
+flags 是本包自己的标记，不与其他包混用；可用条件要求 true/false，再用选项写入后续标记。
+
+五、执行边界
+每个触发点最多选择一个符合条件的扩展事件，按扩展加载顺序、文件名、数组顺序挑选。
+内置签约与告别先完成，再依次处理被冻结的转会通知；不是多个弹窗同时抢界面。
+扩展不能改变骰点、转会成功率、冷却、名单或合同状态；不可运行脚本或控制台命令。
+当你看到 departed 时，换队已完成：club_money/mentality 效果作用于当前新队，不作用于旧队。
+事件队伍身份与当前队伍不符时不扣钱、不转移效果；已打开的事件不依赖原包继续存在。
+在自由身状态的转会通知可以显示文字与 flag/个人金钱选择，但没有俱乐部的效果不会执行。

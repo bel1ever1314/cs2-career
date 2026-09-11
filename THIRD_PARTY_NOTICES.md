@@ -6,6 +6,9 @@
 
 ## 随包内容
 
+- orjson：ijl / orjson 贡献者，原生 JSON 编码用于降低保存与响应延迟。
+  保留上游包所附 MIT、Apache-2.0 和 MPL-2.0 许可文本于 licenses/runtime/orjson/。
+
 - CS2 Bot Improver：ed0ard 与原项目贡献者，AGPL-3.0。
   https://github.com/ed0ard/CS2-Bot-Improver
   复用的内容是 botprofile_presets 匿名模板、Medium 参数规律及 vendor/BotBuy 源码。

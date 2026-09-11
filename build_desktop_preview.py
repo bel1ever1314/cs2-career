@@ -41,6 +41,7 @@ def main():
         '--distpath', str(ROOT/'release'/name), '--workpath', str(ROOT/'build'/build),
         '--specpath', str(ROOT/'build'/build), '--paths', str(ROOT/'.desktop-deps'),
         '--collect-all', 'webview', '--collect-all', 'clr_loader', '--collect-all', 'pythonnet',
+        '--collect-all', 'orjson',
         '--add-data', f'{ROOT / "cs2career/data"}{sep}data',
         '--add-data', f'{ROOT / "cs2career/web/static"}{sep}web/static',
         '--add-data', f'{ROOT / "licenses"}{sep}licenses',

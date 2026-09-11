@@ -1,5 +1,59 @@
 # CS2 Career 1.5.0 开发者接手指南
 
+## storage.1：仅优化未来的安全备份
+
+`save_backups.py` 统一创建、校验与恢复备份：新快照包含 `season.json.gz`、`career.json.gz` 和
+`snapshot.json`（原始字节数及SHA-256）。gzip level 1以1 MiB块流式处理，校验解压后的字节一致；
+完整且内容完全相同的最近快照可复用，不再重复创建。未提交清单、缺文件或校验失败的快照不复用。
+旧备份不压缩、不迁移、不清理；没有保留数量上限。活动存档仍是原有schema_version=2普通JSON。
+`ApplicationState.backup`、中断事务恢复和建档失败恢复均走此接口；旧Tk入口不再额外复制一次。
+恢复先把整对文件解压校验到临时文件，再替换；事务日志仅在恢复成功后移除。支持旧的未压缩快照。
+改动涉及磁盘备份，不是历史战报懒加载；`Season.history`仍在内存中，不能声称解决了多年运行内存增长。
+只做隔离的备份/损坏保护/成对回滚检查，不因这些检查通过而宣称生涯流程或可玩性已验证。
+
+## stories.1：职业与生活剧情
+
+当前桌面主入口是 `desktop/webview_app.py` 的 pywebview + WebView2，不是后文早期记录中的 Tk。
+剧情状态仅存在 `Career.incident_state['arcs']`，仍随 schema_version=2 保存；不要另建全局剧情状态。
+`career/arcs.py` 是已有 incidents 的适配器，负责条件/章节/白名单业务动作，不运行扩展脚本。
+`data/career_arcs.json` 放规则、对白、选项、伤病文本、结局；作者通过 incidents JSON 的 `arc_overrides` 覆盖。
+`web/static/desk/arcs.js` 只负责状态提示和档案分页，决定仍经现有 story/ack；写操作同一 ApplicationState 锁，
+转队/退役决定沿用 personal_command 的双存档备份/恢复事务（包含失败回滚）；纯文案、标记和奖励只原子保存career，
+不深拷贝并重写整个赛季历史。新增白名单动作若修改世界，必须加入arcs.changes_world。
+
+触发点：Career.create 初始化；Season._finalize_human 在记战绩后、结束赛事前登记正式系列赛；
+open_event 冻结参赛阵容实力预期；finish_event 写Major报道和赛事评价；Career.tick 处理日期、NA期限、伤病；
+gate_match 调用 before_match，应用临时状态并排入旧队赛前选择。GET接口不抽奖、不发点、不推进日期。
+训练、轮空和弃权不触发首次比赛恋爱线；正式CS2和模拟共用 _finalize_human。
+NA是自建开局 scenario=na_student（赛区 AM，但不是自动认定所有AM都是NA）。
+有名单锁或已排队决定时，不弹会阻止赛事结束的NA转队决定；考核截止日不跟着延期。
+
+随机数使用存档内独立seed及事件键的SHA256，不消费比赛RNG。行内冻结概率结果、奖励、规则、后续自定义章节；
+重复ack无效果，退役返回确认不重抽。next和branches校验引用、拒绝新增循环；扩展只允许continue/finish自定义动作。
+人物姓名与私人故事均为虚构，不按选手姓名解锁隐藏情节。
+
+`world.ability.effective_form_delta()` 合并 form_delta 与 story_form_delta 并限幅；模拟和CS2请求均使用，
+赛后 form 更新只读原始 form_delta，防止临时热恋/伤病永久叠加。真人在CS2中的枪法不受程序强制削弱。
+伤病按每个实际到达的新月份检查一次，不补算跳过月份；同月不会通过重复操作重新抽。
+每年上限3次、间隔45天、持续21天，年龄概率与参数可覆盖。未进行完整长期退役平衡验证。
+
+档案全文永久保存在career，公共状态只给最近30段；`GET /api/story-history?page=1`每页20段按需取，
+防止重新把全部历史放入每次响应。历史只读原文，不调用随机剧情生成器重造过去。
+`tests/test_career_arcs.py` 覆盖分支/幂等/转队/回滚/模板/历史，必须用 tools/run_tests.py 隔离路径；
+`tools/test_career_arcs_ui.cjs` 验证纯展示、HTML转义、分页和过时响应防护。
+普通玩家说明见 `剧情扩展说明.txt`，作者模板见 `extensions/_templates/career-arcs-pack`。
+
+## transfer.2 性能边界与回归入口
+
+`Season.records(include_matches=False)` 供首页、荣誉、榜单使用；详情仍走原数据接口。
+默认 `records()` 和 `awards.make_record()` 保留完整历史，跨年快照不能调用摘要模式。
+不要把几十 MB 的历史事件再次放回 `/api/state` 或每次写操作的响应。
+`json_bytes.encode` 用 orjson 输出UTF-8字节；桌面构建显式收集该依赖，缺依赖的源码环境可回退标准JSON。
+存档仍先写同目录临时文件再原子替换，不用异步保存制造“按钮快、数据没落盘”。
+`tools/profile_commands.py <存档目录>` 先复制 season/career 到临时目录，再实际加点与推进；从不改传入目录。
+`tests/test_transfer_flow_fixes.py` 覆盖转会后邀请/参赛、岗位、告别幂等、非冠军颁奖、事件奖励/暂停、模板链与历史保存。
+测试总入口仍为 `tools/run_tests.py`，必须在模块导入前隔离路径和关闭CS2操作。
+
 这份文档面向下一位维护者，回答三件事：三个项目如何配合、程序从哪里启动、每个目录和源码文件负责什么。
 
 > 当前主线就是此目录。`E:\1.4.1`、Bot Improver 和 Inventory Simulator 原项目都是只读参考，不应从 1.5 反向修改。
@@ -333,3 +387,14 @@ RosterReadiness.cs专门跟踪十人绑定等待和漏记风险；不得把可�
 SessionHealth.StatisticsError，也不得在阵容恢复时清除整个StatisticsError。
 等待时记下比分，恢复前已有计分增长表示可能漏记正式回合，不能仅凭终场十人齐全放行。
 ReadinessRegression.cs覆盖这些状态转换。用户要求隐藏接管成功聊天，但日志必须保留。
+## 个人转会模块（transfer.1 补充）
+
+- `cs2career/career/player_transfers.py`：D20 报价、申请/签约事务、补强邀约、冷却、告别、原队财务与转会剧情通知。
+- `cs2career/web/static/desk/personal-transfers.js`：个人转会页面与结果揭晓；不得在前端产生业务骰点。
+- `ApplicationState.personal_command`：备份、双文件恢复日志与延迟提交，HTTP 返回前完成保存。
+- `tests/test_personal_transfers.py`：隔离单元与真实本地 HTTP 命令回归。
+- `tools/transfer_ui_fixture.py`：临时目录运行共享界面与真实创建命令，不读取正式存档、不连接 CS2。
+
+邀约策略：每月最多评估一次，60%的固定生涯抽签机会；只有对应位置至少补强3分的球队进入候选，优先实力最高的有意球队。全年最多4份、同队不重复、同一时刻最多一份未处理合同，有效30天；拒绝不退年度额度。自由身也可主动申请，不依赖保底邀约。
+
+转会后原队被标记为 AI 管理，保留金库、银行借款与欠款。原队按原工资/生活费标准结算，负担不起的开支记欠款，不扣玩家口袋；暂未做 AI 破产清算/出售俱乐部。签约玩家的个人债务仍由玩家承担，向原债权球队付款。不得通过清空 loan 来免除个人借款。

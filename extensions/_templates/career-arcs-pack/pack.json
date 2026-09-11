@@ -1,0 +1,9 @@
+{
+  "id": "author.career.arcs.example",
+  "name": "职业生活剧情接口示例",
+  "version": "1.0.0",
+  "schema_version": 1,
+  "types": ["incidents"],
+  "author": "示例作者",
+  "description": "改奖励、追加选择链与固定随机分支。模板不自动启用；复制到扩展根目录后生效。"
+}

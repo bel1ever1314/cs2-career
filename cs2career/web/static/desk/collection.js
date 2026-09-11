@@ -44,7 +44,7 @@
    if($('collection-sell'))$('collection-sell').onclick=async()=>{if(confirm(`出售 ${p.name}，获得 ${money(p.sell)}？`)){await command('/api/skins/sell',{id:p.id});closeModal();}};
    box.querySelector('.close-detail').focus();
  }
- function images(host){host.querySelectorAll('.skin-photo img').forEach(img=>{img.onerror=()=>{img.hidden=true;img.parentElement.querySelector('.skin-placeholder').hidden=false;};});}
+ function images(host){host.querySelectorAll('.skin-photo img').forEach(img=>{img.onerror=()=>{img.hidden=true;img.parentElement.querySelector('.skin-placeholder').hidden=false;};if(img.complete&&!img.naturalWidth)img.onerror();});}
  function bind(host){
    images(host);
    host.querySelectorAll('[data-skin-detail]').forEach(b=>b.onclick=()=>{const list=b.dataset.kind==='inventory'?S.career.skins.inventory:S.career.skins.market;const p=list.find(x=>x.id===b.dataset.skinDetail);if(p){dialog(p,b.dataset.kind);images($('collection-modal'));}});
@@ -64,7 +64,7 @@
      rows=[...rows].sort((a,b)=>r.sort==='price'?(b.spot-a.spot):rarityRank(a.rarity)-rarityRank(b.rarity)||(b.spot-a.spot));
      h+=`<div class="filterbar"><input id="skin-search" value="${esc(r.search||'')}" placeholder="搜索饰品"><select id="skin-weapon"><option value="">所有武器</option>${shop.weapons.map(w=>`<option ${r.weapon===w?'selected':''}>${esc(w)}</option>`).join('')}</select><select id="skin-rarity"><option value="">所有等级</option>${Object.entries(title).map(([k,v])=>`<option value="${k}" ${r.rarity===k?'selected':''}>${v}</option>`).join('')}</select><select id="skin-sort"><option value="rarity">稀有度优先</option><option value="price" ${r.sort==='price'?'selected':''}>价格从高到低</option></select><button class="btn" id="skin-filter">筛选</button><span class="hint">${rows.length} 件</span></div><div class="collection-grid">${rows.map(p=>card(p,inv?'inventory':'market')).join('')}</div>${rows.length?'':ui.empty('没有符合条件的饰品。')}`;
    }
-   host.innerHTML=h;bind(host);bindPending();
+   ui.paint(host,h);bind(host);bindPending();
    if($('skin-filter'))$('skin-filter').onclick=()=>ui.go(r.view,{search:$('skin-search').value,weapon:$('skin-weapon').value,rarity:$('skin-rarity').value,sort:$('skin-sort').value},true);
    if($('reduce-unbox'))$('reduce-unbox').onchange=e=>localStorage.setItem('reduce-unbox',e.target.checked?'1':'0');
    host.querySelectorAll('[data-open-case]').forEach(b=>b.onclick=async()=>{

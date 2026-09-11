@@ -53,7 +53,9 @@ function renderSetup() {
   if (DRAFT.mode === "create") {
     h += `<label>选手 ID<input id="in-name" value="${esc(DRAFT.name || "")}" placeholder="你的游戏 ID" maxlength="32"></label>
       <label>队名<input id="in-org" value="${esc(DRAFT.org || "")}" placeholder="队伍名称" maxlength="40"></label>
-      <label>赛区<select id="in-region">${Object.entries(REGION)
+      <label>剧情开局<select id="in-scenario"><option value="">普通生涯</option><option value="na_student" ${DRAFT.scenario==='na_student'?'selected':''}>NA 留学生挑战</option></select></label>
+      ${DRAFT.scenario==='na_student'?`<p class="hint">额外 +${S.career.story_arcs?.na_bonus??3} 自由属性点，在北美打比赛。第一年必须获得 T2 或预选赛冠军；选择读书或全职，会通向不同后续与结局。不按选手姓名触发。</p>`:''}
+      <label>赛区<select id="in-region" ${DRAFT.scenario==='na_student'?'disabled':''}>${Object.entries(REGION)
         .map(([k, v]) => `<option value="${k}" ${DRAFT.region === k ? "selected" : ""}>${v}</option>`)
         .join("")}</select></label>
       <label>队标（PNG，可选）<input type="file" id="in-logo" accept="image/png"></label>
@@ -112,6 +114,8 @@ function renderSetup() {
   }
   const regSel = $("in-region");
   if (regSel) regSel.onchange = () => { DRAFT.region = regSel.value; };
+  const scenarioSel = $("in-scenario");
+  if(scenarioSel)scenarioSel.onchange=()=>{DRAFT.scenario=scenarioSel.value;if(DRAFT.scenario==='na_student')DRAFT.region='AM';renderSetup();};
   const logo = $("in-logo");
   if (logo) {
     logo.onchange = () => {
@@ -131,6 +135,7 @@ function renderSetup() {
       body.name = ($("in-name")?.value || "").trim();
       body.org = ($("in-org")?.value || "").trim();
       body.region = $("in-region")?.value || "AS";
+      body.scenario = DRAFT.scenario || '';
       if (!body.name || !body.org) return toast("选手 ID 和队名都要填", true);
     } else {
       body.team_id = $("in-team")?.value;

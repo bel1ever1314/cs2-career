@@ -149,8 +149,8 @@
     },
     {
       "id": "major-1", "name": "Austin Major 2026", "short": "Austin Major",
-      "type": "major", "format": "swiss_playoff", "region": "AM", "prestige": "major",
-      "vrs_weight": 1.60, "size": 16, "prize": 1250000,
+      "type": "major", "format": "major_stages", "region": "AM", "prestige": "major",
+      "vrs_weight": 1.60, "size": 32, "prize": 1250000,
       "dates": ["2026-06-04", "2026-06-05", "2026-06-06", "2026-06-07", "2026-06-08", "2026-06-12", "2026-06-13", "2026-06-14"]
     },
     {
@@ -245,8 +245,8 @@
     },
     {
       "id": "major-2", "name": "Shanghai Major 2026", "short": "Shanghai Major",
-      "type": "major", "format": "swiss_playoff", "region": "AS", "prestige": "major",
-      "vrs_weight": 1.60, "size": 16, "prize": 1250000,
+      "type": "major", "format": "major_stages", "region": "AS", "prestige": "major",
+      "vrs_weight": 1.60, "size": 32, "prize": 1250000,
       "dates": ["2026-10-07", "2026-10-08", "2026-10-09", "2026-10-10", "2026-10-11", "2026-10-15", "2026-10-16", "2026-10-17"]
     },
     {

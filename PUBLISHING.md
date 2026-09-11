@@ -8,10 +8,10 @@
    只构建 CareerMatch 和修改后的 BotBuy；历史换肤 DLL 与可重编译恢复源码均保留。
 2. 执行 `py -3 tools/run_tests.py`。它在隔离目录运行，禁止真实游戏写入。
    前端测试为 tools/test_*.cjs；纯插件测试为 tools/identity-tests。
-3. `py -3 build_desktop_preview.py --integration --name CS2Career-150-rc-20260910-4`。
+3. `py -3 build_desktop_preview.py --integration --name CS2Career-Steady`。
    这是独立窗口程序，默认不会打开浏览器。构建不会扫描或复制玩家 save。
-4. `py -3 tools/package_public.py --exe release/CS2Career-150-rc-20260910-4/CS2Career-150-rc-20260910-4.exe`。
-   默认输出到 publish/1.5.0-rc.20260910.4；输出已存在会停止，避免覆盖。
+4. `py -3 tools/package_public.py --exe release/CS2Career-Steady/CS2Career-Steady.exe`。
+   默认输出到 publish/1.5.0-steady.1；输出已存在会停止，避免覆盖。可用 --output 指定新目录。
    生成源码ZIP、WindowsZIP、逐文件清单和 SHA256SUMS.txt。
 5. 解压源码 ZIP 到干净目录上传到 GitHub 仓库；不要上传你当前工作目录的整个压缩包。
    把 Windows ZIP 和对应源码 ZIP 一起附加到同一个 Release，勾选 **pre-release**。

@@ -68,17 +68,11 @@ ENDINGS = {
 }
 
 
-def honour_ending(honours: dict) -> dict:
-    counts = (honours or {}).get("counts") or {}
-    majors = int(counts.get("majors") or 0)
-    titles = int(counts.get("titles") or 0)
-    top20 = int(counts.get("top20") or 0)
-    premiers = int(counts.get("premiers") or 0)
-    if majors >= 2 and titles >= 6 and top20 >= 3:
-        return ENDINGS["legend"]
-    if titles >= 1 or premiers >= 1 or top20 >= 1:
-        return ENDINGS["veteran"]
-    return ENDINGS["plain"]
+def honour_ending(honours: dict, context: dict | None = None) -> dict:
+    # Ordinary voluntary retirement copy now lives in career_retirement.json.
+    # ENDINGS above remains compatible with older explicit incident endings.
+    from .retirement import choose
+    return choose(honours,context)
 
 
 def birthday_popup(name: str) -> dict:

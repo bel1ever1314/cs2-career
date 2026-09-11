@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "arc_overrides": {
+    "rules": {"focus_reward": 2},
+    "chapters": {
+      "romance_start": {
+        "choices": [{"id": "none", "reward": 2, "next": "author_focus_followup"}]
+      },
+      "author_focus_followup": {
+        "title": "【扩展验证】教练读完你的计划",
+        "text": ["你没有急着再加训练量，而是把目标分成能够检查的几件事。教练看完点点头：‘可以。接下来不是看你说得多认真，是看能坚持多久。’\n这段是示例扩展包追加的章节，不是内置剧情。"],
+        "choices": [
+          {"id": "talk", "label": "和队友聊聊计划（两种反应各50%）", "action": "continue", "branches": [
+            {"weight": 1, "next": "author_support"}, {"weight": 1, "next": "author_remind"}
+          ]},
+          {"id": "quiet", "label": "收好计划，开始训练", "action": "continue"}
+        ]
+      },
+      "author_support": {
+        "title": "【扩展验证】一起练",
+        "text": ["队友把椅子拉过来：‘你练你的部分，我把跟你的配合一起补上。’计划终于不再只写着你一个人的名字。"],
+        "choices": [{"id": "ok", "label": "记住这份支持", "action": "continue"}]
+      },
+      "author_remind": {
+        "title": "【扩展验证】别把休息划掉",
+        "text": ["队友拿笔补了一行休息时间：‘我知道你想赢。但别练到以后连比赛都上不了。’你把那一行保留下来。"],
+        "choices": [{"id": "ok", "label": "把计划做得可持续", "action": "continue"}]
+      }
+    }
+  }
+}

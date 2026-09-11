@@ -1,5 +1,78 @@
 # CS2 Career 1.5 桌面版与扩展架构
 
+## 页面原位刷新（steady.1）
+
+`web/static/desk/dom.js` 提供 `CareerDOM.paint(host, html)`，通过 `CareerUI.paint` 供页面使用。
+它只负责表现层，不发请求、不修改生涯状态、不替换全局 DOM API。常规页面刷新应使用此入口，
+随后重新绑定页面的 `onclick/onchange` 等属性处理器；旧处理器会清理，避免按钮复用时执行旧命令。
+重复列表建议提供稳定 `data-ui-key`；比赛节点用比赛ID、邮件用邮件ID、饰品用物品ID。
+图片源没变时不重写 src，原有节点、输入焦点、展开状态尽量保留。HTML 中所有扩展文本仍须经过 esc，
+不要将扩展包字段直接拼成 HTML；局部更新器不代替内容校验。脚本节点不会插入文档。
+
+`desk/assistance.js` 的 session 只保存本次观赛面板和图视角。遇到剧情暂停保留 session，
+通过原有 story_queue / ack 后继续；非剧情阻塞、手动比赛、稍后决定或结束时释放。
+`app.js` 在面板存在期间不重绘背景，退出时统一更新；它不跳过任何后端结算。
+验证入口为 `tools/test_steady_browser.cjs`（Playwright + 独立无头 Chrome，无正式存档）
+和 `tools/test_assistance_ui.cjs`（确定性模拟命令与暂停/继续）。
+
+## 职业生活章节（stories.1）
+
+沿用 incidents 包、现有 story_queue 和 ack 接口；新增的 `arc_overrides` 包含 `rules`、`chapters`、`endings`。
+只想改奖励：`{"schema_version":1,"arc_overrides":{"rules":{"focus_reward":2}}}`。
+单项覆盖示例：`chapters.romance_pace.choices` 写 `[{"id":"focus","reward":4}]`，只改变克制选项。
+内置动作不可从包内替换；新增章节只允许 continue / finish，并能通过 next 或加权 branches 接后续。
+规则在content/rules.py入口校验，由career/arcs.py执行；扩展数据没有脚本权限。
+见 `extensions/_templates/career-arcs-pack` 的完整可验证示例和中文TXT。
+给钱/技能点/暂停比赛/条件标记仍用下面的通用 effects；游戏内聊天仍用 match_chat。
+
+## 转会修复与选择后果（transfer.2）
+
+复用 `incidents.emit → story_queue → Career.ack_story → incidents.resolve`，不是另建剧情引擎。
+`effects` 新增 `{"type":"skill_points","amount":2}`（0—100整数）与
+`{"type":"competition_pause","amount":7}`（1—365天）；暂停 amount=0 表示提前恢复。
+后续剧情仍由同包 `conditions.flags` 分支。累计奖励受单选项上限校验；所有效果先验证再结算。
+已确认的 story_id 不重复执行，奖励结果另排入 `incident_result` 普通弹窗。
+暂停存于可选 `incident_state.competition_pause={until,reason}`，日期到期即恢复，无需作者再发恢复事件。
+已有地图或 CS2 回传中的系列赛不能被暂停；每段事件须有不扣钱、不暂停的退路选项。
+未来开赛报名受限制；已排比赛在推进时通过现有弃权路径结算，不补造战绩、不奖励弃权参赛点。
+日常训练不受限制。作者验证包：`extensions/_templates/choice-effects-pack/`，含普通玩家可读 TXT。
+
+邀请的 `team_id` 是收件俱乐部，不等同于当前 `Career.team_id`。转会前标记旧函、变更身份后再发新函。
+旧转会存档未标记的邀请先备份并失效，重新确认新队邀请，不猜测同一天的归属，不重算过去赛事。
+所有告别选择追加各自回应并发放1点；已在旧版确认的告别不会追溯重发奖励。
+
+## 对话调度 v2（dialogue.2，优先于下方旧版描述）
+
+作者文件仍使用 schema_version=1，新增可选 scenes 数组；场内请求 contract 升为2。
+旧 contract=1 的全局单句调度保留兼容；新构建一律生成 contract=2。
+v2 普通聊天分 coach 与 player 两个槽位，各自每回合最多一句，队友/对手共用 player。
+不再使用全场八条/两回合全局冷却，规则仍受自身冷却、概率、次数上限控制。
+`scenes[].sequence` 为有序多角色对话，优先于 rules；每回合至多一段，先预解析全部人物，
+缺人整段跳过。同优先级保留 registry → file → array 顺序，未选中的剧情不进入积压队列。
+`MatchDialogue.EndRoundBatch` 返回不可变文本快照和相对延时，`DialoguePlayback` 提供 epoch/索引闸门；
+适配器串联服务器 timer，取消旧队列不影响事件账本。地图变更、回合重启、冻结结束或身份异常停止剩余台词。
+作者可复制 match-scene-pack，其 TXT 教程含第一回合双通道和第三回合剧情测试。
+
+## 比赛聊天与生涯事件接口（dialogue.1）
+
+新增两类 JSON 包，均使用 `pack.json schema_version=1` 和内容 `schema_version=1`。
+`match_chat/` 不是脚本：`content/rules.py` 校验 → `cs2/dialogue.py` 合并内置与扩展规则 →
+`prepare_game()` 冻结到 `match_request.json.match_chat` → C# `MatchDialogue` 纯规则引擎 →
+`CareerMatch.Dialogue.cs` 从原始身份账本读取正式回合快照并发送聊天，不改写统计。
+旧请求缺少此字段仍兼容；无效聊天配置只停用聊天。设置开关下场生效。
+
+`incidents/` 与原 `events/` 不同：前者是选择与后果，后者始终是赛事日历。
+`career/incidents.py` 提供 emit/resolve/decorate，`Career.emit_incidents` 是核心触发接口；
+扩展不能导入 Python，不能执行控制台命令，不能任意写存档属性。
+待处理决策冻结在 story_queue，复用现有带会话校验的 `/api/story/ack`；
+消耗记录与包内 flags 保存到 schema-v2 的可选 `incident_state` 字段。
+原内置假赛、教练缺席的业务逻辑仍在 Career，overrides 只改弹窗文案，不改概率或结果。
+
+作者可直接复制 `extensions/_templates/match-chat-pack` 或 `incident-pack`，
+两包中的 README.txt 列出全部触发点、条件、占位符、效果和边界。
+示例不默认加载；教练示例不代表已实现完整教练合同系统。
+当前无音频、独立 HUD 布局、任意脚本效果，也没有未经核实的真人名场面内置台词。
+
 ## 分层
 
 ```text
@@ -301,3 +374,14 @@ HEROIC当日没有完整主力，整队占位标记 `estimated`；M80的k1to标�
 年代包/青训/扩展选手在创建时校准。旧 schema v2 选手缺少参考字段时，以存档当前能力和当前位置补齐，
 不猜测旧存档以前换过什么位置。应用保存新字段前备份原存档对；历史比赛快照不重算，不要求重开。
 新增测试请通过 `tools/run_tests.py` 隔离运行，重点参考 `tests/test_role_ability.py`。
+## 个人转会接口（1.5.0-transfer.1）
+
+`career/player_transfers.py` 是个人加盟唯一业务入口，`career/transfers.py` 继续负责俱乐部买人。不要在 JSON 效果里直接修改名单、身份、债务或冷却。
+
+`GET /api/player-transfers` 提供角色报价、精确成功率、阻止原因、最后一次骰点与转会历史；`POST /api/player/transfers/apply` 接收稳定 `team_id` 和 `role`，不接受客户端骰点。签约通过已有 `/api/story/ack` 决策，不另设可绕过剧情的换队接口。
+
+存档仍为 schema 2，新增可选 `personal_transfers`，包含 attempts/offers/moves、日期冷却、pending、hooks 和 player_only。旧存档缺省为空，不要求重开。历史比赛不重写。`ApplicationState.personal_command` 在服务器锁内备份并保护 career/season 两份存档，遇到中断时在加载前根据本地恢复记录恢复整对。
+
+剧情触发点：`transfer_offer_received`、`transfer_application_success`、`transfer_application_failed`、`transfer_stayed`、`transfer_departed`、`transfer_joined`、`transfer_former_team`。条件支持原队/新队稳定ID、位置、来源及告别选择。转会通知先冻结排队，等内置去留和告别完成再处理扩展，不阻塞尚未完成的签约。每个通知最多命中一条规则。
+
+示例：`extensions/_templates/transfer-story-pack`。加入新队的不同选择通过包内 flag 连接到后续 day 事件；转会引擎不执行脚本。离队/加盟扩展的俱乐部效果针对**当前新队**，不跨队写旧俱乐部。

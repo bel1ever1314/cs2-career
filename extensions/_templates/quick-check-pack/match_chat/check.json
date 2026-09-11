@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "rules": [
+    {
+      "id": "round-one", "when": "round_end", "speaker": "coach",
+      "channel": "team", "color": "blue", "priority": 100,
+      "probability": 1, "cooldown_rounds": 1, "max_per_match": 1,
+      "conditions": {"round": {"min": 1, "max": 1}},
+      "text": ["[测试1] 教练：第1回合结束，比分 {score_for}:{score_against}。"]
+    },
+    {
+      "id": "round-three", "when": "round_end", "speaker": "teammate",
+      "channel": "team", "color": "green", "priority": 100,
+      "probability": 1, "cooldown_rounds": 1, "max_per_match": 1,
+      "conditions": {"round": {"min": 3, "max": 3}},
+      "text": ["[测试2] {player}：累计 {kills} 杀 {deaths} 死，本回合 {round_kills} 杀。"]
+    },
+    {
+      "id": "round-five", "when": "round_end", "speaker": "opponent",
+      "channel": "all", "color": "gold", "priority": 100,
+      "probability": 1, "cooldown_rounds": 1, "max_per_match": 1,
+      "conditions": {"round": {"min": 5, "max": 5}},
+      "text": ["[测试3] 对手频道成功，比分 {score_for}:{score_against}（以你方为准）。"]
+    }
+  ]
+}

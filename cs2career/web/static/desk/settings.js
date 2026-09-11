@@ -32,14 +32,19 @@ CareerUI.pages.settings = async (_route,host,active) => {
   </div></div>`;
 
   h += botSettingsCard(cfg);
+  h+=`<div class="card"><h3>比赛情境对话</h3>
+    <label>游戏内文字 <select id="match-chat"><option value="on" ${!cfg.match_chat||cfg.match_chat==='on'?'selected':''}>内置＋扩展</option><option value="custom" ${cfg.match_chat==='custom'?'selected':''}>仅扩展包</option><option value="off" ${cfg.match_chat==='off'?'selected':''}>关闭</option></select></label>
+    <p class="hint">普通聊天每回合最多教练一句、选手一句（队友与对手共用选手额度）；各规则保留自己的冷却和次数限制。场内剧情优先，按编写顺序逐句播放，不混入普通闲聊。保存后下次准备比赛生效。</p>
+    <p class="hint">扩展工坊的 match_chat 包可自定义文字、说话者、颜色和触发规则；当前使用 CS2 原生聊天框，不支持调整框体位置或尺寸。</p></div>`;
   h+=`<div class="card"><h3>游戏内换肤</h3>
     <p class="hint">只影响已安装换肤插件的本地 CS2 对局；生涯饰品在收藏分区管理。</p>
     <label class="row"><input id="skin-real" type="checkbox" ${c.real_skins?'checked':''}>启用游戏内换肤</label>
     <div class="row"><input id="skin-sid" class="locker-input" value="${esc(c.steam_id||'')}" placeholder="17 位 SteamID"><button id="skin-pref" class="btn">保存换肤偏好</button></div>
     ${S.design_preview?'<p class="hint">隔离预览中只展示设置，不会修改游戏或配置。</p>':''}
   </div>`;
-  host.innerHTML=h;
+  CareerUI.paint(host,h);
   bindBotSettings(refresh);bindSkinPref();
+  $('match-chat').onchange=async e=>{await post('/api/cs2/settings',{match_chat:e.target.value});refresh();};
   if ($("p-save")) {
     $("p-save").onclick = async () => {
       await post("/api/cs2/settings", {

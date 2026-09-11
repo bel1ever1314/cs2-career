@@ -61,6 +61,8 @@ class DeploymentTests(unittest.TestCase):
                 launch.prepare_game(self.csgo,mod,request,dict(launch.DEFAULTS,difficulty=level))
                 start.assert_not_called()
             saved=json.loads((self.dst/'match_request.json').read_text(encoding='utf-8'))
+            self.assertTrue(saved['match_chat']['enabled'])
+            self.assertEqual(5, len(saved['match_chat']['rules']))
             manifest=active_manifest(self.csgo)
             self.assertTrue(manifest['valid'])
             self.assertEqual(level,manifest['difficulty'])

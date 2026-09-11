@@ -354,8 +354,14 @@ tr.me td:first-child { box-shadow: inset 2px 0 0 var(--acc); }
   margin: 0 0 22px;
 }
 .story-card .btn { width: 100%; }
-.story-foot.split { display: flex; gap: 8px; }
-.story-foot.split .btn { width: auto; flex: 1; }
+.story-foot.split { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; max-height: 42vh; overflow-y: auto; }
+.story-foot.split .btn {
+  width: 100%; min-width: 0; height: auto; min-height: 44px;
+  white-space: normal; overflow-wrap: anywhere; word-break: normal;
+  line-height: 1.55; padding: 10px 14px; text-align: left;
+  display: block; box-sizing: border-box;
+}
+.story-scroll { overflow-wrap: anywhere; }
 
 .awards-card { width: min(640px, 100%); }
 .awards-lead { color: var(--mute); font-size: 13px; margin: -4px 0 18px; }

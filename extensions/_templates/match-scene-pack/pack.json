@@ -1,0 +1,1 @@
+{"schema_version":1,"id":"author.scene.example","name":"回合双通道与多人剧情验证包","version":"1.0.0","enabled":true,"load_order":10,"types":["match_chat"]}

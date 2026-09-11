@@ -16,7 +16,7 @@ from typing import Any
 from ..paths import extension_root
 
 PACK_ID = re.compile(r"^[a-z0-9][a-z0-9._-]{2,63}$")
-KINDS = {"stories", "skins", "events", "teams", "eras"}
+KINDS = {"stories", "skins", "events", "teams", "eras", "match_chat", "incidents"}
 
 
 @dataclass
@@ -103,6 +103,14 @@ class PackRegistry:
             return pack
         for kind in pack.kinds:
             pack.payloads[kind] = self._read_payloads(pack, kind)
+            if kind in {'match_chat', 'incidents'}:
+                ids = set()
+                collection = 'rules' if kind == 'match_chat' else 'incidents'
+                for payload in pack.payloads[kind]:
+                    for row in payload.get(collection, []) + (payload.get('scenes', []) if kind == 'match_chat' else []):
+                        if row['id'] in ids:
+                            pack.errors.append(f'{kind} 跨文件重复 id：{row["id"]}')
+                        ids.add(row['id'])
         if pack.errors:
             pack.status = "rejected"
             pack.payloads = {}
@@ -125,6 +133,13 @@ class PackRegistry:
                 pack.errors.append(f"{path.name} 顶层必须是对象")
                 continue
             raw = dict(raw)
+            if kind in {'match_chat', 'incidents'}:
+                from .rules import validate_payload
+                try:
+                    validate_payload(kind, raw)
+                except (ValueError, TypeError, KeyError) as exc:
+                    pack.errors.append(f'{path.name}: {exc}')
+                    continue
             for key in ('stories','skins','cases','events','teams'):
                 if key in raw and (not isinstance(raw[key],list) or any(not isinstance(row,dict) for row in raw[key])):
                     pack.errors.append(f'{path.name}: {key} 必须是对象数组')

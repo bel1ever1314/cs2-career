@@ -1,6 +1,6 @@
 /* Render real history pages with recorded API shapes and inert controls. */
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
-const ui={pages:{},head:(t,s)=>`${t} ${s}`,link:(_k,id,t)=>`${id}:${t}`,tabs:()=>'',empty:t=>`<p>${t}</p>`,num:n=>n==null?'—':String(n)};
+const ui={pages:{},paint:(host,html)=>host.innerHTML=html,head:(t,s)=>`${t} ${s}`,link:(_k,id,t)=>`${id}:${t}`,tabs:()=>'',empty:t=>`<p>${t}</p>`,num:n=>n==null?'—':String(n)};
 const controls={};let response;
 const ctx={CareerUI:ui,get:async url=>url==='/api/events'?[{id:'2026::cup',name:'Old Cup',dates:['2026-02-01'],status:'done'}]:response,
   $:id=>controls[id]||= {},esc:String,ROLE:{},REGION:{},FORMAT:{},STATUS:{},S:{career:{}},money:String,

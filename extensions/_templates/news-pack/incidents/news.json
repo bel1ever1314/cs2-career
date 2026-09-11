@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "arc_overrides": {
+    "rules": {
+      "na_first_year_days": 365,
+      "na_return_days": 365,
+      "na_min_maps": 20,
+      "na_min_rating": 1.0,
+      "na_success_types": ["t2", "qual", "t1", "major"],
+      "major_favourite_rank": 4,
+      "major_contender_rank": 8
+    },
+    "reports": {
+      "major_excited": {"title": "{team}取得{placement}｜这次Major值得记住"},
+      "monthly": {"title": "{month}职业世界观察｜{headline}"}
+    }
+  }
+}

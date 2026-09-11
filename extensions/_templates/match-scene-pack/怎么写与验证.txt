@@ -1,0 +1,45 @@
+多人有序比赛剧情包（需要 dialogue.2 新测试程序）
+
+验证：
+1. 把整个 match-scene-pack 复制到正在运行的 EXE 旁边的 extensions 根目录。
+2. 暂时停用其他聊天测试包，重新扫描；游戏设置选择“仅扩展包”。
+3. 完全退出 CS2，重新准备一场比赛。暖身不算。
+4. 第1回合结束：教练先一句，约1.5秒后队友一句，验证两种普通额度互不抢占。
+5. 第3回合结束：剧情1 → 约2秒 → 剧情2 → 约2秒 → 剧情3。
+   普通规则的“这句是普通聊天”不应该显示。剧情即使 priority=-10，也优先于 priority=100 的普通聊天。
+
+编写：
+pack.json 的 types 仍然是 ["match_chat"]，内容 schema_version 仍是1，老包仍可加载。
+同一个 match_chat/*.json 文件可以同时包含 rules 和 scenes，也可以拆成多个文件。
+rules 中 text 数组表示随机挑一句，不是按顺序播放。
+scenes 中 sequence 数组才是按顺序播放的整段对话，最多6句。
+剧情字段：id、when、conditions、priority、probability、cooldown_rounds、max_per_match、sequence。
+触发条件和普通聊天相同，when 当前为 round_end；不能在剧情 conditions 内使用 speaker_id。
+
+每句支持：
+speaker：coach、teammate、opponent。
+speaker_id：可选，填本场 Bot 的 player_id；不能给 coach 填选手ID。
+channel：team 或 all。opponent 必须写 all。
+color：default、green、blue、gold。
+text：一条字符串，不是数组，支持 {player}、{speaker}、{score_for} 等原占位符。
+delay_seconds：与上一句的间隔，0.5到3秒，默认2秒；第一句立即显示，其 delay_seconds 不产生开场延迟。
+连续多次 teammate 未指定 speaker_id 时使用同一个队友；想换人物请显式填 player_id。
+任何指定人物不在本场，整段剧情跳过，不会偷偷用其他人顶替。
+占位符使用触发时的快照，不会因为两秒后比分改变而改变原句。
+
+额度与顺序：
+普通聊天每回合教练最多一句、选手最多一句（队友与对手共用选手额度）。
+不再共用“全场8句”和“两回合全局冷却”。每条规则自己的冷却/上限仍有效。
+如果希望同一句每回合都能参与，写 cooldown_rounds:1、max_per_match:200。
+有剧情时本回合不播普通聊天。剧情里的多句不受普通角色的一句额度限制。
+同一回合最多一段剧情，多个命中先比较 priority，越高越先。
+优先级相同时依次按 pack.load_order、pack.id、文件名、JSON数组原顺序选择。
+没被选中的剧情不排队、不算播放，下一回合如果仍符合条件可以再竞争。
+
+安全边界：
+剧情在回合结束后与下一回合冻结期间播放，冻结结束开始战斗时取消剩余台词。
+换地图、重启、请求变更或战绩身份异常也会取消，避免过期剧情跨到新比赛。
+已经开始但中途取消的剧情仍计一次触发，不会补发或整段重放。
+本接口只有演绎文字，不暂停比赛、不执行控制台指令、不改变胜负和生涯事件后果。
+不要将比赛内 scenes 与带金钱/心态后果的 incidents 生涯事件包混淆。
+想完全排除其他包竞争，测试时仅启用本包即可。

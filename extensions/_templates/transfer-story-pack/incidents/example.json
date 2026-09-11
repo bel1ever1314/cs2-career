@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "incidents": [
+    {
+      "id": "arrival",
+      "when": "transfer_joined",
+      "title": "新队服的重量",
+      "text": "{player}，你的新队服已经放在 {new_team} 的训练桌上。离开 {old_team} 以后，第一天训练你想怎么开始？",
+      "probability": 1,
+      "cooldown_days": 1,
+      "max_per_career": 10,
+      "choices": [
+        {"id": "listen", "label": "先听队友交流，了解他们的习惯", "effects": [{"type":"flag","key":"listen_first","value":true},{"type":"flag","key":"lead_first","value":false}]},
+        {"id": "lead", "label": "主动分享我的打法与想法", "effects": [{"type":"flag","key":"lead_first","value":true},{"type":"flag","key":"listen_first","value":false}]}
+      ]
+    },
+    {
+      "id": "quiet_followup",
+      "when": "day",
+      "cooldown_days": 1,
+      "max_per_career": 10,
+      "title": "慢慢找到自己的声音",
+      "text": "你开始听懂那些简短报点背后的习惯。训练结束，队友向你挪了挪椅子：“下次你也多说两句，我们想听。”",
+      "conditions": {"flags":{"listen_first":true}},
+      "choices": [{"id":"answer","label":"好，下一场我们一起调整","effects":[{"type":"flag","key":"listen_first","value":false}]}]
+    },
+    {
+      "id": "open_followup",
+      "when": "day",
+      "cooldown_days": 1,
+      "max_per_career": 10,
+      "title": "你的想法，我们试试",
+      "text": "教练把你提出的路线放进了训练安排。“先试，不急着证明谁对。我们需要的是一起打好。”",
+      "conditions": {"flags":{"lead_first":true}},
+      "choices": [{"id":"answer","label":"一起复盘，让想法经得起检验","effects":[{"type":"flag","key":"lead_first","value":false}]}]
+    },
+    {
+      "id": "reunion",
+      "when": "transfer_former_team",
+      "title": "熟悉的队标，在另一边",
+      "text": "对阵表上出现了 {old_team}。你仍记得他们的语速和习惯，只是这次准星要指向不同的方向。",
+      "probability": 1,
+      "choices": [{"id":"respect","label":"赛场上认真较量，赛后再叙旧","effects":[]}]
+    }
+  ]
+}

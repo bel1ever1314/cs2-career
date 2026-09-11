@@ -34,7 +34,8 @@ class LifecycleTests(unittest.TestCase):
         self.state.create_career(self.payload())
         before=(self.root/'career.json').read_bytes()
         self.state.reset()
-        self.assertTrue(any(p.read_bytes()==before for p in (self.root/'backups').glob('*/career.json')))
+        import gzip
+        self.assertTrue(any(gzip.decompress(p.read_bytes())==before for p in (self.root/'backups').glob('*/career.json.gz')))
         self.assertFalse(self.state.career.exists)
 
     def test_unavailable_starter_roster_preserves_existing_career(self):

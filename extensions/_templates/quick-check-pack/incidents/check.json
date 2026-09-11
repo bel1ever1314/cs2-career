@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "incidents": [
+    {
+      "id": "check-in", "when": "before_match", "title": "[验证1/3] 赛前设备检查",
+      "text": "这是测试扩展事件。选择开始，会记录一个测试标记；本场完整系列赛结束后，应出现验证2。不会扣钱、改能力或改变胜负概率。\n选择跳过，则本存档不再出现这条测试链。",
+      "probability": 1, "cooldown_days": 1, "max_per_career": 1,
+      "choices": [
+        {"id": "start", "label": "开始验证（不花钱）", "effects": [{"type": "flag", "key": "started", "value": true}]},
+        {"id": "skip", "label": "跳过测试链", "effects": []}
+      ]
+    },
+    {
+      "id": "review", "when": "after_series", "title": "[验证2/3] 赛后确认收到",
+      "text": "如果你看到了这里，说明赛前选择记录的标记被正确读取，系列赛结束触发点也已接通。\n请点确认；下一次日期推进结算会出现验证3。BO3需要整个系列赛结束，不是只打完第一张地图。",
+      "conditions": {"flags": {"started": true}},
+      "probability": 1, "cooldown_days": 1, "max_per_career": 1,
+      "choices": [
+        {"id": "confirm", "label": "确认，继续测试日期推进", "effects": [{"type": "flag", "key": "reviewed", "value": true}]}
+      ]
+    },
+    {
+      "id": "followup", "when": "day", "title": "[验证3/3] 事件链完成",
+      "text": "赛前选择、赛后跟进、日期推进三个接口已串起来。测试链到这里结束，本存档不会重复弹出。\n你可以移除测试包；它只留下测试标记和事件记录，不影响金钱、属性或心态。",
+      "conditions": {"flags": {"reviewed": true}},
+      "probability": 1, "cooldown_days": 1, "max_per_career": 1,
+      "choices": [
+        {"id": "finish", "label": "验证完成", "effects": [{"type": "flag", "key": "finished", "value": true}]}
+      ]
+    }
+  ]
+}

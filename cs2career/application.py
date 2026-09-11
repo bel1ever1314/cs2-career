@@ -7,9 +7,8 @@ No interface is allowed to keep a second copy of career rules.
 
 from __future__ import annotations
 
-import shutil
-from datetime import datetime
-from uuid import uuid4
+import json
+from copy import deepcopy
 
 from .career import Career
 from .league import Season
@@ -18,6 +17,7 @@ from .world import apply_roles
 
 class ApplicationState:
     def __init__(self) -> None:
+        self._recover_personal_command()
         self.season = Season.load_or_new()
         self.career = Career.load()
         self.season.career = self.career
@@ -42,6 +42,18 @@ class ApplicationState:
         dirty = False
         if not self.career.exists:
             return False
+        from .career import arcs
+        if not arcs.state(self.career) and not self.career.over():
+            self.backup()
+            arcs.initialize(self.career, self.season)
+            dirty = True
+        from .career import news
+        if 'world_news' not in self.career.incident_state and not self.career.over():
+            self.backup()
+            news.initialize(self.career,self.season)
+            dirty=True
+        if self.career.discard_stale_awards(self.season):
+            dirty=True
         if self.career.current_date != self.season.date:
             self.career.current_date = self.season.date
             dirty = True
@@ -64,6 +76,9 @@ class ApplicationState:
         if len(self.career.story_queue) != before_stories:
             dirty = True
         before = len(self.career.inbox)
+        if self.career.personal_transfers.get('moves') and any(r.get('kind') == 'invite' and 'team_id' not in r for r in self.career.inbox):
+            self.backup()  # Keep the original pair before repairing old transfer invitations.
+        dirty = self.career.repair_invite_teams(self.season) or dirty
         if self.career.unsigned and not self.career.over():
             self.career._dispatch_contracts(self.season)
         elif not self.career.unsigned and not self.career.over():
@@ -97,24 +112,61 @@ class ApplicationState:
         }
 
     def persist(self) -> None:
+        from .career.assistance import process_invites, process_points
+        process_invites(self.career, self.season)
+        process_points(self.career, self.season)
         self.season.save()
         self.career.save()
+
+    @staticmethod
+    def _recover_personal_command():
+        from .paths import save_root
+        root = save_root()
+        journal = root/'personal-transfer.pending.json'
+        if not journal.exists():
+            return
+        folder = (root/'backups'/json.loads(journal.read_text('utf-8'))['backup']).resolve()
+        if not folder.is_relative_to((root/'backups').resolve()):
+            raise ValueError('转会恢复记录路径无效，存档未更改。')
+        from .save_backups import restore
+        restore(root,folder)
+        journal.unlink()
+
+    def personal_command(self, command):
+        """Rollback both saves after an interrupted transfer, before loading.
+
+        Caller holds the shared application lock. Internal Career.save calls
+        are deferred so the pair is committed before sending a UI response.
+        """
+        from .paths import save_root
+        self.persist()
+        folder = self.backup()
+        old_season, old_career = deepcopy((self.season, self.career))
+        journal = save_root()/'personal-transfer.pending.json'
+        pending = journal.with_suffix('.writing')
+        pending.write_text(json.dumps({'backup': folder.name}), encoding='utf-8')
+        pending.replace(journal)
+        self.career.save = lambda: None
+        try:
+            result = command(self.career, self.season)
+            del self.career.save
+            self.persist()
+            journal.unlink()
+            return result
+        except Exception:
+            self.season, self.career = old_season, old_career
+            self.season.career = self.career
+            self._recover_personal_command()
+            raise
 
     def reset(self) -> None:
         self._replace_career(Season(), Career())
 
     def backup(self):
-        """Preserve the current pair before replacement; never touch config/packs."""
+        """Compress new snapshots; preserve all existing backups/config/packs."""
         from .paths import save_root
-        root = save_root()
-        files = [root / name for name in ('season.json', 'career.json') if (root / name).is_file()]
-        if not files:
-            return None
-        folder = root / 'backups' / (datetime.now().strftime('%Y%m%d-%H%M%S') + '-' + uuid4().hex[:8])
-        folder.mkdir(parents=True)
-        for path in files:
-            shutil.copy2(path, folder / path.name)
-        return folder
+        from .save_backups import create
+        return create(save_root())
 
     def _replace_career(self, season, career):
         folder = self.backup()  # A failed backup must prevent replacement.
@@ -126,11 +178,8 @@ class ApplicationState:
         except Exception:
             self.season, self.career = old_season, old_career
             if folder:
-                for source in folder.iterdir():
-                    target = folder.parent.parent / source.name
-                    pending = target.with_suffix('.restore-tmp')
-                    shutil.copy2(source, pending)
-                    pending.replace(target)
+                from .save_backups import restore
+                restore(folder.parent.parent,folder,require_pair=False)
             raise
 
     def create_career(self, payload: dict) -> str:
@@ -142,6 +191,11 @@ class ApplicationState:
         mode = payload.get('mode') or 'join'
         if era not in ERA_META or mode not in ('join', 'create'):
             raise ValueError('请选择有效的年代和生涯方式。')
+        scenario = payload.get('scenario', '')
+        if scenario not in ('', 'na_student') or (scenario and mode != 'create'):
+            raise ValueError('留学生挑战只能在自建生涯中选择。')
+        if scenario == 'na_student':
+            payload['region'] = 'AM'
         season = Season(int(ERA_META[era]['year']), era)
         if mode == 'create':
             name, org = str(payload.get('name') or '').strip(), str(payload.get('org') or '').strip()

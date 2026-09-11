@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "incidents": [
+    {
+      "id": "a_choice", "when": "day", "title": "给重要的人留一天",
+      "text": "一条消息把你从训练计划里拉了出来。你想陪伴对方，也知道赛程不会等你。\n这是接口验证剧情：暂停将让已排比赛弃权，不会删掉已有战绩。",
+      "probability": 1, "max_per_career": 1, "cooldown_days": 1,
+      "choices": [
+        {"id": "stay", "label": "陪伴七天（暂停参赛7天，技能点+2）", "effects": [
+          {"type": "skill_points", "amount": 2},
+          {"type": "competition_pause", "amount": 7},
+          {"type": "flag", "key": "chose_company", "value": true}
+        ]},
+        {"id": "play", "label": "先完成赛程，之后补上约定（技能点+1）", "effects": [
+          {"type": "skill_points", "amount": 1},
+          {"type": "flag", "key": "chose_match", "value": true}
+        ]}
+      ]
+    },
+    {
+      "id": "company_reply", "when": "day", "title": "陪伴之后",
+      "text": "你收到了队友发来的训练笔记：“别落下太远。回来以后，我们接着练。”\n故事可以继续用标记分支。此处允许提前恢复；错过的比赛不会重打。",
+      "conditions": {"flags": {"chose_company": true}},
+      "probability": 1, "max_per_career": 1, "cooldown_days": 1,
+      "choices": [
+        {"id": "return", "label": "回到赛场", "effects": [{"type": "competition_pause", "amount": 0}]},
+        {"id": "wait", "label": "履行完这次约定，到期再回去", "effects": []}
+      ]
+    },
+    {
+      "id": "match_reply", "when": "day", "title": "约定还在",
+      "text": "你解释了不能离队的原因。对方没有催促，只是把原来的约定挪到了休赛日。\n选择比赛不等于关系立即结束，后续作者可以沿这个标记继续写。",
+      "conditions": {"flags": {"chose_match": true}},
+      "probability": 1, "max_per_career": 1, "cooldown_days": 1,
+      "choices": [{"id": "ok", "label": "把这一天记下来", "effects": []}]
+    }
+  ]
+}

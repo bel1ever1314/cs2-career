@@ -40,6 +40,7 @@ DEFAULTS = {
     "mod_source_path": "",
     # Difficulty is a generation preset in 1.5, not a persistent player DB.
     "difficulty": "Medium",
+    "match_chat": "on",
     "bot_aim": "mixed",
     "bot_nades": "normal",
     # "player" drops the BOT tag: managed bots publish a name, SteamID and ping.
@@ -231,6 +232,8 @@ def _autofill(cfg: dict) -> dict:
 
 
 def _clean(cfg: dict) -> dict:
+    if cfg.get('match_chat') not in ('on', 'custom', 'off'):
+        cfg['match_chat'] = 'on'
     if cfg.get("difficulty") not in DIFFICULTIES:
         cfg["difficulty"] = DEFAULTS["difficulty"]
     if cfg.get("bot_aim") not in AIM_MODES:
@@ -829,10 +832,8 @@ def _pick_bots(roster: list[dict], want: int, used: set[str]) -> list[dict]:
             continue
         used.add(name.lower())
         ability = playing_ability(player)
-        form_delta = player.get("form_delta")
-        if form_delta is None:
-            # 1.4 stored form on an ability-like scale. Convert at the boundary.
-            form_delta = float(player.get("form", ability)) - ability
+        from ..world.ability import effective_form_delta
+        form_delta = effective_form_delta(player)
         out.append({
             "player_id": str(player.get("player_id") or stable_player_id(name)),
             "display_name": name,
@@ -1192,6 +1193,8 @@ def prepare_game(
     career=None,
 ) -> None:
     opts = _clean(dict(opts or DEFAULTS))
+    from .dialogue import build_dialogue
+    match['match_chat'] = build_dialogue(opts.get('match_chat', 'on') != 'off', opts.get('match_chat') != 'custom')
     csgo = resolve_csgo_path(csgo)
     if not is_csgo_dir(csgo):
         raise FileNotFoundError(

@@ -29,7 +29,7 @@ const CS2_MAPS = {
 };
 const CLS = { major: "Major", premier: "Premier", t1: "T1", t2: "T2", cct: "CCT", qual: "RMR", playin: "附加赛" };
 const STATUS = { upcoming: "未开始", live: "进行中", done: "已结束" };
-const FORMAT = { swiss_playoff: "瑞士轮 + 淘汰赛", gsl_playoff: "小组赛 + 淘汰赛", single_elim: "单败淘汰" };
+const FORMAT = { major_stages: "Major 分阶段瑞士轮 + 淘汰赛", swiss_playoff: "瑞士轮 + 淘汰赛", gsl_playoff: "小组赛 + 淘汰赛", single_elim: "单败淘汰" };
 const REGION = { EU: "欧洲", AM: "美洲", AS: "亚洲" };
 const PLACE = { champion: "冠军", final: "亚军", sf: "四强", qf: "八强", stage: "小组赛" };
 const MONTHS = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
@@ -51,19 +51,24 @@ async function get(url) {
   return res.json();
 }
 
-async function post(url, body) {
+async function post(url, body, options = {}) {
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json", 'X-Career-Token': sessionStorage.getItem('career-token') || '' },
     body: JSON.stringify(body || {}),
   });
   const data = await res.json().catch(() => ({ ok: false, msg: "服务器没有回应" }));
+  // Keep both the final score and post-match stories hidden until the saved
+  // round timeline has been watched (or deliberately skipped).
+  if (data.ok !== false && options.beforeApply) await options.beforeApply(data);
   if (data.state) adopt(data.state);
   if (data.ok === false) toast(data.msg || "失败", true);
   else if (data.msg && url !== '/api/skins/case') toast(data.msg, false);
-  if (VIEW === "match" && MATCH) await refreshDetail();
-  window.CareerUI?.remember?.();
-  render();
+  if (options.render !== false) {
+    if (VIEW === "match" && MATCH && !window.CareerUI?.pages?.match) await refreshDetail();
+    window.CareerUI?.remember?.();
+    render();
+  }
   takeStories(data.stories || data.state?.career?.stories);
   return data;
 }
@@ -181,9 +186,10 @@ function axisPanel(stats, opts = {}) {
       <b>${v || "—"}</b>
       ${canSpend ? `<button class="btn sm" data-axis="${k}">+</button>` : ""}</div>`;
   }
-  return h + `</div>`;
+  return h + `</div>` + (opts.spend ? (window.CareerAssist?.pointPanel() || '') : '');
 }
 function bindAxisSpend(root) {
+  window.CareerAssist?.bindPoints(root || document);
   (root || document).querySelectorAll("[data-axis]").forEach((b) => {
     b.onclick = () => post("/api/attr", { axis: b.dataset.axis });
   });
@@ -386,22 +392,23 @@ function renderShell() {
   }
 
   const foot = $("side-foot");
+  const paintFoot=html=>{if(foot._careerMarkup!==html){CareerUI.paint(foot,html);foot._careerMarkup=html;}};
   if (!has) {
-    foot.innerHTML = `<button class="btn primary" id="foot-new">开始生涯</button>`;
+    paintFoot(`<button class="btn primary" id="foot-new">开始生涯</button>`);
     $("foot-new").onclick = () => show("setup");
     return;
   }
   const c = S.career;
   const vrs = c.vrs || {};
   const clubLabel = c.unsigned ? "自由市场" : (c.team_name || "未签约");
-  foot.innerHTML = `
+  paintFoot(`
     <div class="team-chip">${crest(c.unsigned ? c.player_name : c.team_name, 30)}
       <div><b>${esc(clubLabel)}</b><small>${c.unsigned ? "等待合同" : `#${vrs.rank ?? "—"} · ${Math.round(vrs.vrs ?? 0)}`}</small></div>
     </div>
     <div class="team-chip you">
       <div><b>${esc(c.player_name)}</b><small>${ROLE[c.role] || c.role} · ${c.you ? Math.round(c.you.ability) : "—"}</small></div>
     </div>
-    <button class="btn ghost sm" id="foot-reset">重开生涯</button>`;
+    <button class="btn ghost sm" id="foot-reset">重开生涯</button>`);
   $("foot-reset").onclick = () => {
     show("setup");
   };
@@ -422,6 +429,9 @@ function show(name) {
 
 function render() {
   if (!S) return;
+  // A story can update state while the tournament viewer is suspended. Paint
+  // the background once on exit, not between every choice and resumed score.
+  if (window.CareerAssist?.isOpen()) return;
   document.querySelectorAll(".view").forEach((v) => v.classList.toggle("on", v.id === "view-" + VIEW));
   renderShell();
   if (window.CareerUI && CareerUI.render()) return;
@@ -464,11 +474,15 @@ function renderHome() {
       <p class="hint" style="white-space:pre-wrap">${esc(end.text || "这份档案到此为止，只能重开生涯。")}</p></div>`;
   } else if (c.unsigned) {
     h += `<div class="card" style="margin-bottom:12px"><h3>你目前是自由身</h3>
-      <p class="hint">不能打官方赛，也不能进训练赛。推日历等邮箱里的入队合同，皮肤市场仍可用。</p>
+      <p class="hint">目前不能打正式比赛。可以在转会页主动申请试训，也可以推进日历等待入队合同；申请概率和冷却照常，皮肤市场仍可用。</p>
       <div class="row"><button class="btn primary sm" id="go-mail-home">打开邮箱</button></div></div>`;
   }
 
   const ym = S.your_match;
+  h += CareerUI.arcSummary?.(c) || '';
+  if(c.competition_pause?.active){
+    h += `<div class="card" style="margin-bottom:12px"><h3>暂停参赛中</h3><p>${esc(c.competition_pause.reason)} · ${esc(c.competition_pause.until)} 起恢复。</p><p class="hint">仍可推进赛程。暂停期间的已排比赛将弃权；恢复后不会重打错过的比赛。</p></div>`;
+  }
   if (ym?.match && !c.banned && !c.retired && !c.unsigned) {
     const pending = ym.match.pending_map;
     const n = (ym.match.maps_done || 0) + 1;
@@ -547,7 +561,7 @@ function renderHome() {
   h += log.length ? `<div style="display:grid;gap:6px">${log.map((x) => `<div class="hint">${esc(x)}</div>`).join("")}</div>` : `<p class="empty">—</p>`;
   h += `</div></div>`;
 
-  $("view-home").innerHTML = h;
+  CareerUI.paint($("view-home"),h);
   if ($("go-ev")) $("go-ev").onclick = () => { FOCUS = ev.id; show("event"); };
   if ($("go-mail")) $("go-mail").onclick = () => show("mail");
   if ($("go-mail-home")) $("go-mail-home").onclick = () => show("mail");
@@ -602,7 +616,10 @@ function renderSquad() {
       ${axisPanel(st, { spend: !c.banned && !c.retired })}</div>`;
   }
 
-  $("view-squad").innerHTML = h;
+  CareerUI.paint($("view-squad"),h);
+  if(c.player_only){
+    $('view-squad').querySelectorAll('#sq-logo').forEach(e=>e.disabled=true);
+  }
   bindInspect($("view-squad"));
   bindAxisSpend($("view-squad"));
   document.querySelectorAll("[data-role-name]").forEach((sel) => {
@@ -654,12 +671,13 @@ function renderHonours() {
     <p class="hint" style="margin:-4px 0 10px">七个枪维按位置权重合成个人能力；指挥单独算。没用完的点每年清零。点满 100 不能再加。</p>
     ${axisPanel(st, { spend: !c.over && !c.banned && !c.retired })}</div>`;
   h += honoursMedals(hon) + honoursLists(hon);
+  h += '<div class="card"><h3>职业与生活的记录</h3><button class="btn" data-route="story-history">阅读故事与Major冠军报道</button></div>';
   if (!c.over && !c.banned && !c.retired) {
     h += `<div class="card" style="margin-top:12px"><h3>退役</h3>
       <p class="hint">结束这段生涯。会按你的荣誉写下结局，这份档案只能重开。</p>
       <button class="btn" id="h-retire">退役</button></div>`;
   }
-  $("view-honours").innerHTML = h;
+  CareerUI.paint($("view-honours"),h);
   bindAxisSpend($("view-honours"));
   if ($("h-retire")) {
     $("h-retire").onclick = () => {
@@ -727,10 +745,11 @@ function renderMail() {
   let h = `<div class="page-head"><h2>邮件</h2>
     <span class="hint">${c.unread || 0} 封未读 · 只保留邀请、合同和需要你处理的通知</span>
     <button class="btn sm" id="mail-all">全部已读</button></div>`;
+  h += window.CareerAssist?.mailPanel() || '';
   if (!rows.length) h += `<p class="empty">信箱是空的</p>`;
   for (const m of rows) {
     const unread = !m.read;
-    h += `<div class="mail-item ${unread ? "unread" : ""}">
+    h += `<div class="mail-item ${unread ? "unread" : ""}" data-ui-key="mail:${esc(m.id)}">
       <div class="mh">${badge(m.kind === "invite" ? "t1" : m.kind === "prize" ? "premier" : m.kind === "qualify" ? "major" : m.kind === "whisper" ? "upcoming" : m.kind === "discipline" ? "t2" : m.kind === "contract" ? "t1" : "done", MAIL_KIND[m.kind] || m.kind)}
         <b>${esc(m.title)}</b>
         <small>${esc(m.from || "")}</small>
@@ -743,6 +762,8 @@ function renderMail() {
     } else if (m.kind === "invite") {
       h += badge(m.status === "accepted" ? "done" : "upcoming", MAIL_STATUS[m.status] || m.status);
     }
+    if(m.auto_action)h+=`<span class="hint">按邀请规则自动${m.auto_action==='accept'?'接受':'拒绝'}</span>`;
+    if(m.auto_blocked && m.status==='open')h+=`<span class="hint">自动处理暂停：${esc(m.auto_blocked)}</span>`;
     if (m.kind === "contract" && m.status === "open" && !c.banned) {
       h += `<button class="btn primary sm" data-acc="${esc(m.id)}">接受合同</button>
         <button class="btn sm" data-dec="${esc(m.id)}">婉拒</button>`;
@@ -758,7 +779,8 @@ function renderMail() {
     if (unread) h += `<button class="btn ghost sm" data-read="${esc(m.id)}">标为已读</button>`;
     h += `</div></div>`;
   }
-  $("view-mail").innerHTML = h;
+  CareerUI.paint($("view-mail"),h);
+  window.CareerAssist?.bindMail($("view-mail"));
   if ($("mail-all")) $("mail-all").onclick = () => post("/api/mail/read_all", {});
   document.querySelectorAll("[data-acc]").forEach((b) => (b.onclick = () => post("/api/mail/accept", { id: b.dataset.acc })));
   document.querySelectorAll("[data-dec]").forEach((b) => (b.onclick = () => post("/api/mail/decline", { id: b.dataset.dec })));
@@ -836,7 +858,7 @@ function renderSchedule() {
     }
     h += `</div>`;
   }
-  $("view-schedule").innerHTML = h;
+  CareerUI.paint($("view-schedule"),h);
   document.querySelectorAll("[data-ev]").forEach((b) => (b.onclick = () => { FOCUS = b.dataset.ev; show("event"); }));
 }
 
@@ -1058,7 +1080,8 @@ function renderLivePanel(m) {
   const goLabel = session ? "重开这张图" : pending ? `进入第 ${n} 图` : "自己打";
   h += `<div class="row">
     <button class="btn primary" id="s-go" ${blockedLaunch || !cfg.ready || !cfg.mod_installed || S.playtest ? "disabled" : ""}>${goLabel}</button>
-    <button class="btn" id="s-skip">${(m.maps || []).length ? "跳过剩余，按数值结算" : "跳过，按角色数值结算"}</button>
+    <button class="btn" id="s-skip">${(m.maps || []).length ? "模拟观赛 · 剩余地图" : "模拟观赛 · 分半场揭晓"}</button>
+    <button class="btn" id="s-auto-event">自动模拟本届赛事</button>
     ${session ? `<button class="btn ghost" id="s-commit">录入战绩</button>` : ""}
   </div>`;
   h += `<p class="hint">${session
@@ -1081,6 +1104,7 @@ function renderLivePanel(m) {
 }
 
 function bindLivePanel(m) {
+  if($('s-auto-event'))$('s-auto-event').onclick=()=>window.CareerAssist.run(DETAIL?.event?.id||FOCUS);
   if ($("s-side")) $("s-side").onchange = (e) => { SERIES_SIDE = e.target.value; };
   if ($("s-go")) {
     $("s-go").onclick = async () => {
@@ -1093,9 +1117,8 @@ function bindLivePanel(m) {
   }
   if ($("s-skip")) {
     $("s-skip").onclick = async () => {
-      if (!confirm("剩余地图按角色数值结算？已经自己打完的图会保留。")) return;
       stopSeriesPoll();
-      await post("/api/series/skip", { match_id: m.id });
+      await window.CareerWatch.run(m);
     };
   }
   if ($("s-commit")) {
@@ -1201,7 +1224,7 @@ function renderRanking() {
       <td><small class="hint">${REGION[r.region] || r.region}</small></td>
       <td class="num">${Math.round(r.vrs)}</td><td><small class="hint">${esc(stars)}</small></td></tr>`;
   }
-  $("view-ranking").innerHTML = h + `</tbody></table></div>`;
+  CareerUI.paint($("view-ranking"),h + `</tbody></table></div>`);
   bindInspect($("view-ranking"));
 }
 
@@ -1396,7 +1419,7 @@ async function renderPlay() {
     }
   }
 
-  $("view-play").innerHTML = h;
+  CareerUI.paint($("view-play"),h);
   $("p-opp").onchange = (e) => { PLAY.opp = e.target.value; renderPlay(); };
   $("p-map").onchange = (e) => { PLAY.map = e.target.value; };
   $("p-side").onchange = (e) => { PLAY.side = e.target.value; };
@@ -1459,10 +1482,11 @@ function stopReveal() {
 }
 
 function paintStory() {
-  stopReveal();
-  revealNext = null;
   let box = $("story-modal");
   const row = STORY_Q[0];
+  if (row && box?._storyRow === row) return;
+  stopReveal();
+  revealNext = null;
   if (!row) {
     if (box) box.remove();
     STORY_BUSY = false;
@@ -1474,6 +1498,8 @@ function paintStory() {
     box.id = "story-modal";
     document.body.appendChild(box);
   }
+  box._storyRow = row;
+  box.onclick = null;
   if (row.kind === "awards") {
     paintAwards(box, row);
     return;
@@ -1491,7 +1517,7 @@ function paintStory() {
     : `<button class="btn primary" type="button">继续</button>`;
   box.innerHTML = `<div class="story-card">
       <button class="story-x" type="button" aria-label="关闭">×</button>
-      <small>剧情</small>
+      <small>${row.kind === 'incident' ? '生涯事件 · 选择与后果' : '剧情'}</small>
       <div class="story-scroll">
         ${row.title ? `<h2>${esc(row.title)}</h2>` : ""}
         ${paras}
@@ -1707,6 +1733,7 @@ async function ackStory(choice) {
   const row = STORY_Q[0];
   if (!row || STORY_ACK_BUSY) return;
   STORY_ACK_BUSY = true;
+  let acknowledged=false;
   try {
     const response = await fetch("/api/story/ack", {
       method: "POST",
@@ -1719,11 +1746,13 @@ async function ackStory(choice) {
     if (data.state) adopt(data.state);
     render();
     takeStories(data.stories || S.career?.stories);
+    acknowledged=true;
   } catch (error) {
     toast(error.message || '剧情确认失败，请重试', true);
   } finally {
     STORY_ACK_BUSY = false;
     paintStory();
+    if(acknowledged && typeof window !== 'undefined')window.CareerAssist?.afterStory(row,choice);
   }
 }
 
@@ -1752,6 +1781,7 @@ $("btn-skip").onclick = async () => {
 
 document.addEventListener("keydown", (e) => {
   if (STORY_BUSY) return;
+  if (window.CareerAssist?.isOpen()) return;
   if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
   if (e.key === "n") $("btn-next").click();
   if (e.key === "m") $("btn-skip").click();

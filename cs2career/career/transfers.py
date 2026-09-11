@@ -58,6 +58,8 @@ def candidates(career, season):
 
 
 def guaranteed(career, season, target_id, seller_id, replace_id, expected_fee=None):
+    if career.personal_transfers.get('player_only'):
+        raise ValueError('你是签约选手，俱乐部引援由管理层负责。')
     from .career import _signed, transfer_fee
     from ..world.roles import apply_roles
     mine=career.my_team(season.teams)

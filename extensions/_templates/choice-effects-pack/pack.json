@@ -1,0 +1,9 @@
+{
+  "id": "author.choice.effects",
+  "name": "选择后果验证包",
+  "version": "1.0.0",
+  "schema_version": 1,
+  "types": ["incidents"],
+  "author": "示例作者",
+  "description": "验证奖励、暂停参赛和标记选择链；模板默认不启用。"
+}

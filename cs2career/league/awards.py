@@ -231,14 +231,14 @@ def _event_five(rows: list[dict]) -> list[dict]:
     return out
 
 
-def make_record(ev: dict) -> dict:
+def make_record(ev: dict, *, include_matches: bool = True) -> dict:
     """Freeze a finished event into something honours can read forever."""
     from copy import deepcopy
     award = ev.get("awards") or {}
     mvp = award.get("mvp")
     return {
         "id": ev["id"],
-        "matches": deepcopy(ev.get("matches") or []),
+        "matches": deepcopy(ev.get("matches") or []) if include_matches else [],
         "dates": list(ev.get("dates") or []),
         "field": list(ev.get("field") or []),
         "name": ev["name"],
@@ -260,6 +260,10 @@ def make_record(ev: dict) -> dict:
         "champion_roster": ev.get("champion_roster") or [],
         "teams": list(ev.get("field") or []),
         "format": ev.get("resolved_format") or ev.get("format"),
+        "major_stage": ev.get("major_stage"),
+        "major_stage_count": ev.get("major_stage_count"),
+        "major_fields": deepcopy(ev.get("major_fields") or {}),
+        "swiss_round": ev.get("swiss_round"),
         "prize": ev.get("prize", 0),
         "mvp": (
             {

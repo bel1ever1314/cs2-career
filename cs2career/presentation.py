@@ -147,7 +147,7 @@ def inspect(state, kind, key, span='season', page=1, page_size=20):
         name_ids = {p.get('player_id') for p, _ in current_players(state) if p['name'] == name}
         name_ids.update(p.get('player_id') for p, _, _ in saved_players(state) if p.get('name') == name)
         if name_ids == {target_id}:
-            row['honours'] = awards.honours_for(season.records(), season.top20, name)
+            row['honours'] = awards.honours_for(season.records(include_matches=False), season.top20, name)
         else:
             row['honours'] = empty_honours()
             row['honours_notice'] = '同名历史身份无法唯一关联，未猜测荣誉归属。'
@@ -251,5 +251,6 @@ def event_detail(state, eid):
         seen.append(m)
     out['links'] = links
     out['swiss_table'] = list(formats.swiss_state(ev).values()) if ev.get('swiss_round') else []
+    out['major_tables'] = formats.major_tables(ev)
     out['groups_table'] = formats.gsl_standings(ev) if ev.get('gsl_field') else {}
     return out

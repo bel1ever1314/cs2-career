@@ -32,7 +32,7 @@ from ..world import (
     starter_mates,
     tier_of,
 )
-from . import economy, mail, plot, skins, story, verse
+from . import economy, mail, plot, skins, story, verse, incidents
 from .origins import DEFAULT_ORIGIN, origin_config, public_origins
 
 CAREER_PATH = save_file("career.json")
@@ -129,6 +129,9 @@ class Career:
         self.log: list[str] = []
         self.seen_stories: list[str] = []
         self.story_queue: list[dict] = []
+        self.incident_state: dict = {}
+        self.personal_transfers: dict = {}
+        self.assist: dict = {}
         self.inbox: list[dict] = []
         self.mail_seq = 0
         self.attr_points = 0
@@ -197,6 +200,9 @@ class Career:
             "log": self.log[-40:],
             "seen_stories": self.seen_stories,
             "story_queue": self.story_queue,
+            "incident_state": self.incident_state,
+            "personal_transfers": self.personal_transfers,
+            "assist": self.assist,
             "inbox": self.inbox,
             "mail_seq": self.mail_seq,
             "attr_points": self.attr_points,
@@ -265,6 +271,9 @@ class Career:
             setattr(obj, k, v)
         obj.seen_stories = list(getattr(obj, "seen_stories", None) or [])
         obj.story_queue = list(getattr(obj, "story_queue", None) or [])
+        obj.incident_state = dict(getattr(obj, 'incident_state', None) or {})
+        obj.personal_transfers = dict(getattr(obj, 'personal_transfers', None) or {})
+        obj.assist = dict(getattr(obj, 'assist', None) or {})
         obj.inbox = list(getattr(obj, "inbox", None) or [])
         obj.mail_seq = int(getattr(obj, "mail_seq", 0) or 0)
         obj.attr_points = int(getattr(obj, "attr_points", 0) or 0)
@@ -409,6 +418,9 @@ class Career:
         self.hidden = []
         self.seen_stories = []
         self.story_queue = []
+        self.personal_transfers = {}
+        self.assist = {}
+        self.incident_state = {}
         self.inbox = []
         self.mail_seq = 0
         self.attr_points = int(start_cfg.get("attr_points", 0))
@@ -479,6 +491,11 @@ class Career:
 
         self.rebuild_free(season.teams)
         self._remember_you(season)
+        from . import arcs
+        arcs.initialize(self, season, payload)
+        from . import news
+        news.initialize(self, season)
+        self.personal_transfers['pre_join_events']=[f"{season.year}:{e['id']}" for e in season.events if e.get('status')=='done']
         team = self.my_team(season.teams)
         self._record_cashflow(meta["start"], "pocket", "opening", "个人期初资金", self.money, self.money)
         if team:
@@ -573,6 +590,7 @@ class Career:
             return
         self.you_card = {
             "name": you.get("name") or self.player_name,
+            "player_id": you.get("player_id") or "",
             "role": you.get("role") or self.role,
             "ability": float(you.get("ability") or 74),
             "command": int(you.get("command") or 0),
@@ -610,6 +628,8 @@ class Career:
             self.last_sponsor_month = month
         if month != self.last_ops_month:
             for stamp in economy.months_after(self.last_ops_month, month):
+                from .player_transfers import settle_ai_clubs
+                settle_ai_clubs(self, season, stamp)
                 self._settle_month(season, stamp)
                 if self.loan_default_pending:
                     break
@@ -626,12 +646,19 @@ class Career:
                 self.log.append(f"{year} 年未使用的 {leftover} 点属性已清零。")
             self._age_year(season, year)
             self.last_age_year = year
-        if self.unsigned and not self.over() and not self.loan_default_pending:
-            self._dispatch_contracts(season)
-        elif not self.unsigned and not self.over():
+        from . import arcs, news
+        news.tick(self, season)
+        arcs.tick(self, season)
+        if self.over():
+            self.save()
+            return
+        from .player_transfers import tick as transfer_tick
+        transfer_tick(self, season)
+        if not self.unsigned and not self.over():
             self.dispatch_invites(season)
         skins.advance_day(self)
         self._birthday_tick(season)
+        self.emit_incidents(season, 'day', season.date)
         self.save()
 
     def _pay_sponsors(self, season, month: str) -> None:
@@ -652,6 +679,8 @@ class Career:
         self.year = year
         from ..world.aging import apply_player_year
 
+        if self.unsigned and self.you_card:
+            apply_player_year(self.you_card)
         for row in self.free:
             apply_player_year(row)
             row["fee"] = transfer_fee(row["ability"])
@@ -729,6 +758,8 @@ class Career:
     # ---------------------------------------------------------------- actions
 
     def buy(self, season, player_name: str, replace_id: str = '', player_id: str = '') -> str:
+        if self.personal_transfers.get('player_only'):
+            raise ValueError('你是签约选手，俱乐部引援由管理层负责。')
         from .transfers import locked, outgoing as select_outgoing, identity
         if self.over(): raise ValueError('当前生涯已经结束。')
         if self.unsigned or not self.team_id:
@@ -862,6 +893,8 @@ class Career:
         team = self.my_team(season.teams)
         if not team or ev.get("status") != "done" or ev.get("career_paid"):
             return
+        if not self._event_in_current_stint(season,ev):
+            return
         played = any(team["name"] in (m.get("team_a"), m.get("team_b")) for m in ev.get("matches", []))
         if not played:
             return
@@ -873,6 +906,7 @@ class Career:
             m
             for m in ev.get("matches") or []
             if m.get("played")
+            and not m.get('forfeit')
             and m.get("team_b") != "BYE"
             and team["name"] in (m.get("team_a"), m.get("team_b"))
         ]
@@ -935,6 +969,8 @@ class Career:
             self.ops_log.append(f"{ev['name']} 出场费 ${economy.MAJOR_APPEARANCE:,} 进俱乐部。")
             self.log.append(f"打入 {ev['name']}，俱乐部收到出场费 ${economy.MAJOR_APPEARANCE:,}。")
         self.watch(season, ev)
+        if ev.get('type') != 'qual' and ev.get('awards') and not self._queued(f"awards.{ev['id']}"):
+            self.story_queue.append(self._awards_reveal(season, ev))
         self.save()
 
     # ---------------------------------------------------------------- mail / points / roles
@@ -1043,6 +1079,7 @@ class Career:
             return
         if not self.exists:
             return
+        self.repair_invite_teams(season)
         for row in self.inbox:
             if row.get("kind") != "invite" or row.get("status") != "open":
                 continue
@@ -1075,9 +1112,33 @@ class Career:
         for ev in chosen:
             earned = self.team_id in (season.qualified.get(ev["id"]) or [])
             self.offer_invite(season, ev, earned=earned, rank=rank)
+        from .assistance import process_invites
+        if process_invites(self, season):
+            self.save()
+
+    def repair_invite_teams(self, season) -> bool:
+        """Legacy transfer invitations had no recipient: do not reuse an old club's slot.
+
+        Untagged post-transfer invitations are conservatively reissued, not guessed
+        from a team nickname or a same-day timestamp. Played events are untouched.
+        """
+        changed = False
+        upcoming = {e['id'] for e in season.events if e.get('status') == 'upcoming'}
+        for row in self.inbox:
+            if row.get('kind') != 'invite' or 'team_id' in row:
+                continue
+            row['team_id'] = '' if self.personal_transfers.get('moves') else self.team_id
+            changed = True
+            if not row['team_id'] and row.get('event_id') in upcoming:
+                if row.get('status') in ('open', 'accepted'):
+                    row.update(status='expired', read=True)
+                self.registered = [e for e in self.registered if e != row['event_id']]
+        return changed
 
     def offer_invite(self, season, ev: dict, earned: bool = False, rank: int | None = None) -> dict | None:
-        if any(row.get("kind") == "invite" and row.get("event_id") == ev["id"] for row in self.inbox):
+        self.repair_invite_teams(season)
+        if any(row.get("kind") == "invite" and row.get("event_id") == ev["id"]
+               and row.get('team_id') == self.team_id for row in self.inbox):
             return None
         if ev.get("status") != "upcoming":
             return None
@@ -1090,7 +1151,7 @@ class Career:
             "invite",
             season.date,
             letter,
-            {"event_id": ev["id"], "event": ev.get("name"), "short": ev.get("short") or ev.get("name")},
+            {"event_id": ev["id"], "team_id": self.team_id, "event": ev.get("name"), "short": ev.get("short") or ev.get("name")},
         )
 
     def mark_read(self, mail_id: str = "") -> str:
@@ -1104,7 +1165,8 @@ class Career:
             row["read"] = True
         return "全部标为已读。"
 
-    def accept_invite(self, season, mail_id: str) -> str:
+    def accept_invite(self, season, mail_id: str, *, persist: bool = True) -> str:
+        self.repair_invite_teams(season)
         if self.banned:
             return "你已被禁赛，这份档案只能重开。"
         row = self._mail(mail_id)
@@ -1114,6 +1176,8 @@ class Career:
             return self.accept_contract(season, mail_id)
         if not row or row.get("kind") != "invite":
             return "这不是邀请函。"
+        if row.get('team_id') != self.team_id:
+            return '这是原战队的邀请，请确认新战队收到的邀请。'
         if row.get("status") != "open":
             return "这封邀请已经失效。"
         ev = next((e for e in season.events if e["id"] == row.get("event_id")), None)
@@ -1121,15 +1185,19 @@ class Career:
             row["status"] = "expired"
             row["read"] = True
             return "赛事已经开打或结束，来不及接受了。"
+        if incidents.competition_paused(self, (ev.get('dates') or [season.date])[0]):
+            return '该赛事开赛时仍在暂停参赛期，暂不能确认。可以推进日期，到期后接受其他邀请。'
         if ev["id"] not in self.registered:
             self.registered.append(ev["id"])
         row["status"] = "accepted"
         row["read"] = True
         self.log.append(f"接受邀请：{ev['name']}")
-        self.save()
+        if persist:
+            self.save()
         return f"已接受 {ev['name']} 的邀请。"
 
-    def decline_invite(self, season, mail_id: str) -> str:
+    def decline_invite(self, season, mail_id: str, *, persist: bool = True) -> str:
+        self.repair_invite_teams(season)
         row = self._mail(mail_id)
         if row and row.get("kind") == "whisper":
             return self.answer_fix(season, False, mail_id)
@@ -1137,6 +1205,8 @@ class Career:
             return self.decline_contract(mail_id)
         if not row or row.get("kind") != "invite":
             return "这不是邀请函。"
+        if row.get('team_id') != self.team_id:
+            return '这是原战队的邀请，不会影响新队报名。'
         if row.get("status") != "open":
             return "这封邀请已经失效。"
         ev_id = row.get("event_id")
@@ -1146,7 +1216,8 @@ class Career:
         row["read"] = True
         name = row.get("event") or ev_id
         self.log.append(f"婉拒邀请：{name}")
-        self.save()
+        if persist:
+            self.save()
         return f"已婉拒 {name}。"
 
     def claim_mail(self, season, mail_id: str) -> str:
@@ -1158,6 +1229,10 @@ class Career:
     def _settle_month(self, season, month: str) -> None:
         team = self.my_team(season.teams)
         if not team:
+            return
+        if self.personal_transfers.get('player_only'):
+            from .player_transfers import settle_player_club
+            settle_player_club(self, season, team, month)
             return
         if self.crisis:
             if self.loan and self.loan.get("kind") == "club":
@@ -1333,6 +1408,8 @@ class Career:
         if self.money < pay:
             return "口袋里不够。"
         team = self.my_team(season.teams)
+        if loan.get('creditor_team_id'):
+            team = next((t for t in season.teams if t['id'] == loan['creditor_team_id']), None)
         arrears = int(loan.get("arrears") or 0)
         principal = int(loan.get("principal") or 0)
         kind = loan.get("kind") or "club"
@@ -1396,6 +1473,8 @@ class Career:
         rate = float(loan.get("rate") or economy.rate_for_kind(loan.get("kind") or "club"))
         due = economy.interest_due(principal, rate)
         team = self.my_team(season.teams)
+        if loan.get('creditor_team_id'):
+            team = next((t for t in season.teams if t['id'] == loan['creditor_team_id']), None)
         loan["last_interest_month"] = month
         if self.money >= due:
             self.money -= due
@@ -1580,46 +1659,8 @@ class Career:
                 row["status"] = "expired"
 
     def _dispatch_contracts(self, season) -> None:
-        if not self.unsigned or self.banned or self.loan_default_pending:
-            return
-        month = season.date[:7]
-        if self.last_offer_month == month:
-            return
-        open_ids = {
-            row.get("team_id")
-            for row in self.inbox
-            if row.get("kind") == "contract" and row.get("status") == "open"
-        }
-        if len(open_ids) >= 4:
-            self.last_offer_month = month
-            return
-        targets = self._contract_targets(season, skip=open_ids)
-        if not targets:
-            self.last_offer_month = month
-            return
-        n = 2 if len(targets) >= 2 else 1
-        if len(targets) > 1 and random.random() < 0.35:
-            n = 1
-        for team, replace, role in targets[:n]:
-            letter = mail.contract_letter(
-                team.get("name") or "",
-                ROLE_LABEL.get(role, role),
-                replace.get("name") or "",
-                self.player_name,
-            )
-            self._push_mail(
-                "contract",
-                season.date,
-                letter,
-                {
-                    "team_id": team["id"],
-                    "team": team.get("name"),
-                    "replace": replace.get("name"),
-                    "role": role,
-                    "status": "open",
-                },
-            )
-        self.last_offer_month = month
+        from .player_transfers import dispatch
+        dispatch(self, season)
 
     def _contract_targets(self, season, skip: set | None = None) -> list[tuple]:
         skip = set(skip or ())
@@ -1686,64 +1727,15 @@ class Career:
         return out[:2]
 
     def accept_contract(self, season, mail_id: str) -> str:
-        if self.banned:
-            return "你已被禁赛，这份档案只能重开。"
+        from .player_transfers import open_offer
         row = self._mail(mail_id)
-        if not row or row.get("kind") != "contract":
-            return "这不是入队合同。"
-        if row.get("status") != "open":
-            return "这封合同已经失效。"
-        if not self.unsigned:
-            return "你已经有队伍了。"
-        team = next((t for t in season.teams if t["id"] == row.get("team_id")), None)
-        if not team:
-            row["status"] = "expired"
-            return "这支队伍已经不在了。"
-        replace_name = row.get("replace") or ""
-        replace = next((p for p in team.get("players") or [] if p.get("name") == replace_name), None)
-        if replace is None:
-            plist = team.get("players") or []
-            if not plist:
-                row["status"] = "expired"
-                return "这支队伍名单空了。"
-            replace = min(plist, key=lambda p: float(p.get("ability") or 0))
-            replace_name = replace.get("name") or ""
-        offer_role = row.get("role") or self.role or "rifle"
-        region = team.get("region") or "AS"
-        self._player_to_free(season, replace, region)
-        team["players"] = [p for p in (team.get("players") or []) if p.get("name") != replace_name]
-        card = dict(self.you_card or {})
-        ensure_role_calibration(card)
-        card["name"] = self.player_name
-        card["role"] = offer_role
-        card["you"] = True
-        if not card.get("ability"):
-            card["ability"] = 74.0
-        if not card.get("stats"):
-            card["stats"] = stats_for(self.player_name, offer_role, float(card["ability"]))
-        refresh_player_ability(card)
-        incoming = _signed(card)
-        incoming["you"] = True
-        incoming["role"] = offer_role
-        team["players"].append(incoming)
-        refresh_team_command(team)
-        self.team_id = team["id"]
-        self.unsigned = False
-        self.mode = "join"
-        self.role = offer_role
-        self.replaced = replace_name
-        self._remember_you(season)
-        row["status"] = "accepted"
-        row["read"] = True
-        for other in self.inbox:
-            if other.get("kind") == "contract" and other.get("status") == "open" and other.get("id") != row.get("id"):
-                other["status"] = "expired"
-        msg = f"加盟 {team.get('name')}，{replace_name} 回到自由市场。"
-        self.log.append(msg)
-        self.save()
-        return msg
+        if not row or row.get('kind') != 'contract':
+            raise ValueError('这不是入队合同。')
+        return open_offer(self, season, row)
 
     def decline_contract(self, mail_id: str) -> str:
+        if (self.personal_transfers.get('pending') or {}).get('mail_id') == mail_id:
+            raise ValueError('请在当前的加盟剧情中选择留下，完成这次决定。')
         row = self._mail(mail_id)
         if not row or row.get("kind") != "contract":
             return "这不是入队合同。"
@@ -1835,6 +1827,8 @@ class Career:
         )
 
     def found_new_now(self, season) -> str:
+        if self.personal_transfers.get('player_only'):
+            raise ValueError('你无权解散目前效力的俱乐部。')
         if self.unsigned:
             return "你现在是自由身，不能重开一队。"
         if not self.crisis:
@@ -1987,7 +1981,7 @@ class Career:
             return f"已给 {side.upper()} 装备 {item['name']}。游戏内换肤还差插件或 SteamID。"
         return f"已给 {side.upper()} 装备 {item['name']}。"
 
-    def spend_point(self, season, axis: str) -> str:
+    def spend_point(self, season, axis: str, *, persist: bool = True) -> str:
         if self.over():
             return "这段生涯已经结束。"
         if self.attr_points < 1:
@@ -2029,20 +2023,25 @@ class Career:
         self.attr_points -= 1
         msg = f"投入 1 点到{label}。{note}。剩余 {self.attr_points} 点。"
         self.log.append(msg)
-        self.save()
+        if persist:
+            self.save()
         return msg
 
     def answer_birthday(self, season, name: str, choice: str) -> str:
         team = self.my_team(season.teams) if season is not None else None
+        from . import arcs
+        points = arcs.config()['rules']['focus_reward']
         if choice == "train":
-            self.attr_points += 1
+            self.attr_points += points
             if team is not None:
                 shift_mentality(team, -1)
-            msg = f"{name} 生日你去训练了。属性点 +1，队心态 -1。"
+            msg = f"{name} 生日你去训练了。属性点 +{points}，队心态 -1。"
         else:
             if team is not None:
                 shift_mentality(team, 2)
             msg = f"你祝贺了 {name} 的生日。队心态 +2。"
+        if season is not None:
+            arcs.birthday(self, season, name, choice)
         self.log.append(msg)
         self.save()
         return msg
@@ -2052,10 +2051,11 @@ class Career:
             return "还没有生涯。"
         if self.over():
             return "这段生涯已经结束。"
-        honours = awards.honours_for(season.records(), season.top20, self.player_name)
-        ending = plot.honour_ending(honours)
+        honours = awards.honours_for(season.records(include_matches=False), season.top20, self.player_name)
+        from .retirement import career_context
+        ending = plot.honour_ending(honours,career_context(self,season))
         self.retired = True
-        self._apply_ending(ending["id"])
+        self.ending,self.ending_title,self.ending_text=ending['id'],ending['title'],ending['text']
         self._push_plot(
             {
                 "when": "retire",
@@ -2122,7 +2122,7 @@ class Career:
         if not found:
             return None
         stats = found.get("stats") or stats_for(name, found.get("role") or "rifle", float(found.get("ability") or 70))
-        honours = awards.honours_for(season.records(), season.top20, name)
+        honours = awards.honours_for(season.records(include_matches=False), season.top20, name)
         return {
             "kind": "player",
             "name": name,
@@ -2159,7 +2159,7 @@ class Career:
             "weak_maps": team.get("weak_maps") or [],
             "crest": crest(team),
             "players": team["players"],
-            "honours": awards.team_honours(season.records(), team["name"]),
+            "honours": awards.team_honours(season.records(include_matches=False), team["name"]),
         }
 
     # ---------------------------------------------------------------- stories
@@ -2195,6 +2195,34 @@ class Career:
         for beat in story.collect(ctx, seen, queued):
             self.story_queue.append(beat)
 
+    def _event_in_current_stint(self, season, ev: dict) -> bool:
+        """A new employer's old trophies are history, not the player's rewards.
+
+        Transfers snapshot finished event IDs (including same-day finals).
+        Older saves fall back to their recorded move date, never current roster
+        membership alone. This gate also protects cash/points settlement.
+        """
+        key=f"{season.year}:{ev['id']}"
+        if key in self.personal_transfers.get('pre_join_events',[]):return False
+        moves=self.personal_transfers.get('moves',[])
+        if not moves:return True
+        joined=moves[-1].get('date','')
+        if ev.get('status')=='done' and joined:
+            dates=[m.get('date','') for m in ev.get('matches',[]) if m.get('played')]
+            if max(dates or ev.get('dates') or [''])<=joined:return False
+        return True
+
+    def discard_stale_awards(self,season) -> bool:
+        team=self.my_team(season.teams)
+        if not team:return False
+        stale=set()
+        for ev in season.events:
+            if ev.get('champion')==team['name'] and not self._event_in_current_stint(season,ev):
+                stale.update((f"title.{ev['id']}",f"awards.{ev['id']}"))
+        before=len(self.story_queue)
+        self.story_queue=[r for r in self.story_queue if r.get('id') not in stale]
+        return len(self.story_queue)!=before
+
     def watch(self, season, ev: dict | None = None, when: str | None = None) -> None:
         """Scan the season for story beats that should fire now."""
         if not self.exists:
@@ -2210,6 +2238,13 @@ class Career:
         events = [ev] if ev else season.events
         for event in events:
             if event.get("status") not in ("live", "done"):
+                continue
+            if not self._event_in_current_stint(season,event):
+                # Remove only this club's stale celebration/reveal, not saved
+                # match results, mail, inventory or the former club's rewards.
+                if event.get('champion')==name:
+                    stale={f"title.{event['id']}",f"awards.{event['id']}"}
+                    self.story_queue=[r for r in self.story_queue if r.get('id') not in stale]
                 continue
             involved = name in (event.get("field") or []) or any(
                 name in (m.get("team_a"), m.get("team_b")) for m in event.get("matches") or []
@@ -2342,6 +2377,31 @@ class Career:
         choices = row.get("choices") or []
         if choices and choice not in {item.get("id") for item in choices}:
             raise ValueError("请选择剧情中提供的选项；本次尚未作出决定。")
+        if row.get('kind') == 'incident':
+            incidents.resolve(self, season, row, choice)
+        if row.get('when') == 'tournament_decision':
+            from ..league.tournament_auto import resolve
+            resolve(self, season, row, choice)
+        if row.get('when') == 'transfer_decision':
+            from .player_transfers import resolve
+            resolve(self, season, row, choice)
+        if row.get('when') == 'transfer_farewell':
+            from .player_transfers import state
+            state(self).setdefault('relationships', []).append(dict(context=row['context'], choice=choice, date=season.date))
+            incidents.state(self)['flags']['builtin.transfer:'+choice] = True
+            self.attr_points += 1
+            reactions = {
+                'thanks': ('道别不是否定过去', '旧队长转发了你的感谢：“一起打过的比赛，不会因为转会清零。”\n有粉丝祝福，也有人担心新阵容是否适合你。新队教练只说，先把训练赛打好。\n你把感谢说出口，也学会了不让歉意压住下一步。'),
+                'promise': ('下一次，隔着服务器见', '“那就赛场见。”旧队友在你的动态下留了这句话。\n媒体把这次告别写成了新旧队伍的约战；有人期待故事继续，也有人提醒你别把狠话说得太早。\n新队友拍了拍你的椅背：“先一起练，到了那天我们陪你打。”'),
+                'quiet': ('没有长文的转会日', '你只发了一张收好外设的照片。外界猜测是不是闹了矛盾，旧队友却主动回应：“别多想，他一直不太会告别。”\n新俱乐部没有催你接受采访。教练把训练时间发来，给你留了一点适应的余地。\n你不必回答每一种猜测，比赛会慢慢替你说话。'),
+            }
+            title, text = reactions[choice]
+            self.story_queue.append(dict(id=row['id']+':reaction', kind='story', when='transfer_reaction',
+                                         title=title, text=text+'\n\n技能点 +1（已到账）。'))
+            self.log.append(f'{title}：技能点 +1。')
+            for item in state(self)['hooks']:
+                if item['when'] in ('transfer_departed', 'transfer_joined'):
+                    item['context']['farewell_choice'] = choice
         if row and row.get("when") == "fix_offer" and self.fix_pending:
             self.answer_fix(season, choice == "accept")
         if row and row.get("when") == "loan_default" and self.loan_default_pending:
@@ -2351,14 +2411,24 @@ class Career:
         self.story_queue = [item for item in self.story_queue if item.get("id") != story_id]
         if story_id and story_id not in self.seen_stories:
             self.seen_stories.append(story_id)
+        if season is not None:
+            from .player_transfers import drain_hooks
+            drain_hooks(self, season)
         self.save()
 
     def _push_plot(self, beat: dict, sid: str) -> None:
-        beat = dict(beat)
+        beat = incidents.decorate(beat)
         beat["id"] = sid
         if any(item.get("id") == sid for item in self.story_queue):
             return
         self.story_queue.append(beat)
+
+    def emit_incidents(self, season, when: str, occurrence: str = '', event_type: str = '') -> None:
+        """Public hook for core gameplay; content packs cannot invoke Python."""
+        before = len(self.story_queue)
+        incidents.emit(self, season, when, occurrence, event_type)
+        if len(self.story_queue) != before:
+            self.save()  # A before-match gate raises to the UI; preserve its queued decision first.
 
     def maybe_major_coach(self, season, ev: dict) -> None:
         if self.banned or not ev or ev.get("type") != "major":
@@ -2378,6 +2448,7 @@ class Career:
         )
         self._push_plot(plot.coach_popup(ev.get("name") or "Major"), f"coach.{eid}")
         self.log.append(f"教练缺席 {ev.get('name')}，全队心态 -5。")
+        self.emit_incidents(season, 'coach_absent', eid, ev.get('type', ''))
 
     def gate_match(self, season, match_id: str = "") -> str:
         """Block a live series, or interrupt it with a quiet offer."""
@@ -2386,6 +2457,22 @@ class Career:
             return "这段生涯已经结束，只能重开。"
         if self.unsigned:
             return "你现在是自由身，先在邮箱接下合同。"
+        if incidents.competition_paused(self, season.date):
+            return '当前暂停参赛。推进赛程会按弃权处理期间的已排比赛；' + incidents.competition_status(self, season.date)['until'] + ' 起恢复。'
+        from .player_transfers import former_opponent, state as transfer_state
+        if transfer_state(self)['pending']:
+            return '先决定当前的加盟机会。'
+        former_opponent(self, season, match_id)
+        from . import arcs
+        if match_id and arcs.active(self):
+            event, match = season.find_match(match_id)
+            if event and match:
+                arcs.before_match(self, season, event, match)
+            if arcs.active(self):
+                self.save()
+        self.emit_incidents(season, 'before_match', str(match_id or ''))
+        if incidents.pending(self):
+            return '先处理待决定的生涯事件。'
         if self.fix_pending:
             return "先回那封没有署名的信。"
         if self.throwing:
@@ -2453,12 +2540,14 @@ class Career:
         if not self.throwing or self.banned:
             self.throwing = False
             self._sync_throw(season)
+            self.emit_incidents(season, 'after_series', season.date)
             self.save()
             return
         self.throwing = False
         self._sync_throw(season)
         if random.random() >= plot.CATCH_P:
             self.log.append("那场对局没有再被人提起。")
+            self.emit_incidents(season, 'after_series', season.date)
             self.save()
             return
         you = self.my_player(season.teams) if season is not None else None
@@ -2537,6 +2626,7 @@ class Career:
         }
 
     def public(self, season) -> dict:
+        from . import arcs
         team = self.my_team(season.teams) if self.exists else None
         you = self.my_player(season.teams) if self.exists else None
         if not you and self.you_card:
@@ -2566,13 +2656,15 @@ class Career:
         if you:
             you["birthday"] = birth_label(you.get("name") or self.player_name)
         honours = (
-            awards.honours_for(season.records(), season.top20, self.player_name)
+            awards.honours_for(season.records(include_matches=False), season.top20, self.player_name)
             if self.exists
             else {"titles": [], "mvp": [], "evp": [], "top20": [], "counts": {}}
         )
         return {
             "exists": self.exists,
             "legacy_save_notice": self.legacy_save_notice,
+            "player_only": bool(self.personal_transfers.get('player_only')),
+            "competition_pause": incidents.competition_status(self, season.date),
             "era": self.era,
             "year": self.year,
             "eras": ERA_META,
@@ -2582,6 +2674,7 @@ class Career:
             "mode": self.mode,
             "origin": self.origin,
             "origins": public_origins(),
+            "story_arcs": arcs.public(self),
             "team_id": self.team_id,
             "team_name": team["name"] if team else "",
             "money": team.get("money", 0) if team else 0,
@@ -2598,7 +2691,7 @@ class Career:
             "registered": self.registered,
             "market": market[:60],
             "honours": honours,
-            "team_honours": awards.team_honours(season.records(), team["name"]) if team else [],
+            "team_honours": awards.team_honours(season.records(include_matches=False), team["name"]) if team else [],
             "season_line": self.season_line(season) if self.exists else None,
             "vrs": table.get(self.team_id) if self.team_id else None,
             "log": self.log[-12:],
@@ -2607,6 +2700,7 @@ class Career:
             "unread": self.unread_count(),
             "attr_points": self.attr_points,
             "axes": list(ALL_AXES),
+            "assist": {k: self.assist.get(k) for k in ('invites', 'points', 'notice', 'tournament', 'step_counter')},
             "axis_labels": AXIS_LABEL,
             "banned": self.banned,
             "retired": self.retired,

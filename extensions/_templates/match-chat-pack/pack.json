@@ -1,0 +1,1 @@
+{"schema_version":1,"id":"author.chat.example","name":"示例比赛聊天包","version":"1.0.0","enabled":true,"load_order":100,"types":["match_chat"]}

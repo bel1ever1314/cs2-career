@@ -14,6 +14,8 @@ namespace CareerMatch;
 
 public sealed class MatchRequest
 {
+    [JsonPropertyName("match_chat")]
+    public JsonElement? MatchChat { get; set; }
     [JsonPropertyName("schema_version")]
     public int SchemaVersion { get; set; }
     [JsonPropertyName("active")]
@@ -211,7 +213,7 @@ public sealed record TakeoverRecord(
 public sealed partial class CareerMatchPlugin : BasePlugin
 {
     public override string ModuleName => "CareerMatch";
-    public override string ModuleVersion => "1.5.0-takeover.4";
+    public override string ModuleVersion => "1.5.0-dialogue.2";
     public override string ModuleAuthor => "CS2 Career Sim";
     public override string ModuleDescription =>
         "Auto-setup named career bots, force human side, export score + box score.";
@@ -384,6 +386,8 @@ public sealed partial class CareerMatchPlugin : BasePlugin
         }
 
         _request = incoming;
+        _dialogue.Reset();
+        LoadDialogue();
         _setupDone = false;
         _rosterReadiness.Reset();
         _scoreCleared = false;
@@ -695,6 +699,7 @@ public sealed partial class CareerMatchPlugin : BasePlugin
         {
             BindPlayerSlots();
             var openingScore = ReadTeamScores();
+            _chatOwnScoreAtStart = _request.HumanTeam == "t" ? openingScore.T : openingScore.Ct;
             if (_slotIds.Count != 10 || _slotIds.Values.Distinct().Count() != 10)
             {
                 _rosterReadiness.Missing(openingScore.Ct + openingScore.T, _roundLive);
@@ -1033,6 +1038,7 @@ public sealed partial class CareerMatchPlugin : BasePlugin
         _rosterReadiness.ObserveScore(scores.Ct + scores.T);
         if (_roundLive && scores.Ct + scores.T <= _scoreAtRoundStart)
         {
+            _chatPlayback.Cancel();
             _ledger.Clear();
             foreach (var pair in _roundSnapshot)
             {
@@ -1049,7 +1055,9 @@ public sealed partial class CareerMatchPlugin : BasePlugin
         }
         else
         {
+            var counted = _roundLive && !InWarmup() && scores.Ct + scores.T == _scoreAtRoundStart + 1;
             FinalizeRound();
+            if (counted) AnnounceRoundDialogue(scores.Ct, scores.T);
         }
         WriteSnapshot(Server.MapName, "in_progress", scores.Ct, scores.T);
         if (!_resultWritten && IsMatchOver(scores.Ct, scores.T))

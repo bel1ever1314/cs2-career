@@ -79,3 +79,4 @@ Check(!actors.HadTakeover, "new match clears takeover audit flag");
 Console.WriteLine("15 actor ownership checks passed (multiple takeovers, assists, grenades, flash, reconnect, reset).");
 TakeoverRegression.Run();
 ReadinessRegression.Run();
+DialogueRegression.Run();

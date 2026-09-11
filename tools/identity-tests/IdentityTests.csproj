@@ -7,6 +7,9 @@
   <ItemGroup><Compile Include="../../vendor/CareerMatch/IdentityBindings.cs" Link="IdentityBindings.cs" /></ItemGroup>
   <ItemGroup><Compile Include="../../vendor/CareerMatch/SessionHealth.cs" Link="SessionHealth.cs" /></ItemGroup>
   <ItemGroup>
+    <Compile Include="../../vendor/CareerMatch/MatchDialogue.cs" Link="MatchDialogue.cs" />
+    <None Include="../../cs2career/data/match_chat.json" Link="match_chat.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../extensions/_templates/match-scene-pack/match_chat/example.json" Link="match_scene_example.json" CopyToOutputDirectory="PreserveNewest" />
     <Compile Include="../../vendor/CareerMatch/ManifestDigest.cs" Link="ManifestDigest.cs" />
     <Compile Include="../../vendor/CareerMatch/ActorOwnership.cs" Link="ActorOwnership.cs" />
     <Compile Include="../../vendor/CareerMatch/TakeoverResolver.cs" Link="TakeoverResolver.cs" />

@@ -102,7 +102,8 @@ class Handler(SimpleHTTPRequestHandler):
     # ---------------------------------------------------------------- helpers
 
     def _json(self, obj, code: int = 200) -> None:
-        data = json.dumps(obj, ensure_ascii=False).encode("utf-8")
+        from ..json_bytes import encode
+        data = encode(obj)
         self.send_response(code)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Cache-Control", "no-store")
@@ -190,9 +191,21 @@ class Handler(SimpleHTTPRequestHandler):
             from ..content import get_registry
             self._json(get_registry().public())
             return
+        if path == '/api/story-history':
+            from ..career.arcs import history_page
+            try:
+                page = int((parse_qs(url.query).get('page') or ['1'])[0])
+                self._json(history_page(self.state.career, page))
+            except ValueError:
+                self._json({'error': '页码应为正整数'}, 400)
+            return
         if path == '/api/transfers':
             from ..career.transfers import candidates
             self._json({'players':candidates(self.state.career,self.state.season)})
+            return
+        if path == '/api/player-transfers':
+            from ..career.player_transfers import public
+            self._json(public(self.state.career, self.state.season))
             return
         if path == "/api/inspect":
             q = parse_qs(url.query)
@@ -241,6 +254,10 @@ class Handler(SimpleHTTPRequestHandler):
     def _post(self):
         path = urlparse(self.path).path
         try:
+            if path in {
+                '/api/market/buy', '/api/ops/found', '/api/logo'
+            } and getattr(self.state.career, 'personal_transfers', {}).get('player_only'):
+                raise ValueError('你现在是签约选手，俱乐部人事和经营由管理层负责。')
             handler = getattr(self, "post_" + path.strip("/").replace("/", "_"), None)
             if handler is None:
                 self._json({"ok": False, "msg": "unknown endpoint"}, 404)
@@ -264,7 +281,7 @@ class Handler(SimpleHTTPRequestHandler):
         skins.reload_catalog()
         reload_calendar()
         reload_era_extensions()
-        self._json({**self.state.payload('扩展已重载。剧情和饰品立即生效；赛事及年代用于新生涯。'), 'extensions':registry.public()})
+        self._json({**self.state.payload('扩展已重载。生涯事件下次触发、聊天下次准备比赛生效；赛事及年代用于新生涯。'), 'extensions':registry.public()})
 
     def post_api_next(self):
         if getattr(self.state.career, "loan_default_pending", False):
@@ -276,6 +293,21 @@ class Handler(SimpleHTTPRequestHandler):
         msg = self.state.season.next_stage()
         self.state.persist()
         self._json(self.state.payload(msg))
+
+    def post_api_assist_settings(self):
+        from ..career.assistance import configure
+        msg=configure(self.state.career,self.state.season,self._body())
+        self.state.persist()
+        self._json(self.state.payload(msg))
+
+    def post_api_assist_tournament(self):
+        from ..league.tournament_auto import step
+        body=self._body()
+        if type(body.get('revision')) is not int:
+            raise ValueError('缺少模拟进度编号，请刷新赛事。')
+        result=step(self.state.career,self.state.season,str(body.get('event_id') or ''),body.get('token'),body['revision'])
+        self.state.persist()
+        self._json({**self.state.payload(''), 'auto_step':result})
 
     def post_api_skip(self):
         if getattr(self.state.career, "loan_default_pending", False):
@@ -308,6 +340,12 @@ class Handler(SimpleHTTPRequestHandler):
         self.state.persist()
         self._json(self.state.payload(msg))
 
+    def post_api_player_transfers_apply(self):
+        from ..career.player_transfers import apply
+        body = self._body()
+        msg = self.state.personal_command(lambda c, s: apply(c, s, str(body.get('team_id') or ''), str(body.get('role') or '')))
+        self._json({**self.state.payload(msg), 'transfer':self.state.career.personal_transfers.get('attempts', [None])[-1]})
+
     def post_api_scrim(self):
         msg = self.state.career.finish_training(self.state.season)
         self.state.persist()
@@ -320,8 +358,14 @@ class Handler(SimpleHTTPRequestHandler):
 
     def post_api_story_ack(self):
         body = self._body()
-        self.state.career.ack_story(str(body.get("id") or ""), str(body.get("choice") or ""), self.state.season)
-        self.state.persist()
+        story_id, choice = str(body.get('id') or ''), str(body.get('choice') or '')
+        row = next((r for r in self.state.career.story_queue if r.get('id') == story_id), {})
+        from ..career.arcs import changes_world
+        if row.get('kind') == 'transfer' or (row.get('arc') and changes_world(row, choice)):
+            self.state.personal_command(lambda c, s: c.ack_story(story_id, choice, s))
+        else:
+            self.state.career.ack_story(story_id, choice, self.state.season)
+            self.state.persist()
         self._json(self.state.payload(""))
 
     def post_api_register(self):
@@ -338,8 +382,13 @@ class Handler(SimpleHTTPRequestHandler):
         self._json(self.state.payload(msg))
 
     def post_api_mail_accept(self):
-        msg = self.state.career.accept_invite(self.state.season, (self._body().get("id") or ""))
-        self.state.persist()
+        mail_id = self._body().get('id') or ''
+        row = self.state.career._mail(mail_id) or {}
+        if row.get('kind') == 'contract':
+            msg = self.state.personal_command(lambda c, s: c.accept_invite(s, mail_id))
+        else:
+            msg = self.state.career.accept_invite(self.state.season, mail_id)
+            self.state.persist()
         self._json(self.state.payload(msg))
 
     def post_api_mail_decline(self):
@@ -407,9 +456,15 @@ class Handler(SimpleHTTPRequestHandler):
 
     def post_api_series_skip(self):
         body = self._body()
+        _, before = self.state.season.find_match(body.get("match_id") or "")
+        start = len((before or {}).get("maps") or [])
         msg = self.state.season.skip_your_series(body.get("match_id") or "")
         self.state.persist()
-        self._json(self.state.payload(msg))
+        payload = self.state.payload(msg)
+        if body.get("reveal") and before:
+            from ..league.spectator import reveal_series
+            payload["reveal"] = reveal_series(before, start)
+        self._json(payload)
 
     def post_api_play(self):
         body = self._body()

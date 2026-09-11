@@ -15,6 +15,16 @@ from ..paths import data_file
 GUN_AXES = ("firepower", "entrying", "trading", "opening", "clutching", "sniping")
 AXES = GUN_AXES + ("utility",)
 ALL_AXES = AXES + ("command",)
+
+
+def effective_form_delta(player: dict) -> float:
+    """Combine temporary story modifiers without feeding them into form growth."""
+    base = player.get('form_delta')
+    if base is None:
+        base = float(player.get('form', player.get('ability', 50))) - float(player.get('ability', 50))
+    return max(-10.0, min(10.0, float(base) + float(player.get('story_form_delta') or 0)))
+
+
 AXIS_LABEL = {
     "firepower": "火力",
     "entrying": "突破",
