@@ -212,7 +212,7 @@ public sealed partial class CareerMatchPlugin
         TraceIdentity("hurt", new { controller = ControllerId(ev.Attacker), actor = attacker.PlayerId,
             victim = victim.PlayerId, damage = ev.DmgHealth, weapon = ev.Weapon });
         if (ControllerId(ev.Attacker) is { } controller)
-            _actors.Support(victim.PlayerId, controller, attacker.PlayerId);
+            _actors.Support(victim.PlayerId, controller, attacker.PlayerId, damage: ev.DmgHealth);
         return HookResult.Continue;
     }
 
@@ -232,6 +232,13 @@ public sealed partial class CareerMatchPlugin
         // attacker and victim, not an unexplained shot from an already dead row.
         victim.Deaths++;
         victim.RoundDead = true;
+        // Capture 1vX after a death, never infer a clutch just from winning.
+        foreach (var side in new[] { "ct", "t" })
+        {
+            var alive = _ledger.Values.Where(r => r.Team == side && !r.RoundDead).ToList();
+            if (alive.Count == 1 && _ledger.Values.Any(r => r.Team != side && !r.RoundDead))
+                _clutchCandidates.Add(alive[0].PlayerId);
+        }
         var legalKill = attacker is not null && attacker != victim && attacker.Team != victim.Team;
         TraceIdentity("death", new { controller = ControllerId(ev.Attacker), actor = attacker?.PlayerId,
             victimController = ControllerId(ev.Userid), victim = victim.PlayerId, legalKill, weapon = ev.Weapon });
@@ -259,10 +266,13 @@ public sealed partial class CareerMatchPlugin
         }
         if (legalKill && ControllerId(ev.Assister) is { } assistController)
         {
-            var assistId = _actors.Assister(victim.PlayerId, assistController, ev.Assistedflash);
-            if (assistId is null)
+            var assist = _actors.ResolveAssist(victim.PlayerId, assistController, ev.Assistedflash, attacker!.PlayerId);
+            TraceIdentity("assist", new { victim = victim.PlayerId, killer = attacker.PlayerId,
+                controller = assistController, flash = ev.Assistedflash, resolved = assist.PlayerId,
+                ambiguous = assist.Ambiguous, reason = assist.Reason, candidates = assist.Candidates });
+            if (assist.Ambiguous)
                 _health.StatisticsError = "接管前后的助攻贡献无法唯一归属，保留事件等待核查";
-            else if (_ledger.TryGetValue(assistId, out var assister)
+            else if (assist.PlayerId is { } assistId && _ledger.TryGetValue(assistId, out var assister)
                 && assister != attacker && assister != victim && assister.Team != victim.Team)
             {
                 assister.Assists++;

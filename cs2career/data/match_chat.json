@@ -1,6 +1,20 @@
 {
   "schema_version": 1,
+  "scenes": [
+    {"id":"ace-celebration","when":"round_end","priority":100,"probability":1,"cooldown_rounds":1,"max_per_match":200,"distinct_speakers":true,"conditions":{"round_kills":{"min":5}},"sequence":[
+      {"speaker":"teammate","color":"gold","text":"五杀！{player}，这回合全让你包了！"},
+      {"speaker":"teammate","color":"green","delay_seconds":0.5,"text":"太漂亮了！我都准备鼓掌了！"},
+      {"speaker":"teammate","color":"gold","delay_seconds":0.5,"text":"这就是大腿啊，兄弟！"},
+      {"speaker":"teammate","color":"green","delay_seconds":0.5,"text":"好枪！这回合必须记下来！"}
+    ]}
+  ],
   "rules": [
+    {"id":"clutch-win","when":"round_end","speaker":"teammate","color":"gold","priority":90,"probability":1,"cooldown_rounds":1,"max_per_match":200,"conditions":{"result":"win","clutch":{"min":1}},"text":["{clutch_player}，这残局真拿下了！漂亮！","顶住了！{clutch_player}，这分全靠你！","好冷静的处理，{clutch_player}！这分太关键了。"]},
+    {"id":"pistol-first-win","when":"round_end","speaker":"teammate","priority":95,"cooldown_rounds":1,"max_per_match":1,"conditions":{"round":{"min":1,"max":1},"result":"win"},"text":["好的开始是成功的一半。"]},
+    {"id":"pistol-first-loss","when":"round_end","speaker":"teammate","priority":95,"cooldown_rounds":1,"max_per_match":1,"conditions":{"round":{"min":1,"max":1},"result":"loss"},"text":["加油，我们翻回去。"]},
+    {"id":"pistol-second-win","when":"round_end","speaker":"teammate","priority":95,"cooldown_rounds":1,"max_per_match":1,"conditions":{"round":{"min":13,"max":13},"result":"win"},"text":["好的开始是成功的一半。"]},
+    {"id":"pistol-second-loss","when":"round_end","speaker":"teammate","priority":95,"cooldown_rounds":1,"max_per_match":1,"conditions":{"round":{"min":13,"max":13},"result":"loss"},"text":["加油，我们翻回去。"]},
+    {"id":"big-deficit","when":"round_end","speaker":"coach","color":"blue","priority":80,"probability":1,"cooldown_rounds":4,"max_per_match":3,"conditions":{"lead":{"max":-6}},"text":["这个时候就不要想着赢了。","我们得拿几分了。","伙计们，让我们拿几分。"]},
     {"id":"close-game","when":"round_end","speaker":"coach","color":"blue","priority":5,"probability":0.7,"max_per_match":1,"conditions":{"round":{"min":16},"lead":{"min":-1,"max":1}},"text":["比分还咬着，下一回合先把信息交流做好。"]},
     {"id":"trailing","when":"round_end","speaker":"coach","color":"blue","probability":0.65,"cooldown_rounds":8,"max_per_match":2,"conditions":{"lead":{"max":-4},"loss_streak":{"min":2}},"text":["先把这一分拿下来，不用一口气追回全部。","节奏慢一点，把钱和道具安排好。"]},
     {"id":"momentum","when":"round_end","speaker":"teammate","color":"green","probability":0.65,"max_per_match":2,"conditions":{"win_streak":{"min":3}},"text":["就这样打，保持交流。","连着拿了几分，别急，我们继续。"]},

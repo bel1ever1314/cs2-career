@@ -46,6 +46,7 @@ internal static class DialogueRegression
         engine.EndRound(config,"nonce",1,"win",Context(),people,"ct");
         Check(engine.EndRound(config,"nonce",4,"win",Context(),people,"ct") is null, "match limit");
         var builtin = JsonSerializer.Deserialize<ChatContract>(File.ReadAllText(Path.Combine(AppContext.BaseDirectory,"match_chat.json")))!;
+        builtin.Version = 2; // Source pack v1 compiles to runtime contract v2.
         Check(MatchDialogue.Valid(builtin), "shared Python shipped rules validated by C#");
         // Contract v1 tests above intentionally retain legacy behavior.
         ChatContract V2() => new() { Version = 2, Enabled = true, Rules = [
@@ -111,6 +112,25 @@ internal static class DialogueRegression
         example.Version=2;example.Enabled=true;Check(MatchDialogue.Valid(example),"shipped scene pack accepted by C#");
         engine=new();Check(engine.EndRoundBatch(example,"demo",1,"win",Context(),people,"ct").Lines.Count==2,"shipped round-one dual lane demo");
         Check(engine.EndRoundBatch(example,"demo",3,"loss",Context(),people,"ct").IsScene,"shipped round-three scene demo");
+        builtin.Enabled=true;
+        var fullTeam = new List<ChatPerson>(people) { new("b2","队友二","ct",true), new("b3","队友三","ct",true), new("b4","队友四","ct",true) };
+        var ace = new Dictionary<string,string>(Context()) { ["round_kills"]="5" };
+        batch = new MatchDialogue().EndRoundBatch(builtin,"ace",4,"win",ace,fullTeam,"ct");
+        Check(batch.IsScene && batch.Lines.Count == 4, "builtin ace always has four cheers");
+        Check(new[]{"队友：","队友二：","队友三：","队友四："}.All(name => batch.Lines.Count(x=>x.Message.Text.Contains(name))==1), "four distinct teammates, no repeated caster");
+        foreach(var round in new[]{1,13})
+        foreach(var win in new[]{true,false}) {
+            batch=new MatchDialogue().EndRoundBatch(builtin,"pistol",round,win?"win":"loss",Context(),fullTeam,"ct");
+            Check(batch.Lines.Any(x=>x.Message.Text.Contains(win?"好的开始是成功的一半":"加油，我们翻回去")), "both pistol rounds have win/loss line");
+        }
+        var clutch=new Dictionary<string,string>(Context()){["clutch"]="1",["clutch_player"]="队友二"};
+        batch=new MatchDialogue().EndRoundBatch(builtin,"clutch",5,"win",clutch,fullTeam,"ct");
+        Check(batch.Lines.Any(x=>x.Message.RuleId=="clutch-win" && x.Message.Text.Contains("队友二")), "won clutch praised by name");
+        Check(!new MatchDialogue().EndRoundBatch(builtin,"clutch",5,"loss",clutch,fullTeam,"ct").Lines.Any(x=>x.Message.RuleId=="clutch-win"), "lost clutch not praised");
+        var deficit=new Dictionary<string,string>(Context()){["lead"]="-6"};
+        engine=new();
+        Check(engine.EndRoundBatch(builtin,"deficit",8,"loss",deficit,fullTeam,"ct").Lines.Any(x=>x.Message.RuleId=="big-deficit"), "coach reacts to six-round deficit");
+        Check(!engine.EndRoundBatch(builtin,"deficit",9,"loss",deficit,fullTeam,"ct").Lines.Any(x=>x.Message.RuleId=="big-deficit"), "coach does not spam every round");
         Console.WriteLine($"{checks} dialogue checks passed.");
     }
 }

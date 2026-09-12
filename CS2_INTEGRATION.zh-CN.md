@@ -1,5 +1,23 @@
 # CS2 联调：玩家第一次实测
 
+## 当前版本：assistchat.1（优先于以下历史记录）
+
+玩家确认采用自定义生涯助攻规则：多个非击杀贡献者按累计伤害最高、同伤害先达到者选择，只记一次。`career_damage_then_reached_first_v1` 标识该路径；闪光冲突及缺少贡献数据不套用伤害规则。新增台词和扩展字段见根目录《助攻与场内对话说明.txt》。新程序准备比赛时安装内置DLL并冻结聊天配置，旧比赛不追溯变更。
+
+## 最新补充：assistfix.1 助攻判定（优先于下文历史记录）
+
+现场发现同一控制器先后控制两名选手伤害同一目标，旧 ActorOwnership.Assister
+把最终击杀者也当成助攻候选，导致虚假的多候选错误。
+现在 ResolveAssist 先排除击杀者/死者，再判断唯一贡献；Bot接管前贡献也通过原角色索引查找。
+不以伤害最高、当前控制身体或阵容顺序猜助攻，不放宽真实多贡献者的歧义校验。
+已完成156项纯C#检查和插件编译，未完成本修复的真实CS2新对局验收。
+旧 trace 的 death 条目没有 assister/assistedflash，所以不得把现场回放宣称为完整助攻恢复。
+新 trace 增加 assist 条目，包含 controller/killer/victim/flash/resolved/ambiguous/reason/candidates。
+对局原始文件只备份在本机私有 .qa 目录，不加入源码包、Release或GitHub。
+
+回归入口：tools/identity-tests/AssistRegression.cs；修复入口：
+vendor/CareerMatch/ActorOwnership.cs 与 CareerMatch.Events.cs。
+
 程序：`release/CS2Career-CS2Test/CS2Career-CS2Test.exe`。
 这是允许连接真实CS2的桌面联调版，不是之前禁用游戏的IdentityFix/CareerFlow版。
 使用这个EXE旁边的 `save/` 和 `extensions/`；不读取其他测试版生涯，不替你推进赛季。

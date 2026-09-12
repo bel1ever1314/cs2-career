@@ -47,6 +47,7 @@ public sealed class ChatStep
 }
 public sealed class ChatScene
 {
+    [JsonPropertyName("distinct_speakers")] public bool DistinctSpeakers { get; set; }
     [JsonPropertyName("id")] public string Id { get; set; } = "";
     [JsonPropertyName("when")] public string When { get; set; } = "";
     [JsonPropertyName("conditions")] public Dictionary<string, JsonElement> Conditions { get; set; } = [];
@@ -77,9 +78,9 @@ public sealed class DialoguePlayback
 
 public sealed class MatchDialogue
 {
-    private static readonly HashSet<string> Numbers = ["round", "score_for", "score_against", "lead", "kills", "deaths", "assists", "damage", "round_kills", "win_streak", "loss_streak"];
+    private static readonly HashSet<string> Numbers = ["round", "score_for", "score_against", "lead", "kills", "deaths", "assists", "damage", "round_kills", "win_streak", "loss_streak", "clutch"];
     private static readonly HashSet<string> Strings = ["result", "map", "player_id", "speaker_id", "team_id"];
-    private static readonly HashSet<string> Tokens = [.. Numbers, .. Strings, "player", "speaker", "team", "opponent"];
+    private static readonly HashSet<string> Tokens = [.. Numbers, .. Strings, "player", "speaker", "team", "opponent", "clutch_player"];
     private static readonly Regex Token = new(@"\{([a-z_]+)\}");
     private readonly Dictionary<string, (int Count, int Last)> _used = [];
     private int _lastRound, _lastMessage = -100, _total, _wins, _losses;
@@ -211,13 +212,16 @@ public sealed class MatchDialogue
             var gate = scene.Gate();
             if (!Available(gate, nonce, round) || !Matches(gate, context)) continue;
             var lines = new List<ScheduledChat>();
+            var spoken = new HashSet<string>();
             double delay = 0;
             foreach (var step in scene.Sequence)
             {
                 var speech = Speech(step);
                 speech.Id = scene.Id; // Same unspecified teammate throughout a scene.
-                var person = Speaker(speech, nonce, round, people, humanTeam);
+                var cast = scene.DistinctSpeakers ? people.Where(p => !spoken.Contains(p.Id)).ToList() : people;
+                var person = Speaker(speech, nonce, round, cast, humanTeam);
                 if (person is null) { lines.Clear(); break; } // Never deliver half a missing-cast scene.
+                spoken.Add(person.Id);
                 if (lines.Count > 0) delay += step.Delay;
                 lines.Add(new(Render(speech, step.Text, person, context), delay));
             }

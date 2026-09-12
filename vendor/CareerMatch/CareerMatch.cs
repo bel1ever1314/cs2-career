@@ -174,7 +174,7 @@ public sealed class MatchResult
     [JsonPropertyName("stat_identity_policy")]
     public string StatIdentityPolicy { get; set; } = "original_pawn_owner";
     [JsonPropertyName("identity_resolver_version")]
-    public string IdentityResolverVersion { get; set; } = "controller_link_v3";
+    public string IdentityResolverVersion { get; set; } = "controller_link_v3_career_assist_v1";
     [JsonPropertyName("score_identity_policy")]
     public string ScoreIdentityPolicy { get; set; } = "opening_roster_side";
     [JsonPropertyName("takeover_events")]
@@ -213,7 +213,7 @@ public sealed record TakeoverRecord(
 public sealed partial class CareerMatchPlugin : BasePlugin
 {
     public override string ModuleName => "CareerMatch";
-    public override string ModuleVersion => "1.5.0-dialogue.2";
+    public override string ModuleVersion => "1.5.0-assistchat.1";
     public override string ModuleAuthor => "CS2 Career Sim";
     public override string ModuleDescription =>
         "Auto-setup named career bots, force human side, export score + box score.";
@@ -717,6 +717,7 @@ public sealed partial class CareerMatchPlugin : BasePlugin
             _openingRecorded = false;
             _pendingTrades.Clear();
             _actors.NewRound();
+            _clutchCandidates.Clear();
             _pendingControls.Clear();
             BindPlayerSlots();
             _roundSnapshot.Clear();

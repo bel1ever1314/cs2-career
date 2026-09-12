@@ -8,6 +8,7 @@ public sealed partial class CareerMatchPlugin
     private readonly MatchDialogue _dialogue = new();
     private ChatContract? _chatContract;
     private readonly DialoguePlayback _chatPlayback = new();
+    private readonly HashSet<string> _clutchCandidates = [];
 
     private void LoadDialogue()
     {
@@ -38,6 +39,8 @@ public sealed partial class CareerMatchPlugin
             var other = human.Team == "ct" ? t : ct;
             var mine = human.Team == "ct" ? _request.Ct : _request.T;
             var enemy = human.Team == "ct" ? _request.T : _request.Ct;
+            var clutch = _ledger.Values.FirstOrDefault(r => r.Team == human.Team && !r.RoundDead
+                && _clutchCandidates.Contains(r.PlayerId));
             var context = new Dictionary<string, string> {
                 ["player"] = human.Name, ["player_id"] = human.PlayerId,
                 ["team"] = mine.Name, ["team_id"] = mine.TeamId, ["opponent"] = enemy.Name,
@@ -45,6 +48,7 @@ public sealed partial class CareerMatchPlugin
                 ["lead"] = (own - other).ToString(), ["kills"] = human.Kills.ToString(),
                 ["deaths"] = human.Deaths.ToString(), ["assists"] = human.Assists.ToString(),
                 ["damage"] = human.Damage.ToString(), ["round_kills"] = (human.Kills - before.Kills).ToString(),
+                ["clutch"] = clutch is null ? "0" : "1", ["clutch_player"] = clutch?.Name ?? "",
             };
             // Winner captured from normalized opening-team score, not live CT/T.
             var result = own > _chatOwnScoreAtStart ? "win" : "loss";

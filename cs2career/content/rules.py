@@ -8,9 +8,9 @@ import re
 
 ID = re.compile(r'^[a-zA-Z0-9_.-]{1,96}$')
 CHAT_NUMBERS = {'round', 'score_for', 'score_against', 'lead', 'kills', 'deaths',
-                'assists', 'damage', 'round_kills', 'win_streak', 'loss_streak'}
+                'assists', 'damage', 'round_kills', 'win_streak', 'loss_streak', 'clutch'}
 CHAT_STRINGS = {'result', 'map', 'player_id', 'speaker_id', 'team_id'}
-PLACEHOLDERS = CHAT_NUMBERS | CHAT_STRINGS | {'player', 'speaker', 'team', 'opponent'}
+PLACEHOLDERS = CHAT_NUMBERS | CHAT_STRINGS | {'player', 'speaker', 'team', 'opponent', 'clutch_player'}
 INCIDENT_TRIGGERS = {'day', 'before_match', 'after_series', 'event_started', 'coach_absent'}
 INCIDENT_TRIGGERS |= {'transfer_offer_received', 'transfer_application_success', 'transfer_application_failed',
                      'transfer_stayed', 'transfer_departed', 'transfer_joined', 'transfer_former_team'}
@@ -82,8 +82,10 @@ def validate_chat(row):
 
 def validate_scene(row):
     keys(row, {'id', 'when', 'conditions', 'probability', 'cooldown_rounds',
-               'max_per_match', 'priority', 'sequence'})
-    common = {k: v for k, v in row.items() if k != 'sequence'}
+               'max_per_match', 'priority', 'sequence', 'distinct_speakers'})
+    if type(row.get('distinct_speakers', False)) is not bool:
+        raise ValueError('distinct_speakers 必须为布尔值')
+    common = {k: v for k, v in row.items() if k not in {'sequence', 'distinct_speakers'}}
     validate_chat(dict(common, speaker='coach', text=['场内剧情']))
     if 'speaker_id' in row.get('conditions', {}):
         raise ValueError('剧情没有单一说话者；请在 sequence 内指定 speaker_id')
