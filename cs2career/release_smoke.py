@@ -75,7 +75,8 @@ def run(output: Path) -> None:
             assert (static_dir()/'desk/arena.css').is_file()
             arena = app.arena
             selection = [p['player_id'] for p in arena.catalog(app)[:10]]
-            arena.matchmake(app,dict(revision=0,human_id=selection[-1]))
+            arena.matchmake(app,dict(revision=0))
+            assert arena.data['lobby']['human_id']==app.career.you_card['player_id']
             while arena.data['lobby']['phase'] in ('draft','veto','side'):
                 lobby=arena.data['lobby']
                 body=dict(revision=arena.data['revision'])
@@ -88,7 +89,9 @@ def run(output: Path) -> None:
                 else:arena.choose_side(dict(body,side='ct'))
             assert len(arena.data['lobby']['a'])==len(arena.data['lobby']['b'])==5
             assert len(arena.data['lobby']['bans'])==6
-            report['matchmaking']='unified Elo matchmaking / captain draft / map veto passed'
+            for side in ('a','b'):
+                assert {arena.data['lobby']['roster'][pid]['role'] for pid in arena.data['lobby'][side]}=={'awp','entry','lurk','rifle','igl'}
+            report['matchmaking']='career-bound identity / five distinct match positions / captain draft / map veto passed'
             from .career.quick_report import series_report
             assert not series_report({'maps':[]},None,None)['data_complete']
             report['quick_results']='scorecard module and styles bundled; missing stats remain incomplete'
@@ -134,6 +137,22 @@ def run(output: Path) -> None:
                              'InvsimCareer/InvsimCareer.dll',
                              'InventorySimulator/plugins/InventorySimulator/InventorySimulator.dll'):
                 assert (vendor_root()/relative).read_bytes()[:2] == b'MZ'
+            # Exercise the bundled calendar classifier and persisted birthday
+            # snapshot outside any Major window, not the developer's saves.
+            from .career import story_timing
+            birthday = app.career.next_calendar_day(app.season, f'{app.season.year}-12-31')
+            assert birthday is not None
+            app.season.date = birthday
+            app.career.last_birthday = ''
+            app.career.story_queue = []
+            app.career.incident_state['story_timing'] = {'schema_version': 1, 'windows': [], 'deferred': []}
+            app.career._birthday_tick(app.season)
+            story_timing.reconcile(app.career, app.season)
+            rows = [r for r in app.career.story_queue if r.get('when') == 'teammate_birthday']
+            assert rows and all(r['date'] == birthday and r['timing'] == 'calendar' for r in rows)
+            app.persist()
+            assert any(r.get('id') == rows[0]['id'] for r in Career.load().story_queue)
+            report['calendar_occasions'] = 'birthday dated outside Major window; saved/reloaded without deferral'
             report.update(ok=True, version=__version__, difficulties=3, bots_per_match=9, source_model=manifest['difficulty_model'], dialogue_rules=len(dialogue['rules']), dialogue_schema=dialogue['schema_version'], natural_dust2='excluded', major_exit_chapters=18, personal_transfer='create/apply/persist/reload passed')
     except Exception:
         report['error'] = traceback.format_exc()

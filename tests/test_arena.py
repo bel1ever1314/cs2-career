@@ -22,7 +22,8 @@ def fixture_state():
     teams=[fake_team('A',80),fake_team('B',88),fake_team('C',95)]
     for i,p in enumerate(p for t in teams for p in t['players']):p['ability']=60+i*2
     return SimpleNamespace(season=SimpleNamespace(teams=teams,events=[],date='2026-01-01'),
-                          career=SimpleNamespace(free=[],money=123,training_session=None))
+                          career=SimpleNamespace(exists=True,you_card=deepcopy(teams[0]['players'][0]),
+                                                 free=[],money=123,training_session=None))
 
 
 def result_for(lobby):
@@ -248,7 +249,7 @@ class ArenaTests(unittest.TestCase):
         self.finish_draft();l=self.arena.data['lobby']
         self.assertEqual('ready',l['phase']);self.assertEqual('a',l['ct'])
 
-    def test_player_origin_seed_saved_once_and_identity_switch_keeps_score(self):
+    def test_player_origin_seed_saved_once_and_identity_switch_is_rejected(self):
         for origin,expected in (('street',1400),('academy',2200),('prodigy',3000)):
             arena=Arena(self.root/(origin+'.json'))
             p=self.state.season.teams[0]['players'][0]
@@ -258,7 +259,9 @@ class ArenaTests(unittest.TestCase):
             arena.cancel(dict(revision=1))
             self.state.career.origin='prodigy';p['ability']=99
             self.assertEqual(expected,next(r['elo'] for r in arena.catalog(self.state) if r['player_id']==p['player_id']))
-            arena.matchmake(self.state,dict(revision=2,human_id=self.ids[1]))
+            with self.assertRaisesRegex(ValueError,'固定使用'):
+                arena.matchmake(self.state,dict(revision=2,human_id=self.ids[1]))
+            arena.matchmake(self.state,dict(revision=2))
             self.assertEqual(expected,arena.data['ladder'][self.ids[0]]['elo'])
 
     def test_historical_seeds_match_ids_not_duplicate_names(self):

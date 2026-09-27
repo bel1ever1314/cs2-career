@@ -43,11 +43,13 @@
 
 主线集中在 Major 正式结束后的休赛窗口；普通生涯的恋爱线从首个 Major 结束后开始，假赛等比赛事件仍可在赛中触发。新增 **18 套 Major 出局故事**，覆盖六种出局阶段与不同实力预期。参加的 Major 仍展示 MVP、EVP 和最佳阵容。
 
+生日等日历事件不等休赛期：队友生日当天出现选择，回应当天记录。快速模拟与跳过赛程遇到生日时暂停，处理后继续。
+
 快速模式的属性点先积累，Major 后再集中分配；普通模式仍可随时加点。
 
 #### 本地天梯与自定义对战
 
-**Rank／FPL 是同一个本地 Bot 天梯，不是联网匹配，也不连接 FACEIT。** 选择控制的角色后，按积分匹配另外九人；本局积分最高的两位担任队长，选人、禁图，再进入 CS2。天梯积分与记录独立，不改变生涯 VRS、奖金或属性点。
+**Rank／FPL 是同一个本地 Bot 天梯，不是联网匹配，也不连接 FACEIT。** 固定使用当前生涯角色，按积分匹配另外九人；本局积分最高的两位担任队长，选人、禁图，再进入 CS2。选人完成后，按五位置能力为每队分配一名主狙、突破手、自由人、步枪手和指挥，不改变生涯位置。天梯积分与记录独立，不改变生涯 VRS、奖金或属性点。
 
 自定义模式可安排双方各五名选手：控制其中一人，或作为观察者观看十名 Bot 比赛。自定义不计天梯分。
 
@@ -153,11 +155,13 @@ Finals, consequential story choices, contracts, and Major off-season windows sti
 
 Main stories arrive after a Major officially concludes. In a standard career, the romance storyline begins after the first Major; match-specific incidents, such as match-fixing approaches, can still occur during competition. **18 Major elimination stories** cover six exit stages and different expectations of your team's strength. Majors you participate in retain MVP, EVP, and positional best-team presentations.
 
+Calendar occasions do not wait for an off-season: teammate birthdays and their responses occur on the day. Fast simulation and schedule jumps pause at a birthday for your choice, then continue.
+
 In fast mode, attribute points accumulate during the season and can be spent after Majors. Normal mode still allows allocation at any time.
 
 #### Local ladder and custom matches
 
-**Rank/FPL is one local bot ladder, not online matchmaking or a FACEIT connection.** Choose the player you control and match with nine others based on ladder points. The two highest-rated players in the lobby become captains, draft teams, and veto maps before entering CS2. Ladder results are independent of career VRS, rewards, and attribute points.
+**Rank/FPL is one local bot ladder, not online matchmaking or a FACEIT connection.** Ranked matches use your current career player and match you with nine others based on ladder points. The two highest-rated players become captains, draft teams, and veto maps before entering CS2. Each drafted team is assigned one AWPer, entry, lurker, rifler, and IGL based on role-specific ability, without changing career positions. Ladder results are independent of career VRS, rewards, and attribute points.
 
 Custom matches let you select both five-player rosters. Control one participant or spectate all ten bots. Custom matches do not award ladder points.
 

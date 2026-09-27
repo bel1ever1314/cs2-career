@@ -22,7 +22,8 @@ class PublicPackageTests(unittest.TestCase):
                    'tools/Launch-CS2Career.cmd','vendor/BotLab/BotLab.cs',
                    'tools/local-actions-probe/LocalActionsLab.cs','tools/view_angle_lab/analyze_pro_demo.py',
                    'cs2career/data/natural_behavior/de_dust2.json',
-                   'vendor/CareerMatch/reports/report.json','tools/.qa-private/data.json']
+                   'vendor/CareerMatch/reports/report.json','tools/.qa-private/data.json',
+                   'tools/install_arena_roles_hotfix_20260927.py']
             for name in paths:
                 path=root/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_text('{}')
             exe=root/'release/app.exe';exe.parent.mkdir(exist_ok=True);exe.write_bytes(b'MZfixture')
@@ -45,6 +46,7 @@ class PublicPackageTests(unittest.TestCase):
                 self.assertNotIn('/natural_behavior/',names)
                 self.assertNotIn('/reports/',names)
                 self.assertNotIn('/.qa-private/',names)
+                self.assertNotIn('install_arena_roles_hotfix_20260927.py', names)
             with zipfile.ZipFile(next(output.glob('*windows-x64.zip'))) as archive:
                 entries = archive.namelist()
                 names = '\n'.join(entries)

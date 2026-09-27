@@ -783,7 +783,24 @@ class Season:
             for m in ev["matches"]:
                 if not m["played"] and _d(m["date"]) > today:
                     days.append(m["date"])
-        return min(days) if days else None
+        if not days:
+            return None
+        target = min(days)
+        if self.career:
+            target = self.career.next_calendar_day(self, target) or target
+        return target
+
+    def _calendar_pause(self) -> str:
+        """Date-bound choices must be answered before another calendar jump."""
+        if not self.career:
+            return ''
+        from ..career.story_timing import calendar_pending, reconcile
+        self.career._birthday_tick(self)
+        reconcile(self.career, self)
+        if calendar_pending(self.career):
+            self.career.save()
+            return '请先处理当天的生日等日历事件，再继续推进。'
+        return ''
 
     def _await_quick_season_choice(self) -> bool:
         """Every player-facing advance respects the quick season boundary.
@@ -795,6 +812,9 @@ class Season:
                     and all(ev.get('status') == 'done' for ev in self.events))
 
     def next_stage(self, *, stop_at_season_end: bool = False) -> str:
+        calendar_pause = self._calendar_pause()
+        if calendar_pause:
+            return calendar_pause
         if self.career:
             from ..career.incidents import pending
             if pending(self.career):
@@ -858,6 +878,9 @@ class Season:
 
     def skip_to_next_event(self) -> str:
         """Finish every running event, then land on the next one's opening day."""
+        calendar_pause = self._calendar_pause()
+        if calendar_pause:
+            return calendar_pause
         if self.career:
             from ..career.incidents import pending
             if pending(self.career):
@@ -877,6 +900,9 @@ class Season:
             guard += 1
             before = (self.date, sum(1 for e in self.events if e["status"] == "live"))
             self.next_stage()
+            calendar_pause = self._calendar_pause()
+            if calendar_pause:
+                return calendar_pause
             yours = self.your_series()
             if yours:
                 ev, match = yours
@@ -888,6 +914,9 @@ class Season:
             if self._await_quick_season_choice():
                 return f"{self.year} 赛季的全部赛程已完成。请选择下一赛季的模式。"
             return self.roll_year()
+        # The shortcut must use the same calendar stops as normal/quick play.
+        if self.career and self.career.next_calendar_day(self, nxt['dates'][0]):
+            return self.next_stage()
         self.date = nxt["dates"][0]
         self.ensure_live()
         for ev in self.events:

@@ -3,6 +3,7 @@
 python -B tools/check_arena_ui.py --output D:/CS2CareerBuilds/v1.6.0/arena/ui
 """
 import argparse
+from copy import deepcopy
 import json
 import os
 from pathlib import Path
@@ -57,6 +58,9 @@ def main():
                     for scenario in ('captain','member','custom'):
                         mode='custom' if scenario=='custom' else 'rank'
                         state.arena.data['lobby']=None;state.arena.save()
+                        catalog=state.arena.catalog(state)
+                        human=(catalog[0] if scenario=='captain' else catalog[-1])['player_id']
+                        state.career.you_card=deepcopy(state.arena.roster(state)[human])
                         page.evaluate("""async()=>{await CareerUI.pages.arena({},document.getElementById('view-arena'),()=>window.arenaActive);} """)
                         page.locator(f'[data-arena="mode"][data-mode="{mode}"]').click()
                         def inspect(phase):
@@ -72,10 +76,8 @@ def main():
                                 if width==1280:page.screenshot(path=str(args.output/f'{lang}-{scenario}-{phase}.png'),full_page=True)
                             page.set_viewport_size({'width':1280,'height':720})
                         if mode=='rank':
-                            page.locator('[data-arena=choose]').click()
-                            catalog=state.arena.catalog(state)
-                            human=(catalog[0] if scenario=='captain' else catalog[-1])['player_id']
-                            page.locator(f'[data-arena=select][data-id="{human}"]').click()
+                            assert page.locator('[data-arena=choose],[data-arena=select],[data-arena-pool]').count()==0
+                            assert page.locator('[data-bound-player]').get_attribute('data-bound-player')==human
                             inspect('queue')
                             page.locator('[data-arena=matchmake]').click()
                             page.locator('.arena-stage').wait_for()
@@ -104,6 +106,9 @@ def main():
                             assert len(state.arena.data['lobby']['bans'])==6
                             assert state.arena.data['lobby']['human_id']==human
                             assert page.locator('[data-arena-map]').count()==0
+                            assert page.locator('.arena-assigned-role').count()==10
+                            for side in ('a','b'):
+                                assert set(page.locator('.side-'+side+' [data-match-role]').evaluate_all('(els)=>els.map(e=>e.dataset.matchRole)'))=={'awp','rifle','entry','lurk','igl'}
                         else:
                             human=''
                             page.locator('[data-arena=recommend]').click()
@@ -129,6 +134,15 @@ def main():
                         assert page.locator('.arena-result tbody tr:not(.arena-team)').count()==10
                         assert page.locator('.arena-you').count()==(1 if mode=='rank' else 0)
                         inspect('result')
+                    # No career: ranked must not silently select the first pro.
+                    state.arena.data['lobby']=None;state.arena.save();state.career.exists=False
+                    page.evaluate("async()=>{await CareerUI.pages.arena({},document.getElementById('view-arena'),()=>window.arenaActive);}")
+                    page.locator('[data-arena=mode][data-mode=rank]').click()
+                    assert page.locator('[data-arena=matchmake]').is_disabled()
+                    assert page.locator('[data-bound-player]').get_attribute('data-bound-player')==''
+                    page.locator('[data-arena=mode][data-mode=custom]').click()
+                    assert page.locator('[data-arena=recommend]').is_enabled()
+                    state.career.exists=True
                     page.close()
                 browser.close()
         finally:server.shutdown();worker.join();server.server_close()

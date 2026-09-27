@@ -16,6 +16,7 @@ import uuid
 from .paths import save_file
 from .world.ability import playing_ability
 from .arena_rules import initial_score, level, map_preference, rules
+from .arena_roles import ASSIGNMENT_VERSION, assign_lobby_positions
 
 MAPS = ('dust2','mirage','inferno','nuke','ancient','anubis','overpass','train')
 PICK_ORDER = ('a','b','b','a','a','b','b','a')
@@ -110,6 +111,31 @@ class Arena:
         elo,seed=initial_score(p,origin)
         return dict(elo=elo,wins=0,losses=0,recent=[],seed=seed)
 
+    @staticmethod
+    def career_player_id(state):
+        """Ranked identity is authoritative career data, never a name/UI choice."""
+        if not getattr(state.career, 'exists', False):
+            return ''
+        pid = (getattr(state.career, 'you_card', {}) or {}).get('player_id')
+        return pid if isinstance(pid, str) else ''
+
+    def require_rank_identity(self,state):
+        human = self.career_player_id(state)
+        if not human:
+            raise ValueError('请先创建生涯角色，再开始天梯匹配')
+        if human not in self.roster(state):
+            raise ValueError('当前生涯角色资料缺失，无法开始天梯匹配')
+        lobby = self.data['lobby']
+        if lobby and lobby['mode'] in ('rank','fpl') and lobby['phase'] != 'finished' and lobby['human_id'] != human:
+            raise ValueError('当前房间角色与生涯不一致，请录入已有战绩或关闭房间后重新匹配')
+        return human
+
+    def guard_rank_action(self,state,action):
+        """Old pending results can still be imported, but cannot start as an alt."""
+        lobby = self.data['lobby']
+        if action not in ('ingest','cancel') and lobby and lobby['mode'] in ('rank','fpl') and lobby['phase'] != 'finished':
+            self.require_rank_identity(state)
+
     def catalog(self,state,mode='rank'):
         rows=[]
         for pid,p in self.roster(state).items():
@@ -129,9 +155,15 @@ class Arena:
         if lobby:
             lobby.pop('request',None)
             lobby['turn']=self.turn(lobby)
+            if lobby['mode'] in ('rank','fpl') and lobby['phase'] != 'finished':
+                try:
+                    self.require_rank_identity(state)
+                except ValueError as exc:
+                    lobby['identity_error'] = str(exc)
+        human = self.career_player_id(state)
         return dict(ok=True,revision=self.data['revision'],lobby=lobby,catalog=self.catalog(state,mode),
             history=deepcopy(self.data['matches'][-20:][::-1]),maps=list(MAPS),
-            default_human_id=(getattr(state.career,'you_card',{}) or {}).get('player_id',''))
+            default_human_id=human,rank_human_id=human,rank_identity_locked=True)
 
     def _guard(self,revision):
         if type(revision) is not int or revision!=self.data['revision']:
@@ -148,9 +180,10 @@ class Arena:
 
     def matchmake(self,state,body):
         self._guard(body.get('revision'));self._available()
-        human=body.get('human_id')
+        human=self.require_rank_identity(state)
+        if 'human_id' in body and body['human_id'] != human:
+            raise ValueError('天梯固定使用当前生涯角色，不能更换选手')
         pool=self.roster(state)
-        if not isinstance(human,str) or human not in pool:raise ValueError('请先选择你控制的选手')
         scores={p['player_id']:p for p in self.catalog(state)}
         eligible=[pid for pid in pool if pid!=human]
         if len(eligible)<9:raise ValueError('当前资料库不足十名选手')
@@ -211,6 +244,7 @@ class Arena:
         side=PICK_ORDER[len(l['picks'])]
         l[side].append(pid);l['picks'].append(dict(side=side,player_id=pid))
         if len(l['picks'])==8:
+            assign_lobby_positions(l)
             l['phase']='veto';l.setdefault('map_pool',list(rules()['veto_maps']));l.setdefault('bans',[])
             l.setdefault('side_chooser','a')
 
@@ -289,9 +323,14 @@ class Arena:
     def launch(self,state,body):
         self._guard(body.get('revision'));l=self.data['lobby']
         if not l or l['phase'] not in ('ready','starting'):raise ValueError('房间不在待开赛状态')
+        self.guard_rank_action(state,'launch')
         if self._career_pending(state):raise ValueError('请先完成或处理生涯中待回传的 CS2 比赛')
         from .cs2 import launch
         launch.require_cs2_closed('启动本地天梯或观察者比赛')
+        # Upgrade only unlaunched ranked rooms. Existing nonce/requests/results
+        # must retain their original role and identity snapshots for ingestion.
+        if l['phase']=='ready' and l['mode'] in ('rank','fpl') and l.get('role_assignment_version') != ASSIGNMENT_VERSION:
+            assign_lobby_positions(l)
         teams={side:dict(id='arena-'+side,name='Team '+side.upper(),players=[l['roster'][p] for p in l[side]]) for side in ('a','b')}
         ct=teams[l['ct']];t=teams['b' if l['ct']=='a' else 'a']
         if l['phase']=='ready':

@@ -1,7 +1,8 @@
 """Major breaks are the delivery window for long-form career stories.
 
 Keep frozen stories in the schema-v2 incident state until the next break.
-Match decisions and essential business prompts remain actionable when due.
+Match decisions, calendar occasions and essential business prompts remain
+actionable when due. A birthday is not a long-form offseason chapter.
 Opening a UI never advances dates or rolls a new story outcome.
 """
 from datetime import date, timedelta
@@ -40,10 +41,22 @@ def window(c, s):
 
 def immediate(row):
     if row.get('timing')=='offseason':return False
-    return (row.get('timing') == 'match' or row.get('when') in IMMEDIATE
+    return (calendar_event(row) or row.get('timing') == 'match' or row.get('when') in IMMEDIATE
             or row.get('arc') in ('upgrade', 'na_start')
             or row.get('when') == 'start'
             or row.get('trigger') in MATCH_TRIGGERS)
+
+
+def calendar_event(row):
+    """Recognize old birthday payloads as well as explicitly dated notices."""
+    return (row.get('timing') == 'calendar' or row.get('when') == 'teammate_birthday'
+            or (row.get('when') == 'arc_reaction'
+                and str(row.get('id', '')).startswith('arc-notice:')
+                and ':birthday:' in str(row.get('id', ''))))
+
+
+def calendar_pending(c):
+    return any(calendar_event(row) and immediate(row) and row.get('choices') for row in c.story_queue)
 
 
 def queued(c, sid):
@@ -55,13 +68,30 @@ def reconcile(c, s):
         return False
     value = state(c)
     changed = False
+    # Saves made before calendar occasions were separated may already have a
+    # birthday in the deferred queue. Release it once, without rolling effects
+    # or moving the simulation date backwards; retain the original event date.
+    existing = set(c.seen_stories) | {r.get('id') for r in c.story_queue}
+    remaining = []
+    for row in value['deferred']:
+        if calendar_event(row) and immediate(row):
+            sid = str(row.get('id', ''))
+            if row.get('when') == 'teammate_birthday' and sid.startswith('bday.'):
+                row.setdefault('date', sid[5:15])
+            if row.get('id') not in existing:
+                c.story_queue.append(row)
+                existing.add(row.get('id'))
+            changed = True
+        else:
+            remaining.append(row)
+    value['deferred'] = remaining
     if window(c, s):
         existing = set(c.seen_stories) | {r.get('id') for r in c.story_queue}
         for row in value['deferred']:
             if row.get('id') not in existing:
                 c.story_queue.append(row)
                 existing.add(row.get('id'))
-        changed = bool(value['deferred'])
+        changed = changed or bool(value['deferred'])
         value['deferred'] = []
     else:
         keep = []
@@ -84,4 +114,4 @@ def public(c, s):
     return {'open': bool(current), 'window': current,
             'deferred_count': len(c.incident_state.get('story_timing', {}).get('deferred', [])),
             'days': config()['rules']['offseason_days'],
-            'rule': 'Main stories appear after a Major. Match incidents can interrupt a series.'}
+            'rule': 'Main stories appear after a Major. Birthdays occur on their date; match incidents can interrupt a series.'}

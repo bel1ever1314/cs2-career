@@ -7,7 +7,7 @@ import json
 import random
 import re
 import shutil
-from datetime import datetime
+from datetime import date as calendar_date, datetime
 from pathlib import Path
 
 from ..engine import shift_mentality
@@ -709,7 +709,7 @@ class Career:
             )
 
     def _birthday_tick(self, season) -> None:
-        if self.over() or self.unsigned or not self.team_id:
+        if not self.exists or self.over() or self.unsigned or not self.team_id:
             return
         date = season.date or ""
         if len(date) < 10 or self.last_birthday == date:
@@ -727,7 +727,32 @@ class Career:
             if not name or name == self.player_name or player.get("you"):
                 continue
             if birthday_md(name) == (month, day):
-                self._push_plot(plot.birthday_popup(name), f"bday.{date}.{name}")
+                self._push_plot(dict(plot.birthday_popup(name), date=date), f"bday.{date}.{name}")
+
+    def next_calendar_day(self, season, until: str) -> str | None:
+        """Next dated occasion during a season jump, using the current roster.
+
+        Compare at most five birthdays, rather than simulating every empty day.
+        Main-story deadlines intentionally do not create calendar stops.
+        """
+        if not self.exists or self.over() or self.unsigned or not self.team_id:
+            return None
+        start = calendar_date.fromisoformat(season.date)
+        end = calendar_date.fromisoformat(until)
+        days = []
+        for player in (self.my_team(season.teams) or {}).get('players', []):
+            name = player.get('name') or ''
+            if not name or name == self.player_name or player.get('you'):
+                continue
+            month, day = birthday_md(name)
+            for year in range(start.year, end.year + 1):
+                try:
+                    birthday = calendar_date(year, month, day)
+                except ValueError:  # February 29 has no occurrence this year.
+                    continue
+                if start < birthday <= end and not self._queued(f'bday.{birthday.isoformat()}.{name}'):
+                    days.append(birthday.isoformat())
+        return min(days) if days else None
 
     def _ai_window(self, season) -> None:
         table = {r["id"]: r for r in season.vrs.table(season.teams, season.date)}

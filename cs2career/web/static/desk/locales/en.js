@@ -197,6 +197,7 @@ Object.assign(phrases, {
   '请先处理俱乐部最后通牒。':'Resolve the club’s final warning first.',
   '请先回复未署名的来信。':'Respond to the unsigned letter first.', '请先决定加盟机会。':'Decide on the pending team offer first.',
   '有新事件，请先由你作出选择，再继续模拟。':'A new decision is waiting. Choose before resuming simulation.',
+  '请先处理当天的生日等日历事件，再继续推进。':'Resolve today’s birthday or calendar occasion before advancing.',
   '当前暂停参赛，自动模拟不会替你弃权；请手动处理赛程。':'Competition is paused. Handle the schedule manually; automatic simulation will not forfeit for you.',
   '有一场已连接CS2的比赛，先完成或手动处理回传，自动模拟不会覆盖它。':'A match is connected to CS2. Finish it or handle the result manually; simulation will not overwrite it.',
   '本届赛事已结束。':'This tournament has finished.', '赛事已结束。':'Tournament finished.', '赛程已推进。':'Schedule advanced.',

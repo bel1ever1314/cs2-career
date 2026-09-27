@@ -69,13 +69,23 @@
     '地图已被禁用或不在图池':'That map is already banned or not in the pool.',
     '当前不在地图 BP 阶段':'The lobby is not in map veto.','当前不在选边阶段':'The lobby is not in side selection.',
     '请选择 CT 或 T':'Select CT or T.',
-    '天梯请使用开始匹配，不手动挑选对手':'Use Find match for ranked games; opponents are not chosen manually.'
+    '天梯请使用开始匹配，不手动挑选对手':'Use Find match for ranked games; opponents are not chosen manually.',
+    '绑定当前生涯角色':'Bound to your career player',
+    '天梯固定使用当前生涯角色，不能更换选手':'Ranked matches use your current career player. You cannot switch players.',
+    '请先创建生涯角色，再开始天梯匹配':'Create a career player before entering the local ladder.',
+    '当前生涯角色资料缺失，无法开始天梯匹配':'Your career player data is missing. Ranked matchmaking is unavailable.',
+    '当前房间角色与生涯不一致，请录入已有战绩或关闭房间后重新匹配':'This lobby belongs to a different career player. Import its existing result or close it and queue again.',
+    '本场位置':'Match role',
+    '选人完成后，按五位置能力自动分工；不改变生涯位置。':'After the draft, positions are assigned by role ability without changing career positions.',
+    '双方已按位置适性分配五个不同位置。':'Both teams have five distinct positions assigned by role ability.',
+    '分配位置需要五名不同的选手':'Role assignment requires five distinct players.'
   });
   CareerI18n.register('en',{phrases:words});
   const tr=s=>CareerI18n.t(s), txt=s=>esc(tr(s));
-  let data=null, mode='rank', chosen=[], human='', query='', page=0, choosing=false;
+  let data=null, mode='rank', chosen=[], human='', query='', page=0;
   let busy=false, host=null, report=null, timer=null, autoError=false, active=()=>false, customConfig=null;
   const card=pid=>data.catalog.find(p=>p.player_id===pid);
+  const careerHuman=()=>data?.rank_human_id||'';
   const name=pid=>data?.lobby?.roster?.[pid]?.name||card(pid)?.name||pid;
   const elo=pid=>data.lobby?.ratings?.[pid]??card(pid)?.elo??1000;
   const person=pid=>'<b translate="no">'+esc(name(pid))+'</b>';
@@ -90,20 +100,20 @@
 
   function teams(l) {
     return '<div class="arena-teams">'+['a','b'].map(s=>'<article class="arena-squad side-'+s+'" data-ui-key="team-'+s+'"><header><div><small>TEAM '+s.toUpperCase()+'</small><h3 translate="no">'+(l.mode==='custom'?'Team '+s.toUpperCase():esc(name(l.captains[s==='a'?0:1])))+'</h3></div><span>'+txt('平均分')+'<b>'+Math.round(l[s].reduce((sum,p)=>sum+elo(p),0)/Math.max(1,l[s].length))+'</b></span></header>'+
-      Array.from({length:5},(_,i)=>{const pid=l[s][i];return pid?'<div class="arena-slot '+(pid===l.human_id?'is-you':'')+'" data-ui-key="slot-'+esc(pid)+'"><span class="arena-slot-no">'+(i+1)+'</span><div>'+person(pid)+'<small translate="no">'+esc(l.roster[pid].club||'—')+'</small></div><span class="arena-slot-tags">'+(l.mode!=='custom'&&l.captains.includes(pid)?'<em>'+txt('队长')+'</em>':'')+(pid===l.human_id?'<em>★ '+txt('你')+'</em>':'')+'<b>'+elo(pid)+'</b></span></div>':'<div class="arena-slot vacant" data-ui-key="empty-'+s+'-'+i+'"><span class="arena-slot-no">'+(i+1)+'</span><span>'+txt('等待选人')+'</span></div>';}).join('')+'</article>').join('')+'</div>';
+      Array.from({length:5},(_,i)=>{const pid=l[s][i];return pid?'<div class="arena-slot '+(pid===l.human_id?'is-you':'')+'" data-ui-key="slot-'+esc(pid)+'"><span class="arena-slot-no">'+(i+1)+'</span><div>'+person(pid)+'<small translate="no">'+esc(l.roster[pid].club||'—')+'</small>'+(l.role_assignment_version?'<small class="arena-assigned-role" data-match-role="'+esc(l.roster[pid].role)+'">'+txt('本场位置')+' · '+role(l.roster[pid])+'</small>':'')+'</div><span class="arena-slot-tags">'+(l.mode!=='custom'&&l.captains.includes(pid)?'<em>'+txt('队长')+'</em>':'')+(pid===l.human_id?'<em>★ '+txt('你')+'</em>':'')+'<b>'+elo(pid)+'</b></span></div>':'<div class="arena-slot vacant" data-ui-key="empty-'+s+'-'+i+'"><span class="arena-slot-no">'+(i+1)+'</span><span>'+txt('等待选人')+'</span></div>';}).join('')+'</article>').join('')+'</div>';
   }
   function pool() {
-    const node=host.querySelector('[data-arena-pool]');if(!node)return;
+    const node=host.querySelector('[data-arena-pool]');if(!node||mode!=='custom')return;
     const rows=data.catalog.filter(p=>(p.name+' '+p.club).toLowerCase().includes(query.toLowerCase()));
     page=Math.min(page,Math.max(0,Math.ceil(rows.length/18)-1));
     paint(node,'<div class="arena-grid">'+rows.slice(page*18,page*18+18).map(p=>'<article class="arena-player-card '+(p.player_id===human?'selected':'')+'" data-ui-key="player-'+esc(p.player_id)+'"><div><span class="arena-avatar" translate="no">'+esc(p.name.slice(0,2).toUpperCase())+'</span><span><b translate="no">'+esc(p.name)+'</b><small translate="no">'+esc(p.club||'—')+'</small></span><strong>'+p.elo+'</strong></div><p>'+role(p)+' · '+txt('最近 Rating')+' '+num(p.rating,2)+'</p>'+
-      (mode==='custom'?'<div class="arena-actions">'+button('add','加入 A','data-id="'+esc(p.player_id)+'" data-side="a"',chosen.includes(p.player_id)||chosen.slice(0,5).filter(Boolean).length>=5)+button('add','加入 B','data-id="'+esc(p.player_id)+'" data-side="b"',chosen.includes(p.player_id)||chosen.slice(5).filter(Boolean).length>=5)+'</div>':button('select','使用此选手','data-id="'+esc(p.player_id)+'"',false,'arena-full'))+'</article>').join('')+'</div><div class="arena-pager">'+button('prev','←','',page===0)+'<span>'+(page+1)+' / '+Math.max(1,Math.ceil(rows.length/18))+'</span>'+button('next','→','',(page+1)*18>=rows.length)+'</div>');
+      '<div class="arena-actions">'+button('add','加入 A','data-id="'+esc(p.player_id)+'" data-side="a"',chosen.includes(p.player_id)||chosen.slice(0,5).filter(Boolean).length>=5)+button('add','加入 B','data-id="'+esc(p.player_id)+'" data-side="b"',chosen.includes(p.player_id)||chosen.slice(5).filter(Boolean).length>=5)+'</div></article>').join('')+'</div><div class="arena-pager">'+button('prev','←','',page===0)+'<span>'+(page+1)+' / '+Math.max(1,Math.ceil(rows.length/18))+'</span>'+button('next','→','',(page+1)*18>=rows.length)+'</div>');
   }
   const playerPool=()=>'<section class="card arena-library" data-ui-key="library"><input data-arena-search aria-label="'+txt('搜索选手或俱乐部')+'" placeholder="'+txt('搜索选手或俱乐部')+'" value="'+esc(query)+'"><div data-arena-pool></div></section>';
   function home() {
-    const p=card(human),n=p?p.wins+p.losses:0;
-    return '<div class="arena-queue" data-ui-key="queue"><article class="arena-identity"><span class="arena-eyebrow">'+txt('你控制的选手')+'</span><div class="arena-identity-name"><span class="arena-level">'+(p?.level||'—')+'<small>LVL</small></span><div><h2 translate="no">'+esc(p?.name||tr('先选择一名选手'))+'</h2><p translate="no">'+esc(p?.club||'—')+'</p></div></div><div class="arena-elo"><strong>'+(p?.elo??'—')+'</strong><span>'+txt('天梯分')+'</span></div><div class="arena-metrics"><div><b>'+n+'</b><small>'+txt('对局')+'</small></div><div><b>'+(n?Math.round(p.wins/n*100)+'%':'—')+'</b><small>'+txt('胜率')+'</small></div><div><b>'+num(p?.rating,2)+'</b><small>'+txt('最近 Rating')+'</small></div></div>'+button('choose',choosing?'收起选手库':'更换选手','',false,'arena-full')+'</article>'+
-      '<article class="arena-match-intro"><div class="arena-eyebrow">RANK / FPL <span>5 VS 5</span></div><h2>'+txt('一个天梯，一场属于你的比赛。')+'</h2><p>'+txt('按分段匹配九名选手，队长选人后进入地图 BP。')+'</p><div class="arena-flow">'+['匹配完成','队长选人','地图 BP'].map((t,i)=>'<span>0'+(i+1)+' <b>'+txt(t)+'</b></span>').join('')+'</div>'+button('matchmake','开始匹配','',!p,'arena-find')+'<small>'+txt('本地单机匹配，不连接线上服务；不影响生涯 VRS、资金或属性。')+'</small></article></div>'+(choosing||!p?playerPool():'');
+    const p=card(careerHuman()),n=p?p.wins+p.losses:0;
+    return '<div class="arena-queue" data-ui-key="queue"><article class="arena-identity"><span class="arena-eyebrow">'+txt('你控制的选手')+'</span><div class="arena-identity-name"><span class="arena-level">'+(p?.level||'—')+'<small>LVL</small></span><div><h2 translate="no">'+esc(p?.name||'—')+'</h2><p translate="no">'+esc(p?.club||'—')+'</p></div></div><div class="arena-elo"><strong>'+(p?.elo??'—')+'</strong><span>'+txt('天梯分')+'</span></div><div class="arena-metrics"><div><b>'+n+'</b><small>'+txt('对局')+'</small></div><div><b>'+(n?Math.round(p.wins/n*100)+'%':'—')+'</b><small>'+txt('胜率')+'</small></div><div><b>'+num(p?.rating,2)+'</b><small>'+txt('最近 Rating')+'</small></div></div><p class="arena-bound-player" data-bound-player="'+esc(careerHuman())+'">'+txt(p?'绑定当前生涯角色':'请先创建生涯角色，再开始天梯匹配')+'</p></article>'+
+      '<article class="arena-match-intro"><div class="arena-eyebrow">RANK / FPL <span>5 VS 5</span></div><h2>'+txt('本地天梯')+'</h2><p>'+txt('按分段匹配九名选手，队长选人后进入地图 BP。')+'</p><div class="arena-flow">'+['匹配完成','队长选人','地图 BP'].map((t,i)=>'<span>0'+(i+1)+' <b>'+txt(t)+'</b></span>').join('')+'</div>'+button('matchmake','开始匹配','',!p,'arena-find')+'<small>'+txt('选人完成后，按五位置能力自动分工；不改变生涯位置。')+'</small><small>'+txt('本地单机匹配，不连接线上服务；不影响生涯 VRS、资金或属性。')+'</small></article></div>';
   }
   function customHome() {
     return '<article class="card"><h3>'+txt('挑选十人')+' · '+chosen.filter(Boolean).length+'/10</h3><p class="hint">'+txt('前五人是 A 队，后五人是 B 队。可以亲自参赛，也可以旁观十名 Bot。')+'</p><div class="arena-custom-slots">'+Array.from({length:10},(_,i)=>'<span>'+(i<5?'A':'B')+(i%5+1)+' '+(chosen[i]?person(chosen[i])+button('remove','×','data-id="'+esc(chosen[i])+'" aria-label="'+txt('移除')+'"'):'—')+'</span>').join('')+'</div><div class="arena-toolbar">'+button('recommend','推荐十人')+button('clear','清空名单')+button('create','建立房间','',chosen.filter(Boolean).length!==10,'primary')+'</div></article>'+playerPool();
@@ -111,6 +121,10 @@
   function phasePanel(l) {
     const turn=l.turn,humanTurn=turn?.human;
     let h='';
+    if(l.identity_error){
+      h+='<p class="arena-error" role="status">'+txt(l.identity_error)+'</p>';
+      if(['draft','veto','side','ready'].includes(l.phase))return h+teams(l);
+    }
     if(l.mode==='rank'){
       const stages=['匹配完成','队长选人','地图 BP','选边','准备开赛'];
       const current=({draft:1,veto:2,side:3,ready:4,starting:4,launched:4,finished:4})[l.phase];
@@ -118,6 +132,7 @@
       h+='<div class="arena-match-meta"><span>'+txt('本局分段')+' <b>'+(l.matched_range||[Math.min(...l.selection.map(elo)),Math.max(...l.selection.map(elo))]).join(' – ')+'</b></span><span>'+txt('两位最高分选手担任队长')+'</span>'+(l.band>200?'<span>'+txt('匹配范围已扩大')+' ±'+l.band+'</span>':'')+'</div>';
     }
     h+=teams(l);
+    if(l.role_assignment_version)h+='<p class="hint arena-role-summary">'+txt('双方已按位置适性分配五个不同位置。')+'</p>';
     if(['draft','veto','side'].includes(l.phase)){
       h+='<section class="card arena-stage" data-ui-key="stage-'+l.phase+'"><div class="arena-stage-title"><div><span class="arena-eyebrow">'+(humanTurn?'YOUR TURN':'CAPTAIN TURN')+'</span><h3>'+txt(l.phase==='draft'?(humanTurn?'轮到你选人':'队长正在选人'):l.phase==='veto'?(humanTurn?'轮到你禁图':'队长正在禁图'):(humanTurn?'选择你的开局阵营':'队长正在选边'))+'</h3></div><span translate="no">Team '+turn.side.toUpperCase()+' · '+esc(name(turn.captain_id))+'</span></div>';
       if(!l.captains.includes(l.human_id)&&!l.legacy_manual)h+='<p class="hint">'+txt('你不是本局队长，选人和禁图会自动进行。')+'</p>';
@@ -133,7 +148,7 @@
       }
       h+='<section class="card arena-ready"><div><span class="arena-eyebrow">BO1 · '+txt('本局阵容和地图已确定')+'</span><h2 translate="no">'+esc(l.map.toUpperCase())+'</h2><p>CT · Team '+l.ct.toUpperCase()+' / T · Team '+(l.ct==='a'?'B':'A')+'</p><small>'+txt('请先退出 CS2，再从这里启动本场比赛。')+'</small></div>'+button('launch','进入 CS2','',!!S.playtest||!!S.design_preview,'arena-find')+'</section>';
     } else if(l.phase==='finished')h+=boxScore(l.result);
-    else h+='<section class="card"><h3>'+txt('比赛待回传')+'</h3><p translate="no">'+esc(l.map)+' · '+esc(l.nonce?.slice(0,12)||'')+'</p><p>'+txt('完成比赛后回到这里录入；未收到正式终场与完整十人数据不会计分。')+'</p>'+button('ingest','录入本场战绩','',!!S.playtest)+(l.phase==='starting'?button('retry','重试启动','',!!S.playtest):'')+'</section>';
+    else h+='<section class="card"><h3>'+txt('比赛待回传')+'</h3><p translate="no">'+esc(l.map)+' · '+esc(l.nonce?.slice(0,12)||'')+'</p><p>'+txt('完成比赛后回到这里录入；未收到正式终场与完整十人数据不会计分。')+'</p>'+button('ingest','录入本场战绩','',!!S.playtest)+(l.phase==='starting'?button('retry','重试启动','',!!S.playtest||!!l.identity_error):'')+'</section>';
     if(l.picks?.length)h+='<details class="card"><summary>'+txt('全队选人记录')+'</summary><div class="arena-pick-log">'+l.picks.map((p,i)=>'<span>'+(i+1)+' · Team '+p.side.toUpperCase()+' → '+person(p.player_id)+'</span>').join('')+'</div></details>';
     return h;
   }
@@ -156,9 +171,9 @@
     data=await get('/api/arena');return false;
   }
   function schedule(){
-    if(timer||busy||report||autoError||!data.lobby?.turn||data.lobby.turn.human||!active())return;
+    if(timer||busy||report||autoError||data.lobby?.identity_error||!data.lobby?.turn||data.lobby.turn.human||!active())return;
     timer=setTimeout(async()=>{
-      timer=null;if(!active()||busy||report||!data.lobby?.turn||data.lobby.turn.human)return;
+      timer=null;if(!active()||busy||report||data.lobby?.identity_error||!data.lobby?.turn||data.lobby.turn.human)return;
       busy=true;
       try{await command('advance');}catch(e){autoError=true;toast(e.message,true);}
       finally{busy=false;if(active())draw();}
@@ -172,10 +187,8 @@
     if(timer){clearTimeout(timer);timer=null;}
     busy=true;host.querySelectorAll('[data-arena]').forEach(el=>el.disabled=true);
     try{
-      if(action==='mode'){mode=b.dataset.mode;chosen=[];query='';page=0;choosing=false;}
-      else if(action==='choose'){choosing=!choosing;query='';page=0;}
-      else if(action==='select'){human=id;choosing=false;}
-      else if(action==='matchmake'){autoError=false;await command('matchmake',{human_id:human});}
+      if(action==='mode'){mode=b.dataset.mode;chosen=[];query='';page=0;}
+      else if(action==='matchmake'){autoError=false;await command('matchmake');}
       else if(action==='add'){if(!chosen.includes(id)){const start=b.dataset.side==='a'?0:5;for(let i=start;i<start+5;i++)if(!chosen[i]){chosen[i]=id;break;}}}
       else if(action==='remove')chosen[chosen.indexOf(id)]=null;
       else if(action==='clear')chosen=[];
@@ -202,7 +215,7 @@
     const next=await get('/api/arena');if(!isActive()||busy)return;
     if(data&&next.revision<data.revision)return;
     data=next;if(data.lobby){mode=data.lobby.mode==='custom'?'custom':'rank';if(data.lobby.human_id)human=data.lobby.human_id;}
-    if(!card(human))human=data.default_human_id||data.catalog[0]?.player_id||'';
+    if(!data.lobby)human=careerHuman();
     host.onclick=click;
     host.oninput=e=>{if(e.target.matches('[data-arena-search]')){query=e.target.value;page=0;pool();}};
     host.onchange=e=>{if(e.target.matches('[data-arena-map],[data-arena-ct],[data-arena-human]'))customConfig=config();};

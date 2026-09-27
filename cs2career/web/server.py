@@ -280,6 +280,7 @@ class Handler(SimpleHTTPRequestHandler):
             try:
                 arena = self.state.arena
                 body = self._body()
+                arena.guard_rank_action(self.state, action)
                 method = getattr(arena, action)
                 msg = method(self.state, body) if action in ('matchmake', 'create', 'launch') else method(body)
                 mode = (arena.data['lobby'] or {}).get('mode', body.get('mode', 'rank'))

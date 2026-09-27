@@ -79,6 +79,7 @@ def birthday_popup(name: str) -> dict:
     return {
         "id": "",
         "when": "teammate_birthday",
+        "timing": "calendar",
         "kind": "plot",
         "title": f"{name} 的生日",
         "text": f"今天是 {name} 的生日。队里等你一句话。",

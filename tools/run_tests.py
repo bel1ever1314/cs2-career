@@ -13,6 +13,7 @@ if __name__ == '__main__':
         os.environ['CS2CAREER_SAVE_DIR'] = str(Path(folder) / 'save')
         os.environ['CS2CAREER_EXTENSION_DIR'] = str(Path(folder) / 'extensions')
         os.environ['CS2CAREER_NO_GAME'] = '1'
-        suite = unittest.defaultTestLoader.discover(str(ROOT / 'tests'))
+        # Optional unittest glob still goes through import-time save isolation.
+        suite = unittest.defaultTestLoader.discover(str(ROOT / 'tests'), pattern=sys.argv[1] if len(sys.argv)>1 else 'test*.py')
         result = unittest.TextTestRunner(verbosity=2).run(suite)
         sys.exit(0 if result.wasSuccessful() else 1)

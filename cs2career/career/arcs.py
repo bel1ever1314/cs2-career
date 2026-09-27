@@ -268,14 +268,15 @@ def queue(c,s,chapter,occurrence,context=None,frozen=None):
     reconcile(c,s)
 
 
-def notice(c,s,title,text,occurrence,*,title_en=None,text_en=None):
+def notice(c,s,title,text,occurrence,*,title_en=None,text_en=None,timing=None):
     sid='arc-notice:'+occurrence
     if c._queued(sid): return
     from .localization import translate
     title_en=title_en or (translate(title) if translate(title)!=title else None)
     text_en=text_en or (translate(text) if translate(text)!=text else None)
     localized={key:value for key,value in (('title_en',title_en),('text_en',text_en)) if value is not None}
-    c.story_queue.append(dict(id=sid,kind='story',title=title,text=text,when='arc_reaction',**localized))
+    c.story_queue.append(dict(id=sid,kind='story',title=title,text=text,when='arc_reaction',date=s.date,**localized))
+    if timing is not None:c.story_queue[-1]['timing']=timing
     state(c).setdefault('history',[]).append(dict(id=sid,date=s.date,title=title,text=text,**localized))
     from .story_timing import reconcile
     reconcile(c,s)
@@ -631,7 +632,7 @@ def before_match(c,s,ev,match):
 def birthday(c,s,name,choice):
     cfg=config();pool=cfg['birthday']['train' if choice=='train' else 'wish']
     index=int(roll(c,s.date+name+choice)*len(pool))
-    notice(c,s,name+'的回应',render(pool[index],{'teammate':name}),s.date+':birthday:'+name)
+    notice(c,s,name+'的回应',render(pool[index],{'teammate':name}),s.date+':birthday:'+name,timing='calendar')
 
 
 def na_progress(c, *, commit=False):
@@ -727,7 +728,7 @@ def tick(c,s):
         queue(c,s,'dota_partner','home-meeting')
     injury=v.get('injury_active',{})
     if injury and s.date>=injury['until']:
-        notice(c,s,'逐渐回到熟悉的节奏','这一段负状态影响结束了。队友把训练安排发来：“不急着证明今天全好了，先把能做好的做稳。”\n暂时的状态惩罚已解除；此前下降的能力不会自动补回。',injury['id']+':recovery')
+        notice(c,s,'逐渐回到熟悉的节奏','这一段负状态影响结束了。队友把训练安排发来：“不急着证明今天全好了，先把能做好的做稳。”\n暂时的状态惩罚已解除；此前下降的能力不会自动补回。',injury['id']+':recovery',timing='calendar')
         v['injury_active']={}
         p=c.my_player(s.teams)
         if p:p['story_form_delta']=0
@@ -754,7 +755,7 @@ def tick(c,s):
     text=item['texts'][int(roll(c,'injury-text:'+s.date[:7])*len(item['texts']))]
     text+='\n\n游戏效果：'+ '，'.join(changes)+f"。状态暂时{r['injury_form_penalty']:+d}，到{v['injury_active']['until']}解除。\n这是生涯世界的伤病设定，不代表现实诊断。"
     if v.get('romance')=='stable':text+=f"\n{PARTNERS.get(v['partner'],'她')}告诉你：‘今天不需要再逞强，我陪你把这段时间过完。’"
-    notice(c,s,item['name'],text,record['id']);c._remember_you(s)
+    notice(c,s,item['name'],text,record['id'],timing='calendar');c._remember_you(s)
 
 
 def public(c):

@@ -41,11 +41,13 @@ Finals, consequential story choices, contracts, and Major off-season windows sti
 
 Main stories arrive after a Major officially concludes. In a standard career, the romance storyline begins after the first Major; match-specific incidents, such as match-fixing approaches, can still occur during competition. **18 Major elimination stories** cover six exit stages and different expectations of your team's strength. Majors you participate in retain MVP, EVP, and positional best-team presentations.
 
+Calendar occasions do not wait for an off-season: teammate birthdays and their responses occur on the day. Fast simulation and schedule jumps pause at a birthday for your choice, then continue.
+
 In fast mode, attribute points accumulate during the season and can be spent after Majors. Normal mode still allows allocation at any time.
 
 ### Local ladder and custom matches
 
-**Rank/FPL is one local bot ladder, not online matchmaking or a FACEIT connection.** Choose the player you control and match with nine others based on ladder points. The two highest-rated players in the lobby become captains, draft teams, and veto maps before entering CS2. Ladder results are independent of career VRS, rewards, and attribute points.
+**Rank/FPL is one local bot ladder, not online matchmaking or a FACEIT connection.** Ranked matches use your current career player and match you with nine others based on ladder points. The two highest-rated players become captains, draft teams, and veto maps before entering CS2. Each drafted team is assigned one AWPer, entry, lurker, rifler, and IGL based on role-specific ability, without changing career positions. Ladder results are independent of career VRS, rewards, and attribute points.
 
 Custom matches let you select both five-player rosters. Control one participant or spectate all ten bots. Custom matches do not award ladder points.
 

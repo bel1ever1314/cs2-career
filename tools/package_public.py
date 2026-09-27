@@ -25,6 +25,8 @@ SKIP = {'bin','obj','__pycache__','.git','.agents','.codex','save','.qa','.deskt
         'reports','logs','demos','demo','captures','natural_behavior','botlab','cs2botlab',
         'localactionsprobe','localactionslab','local_actions','runtime-temp','node_modules'}
 SKIP.update({'local-actions-probe', 'view_angle_lab'})
+# Machine-specific one-off installers are not needed to build the public app.
+PRIVATE_TOOLS = {'tools/install_arena_roles_hotfix_20260927.py'}
 SUFFIXES = {'.py','.cs','.csproj','.js','.cjs','.css','.html','.json','.db','.md','.txt','.svg','.png','.ps1','.cmd'}
 DLLS = {'vendor/CareerMatch/CareerMatch.dll','vendor/BotBuy/BotBuy.dll',
         'vendor/InvsimCareer/InvsimCareer.dll',
@@ -49,7 +51,7 @@ def source_files(root: Path) -> list[Path]:
     for dirname in ('cs2career','vendor','tests','tools','licenses','extensions/_templates'):
         for path in (root/dirname).rglob('*'):
             rel = path.relative_to(root)
-            if not path.is_file() or excluded_path(rel):
+            if not path.is_file() or excluded_path(rel) or rel.as_posix() in PRIVATE_TOOLS:
                 continue
             if path.suffix in SUFFIXES or rel.as_posix() in DLLS:
                 files.append(path)
