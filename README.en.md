@@ -1,6 +1,6 @@
 # CS2 Career
 
-[简体中文](README.md) · **English**
+[简体中文](README.md#简体中文) · **English**
 
 An unofficial CS2 player-career simulator. Start as an unknown prospect or take over a professional player, then build your career through training, transfers, matches, and choices off the server.
 
