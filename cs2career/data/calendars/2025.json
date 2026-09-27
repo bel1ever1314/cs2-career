@@ -1,0 +1,593 @@
+{
+  "schema_version": 2,
+  "season": 2025,
+  "coverage": "Curated real editions; not an exhaustive world calendar",
+  "events": [
+    {
+      "id": "blast-bounty",
+      "name": "BLAST Premier Bounty Season 1 2025",
+      "type": "t1",
+      "region": "EU",
+      "window": [
+        "01-14",
+        "01-26"
+      ],
+      "source_ids": [
+        "bounty-2025-season-1"
+      ]
+    },
+    {
+      "id": "iem-katowice",
+      "name": "IEM Katowice 2025",
+      "type": "t1",
+      "region": "EU",
+      "window": [
+        "01-29",
+        "02-09"
+      ],
+      "source_ids": [
+        "iem-katowice-2025"
+      ],
+      "prestige": "premier",
+      "prize": 1000000
+    },
+    {
+      "id": "epl-s21",
+      "name": "ESL Pro League Season 21",
+      "type": "t1",
+      "region": "EU",
+      "window": [
+        "03-01",
+        "03-16"
+      ],
+      "source_ids": [
+        "esl-pro-league-season-21-2025"
+      ],
+      "prize": 400000
+    },
+    {
+      "id": "blast-open-1",
+      "name": "BLAST Premier Open Lisbon 2025",
+      "type": "t1",
+      "region": "EU",
+      "window": [
+        "03-19",
+        "03-30"
+      ],
+      "source_ids": [
+        "open-2025-season-1"
+      ]
+    },
+    {
+      "id": "iem-melbourne",
+      "name": "IEM Melbourne 2025",
+      "type": "t1",
+      "region": "AS",
+      "window": [
+        "04-21",
+        "04-27"
+      ],
+      "source_ids": [
+        "esl2025"
+      ],
+      "prize": 300000
+    },
+    {
+      "id": "blast-rivals-1",
+      "name": "BLAST Premier Rivals Season 1 2025",
+      "type": "t1",
+      "region": "EU",
+      "window": [
+        "04-30",
+        "05-04"
+      ],
+      "source_ids": [
+        "rivals-2025-season-1"
+      ],
+      "size": 8
+    },
+    {
+      "id": "iem-dallas",
+      "name": "IEM Dallas 2025",
+      "type": "t1",
+      "region": "AM",
+      "window": [
+        "05-19",
+        "05-25"
+      ],
+      "source_ids": [
+        "esl2025"
+      ],
+      "prize": 300000,
+      "direct": 8
+    },
+    {
+      "id": "major-1",
+      "name": "BLAST.tv Austin Major 2025",
+      "type": "major",
+      "region": "AM",
+      "window": [
+        "06-03",
+        "06-22"
+      ],
+      "source_ids": [
+        "austin-major-2025-finals"
+      ],
+      "direct": 24
+    },
+    {
+      "id": "iem-cologne",
+      "name": "IEM Cologne 2025",
+      "type": "t1",
+      "region": "EU",
+      "window": [
+        "07-23",
+        "08-03"
+      ],
+      "source_ids": [
+        "iem-cologne-2025"
+      ],
+      "prestige": "premier",
+      "prize": 1000000
+    },
+    {
+      "id": "blast-open-2",
+      "name": "BLAST Premier Open London 2025",
+      "type": "t1",
+      "region": "EU",
+      "window": [
+        "08-27",
+        "09-07"
+      ],
+      "source_ids": [
+        "open-2025-season-2"
+      ]
+    },
+    {
+      "id": "epl-s22",
+      "name": "ESL Pro League Season 22",
+      "type": "t1",
+      "region": "EU",
+      "window": [
+        "09-27",
+        "10-12"
+      ],
+      "source_ids": [
+        "esl-pro-league-season-22-2025"
+      ],
+      "prize": 400000,
+      "direct": 13
+    },
+    {
+      "id": "iem-chengdu",
+      "name": "IEM Chengdu 2025",
+      "type": "t1",
+      "region": "AS",
+      "window": [
+        "11-03",
+        "11-09"
+      ],
+      "source_ids": [
+        "iem-chengdu-2025"
+      ],
+      "prize": 300000
+    },
+    {
+      "id": "blast-rivals-2",
+      "name": "BLAST Premier Rivals Season 2 2025",
+      "type": "t1",
+      "region": "AS",
+      "window": [
+        "11-12",
+        "11-16"
+      ],
+      "source_ids": [
+        "rivals-2025-season-2"
+      ],
+      "size": 8
+    },
+    {
+      "id": "major-2",
+      "name": "StarLadder Budapest Major 2025",
+      "type": "major",
+      "region": "EU",
+      "window": [
+        "11-24",
+        "12-14"
+      ],
+      "source_ids": [
+        "budapest"
+      ],
+      "direct": 32
+    },
+    {
+      "id": "dallas-qual-eu",
+      "name": "IEM Dallas 2025 Europe Closed Qualifier",
+      "type": "qual",
+      "region": "EU",
+      "window": [
+        "02-10",
+        "02-12"
+      ],
+      "source_ids": [
+        "dallasqual2025"
+      ],
+      "scope": "regional",
+      "feeds": "iem-dallas",
+      "qualify": 4
+    },
+    {
+      "id": "ecl-s49-eu",
+      "name": "ESL Challenger League Season 49 Europe",
+      "type": "qual",
+      "region": "EU",
+      "window": [
+        "01-21",
+        "05-11"
+      ],
+      "source_ids": [
+        "ecl49"
+      ],
+      "feeds": "epl-s22",
+      "qualify": 1,
+      "band": [
+        13,
+        80
+      ]
+    },
+    {
+      "id": "dallas-qual-am",
+      "name": "IEM Dallas 2025 North America Closed Qualifier",
+      "type": "qual",
+      "region": "AM",
+      "window": [
+        "02-11",
+        "02-12"
+      ],
+      "source_ids": [
+        "dallasqual2025"
+      ],
+      "scope": "regional",
+      "feeds": "iem-dallas",
+      "qualify": 2
+    },
+    {
+      "id": "ecl-s49-am",
+      "name": "ESL Challenger League Season 49 North America",
+      "type": "qual",
+      "region": "AM",
+      "window": [
+        "01-21",
+        "05-11"
+      ],
+      "source_ids": [
+        "ecl49"
+      ],
+      "feeds": "epl-s22",
+      "qualify": 1,
+      "band": [
+        13,
+        80
+      ]
+    },
+    {
+      "id": "dallas-qual-as",
+      "name": "IEM Dallas 2025 Asia Closed Qualifier",
+      "type": "qual",
+      "region": "AS",
+      "window": [
+        "02-11",
+        "02-12"
+      ],
+      "source_ids": [
+        "dallasqual2025"
+      ],
+      "scope": "regional",
+      "feeds": "iem-dallas",
+      "qualify": 2
+    },
+    {
+      "id": "ecl-s49-as",
+      "name": "ESL Challenger League Season 49 Asia",
+      "type": "qual",
+      "region": "AS",
+      "window": [
+        "01-21",
+        "05-11"
+      ],
+      "source_ids": [
+        "ecl49"
+      ],
+      "feeds": "epl-s22",
+      "qualify": 1,
+      "band": [
+        13,
+        80
+      ]
+    },
+    {
+      "id": "mrq-eu",
+      "name": "BLAST.tv Austin Major 2025 Europe MRQ",
+      "type": "qual",
+      "region": "EU",
+      "window": [
+        "04-14",
+        "04-17"
+      ],
+      "source_ids": [
+        "austin-major-2025-mrq-eu"
+      ],
+      "gate": "mrq",
+      "feeds": "major-1",
+      "qualify": 3
+    },
+    {
+      "id": "mrq-am",
+      "name": "BLAST.tv Austin Major 2025 Americas MRQ",
+      "type": "qual",
+      "region": "AM",
+      "window": [
+        "04-15",
+        "04-17"
+      ],
+      "source_ids": [
+        "austin-major-2025-mrq-americas"
+      ],
+      "gate": "mrq",
+      "feeds": "major-1",
+      "qualify": 3
+    },
+    {
+      "id": "mrq-as",
+      "name": "BLAST.tv Austin Major 2025 Asia MRQ",
+      "type": "qual",
+      "region": "AS",
+      "window": [
+        "04-15",
+        "04-17"
+      ],
+      "source_ids": [
+        "austin-major-2025-mrq-asia"
+      ],
+      "gate": "mrq",
+      "feeds": "major-1",
+      "qualify": 2
+    },
+    {
+      "id": "cct-eu-1",
+      "name": "CCT Season 3 Europe Series 1",
+      "type": "cct",
+      "region": "EU",
+      "window": [
+        "04-30",
+        "05-18"
+      ],
+      "source_ids": [
+        "cct3"
+      ],
+      "prize": 50000
+    },
+    {
+      "id": "cct-eu-4",
+      "name": "CCT Season 3 Europe Series 4",
+      "type": "cct",
+      "region": "EU",
+      "window": [
+        "07-23",
+        "08-10"
+      ],
+      "source_ids": [
+        "cct3"
+      ],
+      "prize": 50000
+    },
+    {
+      "id": "cct-eu-6",
+      "name": "CCT Season 3 Europe Series 6",
+      "type": "cct",
+      "region": "EU",
+      "window": [
+        "09-03",
+        "09-21"
+      ],
+      "source_ids": [
+        "cct3"
+      ],
+      "prize": 50000
+    },
+    {
+      "id": "cct-eu-9",
+      "name": "CCT Season 3 Europe Series 9",
+      "type": "cct",
+      "region": "EU",
+      "window": [
+        "10-15",
+        "11-02"
+      ],
+      "source_ids": [
+        "cct3"
+      ],
+      "prize": 50000
+    },
+    {
+      "id": "cct-am-1",
+      "name": "CCT Season 3 South America Series 1",
+      "type": "cct",
+      "region": "AM",
+      "window": [
+        "06-14",
+        "06-26"
+      ],
+      "source_ids": [
+        "cct3"
+      ],
+      "prize": 20000
+    },
+    {
+      "id": "cct-am-4",
+      "name": "CCT Season 3 South America Series 4",
+      "type": "cct",
+      "region": "AM",
+      "window": [
+        "09-04",
+        "09-16"
+      ],
+      "source_ids": [
+        "cct3"
+      ],
+      "prize": 20000
+    },
+    {
+      "id": "cct-am-6",
+      "name": "CCT Season 3 South America Series 6",
+      "type": "cct",
+      "region": "AM",
+      "window": [
+        "11-03",
+        "11-15"
+      ],
+      "source_ids": [
+        "cct3"
+      ],
+      "prize": 20000
+    },
+    {
+      "id": "cct-oce-1",
+      "name": "CCT Season 3 Oceania Series 1",
+      "type": "cct",
+      "region": "AS",
+      "window": [
+        "07-07",
+        "07-18"
+      ],
+      "source_ids": [
+        "cct3"
+      ],
+      "prize": 7000,
+      "source_region": "Oceania",
+      "simulation_note": "Oceania is represented by the simulator's broader AS region; modeled USD prize."
+    },
+    {
+      "id": "cct-oce-2",
+      "name": "CCT Season 3 Oceania Series 2",
+      "type": "cct",
+      "region": "AS",
+      "window": [
+        "09-01",
+        "09-12"
+      ],
+      "source_ids": [
+        "cct3"
+      ],
+      "prize": 7000,
+      "source_region": "Oceania",
+      "simulation_note": "Oceania is represented by the simulator's broader AS region; modeled USD prize."
+    },
+    {
+      "id": "cct-oce-3",
+      "name": "CCT Season 3 Oceania Series 3",
+      "type": "cct",
+      "region": "AS",
+      "window": [
+        "11-16",
+        "11-27"
+      ],
+      "source_ids": [
+        "cct3"
+      ],
+      "prize": 7000,
+      "source_region": "Oceania",
+"simulation_note": "Oceania is represented by the simulator's broader AS region; modeled USD prize."
+    },
+    {
+      "id": "ecl50-eu-1",
+      "name": "ESL Challenger League Season 50 Europe Cup 1",
+      "type": "t2",
+      "region": "EU",
+      "regional_only": true,
+      "window": [
+        "08-11",
+        "09-01"
+      ],
+      "source_ids": [
+        "ecl50"
+      ],
+      "prize": 50000
+    },
+    {
+      "id": "ecl50-eu-3",
+      "name": "ESL Challenger League Season 50 Europe Cup 3",
+      "type": "t2",
+      "region": "EU",
+      "regional_only": true,
+      "window": [
+        "10-05",
+        "10-20"
+      ],
+      "source_ids": [
+        "ecl50"
+      ],
+      "prize": 50000
+    },
+    {
+      "id": "ecl50-am-1",
+      "name": "ESL Challenger League Season 50 North America Cup 1",
+      "type": "t2",
+      "region": "AM",
+      "regional_only": true,
+      "window": [
+        "08-11",
+        "08-31"
+      ],
+      "source_ids": [
+        "ecl50"
+      ],
+      "prize": 35000
+    },
+    {
+      "id": "ecl50-am-3",
+      "name": "ESL Challenger League Season 50 North America Cup 3",
+      "type": "t2",
+      "region": "AM",
+      "regional_only": true,
+      "window": [
+        "10-05",
+        "10-19"
+      ],
+      "source_ids": [
+        "ecl50"
+      ],
+      "prize": 35000
+    },
+    {
+      "id": "ecl50-as-1",
+      "name": "ESL Challenger League Season 50 Asia Cup 1",
+      "type": "t2",
+      "region": "AS",
+      "regional_only": true,
+      "window": [
+        "08-11",
+        "08-29"
+      ],
+      "source_ids": [
+        "ecl50"
+      ],
+      "prize": 20000
+    },
+    {
+      "id": "ecl50-as-3",
+      "name": "ESL Challenger League Season 50 Asia Cup 3",
+      "type": "t2",
+      "region": "AS",
+      "regional_only": true,
+      "window": [
+        "10-05",
+        "10-17"
+      ],
+      "source_ids": [
+        "ecl50"
+      ],
+      "prize": 20000
+    }
+  ]
+}

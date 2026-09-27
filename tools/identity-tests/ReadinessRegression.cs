@@ -30,6 +30,14 @@ internal static class ReadinessRegression
         Check(gate.Error == "", "between-round temporary wait recovers without a scored gap");
         gate.Reset();
         Check(gate.Error == "", "new map clears previous match readiness");
+        // Live trace: round_start tick 507 saw an unassigned human; tick 954
+        // had the correct ten players. Freeze-end must retry BEFORE score 1.
+        gate.Missing(0, false);
+        gate.Ready(0); // shared BeginOfficialRound invoked at freeze_end
+        gate.ObserveScore(1);
+        Check(gate.Error == "", "late opening identity recovers at freeze-end before first score");
+        gate.Reset(); gate.Missing(0, false); gate.ObserveScore(1); gate.Ready(1);
+        Check(gate.Error.Contains("不完整"), "genuinely missed first combat round is still not importable");
         Console.WriteLine($"{count} roster-readiness checks passed (startup recovery, real loss, unrelated errors).");
     }
 }

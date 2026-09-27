@@ -162,6 +162,11 @@ class TransferFlowFixTests(unittest.TestCase):
 
     def test_shipped_pack_loads_and_branches_through_existing_incident_interface(self):
         from cs2career.content.loader import PackRegistry
+        from cs2career.career.story_timing import open_major_break
+        # This pack is a day-to-day story chain, so exercise it during the
+        # explicit Major break required by v1.6 rather than a match window.
+        open_major_break(self.c, self.s, dict(id='fixture-break', name='Fixture Major',
+                                            type='major', status='done', dates=[self.s.date]))
         template = Path(__file__).resolve().parents[1]/'extensions/_templates/choice-effects-pack'
         with tempfile.TemporaryDirectory() as folder:
             shutil.copytree(template, Path(folder)/'choices')

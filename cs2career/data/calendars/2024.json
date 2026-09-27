@@ -1,0 +1,422 @@
+{
+  "schema_version": 2,
+  "season": 2024,
+  "coverage": "Curated real editions; not an exhaustive world calendar",
+  "events": [
+    {
+      "id": "iem-katowice",
+      "name": "IEM Katowice 2024",
+      "type": "t1",
+      "region": "EU",
+      "window": [
+        "01-31",
+        "02-11"
+      ],
+      "source_ids": [
+        "esl2024"
+      ],
+      "prestige": "premier",
+      "prize": 1000000
+    },
+    {
+      "id": "major-1",
+      "name": "PGL Major Copenhagen 2024",
+      "type": "major",
+      "region": "EU",
+      "window": [
+        "03-17",
+        "03-31"
+      ],
+      "source_ids": [
+        "copenhagen"
+      ],
+      "direct": 8
+    },
+    {
+      "id": "mrq-eu",
+      "name": "PGL Major Copenhagen 2024 Europe RMR",
+      "type": "qual",
+      "region": "EU",
+      "window": [
+        "02-14",
+        "02-24"
+      ],
+      "source_ids": [
+        "copenhagen"
+      ],
+      "gate": "rmr",
+      "feeds": "major-1",
+      "qualify": 3
+    },
+    {
+      "id": "mrq-as",
+      "name": "PGL Major Copenhagen 2024 Asia RMR",
+      "type": "qual",
+      "region": "AS",
+      "window": [
+        "02-26",
+        "02-28"
+      ],
+      "source_ids": [
+        "copenhagen"
+      ],
+      "gate": "rmr",
+      "feeds": "major-1",
+      "qualify": 2
+    },
+    {
+      "id": "mrq-am",
+      "name": "PGL Major Copenhagen 2024 Americas RMR",
+      "type": "qual",
+      "region": "AM",
+      "window": [
+        "03-01",
+        "03-04"
+      ],
+      "source_ids": [
+        "copenhagen"
+      ],
+      "gate": "rmr",
+      "feeds": "major-1",
+      "qualify": 3
+    },
+    {
+      "id": "cct-eu-1",
+      "name": "CCT Season 2 Europe Series 1",
+      "type": "cct",
+      "region": "EU",
+      "window": [
+        "04-21",
+        "05-04"
+      ],
+      "source_ids": [
+        "cct2024"
+      ],
+      "prize": 50000
+    },
+    {
+      "id": "epl-s19",
+      "name": "ESL Pro League Season 19",
+      "type": "t1",
+      "region": "EU",
+      "window": [
+        "04-23",
+        "05-12"
+      ],
+      "source_ids": [
+        "esl2024"
+      ],
+      "prize": 750000
+    },
+    {
+      "id": "esl-challenger-melbourne",
+      "name": "ESL Challenger Melbourne 2024",
+      "type": "t2",
+      "region": "AS",
+      "window": [
+        "04-26",
+        "04-28"
+      ],
+      "source_ids": [
+        "esl2024"
+      ]
+    },
+    {
+      "id": "iem-dallas",
+      "name": "IEM Dallas 2024",
+      "type": "t1",
+      "region": "AM",
+      "window": [
+        "05-27",
+        "06-02"
+      ],
+      "source_ids": [
+        "esl2024"
+      ],
+      "prize": 250000
+    },
+    {
+      "id": "esl-challenger-jonkoping",
+      "name": "ESL Challenger Jönköping 2024",
+      "type": "t2",
+      "region": "EU",
+      "window": [
+        "06-14",
+        "06-16"
+      ],
+      "source_ids": [
+        "esl2024"
+      ]
+    },
+    {
+      "id": "iem-cologne",
+      "name": "IEM Cologne 2024",
+      "type": "t1",
+      "region": "EU",
+      "window": [
+        "08-07",
+        "08-18"
+      ],
+      "source_ids": [
+        "esl2024"
+      ],
+      "prestige": "premier",
+      "prize": 1000000
+    },
+    {
+      "id": "epl-s20",
+      "name": "ESL Pro League Season 20",
+      "type": "t1",
+      "region": "EU",
+      "window": [
+        "09-03",
+        "09-22"
+      ],
+      "source_ids": [
+        "esl2024"
+      ],
+      "prize": 750000,
+      "direct": 10
+    },
+    {
+      "id": "esl-challenger-atlanta",
+      "name": "ESL Challenger Atlanta 2024",
+      "type": "t2",
+      "region": "AM",
+      "window": [
+        "10-04",
+        "10-06"
+      ],
+      "source_ids": [
+        "esl2024"
+      ]
+    },
+    {
+      "id": "iem-rio",
+      "name": "IEM Rio 2024",
+      "type": "t1",
+      "region": "AM",
+      "window": [
+        "10-07",
+        "10-13"
+      ],
+      "source_ids": [
+        "iem-rio-2024"
+      ],
+      "prize": 250000
+    },
+    {
+      "id": "esl-challenger-katowice",
+      "name": "ESL Challenger Katowice 2024",
+      "type": "t2",
+      "region": "EU",
+      "window": [
+        "10-25",
+        "10-27"
+      ],
+      "source_ids": [
+        "esl2024"
+      ]
+    },
+    {
+      "id": "blast-world-final",
+      "name": "BLAST Premier World Final 2024",
+      "type": "t1",
+      "region": "AS",
+      "window": [
+        "10-30",
+        "11-03"
+      ],
+      "source_ids": [
+        "world-final-2024"
+      ],
+      "size": 8,
+      "prize": 1000000
+    },
+    {
+      "id": "major-2",
+      "name": "Perfect World Shanghai Major 2024",
+      "type": "major",
+      "region": "AS",
+      "window": [
+        "11-30",
+        "12-15"
+      ],
+      "source_ids": [
+        "shanghai"
+      ],
+      "direct": 8
+    },
+    {
+      "id": "mrq2-eu",
+      "name": "Perfect World Shanghai Major 2024 Europe RMR",
+      "type": "qual",
+      "region": "EU",
+      "window": [
+        "11-17",
+        "11-24"
+      ],
+      "source_ids": [
+        "shanghaiRmr"
+      ],
+      "gate": "rmr",
+      "feeds": "major-2",
+      "qualify": 3
+    },
+    {
+      "id": "mrq2-as",
+      "name": "Perfect World Shanghai Major 2024 Asia RMR",
+      "type": "qual",
+      "region": "AS",
+      "window": [
+        "11-11",
+        "11-14"
+      ],
+      "source_ids": [
+        "shanghaiRmr"
+      ],
+      "gate": "rmr",
+      "feeds": "major-2",
+      "qualify": 2
+    },
+    {
+      "id": "mrq2-am",
+      "name": "Perfect World Shanghai Major 2024 Americas RMR",
+      "type": "qual",
+      "region": "AM",
+      "window": [
+        "11-12",
+        "11-15"
+      ],
+      "source_ids": [
+        "shanghaiRmr"
+      ],
+      "gate": "rmr",
+      "feeds": "major-2",
+      "qualify": 3
+    },
+    {
+      "id": "ecl-s47-eu",
+      "name": "ESL Challenger League Season 47 Europe",
+      "type": "qual",
+      "region": "EU",
+      "window": [
+        "02-26",
+        "06-09"
+      ],
+      "source_ids": [
+        "ecl47",
+        "ecl47eu"
+      ],
+      "prize": 100000,
+      "feeds": "epl-s20",
+      "qualify": 2,
+      "regional_only": true,
+      "band": [
+        13,
+        80
+      ]
+    },
+    {
+      "id": "ecl-s48-eu",
+      "name": "ESL Challenger League Season 48 Europe",
+      "type": "t2",
+      "region": "EU",
+      "window": [
+        "07-15",
+        "10-20"
+      ],
+      "source_ids": [
+        "ecl48"
+      ],
+      "prize": 100000,
+      "regional_only": true,
+      "band": [
+        13,
+        80
+      ]
+    },
+    {
+      "id": "ecl-s47-am",
+      "name": "ESL Challenger League Season 47 North America",
+      "type": "qual",
+      "region": "AM",
+      "window": [
+        "02-13",
+        "06-09"
+      ],
+      "source_ids": [
+        "ecl47",
+        "ecl47dates"
+      ],
+      "prize": 80000,
+      "feeds": "epl-s20",
+      "qualify": 2,
+      "regional_only": true,
+      "band": [
+        13,
+        80
+      ]
+    },
+    {
+      "id": "ecl-s48-am",
+      "name": "ESL Challenger League Season 48 North America",
+      "type": "t2",
+      "region": "AM",
+      "window": [
+        "07-15",
+        "10-20"
+      ],
+      "source_ids": [
+        "ecl48"
+      ],
+      "prize": 80000,
+      "regional_only": true,
+      "band": [
+        13,
+        80
+      ]
+    },
+    {
+      "id": "ecl-s47-as",
+      "name": "ESL Challenger League Season 47 Asia",
+      "type": "qual",
+      "region": "AS",
+      "window": [
+        "02-13",
+        "06-09"
+      ],
+      "source_ids": [
+        "ecl47",
+        "ecl47press"
+      ],
+      "prize": 40000,
+      "feeds": "epl-s20",
+      "qualify": 2,
+      "regional_only": true,
+      "band": [
+        13,
+        80
+      ]
+    },
+    {
+      "id": "ecl-s48-as",
+      "name": "ESL Challenger League Season 48 Asia-Pacific",
+      "type": "t2",
+      "region": "AS",
+      "window": [
+        "07-15",
+        "10-20"
+      ],
+      "source_ids": [
+        "ecl48"
+      ],
+      "prize": 40000,
+      "regional_only": true,
+      "band": [
+        13,
+        80
+      ]
+    }
+  ]
+}

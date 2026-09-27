@@ -92,7 +92,7 @@ CareerUI.pages.locker = (_route,host) => {
   </div></div>`;
   CareerUI.paint(host,h);
   if ($("don-go")) $("don-go").onclick = () => post("/api/ops/donate", { amount: Number($("don-amt")?.value || 0) });
-  if ($("found-go")) $("found-go").onclick = () => { if (confirm("队友会进转会市场，你留下重开新队？")) post("/api/ops/found", {}); };
+  if ($("found-go")) $("found-go").onclick = () => { const question="队友会进转会市场，你留下重开新队？"; if (confirm(window.CareerI18n?.t(question)??question)) post("/api/ops/found", {}); };
   if ($("go-mail-fa")) $("go-mail-fa").onclick = () => show("mail");
   if ($("borrow-go")) $("borrow-go").onclick = () => post("/api/ops/borrow", { amount: Number($("borrow-amt")?.value || 0) });
   if ($("repay-go")) $("repay-go").onclick = () => post("/api/ops/repay", { amount: Number($("repay-amt")?.value || 0) });

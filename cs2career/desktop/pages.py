@@ -487,13 +487,19 @@ class Pages:
         from ..cs2.launch import DIFFICULTIES
         combo = ttk.Combobox(row,textvariable=difficulty,values=list(DIFFICULTIES),state='readonly',width=12)
         combo.pack(side='left')
-        label(row,'完全退出 CS2 后才能修改。',size=9,color=MUTED).pack(side='left',padx=16)
+        label(row,'行为风格',size=10).pack(side='left',padx=(24,10))
+        movement = tk.StringVar(value=cfg.get('bot_movement','classic'))
+        movement_combo = ttk.Combobox(row,textvariable=movement,values=['classic'],state='readonly',width=12)
+        movement_combo.pack(side='left')
+        label(row,'1.6.0 保留原版增强；未完成的沙二视角实验不在本版中。',size=9,color=MUTED).pack(side='left',padx=16)
         # Read-only process check is kept out of the render path; saving also
         # enforces the authoritative runtime guard in cs2.save_settings.
         self.after(10,lambda:self._lock_live_difficulty(combo))
+        self.after(10,lambda:self._lock_live_difficulty(movement_combo))
         def save():
             patch = {k:v.get().strip() for k,v in fields.items()}
             patch['difficulty'] = difficulty.get()
+            patch['bot_movement'] = movement.get()
             self.background(lambda:cs2.save_settings(patch))
         button(row,'保存设置',save,primary=True,small=True).pack(side='right')
         row = tk.Frame(box,bg=PANEL)

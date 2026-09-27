@@ -131,6 +131,25 @@ internal static class DialogueRegression
         engine=new();
         Check(engine.EndRoundBatch(builtin,"deficit",8,"loss",deficit,fullTeam,"ct").Lines.Any(x=>x.Message.RuleId=="big-deficit"), "coach reacts to six-round deficit");
         Check(!engine.EndRoundBatch(builtin,"deficit",9,"loss",deficit,fullTeam,"ct").Lines.Any(x=>x.Message.RuleId=="big-deficit"), "coach does not spam every round");
+        var badLedger = MatchDialogue.WithoutStatistics(new Dictionary<string,string>(ace) {
+            ["lead"]="-6", ["kills"]="99", ["clutch"]="1", ["clutch_player"]="队友二" });
+        Check(!badLedger.ContainsKey("round_kills") && !badLedger.ContainsKey("kills"), "invalid stats are absent, not zero-filled");
+        foreach (var win in new[] { true, false })
+        {
+            batch = new MatchDialogue().EndRoundBatch(builtin,"bad-ledger",1,win?"win":"loss",badLedger,fullTeam,"ct");
+            Check(batch.Lines.Any(x => x.Message.Text.Contains(win ? "好的开始是成功的一半" : "加油，我们翻回去")),
+                "pistol encouragement survives unrelated result-validation error");
+            Check(!batch.IsScene && batch.Lines.All(x => x.Message.RuleId != "clutch-win"), "invalid five-kill or clutch claims cannot play");
+        }
+        batch = new MatchDialogue().EndRoundBatch(builtin,"bad-ledger",8,"loss",badLedger,fullTeam,"ct");
+        Check(batch.Lines.Any(x => x.Message.RuleId == "big-deficit"), "coach can react to reliable score without personal stats");
+        var missingStatText = new ChatContract { Version=2, Enabled=true, Rules=[new() {
+            Id="missing-stat", When="round_end", Speaker="coach", Text=["You got {kills} kills."] }] };
+        Check(new MatchDialogue().EndRoundBatch(missingStatText,"bad-ledger",8,"loss",badLedger,fullTeam,"ct").Lines.Count == 0,
+            "stat token without a condition is not rendered from missing data");
+        missingStatText.Version=1;
+        Check(new MatchDialogue().EndRound(missingStatText,"bad-ledger",8,"loss",badLedger,fullTeam,"ct") is null,
+            "legacy stat token also needs known data");
         Console.WriteLine($"{checks} dialogue checks passed.");
     }
 }

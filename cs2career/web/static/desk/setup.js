@@ -54,7 +54,7 @@ function renderSetup() {
     h += `<label>选手 ID<input id="in-name" value="${esc(DRAFT.name || "")}" placeholder="你的游戏 ID" maxlength="32"></label>
       <label>队名<input id="in-org" value="${esc(DRAFT.org || "")}" placeholder="队伍名称" maxlength="40"></label>
       <label>剧情开局<select id="in-scenario"><option value="">普通生涯</option><option value="na_student" ${DRAFT.scenario==='na_student'?'selected':''}>NA 留学生挑战</option></select></label>
-      ${DRAFT.scenario==='na_student'?`<p class="hint">额外 +${S.career.story_arcs?.na_bonus??3} 自由属性点，在北美打比赛。第一年必须获得 T2 或预选赛冠军；选择读书或全职，会通向不同后续与结局。不按选手姓名触发。</p>`:''}
+      ${DRAFT.scenario==='na_student'?`<p class="hint">额外 +${S.career.story_arcs?.na_bonus??3} 自由属性点，在北美打比赛。第一年会根据个人数据与赛事成绩收到家书及可能的 LVG 邀请；选择读书或全职，会通向不同后续与结局。</p>`:''}
       <label>赛区<select id="in-region" ${DRAFT.scenario==='na_student'?'disabled':''}>${Object.entries(REGION)
         .map(([k, v]) => `<option value="${k}" ${DRAFT.region === k ? "selected" : ""}>${v}</option>`)
         .join("")}</select></label>

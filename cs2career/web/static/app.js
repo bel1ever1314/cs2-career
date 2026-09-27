@@ -63,7 +63,7 @@ async function post(url, body, options = {}) {
   if (data.ok !== false && options.beforeApply) await options.beforeApply(data);
   if (data.state) adopt(data.state);
   if (data.ok === false) toast(data.msg || "失败", true);
-  else if (data.msg && url !== '/api/skins/case') toast(data.msg, false);
+  else if (data.msg && url !== '/api/skins/case' && !options.quiet) toast(data.msg, false);
   if (options.render !== false) {
     if (VIEW === "match" && MATCH && !window.CareerUI?.pages?.match) await refreshDetail();
     window.CareerUI?.remember?.();
@@ -108,6 +108,7 @@ function adopt(state) {
   state.design_preview = state.design_preview ?? S?.design_preview ?? false;
   state.playtest = state.playtest ?? S?.playtest ?? false;
   S = state;
+  window.CareerI18n?.setIdentityNames((S.teams||[]).flatMap(t=>[t.name,...(t.players||[]).map(p=>p.name)]).concat([S.career?.player_name,S.career?.team_name]).filter(Boolean));
   TEAMS = {};
   for (const t of S.teams || []) TEAMS[t.name] = t;
   if (!FOCUS || !S.events.some((e) => e.id === FOCUS)) FOCUS = defaultEvent();
@@ -145,11 +146,11 @@ const AXIS = {
   firepower: "火力", entrying: "突破", trading: "补枪", opening: "首杀",
   clutching: "残局", sniping: "狙击", utility: "道具", command: "指挥",
 };
-const MAIL_KIND = { invite: "邀请", prize: "奖金", sponsor: "赞助", qualify: "出线", ops: "经营", whisper: "来信", discipline: "纪律", contract: "合同" };
+const MAIL_KIND = { invite: "邀请", prize: "奖金", sponsor: "赞助", qualify: "出线", ops: "经营", whisper: "来信", discipline: "纪律", contract: "合同", news: "新闻", notification: "通知", calendar_notice: "赛历变更" };
 const RARITY = { milspec: "军规", restricted: "受限", classified: "保密", covert: "隐秘", extraordinary: "非凡" };
 const MAIL_STATUS = {
   open: "待处理", accepted: "已接受", declined: "已婉拒",
-  expired: "已过期", claimed: "已领取",
+  expired: "已过期", claimed: "已领取", closed: "已归档", filed: "已归档",
 };
 
 function axisLabels() {
@@ -176,7 +177,7 @@ function bindInspect(root) {
 }
 function axisPanel(stats, opts = {}) {
   const labels = axisLabels();
-  const spend = Boolean(opts.spend && (S.career?.attr_points || 0) > 0);
+  const spend = Boolean(opts.spend && (S.career?.attr_points || 0) > 0 && (!S.career?.assist?.quick_mode || S.career?.story_timing?.open));
   let h = `<div class="axis-grid">`;
   for (const k of axisKeys()) {
     const v = Math.round(Number(stats?.[k] ?? 0));
@@ -408,7 +409,10 @@ function renderShell() {
     <div class="team-chip you">
       <div><b>${esc(c.player_name)}</b><small>${ROLE[c.role] || c.role} · ${c.you ? Math.round(c.you.ability) : "—"}</small></div>
     </div>
+    <button class="btn sm" id="foot-quick">全年赛程${c.assist?.quick_mode?' · 快速模式':''}</button>
     <button class="btn ghost sm" id="foot-reset">重开生涯</button>`);
+  $('foot-quick').disabled=!!c.over||!!S.design_preview;
+  $('foot-quick').onclick=()=>show('season');
   $("foot-reset").onclick = () => {
     show("setup");
   };
@@ -456,6 +460,27 @@ function careerEventFocus(events, career) {
   return {event, invitations, registered};
 }
 
+function mailContent(m) {
+  const field=(record,key)=>window.CareerI18n?.field(record,key)||record?.[key]||'';
+  if(m.sections?.length)return `<div class="mail-digest">${m.sections.map(section=>`<section><h4>${esc(field(section,'title'))}</h4><ul>${(section.items||[]).map(item=>`<li>${esc(field(item,'text'))}</li>`).join('')}</ul></section>`).join('')}</div>`;
+  return `<div class="mail-body">${esc(field(m,'body'))}</div>`;
+}
+
+function activityGroups(careerLog, worldLog) {
+  // Logs do not all carry timestamps. Preserve each source's order instead of
+  // pretending a concatenation is a single chronological feed.
+  const seen=new Set();
+  return [['我的动态',careerLog],['世界动态',worldLog]].map(([title,source])=>{
+    const rows=[];
+    for(const row of [...(source||[])].reverse()){
+      const key=typeof row==='object'?row.id||row.text||JSON.stringify(row):String(row);
+      if(seen.has(key))continue;seen.add(key);rows.push(row);
+      if(rows.length===4)break;
+    }
+    return {title,rows};
+  });
+}
+
 function renderHome() {
   const c = S.career;
   if (!c.exists) { show("setup"); return; }
@@ -467,11 +492,12 @@ function renderHome() {
 
   let h = `<div class="page-head"><h2>${esc(c.unsigned ? "自由市场" : c.team_name)}</h2>
     <span class="hint">${S.year} 赛季 · ${esc(c.era)} ${esc((c.eras || {})[c.era]?.title || "")}</span></div>`;
+  h += window.CareerSeason?.modeCard() || '';
 
   if (c.banned || c.retired) {
     const end = c.ending || {};
-    h += `<div class="card" style="margin-bottom:12px;border-color:#6a2a2a"><h3>${esc(end.title || (c.retired ? "生涯已结束" : "已被禁赛"))}</h3>
-      <p class="hint" style="white-space:pre-wrap">${esc(end.text || "这份档案到此为止，只能重开生涯。")}</p></div>`;
+    h += `<div class="card" style="margin-bottom:12px;border-color:#6a2a2a"><h3>${esc(CareerI18n.field(end,'title') || (c.retired ? "生涯已结束" : "已被禁赛"))}</h3>
+      <p class="hint" style="white-space:pre-wrap">${esc(CareerI18n.field(end,'text') || "这份档案到此为止，只能重开生涯。")}</p></div>`;
   } else if (c.unsigned) {
     h += `<div class="card" style="margin-bottom:12px"><h3>你目前是自由身</h3>
       <p class="hint">目前不能打正式比赛。可以在转会页主动申请试训，也可以推进日历等待入队合同；申请概率和冷却照常，皮肤市场仍可用。</p>
@@ -514,7 +540,7 @@ function renderHome() {
 
   const ev = focus.event;
   h += `<div class="card"><h3>${ev?.status === 'live' ? "你正在参加" : "你的下个赛事"}</h3>`;
-  if (!ev) h += `<p class="empty">${S.events.some(e=>e.status!=='done') ? '暂无待确认邀请或已报名赛事。可推进赛程等待邀请，或查看世界赛事。' : '赛季日程已走完，点「推进赛程」进入新赛季。'}</p>`;
+  if (!ev) h += `<p class="empty">${S.events.some(e=>e.status!=='done') ? '暂无待确认邀请或已报名赛事。可推进赛程等待邀请，或查看世界赛事。' : '赛季日程已走完，请在上方选择下一赛季的模式。'}</p>`;
   else {
     const mine = (ev.field || []).includes(c.team_name);
     const registered = focus.registered.has(ev.id);
@@ -557,11 +583,17 @@ function renderHome() {
   h += `</div>`;
 
   h += `<div class="card"><h3>动态</h3>`;
-  const log = [...(c.log || []), ...(S.log || [])].slice(-9).reverse();
-  h += log.length ? `<div style="display:grid;gap:6px">${log.map((x) => `<div class="hint">${esc(x)}</div>`).join("")}</div>` : `<p class="empty">—</p>`;
+  const notices=[...(c.inbox||[])].reverse().filter(m=>['news','notification'].includes(m.kind)&&!(c.assist?.quick_mode&&String(m.publication_key||'').startsWith('monthly:'))).slice(0,3);
+  h+=notices.map(m=>`<details class="home-notice" data-ui-key="home-notice:${esc(m.id)}"><summary><small>${esc(m.date||'')}</small><span>${esc(window.CareerI18n?.field(m,'title')||m.title)}</span></summary>${mailContent(m)}</details>`).join('');
+  for(const group of activityGroups(c.log,S.log)){
+    if(!group.rows.length)continue;
+    h+=`<h4 class="activity-source">${group.title}</h4><div style="display:grid;gap:6px">${group.rows.map(x=>`<div class="hint">${esc(typeof x==='object'?(window.CareerI18n?.field(x,'text')||x.text||''):(window.CareerI18n?.t(x)||x))}</div>`).join('')}</div>`;
+  }
+  h+='<p><button class="text-link" data-route="mail">查看全部通知</button></p>';
   h += `</div></div>`;
 
   CareerUI.paint($("view-home"),h);
+  window.CareerSeason?.bindMode($("view-home"));
   if ($("go-ev")) $("go-ev").onclick = () => { FOCUS = ev.id; show("event"); };
   if ($("go-mail")) $("go-mail").onclick = () => show("mail");
   if ($("go-mail-home")) $("go-mail-home").onclick = () => show("mail");
@@ -612,7 +644,7 @@ function renderSquad() {
   if (you) {
     const st = you.stats || {};
     h += `<div class="card" style="margin-top:12px"><h3>你的个人能力</h3>
-      <p class="hint" style="margin:-4px 0 10px">七个枪维按位置权重合成个人能力；指挥单独结算。参赛 +1 点，冠军再 +1，年底清零。</p>
+      <p class="hint" style="margin:-4px 0 10px">长期能力决定基础，位置适配影响发挥。${c.assist?.quick_mode?'快速模式：属性点累计保留，仅 Major 后休赛期可用。':'普通模式可随时加点，未用点数每年清零。'}</p>
       ${axisPanel(st, { spend: !c.banned && !c.retired })}</div>`;
   }
 
@@ -668,7 +700,7 @@ function renderHonours() {
       <div class="row"><button class="btn" id="h-reset">重开生涯</button></div></div>`;
   }
   h += `<div class="card" style="margin-bottom:12px"><h3>个人能力</h3>
-    <p class="hint" style="margin:-4px 0 10px">七个枪维按位置权重合成个人能力；指挥单独算。没用完的点每年清零。点满 100 不能再加。</p>
+    <p class="hint" style="margin:-4px 0 10px">长期能力决定基础，位置适配影响发挥；更换位置不会凭空暴涨。${c.assist?.quick_mode?'快速模式：属性点累计保留，仅 Major 后休赛期可用。':'普通模式可随时加点，未用点数每年清零。'}单项上限 100。</p>
     ${axisPanel(st, { spend: !c.over && !c.banned && !c.retired })}</div>`;
   h += honoursMedals(hon) + honoursLists(hon);
   h += '<div class="card"><h3>职业与生活的记录</h3><button class="btn" data-route="story-history">阅读故事与Major冠军报道</button></div>';
@@ -681,13 +713,13 @@ function renderHonours() {
   bindAxisSpend($("view-honours"));
   if ($("h-retire")) {
     $("h-retire").onclick = () => {
-      if (!confirm("确定退役？这段生涯会结束，只能重开。")) return;
+      if (!confirm(window.CareerI18n?.t("确定退役？这段生涯会结束，只能重开。")||"确定退役？这段生涯会结束，只能重开。")) return;
       post("/api/retire");
     };
   }
   if ($("h-reset")) {
     $("h-reset").onclick = () => {
-      if (confirm("清空当前生涯和赛季？")) post("/api/reset");
+      if (confirm(window.CareerI18n?.t("清空当前生涯和赛季？")||"清空当前生涯和赛季？")) post("/api/reset");
     };
   }
 }
@@ -739,9 +771,13 @@ function bindSkinPref() {
 
 
 
+function visibleMailRows(career) {
+  return [...(career.inbox||[])].reverse().filter(row=>!career.assist?.quick_mode||!String(row.publication_key||'').startsWith('monthly:'));
+}
+
 function renderMail() {
   const c = S.career;
-  const rows = [...(c.inbox || [])].reverse();
+  const rows = visibleMailRows(c);
   let h = `<div class="page-head"><h2>邮件</h2>
     <span class="hint">${c.unread || 0} 封未读 · 只保留邀请、合同和需要你处理的通知</span>
     <button class="btn sm" id="mail-all">全部已读</button></div>`;
@@ -751,10 +787,10 @@ function renderMail() {
     const unread = !m.read;
     h += `<div class="mail-item ${unread ? "unread" : ""}" data-ui-key="mail:${esc(m.id)}">
       <div class="mh">${badge(m.kind === "invite" ? "t1" : m.kind === "prize" ? "premier" : m.kind === "qualify" ? "major" : m.kind === "whisper" ? "upcoming" : m.kind === "discipline" ? "t2" : m.kind === "contract" ? "t1" : "done", MAIL_KIND[m.kind] || m.kind)}
-        <b>${esc(m.title)}</b>
+        <b>${esc(window.CareerI18n?.field(m,'title')||m.title)}</b>
         <small>${esc(m.from || "")}</small>
         <span class="when">${esc(m.date || "")}</span></div>
-      <pre>${esc(m.body || "")}</pre>
+      ${mailContent(m)}
       <div class="acts">`;
     if (m.kind === "invite" && m.status === "open") {
       h += `<button class="btn primary sm" data-acc="${esc(m.id)}">接受邀请</button>
@@ -763,6 +799,7 @@ function renderMail() {
       h += badge(m.status === "accepted" ? "done" : "upcoming", MAIL_STATUS[m.status] || m.status);
     }
     if(m.auto_action)h+=`<span class="hint">按邀请规则自动${m.auto_action==='accept'?'接受':'拒绝'}</span>`;
+    if(m.auto_reason)h+=`<span class="hint">${esc(m.auto_reason)}</span>`;
     if(m.auto_blocked && m.status==='open')h+=`<span class="hint">自动处理暂停：${esc(m.auto_blocked)}</span>`;
     if (m.kind === "contract" && m.status === "open" && !c.banned) {
       h += `<button class="btn primary sm" data-acc="${esc(m.id)}">接受合同</button>
@@ -1275,12 +1312,14 @@ const DIFF_LABEL = { Low: "简单", Medium: "中等", High: "极难" };
 const AIM_LABEL = { head: "爆头优先", mixed: "混合", body: "身体优先" };
 const NADE_LABEL = { off: "关闭", less: "偏少", normal: "正常", more: "偏多", max: "最多" };
 const ID_LABEL = { player: "真人（无 BOT 字样）", bot: "显示 BOT" };
+const MOVEMENT_LABEL = { classic: "原版增强", natural: "自然（实验·仅沙二）" };
 
 function botLine(cfg) {
   if (!cfg) return "";
   return `难度 ${DIFF_LABEL[cfg.difficulty] || cfg.difficulty || "—"}`
     + ` · 瞄准 ${AIM_LABEL[cfg.bot_aim] || cfg.bot_aim || "—"}`
-    + ` · 道具 ${NADE_LABEL[cfg.bot_nades] || cfg.bot_nades || "—"}`;
+    + ` · 道具 ${NADE_LABEL[cfg.bot_nades] || cfg.bot_nades || "—"}`
+    + ` · 行为 ${MOVEMENT_LABEL[cfg.bot_movement] || cfg.bot_movement || "—"}`;
 }
 
 function pickRow(id, label, options, current, labels, disabled = false) {
@@ -1293,19 +1332,25 @@ function botSettingsCard(cfg) {
   const aims = cfg.aim_modes || ["head", "mixed", "body"];
   const nades = cfg.nade_modes || ["off", "less", "normal", "more", "max"];
   const ids = cfg.identity_modes || ["player", "bot"];
+  const movements = cfg.movement_modes || ["classic"];
     const live = cfg.installed_difficulty;
     const pending = cfg.difficulty_pending;
     const liveNote = cfg.active_vpk_valid
       ? `活动 VPK：${DIFF_LABEL[cfg.actual_difficulty] || cfg.actual_difficulty} · ${cfg.profile_sync_count}/9 · ${cfg.profile_hash_short || "—"} · ${cfg.difficulty_model === "bot_improver_career_tuned_v2" ? "原版增强＋生涯个人微调" : "旧版调校，下场重新生成"}。`
       : "尚未生成比赛 VPK；开始下一场时会按当前难度生成。";
+    const movementNote = (cfg.active_movement
+      ? ` 最近准备：${cfg.active_movement_map || "—"} 使用${MOVEMENT_LABEL[cfg.active_movement] || cfg.active_movement}${cfg.movement_profile_hash ? ` · 参数 ${cfg.movement_profile_hash.slice(0, 8)}` : ""}。`
+      : "") + (cfg.movement_route_count ? ` 已准备 ${cfg.movement_route_count} 个职业节点（沙二 T／CT 全图）。` : "")
+      + (cfg.natural_runtime?.reason ? ` 动作运行记录：${cfg.natural_runtime.reason}。` : "");
   return `<div class="card" style="margin-bottom:12px"><h3>机器人设置</h3>
     <div class="form" style="max-width:none"><div class="row">
       ${pickRow("b-diff", "难度", diffs, cfg.difficulty, DIFF_LABEL, !!cfg.cs2_live)}
       ${pickRow("b-aim", "瞄准预设", aims, cfg.bot_aim, AIM_LABEL)}
       ${pickRow("b-nades", "道具预设", nades, cfg.bot_nades, NADE_LABEL)}
+      ${pickRow("b-movement", "行为风格", movements, cfg.bot_movement, MOVEMENT_LABEL, !!cfg.cs2_live)}
       ${pickRow("b-id", "队友对手身份", ids, cfg.bot_identity, ID_LABEL)}
     </div>
-    <p class="hint">Low／High 沿用原版基础调校；Medium 另按生涯能力匹配个人微调模板。ProSlow、ProFast 等按当前位置能力与状态选档，不随难度加减评分。High 和 Medium 顶档保留原包特殊加速度文本；实际效果需游戏验证。CS2 运行时不能改档。${esc(liveNote)}</p>
+    <p class="hint">Low／High 沿用原版基础调校；Medium 按生涯能力匹配个人微调模板。ProSlow、ProFast 等按当前位置能力与状态选档。1.6.0 不启用未完成的沙二视角增强，保留原版增强战斗。CS2 运行时不能修改难度。${esc(liveNote)}</p>
     </div></div>`;
 }
 
@@ -1315,11 +1360,12 @@ function bindBotSettings(after) {
       difficulty: $("b-diff").value,
       bot_aim: $("b-aim").value,
       bot_nades: $("b-nades").value,
+      bot_movement: $("b-movement").value,
       bot_identity: $("b-id").value,
     });
     if (after) after();
   };
-  for (const id of ["b-diff", "b-aim", "b-nades", "b-id"]) {
+  for (const id of ["b-diff", "b-aim", "b-nades", "b-movement", "b-id"]) {
     if ($(id)) $(id).onchange = send;
   }
 }
@@ -1484,7 +1530,8 @@ function stopReveal() {
 function paintStory() {
   let box = $("story-modal");
   const row = STORY_Q[0];
-  if (row && box?._storyRow === row) return;
+  const locale = window.CareerI18n?.getLocale() || 'zh-CN';
+  if (row && box?._storyRow === row && box._storyLocale === locale) return;
   stopReveal();
   revealNext = null;
   if (!row) {
@@ -1499,6 +1546,7 @@ function paintStory() {
     document.body.appendChild(box);
   }
   box._storyRow = row;
+  box._storyLocale = locale;
   box.onclick = null;
   if (row.kind === "awards") {
     paintAwards(box, row);
@@ -1511,15 +1559,16 @@ function paintStory() {
     return;
   }
   const choices = row.choices || [];
-  const paras = String(row.text || "").split("\n").filter(Boolean).map((p) => `<p>${esc(p)}</p>`).join("");
+  const field=(record,key)=>window.CareerI18n?.field(record,key)??record[key]??'';
+  const paras = String(field(row,'text')).split("\n").filter(Boolean).map((p) => `<p>${esc(p)}</p>`).join("");
   const foot = choices.length
-    ? choices.map((ch) => `<button class="btn ${ch.id === "accept" ? "" : "primary"}" type="button" data-choice="${esc(ch.id)}">${esc(ch.label)}</button>`).join("")
+    ? choices.map((ch) => `<button class="btn ${ch.id === "accept" ? "" : "primary"}" type="button" data-choice="${esc(ch.id)}">${esc(field(ch,'label'))}</button>`).join("")
     : `<button class="btn primary" type="button">继续</button>`;
   box.innerHTML = `<div class="story-card">
       <button class="story-x" type="button" aria-label="关闭">×</button>
       <small>${row.kind === 'incident' ? '生涯事件 · 选择与后果' : '剧情'}</small>
       <div class="story-scroll">
-        ${row.title ? `<h2>${esc(row.title)}</h2>` : ""}
+        ${row.title ? `<h2>${esc(field(row,'title'))}</h2>` : ""}
         ${paras}
       </div>
       <div class="story-foot${choices.length ? " split" : ""}">${foot}</div>
@@ -1534,6 +1583,13 @@ function paintStory() {
   const cont = box.querySelector(".story-foot button:not([data-choice])");
   if (cont) cont.onclick = () => ackStory("");
 }
+
+document.addEventListener('career:language', () => {
+  if (STORY_Q.length) paintStory();
+  // Explicit *_en fields must be selected again when the language changes;
+  // DOM phrase replacement alone cannot turn an English article back to Chinese.
+  if(typeof S!=='undefined'&&S&&['home','mail','season'].includes(VIEW)&&!window.CareerAssist?.isOpen())render();
+});
 
 function playerFace(row) {
   if (!row?.player) return "";

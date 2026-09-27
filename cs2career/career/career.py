@@ -641,8 +641,11 @@ class Career:
         year = int(season.date[:4])
         if year > self.last_age_year:
             leftover = self.attr_points
-            self.attr_points = 0
-            if leftover:
+            if not self.assist.get('quick_mode'):
+                self.attr_points = 0
+            if leftover and self.assist.get('quick_mode'):
+                self.log.append(f"{year} 年快速模式保留 {leftover} 点属性，等待 Major 后休赛期分配。")
+            elif leftover:
                 self.log.append(f"{year} 年未使用的 {leftover} 点属性已清零。")
             self._age_year(season, year)
             self.last_age_year = year
@@ -659,6 +662,8 @@ class Career:
         skins.advance_day(self)
         self._birthday_tick(season)
         self.emit_incidents(season, 'day', season.date)
+        from .story_timing import reconcile
+        reconcile(self, season)
         self.save()
 
     def _pay_sponsors(self, season, month: str) -> None:
@@ -1033,7 +1038,11 @@ class Career:
         return True
 
     def unread_count(self) -> int:
-        return sum(1 for row in self.inbox if not row.get("read"))
+        # Quick seasons do not surface monthly digests. Retain old mail so a
+        # later normal season can read it, but do not badge invisible entries.
+        return sum(1 for row in self.inbox if not row.get("read") and not (
+            self.assist.get("quick_mode") and
+            str(row.get("publication_key") or "").startswith("monthly:")))
 
     def eligible_invite(self, season, ev: dict, *, rank_row: dict | None = None) -> bool:
         if ev.get("status") != "upcoming":
@@ -1045,30 +1054,29 @@ class Career:
         if not mine:
             return False
         if ev["type"] == "major":
-            if season.year >= 2025:
-                return mine["rank"] <= ev.get("size", mail.MAJOR_VRS_RANK)
             if self.team_id in (season.qualified.get(ev["id"]) or []):
                 return True
-            return mine["rank"] <= mail.LEGEND_RANK
+            return mine["rank"] <= season.dest_direct(ev)
         if ev["type"] == "t1":
             if self.team_id in (season.qualified.get(ev["id"]) or []):
                 return True
             return mine["rank"] <= season.dest_direct(ev)
         if ev["type"] == "qual":
             dest = next((e for e in season.events if e["id"] == ev.get("feeds")), None)
+            regional = ev.get("scope") == "regional" or (
+                ev.get("scope") != "global" and (not dest or dest.get("type") != "t1"))
+            if regional and mine["region"] != ev["region"]:
+                return False
+            if dest and (mine["rank"] <= season.dest_direct(dest)
+                         or self.team_id in (season.qualified.get(dest["id"]) or [])):
+                return False
             if dest and dest.get("type") == "t1":
-                if mine["rank"] <= season.dest_direct(dest):
-                    return False
                 return mine["rank"] <= mail.PLAYIN_RANK
-            if dest and dest.get("type") == "major" and season.year >= 2025:
-                return False
-            if mine["region"] != ev["region"]:
-                return False
             return mine["rank"] <= mail.INVITE_NEED.get("qual", 40)
         if ev["type"] == "cct":
             return mine["region"] == ev["region"]
         if ev["type"] == "t2":
-            return True
+            return not ev.get("regional_only") or mine["region"] == ev["region"]
         need = mail.INVITE_NEED.get(ev["type"], 30)
         if mine["rank"] > need:
             return False
@@ -1984,6 +1992,9 @@ class Career:
     def spend_point(self, season, axis: str, *, persist: bool = True) -> str:
         if self.over():
             return "这段生涯已经结束。"
+        from .story_timing import window
+        if self.assist.get('quick_mode') and not window(self, season):
+            return "快速模式的属性点已保留，请在 Major 结束后的休赛期统一分配。"
         if self.attr_points < 1:
             return "没有可用属性点。"
         if axis not in ALL_AXES:
@@ -2192,6 +2203,7 @@ class Career:
         ctx["when"] = when
         seen = set(self.seen_stories)
         queued = {row["id"] for row in self.story_queue}
+        queued.update(row['id'] for row in self.incident_state.get('story_timing', {}).get('deferred', []))
         for beat in story.collect(ctx, seen, queued):
             self.story_queue.append(beat)
 
@@ -2269,7 +2281,8 @@ class Career:
                 self._enqueue("first_evp", season, event)
 
     def _queued(self, story_id: str) -> bool:
-        return story_id in self.seen_stories or any(row.get("id") == story_id for row in self.story_queue)
+        from .story_timing import queued
+        return story_id in self.seen_stories or any(row.get("id") == story_id for row in self.story_queue) or queued(self, story_id)
 
     def _enqueue_title(self, season, ev: dict) -> None:
         """Every title gets a celebration beat, then the awards reveal."""
@@ -2414,12 +2427,16 @@ class Career:
         if season is not None:
             from .player_transfers import drain_hooks
             drain_hooks(self, season)
+            from ..league.phases import drain
+            drain(season)
+            from .story_timing import reconcile
+            reconcile(self, season)
         self.save()
 
     def _push_plot(self, beat: dict, sid: str) -> None:
         beat = incidents.decorate(beat)
         beat["id"] = sid
-        if any(item.get("id") == sid for item in self.story_queue):
+        if self._queued(sid):
             return
         self.story_queue.append(beat)
 
@@ -2427,6 +2444,8 @@ class Career:
         """Public hook for core gameplay; content packs cannot invoke Python."""
         before = len(self.story_queue)
         incidents.emit(self, season, when, occurrence, event_type)
+        from .story_timing import reconcile
+        reconcile(self, season)
         if len(self.story_queue) != before:
             self.save()  # A before-match gate raises to the UI; preserve its queued decision first.
 
@@ -2626,7 +2645,9 @@ class Career:
         }
 
     def public(self, season) -> dict:
-        from . import arcs
+        from .fast_mode import season_mode
+        from .localization import present
+        from . import arcs, story_timing
         team = self.my_team(season.teams) if self.exists else None
         you = self.my_player(season.teams) if self.exists else None
         if not you and self.you_card:
@@ -2675,6 +2696,7 @@ class Career:
             "origin": self.origin,
             "origins": public_origins(),
             "story_arcs": arcs.public(self),
+            "story_timing": story_timing.public(self, season),
             "team_id": self.team_id,
             "team_name": team["name"] if team else "",
             "money": team.get("money", 0) if team else 0,
@@ -2694,23 +2716,25 @@ class Career:
             "team_honours": awards.team_honours(season.records(include_matches=False), team["name"]) if team else [],
             "season_line": self.season_line(season) if self.exists else None,
             "vrs": table.get(self.team_id) if self.team_id else None,
+            "vrs_model": "career-vrs-2: best 10 wins / 180 days / max 3 per event; simplified, not official Valve VRS",
             "log": self.log[-12:],
-            "stories": list(self.story_queue),
-            "inbox": list(self.inbox),
+            "stories": [present(r) for r in self.story_queue],
+            "inbox": [present(r) for r in self.inbox],
             "unread": self.unread_count(),
             "attr_points": self.attr_points,
             "axes": list(ALL_AXES),
-            "assist": {k: self.assist.get(k) for k in ('invites', 'points', 'notice', 'tournament', 'step_counter')},
+            "assist": {k: self.assist.get(k) for k in ('invites', 'points', 'notice', 'tournament', 'step_counter', 'quick_mode', 'quick_break_ack')},
+            "season_mode": season_mode(self, season),
             "axis_labels": AXIS_LABEL,
             "banned": self.banned,
             "retired": self.retired,
             "over": self.over(),
             "ending": (
-                {
+                present({
                     "id": self.ending,
                     "title": self.ending_title,
                     "text": self.ending_text,
-                }
+                })
                 if self.over() and self.ending_text
                 else None
             ),

@@ -18,7 +18,11 @@ class PublicPackageTests(unittest.TestCase):
             paths=['cs2career/test.py','save/career.json','extensions/private/story.json',
                    'extensions/_templates/story.json','vendor/CareerMatch/bin/secret.dll',
                    'vendor/CareerMatch/CareerMatch.dll','tools/__pycache__/junk.pyc',
-                   'release/old/save/career.json','vendor/CareerMatch/obj/personal.json']
+                   'release/old/save/career.json','vendor/CareerMatch/obj/personal.json',
+                   'tools/Launch-CS2Career.cmd','vendor/BotLab/BotLab.cs',
+                   'tools/local-actions-probe/LocalActionsLab.cs','tools/view_angle_lab/analyze_pro_demo.py',
+                   'cs2career/data/natural_behavior/de_dust2.json',
+                   'vendor/CareerMatch/reports/report.json','tools/.qa-private/data.json']
             for name in paths:
                 path=root/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_text('{}')
             exe=root/'release/app.exe';exe.parent.mkdir(exist_ok=True);exe.write_bytes(b'MZfixture')
@@ -27,16 +31,26 @@ class PublicPackageTests(unittest.TestCase):
             self.assertEqual(result['cs2_live_test'],'pending')
             with zipfile.ZipFile(next(output.glob('*source.zip'))) as archive:
                 names='\n'.join(archive.namelist())
+                self.assertIn('/README.md',names)
+                self.assertIn('/README.en.md',names)
                 self.assertIn('cs2career/test.py',names)
                 self.assertIn('extensions/_templates/story.json',names)
                 self.assertNotIn('/save/',names)
                 self.assertNotIn('/private/',names)
                 self.assertNotIn('/obj/',names)
                 self.assertNotIn('secret.dll',names)
+                self.assertNotIn('/BotLab/',names)
+                self.assertNotIn('/local-actions-probe/',names)
+                self.assertNotIn('/view_angle_lab/',names)
+                self.assertNotIn('/natural_behavior/',names)
+                self.assertNotIn('/reports/',names)
+                self.assertNotIn('/.qa-private/',names)
             with zipfile.ZipFile(next(output.glob('*windows-x64.zip'))) as archive:
                 entries = archive.namelist()
                 names = '\n'.join(entries)
                 self.assertIn('/开始游玩-FAQ.txt', names)
+                self.assertIn('/Launch-CS2Career.cmd', names)
+                self.assertIn('/docs/V1.6.0_GUIDE.md', names)
                 self.assertIn('/licenses/THIRD_PARTY_NOTICES.md', names)
                 self.assertNotIn('DEVELOPER_GUIDE.zh-CN.md', names)
                 self.assertNotIn('游玩说明.txt', names)

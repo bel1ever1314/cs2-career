@@ -12,6 +12,7 @@ CHAT_NUMBERS = {'round', 'score_for', 'score_against', 'lead', 'kills', 'deaths'
 CHAT_STRINGS = {'result', 'map', 'player_id', 'speaker_id', 'team_id'}
 PLACEHOLDERS = CHAT_NUMBERS | CHAT_STRINGS | {'player', 'speaker', 'team', 'opponent', 'clutch_player'}
 INCIDENT_TRIGGERS = {'day', 'before_match', 'after_series', 'event_started', 'coach_absent'}
+INCIDENT_TRIGGERS |= {'series_started', 'map_started', 'map_finished', 'series_finished', 'tournament_stage_started'}
 INCIDENT_TRIGGERS |= {'transfer_offer_received', 'transfer_application_success', 'transfer_application_failed',
                      'transfer_stayed', 'transfer_departed', 'transfer_joined', 'transfer_former_team'}
 TRANSFER_FIELDS = {'old_team_id', 'new_team_id', 'transfer_role', 'transfer_source', 'farewell_choice'}
@@ -128,7 +129,9 @@ def validate_effects(effects):
 
 
 def validate_incident(row):
-    keys(row, {'id', 'when', 'title', 'text', 'choices', 'conditions', 'probability', 'cooldown_days', 'max_per_career'})
+    keys(row, {'id', 'when', 'title', 'text', 'choices', 'conditions', 'probability', 'cooldown_days', 'max_per_career', 'timing'})
+    if row.get('timing', 'offseason') not in ('offseason', 'match'):
+        raise ValueError('timing只允许offseason或match')
     identifier(row.get('id'))
     if row.get('when') not in INCIDENT_TRIGGERS:
         raise ValueError('未知生涯事件触发点')
@@ -151,7 +154,7 @@ def validate_incident(row):
                        for e in c.get('effects', [])) for c in choices):
         raise ValueError('至少需要一个不扣钱且不要求暂停参赛的选项，避免正在比赛或资金不足时无法继续')
     conditions = row.get('conditions', {})
-    keys(conditions, {'mode', 'origin', 'event_type', 'flags'} | TRANSFER_FIELDS)
+    keys(conditions, {'mode', 'origin', 'event_type', 'flags', 'event_id', 'stage', 'map_index'} | TRANSFER_FIELDS)
     for key, value in conditions.items():
         if key == 'flags':
             if not isinstance(value, dict) or len(value) > 20:

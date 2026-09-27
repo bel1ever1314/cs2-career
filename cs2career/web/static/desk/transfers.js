@@ -20,7 +20,8 @@ CareerUI.pages.market=async(route,host,active)=>{
    const who=c.roster.find(x=>x.player_id===replace)?.name||'';
    if(!replace||!who){toast('请先选择要替换的队友。',true);return;}
    const price=mode==='normal'?p.normal_fee:p.guaranteed_fee;
-   if(!window.confirm(`${mode==='normal'?'尝试签约':'100%保签'} ${p.name}，报价 ${money(price)}。成功后 ${who} 离队。${mode==='normal'?`失败会扣 ${money(p.negotiation_fee)}。`:'不会按概率拒签。'}`))return;
+   const question=`${mode==='normal'?'尝试签约':'100%保签'} ${p.name}，报价 ${money(price)}。成功后 ${who} 离队。${mode==='normal'?`失败会扣 ${money(p.negotiation_fee)}。`:'不会按概率拒签。'}`;
+   if(!window.confirm(window.CareerI18n?.t(question)??question))return;
    host.querySelectorAll('[data-sign]').forEach(button=>button.disabled=true);
    try{await post('/api/market/buy',{player:p.name,player_id:p.player_id,seller_id:p.seller_id,replace_id:replace,mode,fee:price});}
    catch(e){toast(e.message,true);b.disabled=false;}

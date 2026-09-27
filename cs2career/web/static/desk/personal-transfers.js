@@ -38,7 +38,8 @@
  }
  async function apply(row,host){
    if(busy||row.blocked)return;
-   if(!window.confirm(`申请 ${row.team} 的${ROLE[row.role]||row.role}位置？成功率 ${Math.round(row.chance*100)}%。本次只投一次，失败冷却30天，成功冷却90天；成功后仍可选择留下。`))return;
+   const question=`申请 ${row.team} 的${ROLE[row.role]||row.role}位置？成功率 ${Math.round(row.chance*100)}%。本次只投一次，失败冷却30天，成功冷却90天；成功后仍可选择留下。`;
+   if(!window.confirm(window.CareerI18n?.t(question)??question))return;
    busy=true;host.querySelectorAll('[data-personal-apply]').forEach(b=>b.disabled=true);
    try{
      const response=await fetch('/api/player/transfers/apply',{method:'POST',headers:{'Content-Type':'application/json','X-Career-Token':sessionStorage.getItem('career-token')||''},body:JSON.stringify({team_id:row.team_id,role:row.role})});

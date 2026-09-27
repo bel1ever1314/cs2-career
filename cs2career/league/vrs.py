@@ -1,9 +1,11 @@
 # coding=utf-8
-"""Valve-style ranking points with time decay.
+"""Career simplified VRS: quality of recent wins, not unlimited attendance.
 
-Scaled to real HLTV Valve points: #1 ~2060, #10 ~1680, #20 ~1400, #50 ~1000.
-A loss to a strong team still pays, so Lynn Vision taking a map off Vitality
-is worth something.
+This is NOT Valve's complete model. Valve considers best recent results in
+several factors plus head-to-head changes; it has no universal total-point cap.
+Our transparent game model counts ten wins over 180 days, at most three from
+one event. A decaying opening seed is a floor until real results replace it.
+Source: github.com/ValveSoftware/counter-strike_regional_standings
 """
 
 from __future__ import annotations
@@ -14,13 +16,15 @@ from datetime import date, datetime
 FULL_DAYS = 30
 DEAD_DAYS = 365
 HALF_LIFE = 150.0
+RESULT_DAYS = 180
+BEST_RESULTS = 10
+MAX_WINS_PER_EVENT = 3
+MODEL_VERSION = 'career-vrs-2'
 
 # Displayed points = FLOOR + K * earned ** GAMMA.
 #
-# The floor keeps a team on the board between events, and the concave exponent
-# is what reproduces the real HLTV Valve spread (#1 ~2060, #10 ~1680,
-# #20 ~1400, #50 ~1000) from a 40-event season. A linear map would put #1 in
-# the right place and leave everyone below 20th near zero.
+# Retain the familiar display curve. These are game points, not a claim that
+# the simplified standings reproduce today's official Valve table.
 FLOOR = 900.0
 K = 6.8
 GAMMA = 0.62
@@ -71,39 +75,75 @@ class VRS:
             )
 
     def earned(self, team_id: str, as_of: str) -> float:
+        return self._summaries({team_id}, as_of)[team_id]['earned']
+
+    def _summaries(self, team_ids: set[str], as_of: str) -> dict[str, dict]:
+        """One pass; never keep a cache that can become stale after a transfer."""
         today = parse_date(as_of)
-        total = 0.0
-        for r in self.results:
-            if r["team"] != team_id:
+        buckets = {key: [] for key in team_ids}
+        seeds = {key: 0.0 for key in team_ids}
+        ages = {}
+        for index, row in enumerate(self.results):
+            key = row.get('team')
+            if key not in buckets:
                 continue
-            total += r["points"] * decay((today - parse_date(r["date"])).days)
-        return total
+            stamp = row['date']
+            if stamp not in ages:
+                ages[stamp] = (today - parse_date(stamp)).days
+            age = ages[stamp]
+            if age < 0:
+                continue  # Future results never contribute to a past ranking.
+            value = float(row.get('points') or 0)
+            if not math.isfinite(value) or value <= 0:
+                continue
+            if row.get('kind') == 'seed':
+                seeds[key] = max(seeds[key], value * decay(age))
+                continue
+            if age >= RESULT_DAYS or row.get('kind') == 'loss' or row.get('won') is False:
+                continue
+            event = (stamp[:4], str(row.get('event') or f'legacy-{index}'))
+            buckets[key].append((value * decay(age), event, index))
+        out = {}
+        for key, candidates in buckets.items():
+            selected = []
+            event_counts = {}
+            for value, event, index in sorted(candidates, key=lambda x: (-x[0], x[2])):
+                if event_counts.get(event, 0) >= MAX_WINS_PER_EVENT:
+                    continue
+                selected.append((value, event, index))
+                event_counts[event] = event_counts.get(event, 0) + 1
+                if len(selected) == BEST_RESULTS:
+                    break
+            performance = sum(r[0] for r in selected)
+            out[key] = dict(earned=max(seeds[key], performance), seed=seeds[key],
+                performance=performance, counted_wins=len(selected),
+                counted_events=len(event_counts),
+                replacement_threshold=selected[-1][0] if len(selected) == BEST_RESULTS else 0.0,
+                model=MODEL_VERSION, window_days=RESULT_DAYS,
+                best_results=BEST_RESULTS, max_wins_per_event=MAX_WINS_PER_EVENT)
+        return out
+
+    def participation_value(self, team_id: str, as_of: str) -> dict:
+        """Explain the counted sample and the weakest result an event can replace."""
+        return self._summaries({team_id}, as_of)[team_id]
+
+    def can_improve(self, team_id: str, weight: float, as_of: str) -> bool:
+        # Use the best possible opponent share. We decline for zero ranking
+        # utility only when even that upper bound cannot enter the best ten.
+        summary = self.participation_value(team_id, as_of)
+        return summary['counted_wins'] < BEST_RESULTS or float(weight) * 305.0 > summary['replacement_threshold']
 
     def live(self, team_id: str, as_of: str) -> float:
         return points_from_earned(self.earned(team_id, as_of))
 
     def table(self, teams: list[dict], as_of: str) -> list[dict]:
-        # One pass in original result order gives exactly the same per-team
-        # floating-point sums as earned(), without rescanning every historical
-        # series for every club. No persistent cache: transfers, awards, decay
-        # and edited team lists must be visible on the very next call.
-        totals = {t['id']: 0.0 for t in teams}
-        today = parse_date(as_of)
-        weights = {}
-        for result in self.results:
-            key = result['team']
-            if key not in totals:
-                continue
-            stamp = result['date']
-            if stamp not in weights:
-                weights[stamp] = decay((today - parse_date(stamp)).days)
-            totals[key] += result['points'] * weights[stamp]
+        totals = self._summaries({t['id'] for t in teams}, as_of)
         rows = [
             {
                 "id": t["id"],
                 "name": t["name"],
                 "region": t["region"],
-                "vrs": points_from_earned(totals[t['id']]),
+                "vrs": points_from_earned(totals[t['id']]['earned']),
             }
             for t in teams
         ]
@@ -119,7 +159,6 @@ class VRS:
         vw = max(80.0, self.live(winner["id"], as_of))
         vl = max(80.0, self.live(loser["id"], as_of))
         share_w = (vl + 90.0) / (vw + vl + 180.0)
-        share_l = (vw + 90.0) / (vw + vl + 180.0)
         self.results.append(
             {
                 "team": winner["id"],
@@ -135,7 +174,7 @@ class VRS:
             {
                 "team": loser["id"],
                 "date": as_of,
-                "points": round(weight * (28.0 + 110.0 * share_l), 1),
+                "points": 0.0,
                 "kind": "loss",
                 "opp": winner["id"],
                 "event": event,

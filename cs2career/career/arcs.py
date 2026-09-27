@@ -29,13 +29,22 @@ LIMITS = {'focus_reward': (0,100), 'na_bonus': (0,100), 'marriage_days': (1,3650
           'press_bad_rating': (.2,2.5), 'press_good_rating': (.2,2.5), 'return_partner_days': (1,365),
           'na_first_year_days': (1,3650), 'na_return_days': (1,3650),
           'na_min_maps': (1,5000), 'na_min_rating': (.2,2.5),
-          'major_favourite_rank': (1,64), 'major_contender_rank': (1,64)}
+          'major_favourite_rank': (1,64), 'major_contender_rank': (1,64), 'offseason_days': (1,90)}
 
 
 @lru_cache(maxsize=1)
 def base_config():
     cfg=json.loads(data_file('career_arcs.json').read_text('utf-8'))
+    from .localization import enrich
+    cfg=enrich('career_arcs',cfg)
     cfg['reports']=json.loads(data_file('career_news.json').read_text('utf-8'))
+    cfg['rules'].setdefault('offseason_days', 21)
+    exits=json.loads(data_file('major_exit_stories.json').read_text('utf-8'))['stories']
+    for key, content in exits.items():
+        choices = (deepcopy(cfg['chapters']['press']['choices']) if key.endswith('_below') else
+                   [dict(id='continue', label='收好外设，回去准备下一段赛程。',
+                         label_en='Pack up and prepare for the next part of the season.', action='continue')])
+        cfg['chapters']['major_exit_'+key] = {**content, 'choices': choices}
     return cfg
 
 
@@ -46,12 +55,14 @@ def validate_overrides(raw):
     reports=raw.get('reports',{})
     keys(reports,set(base_config()['reports']))
     for item in reports.values():
-        keys(item,{'title','text'})
-        if 'title' in item:text(item['title'],160)
-        if 'text' in item:
-            if not isinstance(item['text'],list) or not 1<=len(item['text'])<=30:
-                raise ValueError('报道text需要1—30套文案')
-            for line in item['text']:text(line,5000)
+        keys(item,{'title','text','title_en','text_en'})
+        for field in ('title','title_en'):
+            if field in item:text(item[field],160)
+        for field in ('text','text_en'):
+            if field in item:
+                if not isinstance(item[field],list) or not 1<=len(item[field])<=30:
+                    raise ValueError('报道text需要1—30套文案')
+                for line in item[field]:text(line,5000)
     rules = raw.get('rules', {})
     keys(rules, set(LIMITS) | {'injury_monthly_rates','lvg_team_name','na_success_types'})
     for key, value in rules.items():
@@ -73,7 +84,11 @@ def validate_overrides(raw):
     chapters = raw.get('chapters', {})
     if not isinstance(chapters,dict) or len(chapters)>200: raise ValueError('chapters须为至多200项对象')
     for key, chapter in chapters.items():
-        identifier(key); keys(chapter, {'title','text','choices'})
+        identifier(key); keys(chapter, {'title','text','choices','title_en','text_en'})
+        if 'title_en' in chapter: text(chapter['title_en'],200)
+        if 'text_en' in chapter:
+            if not isinstance(chapter['text_en'],list) or not 1<=len(chapter['text_en'])<=30: raise ValueError('text_en需要1—30套文案')
+            for line in chapter['text_en']:text(line,10000)
         if 'title' in chapter: text(chapter['title'],100)
         if 'text' in chapter:
             if not isinstance(chapter['text'],list) or not 1<=len(chapter['text'])<=30: raise ValueError('text需要1—30套完整文案')
@@ -85,7 +100,8 @@ def validate_overrides(raw):
             known = {r['id']:r for r in base_config()['chapters'].get(key,{}).get('choices',[])}
             ids = set()
             for choice in chapter['choices']:
-                keys(choice, {'id','label','reward','next','action','ending','branches'})
+                keys(choice, {'id','label','label_en','reward','next','action','ending','branches'})
+                if 'label_en' in choice:text(choice['label_en'],240)
                 identifier(choice.get('id'))
                 if choice['id'] in ids: raise ValueError('章节选项id重复')
                 ids.add(choice['id'])
@@ -143,16 +159,27 @@ def _config(registry):
         cfg['rules'].update(extra.get('rules',{}))
         cfg['endings'].update(extra.get('endings',{}))
         for key,item in extra.get('reports',{}).items():
-            cfg['reports'][key].update(deepcopy(item))
+            old=cfg['reports'][key]
+            for field in ('title','text'):
+                if field in item and field+'_en' not in item:old.pop(field+'_en',None)
+            old.update(deepcopy(item))
         for key, chapter in extra.get('chapters',{}).items():
             old = cfg['chapters'].setdefault(key,{})
             for field in ('title','text'):
+                if field in chapter and field+'_en' not in chapter:old.pop(field+'_en',None)
+            for field in ('title','text','title_en','text_en'):
                 if field in chapter: old[field] = deepcopy(chapter[field])
             if 'choices' in chapter:
                 if key not in base_config()['chapters']: old['choices'] = deepcopy(chapter['choices'])
                 else:
                     byid = {c['id']:c for c in chapter['choices']}
-                    old['choices'] = [{**c, **byid.get(c['id'],{})} for c in old['choices']]
+                    choices=[]
+                    for choice in old['choices']:
+                        change=byid.get(choice['id'],{})
+                        merged={**choice,**deepcopy(change)}
+                        if 'label' in change and 'label_en' not in change:merged.pop('label_en',None)
+                        choices.append(merged)
+                    old['choices']=choices
     return cfg
 
 
@@ -185,7 +212,7 @@ def initialize(c,s,payload=None):
 
 def queue(c,s,chapter,occurrence,context=None,frozen=None):
     v=state(c); sid='arc:'+chapter+':'+hashlib.sha256(str(occurrence).encode()).hexdigest()[:20]
-    if not v or sid in v['seen'] or any(r.get('id')==sid for r in c.story_queue): return
+    if not v or sid in v['seen'] or c._queued(sid): return
     cfg=deepcopy(config())
     if frozen:
         cfg['chapters'].update(frozen.get('chapters',{}));cfg['endings'].update(frozen.get('endings',{}))
@@ -193,10 +220,16 @@ def queue(c,s,chapter,occurrence,context=None,frozen=None):
         'na_min_maps':cfg['rules']['na_min_maps'],'na_min_rating':f"{cfg['rules']['na_min_rating']:.2f}",
         'na_first_year_days':cfg['rules']['na_first_year_days'],'na_return_days':cfg['rules']['na_return_days'],
         'partner':PARTNERS.get(v.get('partner'), '伴侣'), **(context or {})}
+    from .localization import translate
+    english_ctx={**ctx, **{k[:-3]:v for k,v in ctx.items() if k.endswith('_en')}}
+    for key in ('partner','opinion','support','assessment'):
+        if key in english_ctx:english_ctx[key]=translate(english_ctx[key])
     choices=node['choices']
     for choice in choices:
         choice['reward']=int(choice.get('reward', cfg['rules']['focus_reward'] if choice.get('focus') else 0))
         choice['label']=render(choice['label'],ctx) + (f"（属性点+{choice['reward']}）" if choice['reward'] else '')
+        if choice.get('label_en'):
+            choice['label_en']=render(choice['label_en'],english_ctx)+(f" (+{choice['reward']} attribute points)" if choice['reward'] else '')
         choice['action']=choice.get('action','continue')
         if choice.get('action')=='finish':
             choice['ending_content']=deepcopy(cfg['endings'][choice['ending']])
@@ -224,13 +257,28 @@ def queue(c,s,chapter,occurrence,context=None,frozen=None):
         title=render(node['title'],ctx),text=render(node['text'][int(roll(c,sid+'text')*len(node['text']))],ctx),
         choices=choices,context=ctx,date=s.date,team_id=c.team_id,
         arc_rules=deepcopy(cfg['rules']), arc_followups=dict(chapters=custom,endings=endings),chance=roll(c,chance_key)))
+    row=c.story_queue[-1]
+    for field in ('title_en','text_en'):
+        value=node.get(field)
+        if value:
+            if isinstance(value,list):value=value[int(roll(c,sid+'text')*len(value))]
+            row[field]=render(value, english_ctx)
+    if chapter=='reunion':row['timing']='match'
+    from .story_timing import reconcile
+    reconcile(c,s)
 
 
-def notice(c,s,title,text,occurrence):
+def notice(c,s,title,text,occurrence,*,title_en=None,text_en=None):
     sid='arc-notice:'+occurrence
     if c._queued(sid): return
-    c.story_queue.append(dict(id=sid,kind='story',title=title,text=text,when='arc_reaction'))
-    state(c).setdefault('history',[]).append(dict(id=sid,date=s.date,title=title,text=text))
+    from .localization import translate
+    title_en=title_en or (translate(title) if translate(title)!=title else None)
+    text_en=text_en or (translate(text) if translate(text)!=text else None)
+    localized={key:value for key,value in (('title_en',title_en),('text_en',text_en)) if value is not None}
+    c.story_queue.append(dict(id=sid,kind='story',title=title,text=text,when='arc_reaction',**localized))
+    state(c).setdefault('history',[]).append(dict(id=sid,date=s.date,title=title,text=text,**localized))
+    from .story_timing import reconcile
+    reconcile(c,s)
 
 
 def finish(c,s,ending,item=None):
@@ -240,7 +288,7 @@ def finish(c,s,ending,item=None):
     for mail in c.inbox:
         if mail.get('status')=='open' and mail.get('kind') in ('invite','contract'): mail['status']='expired'
     state(c)['heat']=False
-    notice(c,s,item['title'],item['text'],'ending:'+ending)
+    notice(c,s,item['title'],item['text'],'ending:'+ending,title_en=item.get('title_en'),text_en=item.get('text_en'))
     c.log.append('生涯结局：'+item['title'])
 
 
@@ -397,7 +445,9 @@ def resolve(c,s,row,choice_id):
         c.attr_points+=reward;v['rewarded'].append(reward_key)
         c.log.append(f"{row['title']}：属性点 +{reward}")
     v['seen'].append(sid)
-    v['history'].append(dict(id=sid,date=s.date,title=row['title'],text=row['text'],choice=choice['label']))
+    v['history'].append(dict(id=sid,date=s.date,title=row['title'],text=row['text'],choice=choice['label'],
+                             **{k:row[k] for k in ('title_en','text_en') if row.get(k)},
+                             **({'choice_en':choice['label_en']} if choice.get('label_en') else {})))
     if choice.get('next') and not c.over():queue(c,s,choice['next'],sid,ctx,row.get('arc_followups'))
 
 
@@ -434,7 +484,7 @@ def on_series(c,s,ev,match):
                             win=match.get('winner')==team['name'],maps=maps,role=c.role))
     na_progress(c,commit=True)
     v['series']=v['series'][-300:]
-    if v['romance']=='waiting' and not v['na']:queue(c,s,'romance_start','first-series')
+    # First romance belongs to the first completed Major break, not match one.
     if key in v.get('reunion_choices',{}):
         line='对面赛后主动过来握手：“今天你们打得好。下一次我们会准备得更充分。”' if match.get('winner')==team['name'] else '旧队赢下了比赛，但握手时没有再追着赛前的话不放：“下次见，继续加油。”'
         notice(c,s,'握手的时候',line,key+':reunion-result')
@@ -463,14 +513,14 @@ def check_press(c,s):
 
 def event_open(c,s,ev):
     if not active(c):return
-    field=set(ev.get('field',[])); teams=[t for t in s.teams if t['name'] in field]
-    ordered=sorted(teams,key=lambda t:(-sum(playing_ability(p) for p in t['players'])/5,t['id']))
-    ev['arc_expectations']={t['id']:i+1 for i,t in enumerate(ordered)}
+    from .major_reaction import freeze
+    freeze(ev,s.teams)
 
 
 def event_done(c,s,ev):
+    from .story_timing import open_major_break, reconcile
+    if c and c.exists and not c.over():open_major_break(c,s,ev)
     if not active(c):return
-    from ..league.awards import placements
     v=state(c);key=key_for(s,ev)
     if key in v.setdefault('finished_events',[]):return
     v['finished_events'].append(key)
@@ -479,8 +529,11 @@ def event_done(c,s,ev):
         winner=ev.get('champion')==(mine or {}).get('name')
         v['events'].append(dict(key=key,date=s.date,type=ev.get('type'),winner=winner,name=ev.get('name','赛事'),
                                wins=sum(r['win'] for r in participated),team_id=c.team_id))
-        if v['romance']=='dating' and len(v['events'])>=2 and not v.get('pace'):queue(c,s,'romance_pace','second-event')
+        if v['romance']=='dating' and len([e for e in v['events'] if e['date']>=v.get('romance_started','')])>=2 and not v.get('pace'):queue(c,s,'romance_pace','second-event')
     if ev.get('type')=='major':
+        if v['romance']=='waiting' and not v['na']:
+            queue(c,s,'romance_start','first-major-break')
+        reconcile(c,s)
         champion=ev.get('champion') or '未知队伍'; mvp=(ev.get('awards') or {}).get('mvp') or {}
         champ_team=next((t for t in s.teams if t['name']==champion),{})
         rank=ev.get('arc_expectations',{}).get(champ_team.get('id'),99)
@@ -489,36 +542,52 @@ def event_done(c,s,ev):
         context=dict(champion=champion,event=ev['name'],mvp=mvp.get('player') or '未公布',
                      roster='、'.join(ev.get('champion_roster',[])) or '历史阵容未记录',
                      final=f"{final.get('team_a','')} {final.get('series','')} {final.get('team_b','')}" if final else '决赛详情未记录')
-        title,text=report(c,'champion_favourite' if rank<=config()['rules']['major_favourite_rank'] else 'champion_surprise',key,context)
-        notice(c,s,title,text,key+':champion')
-        c._push_mail('news',s.date,{'title':title,'from':'Major赛事专栏','body':text},{'status':'closed','event_id':ev['id']})
+        report_kind='champion_favourite' if rank<=config()['rules']['major_favourite_rank'] else 'champion_surprise'
+        title,text=report(c,report_kind,key,context)
+        english_context={**context,'mvp':mvp.get('player') or 'Not announced',
+                         'roster':', '.join(ev.get('champion_roster',[])) or 'Historical roster not recorded',
+                         'final':context['final'] if final else 'Final details unavailable'}
+        title_en,text_en=report(c,report_kind,key,english_context,language='en')
+        notice(c,s,title,text,key+':champion',title_en=title_en,text_en=text_en)
+        c._push_mail('news',s.date,{'title':title,'from':'Major赛事专栏','body':text},
+            {'status':'closed','event_id':ev['id'],'title_en':title_en,'body_en':text_en,'from_en':'Major desk'})
         if v.get('heat') and s.date>=v.get('heat_since',''):
             v['heat']=False;notice(c,s,'热恋回到生活的节奏','这届Major已经结束，热恋带来的额外状态波动停止。接下来如何相处，仍取决于两个人的沟通。',key+':heat-end')
         if participated and mine:
-            spot=placements(ev).get(mine['name'],'stage');actual={'champion':0,'final':1,'sf':2,'qf':3}.get(spot,4)
-            # An actual personally played final loss, not merely belonging to
-            # a finalist club (nor a forfeit, bye or another team's final).
-            if (final.get('id') and not final.get('forfeit') and
-                mine['name'] in (final.get('team_a'),final.get('team_b')) and
-                final.get('winner') in (final.get('team_a'),final.get('team_b')) and
-                final['winner']!=mine['name'] and final['winner']!='BYE' and
-                any(row.get('key')==key_for(s,ev,final) for row in participated)):
-                queue(c,s,'major_final_loss',key,dict(event=ev['name'],team=mine['name'],
-                    opponent=final['winner'],final_score=f"{final['team_a']} {final.get('series') or '比分未记录'} {final['team_b']}"))
-            r=config()['rules']
-            rank=ev.get('arc_expectations',{}).get(mine['id'],99);expected=2 if rank<=r['major_favourite_rank'] else 3 if rank<=r['major_contender_rank'] else 4
-            mood='激动' if actual==0 or actual<expected else '失望' if actual>expected else '预料之中'
+            from .major_reaction import assess
+            reaction=assess(ev,mine,participated,key)
             maps=[m['rating'] for row in participated for m in row.get('maps',[]) if isinstance(m.get('rating'),(int,float)) and math.isfinite(m['rating'])]
-            context.update(team=mine['name'],player=c.player_name,rank=rank,
-                placement={'champion':'冠军','final':'亚军','sf':'四强','qf':'八强'}.get(spot,'未进八强'),
-                expected={2:'至少四强',3:'至少八强',4:'争取突破小组阶段'}[expected],
-                performance=f"{c.player_name}在已记录的{len(maps)}张地图中，地图平均Career Rating为{sum(maps)/len(maps):.2f}。" if maps else '本次未保存完整个人数据，本文不推测个人发挥。')
-            title,text=report(c,{'激动':'major_excited','失望':'major_disappointed','预料之中':'major_expected'}[mood],key,context)
-            c._push_mail('news',s.date,{'title':title,'from':'Major赛后观察','body':text},{'status':'closed','event_id':ev['id']})
-            if mood=='失望':opinion(c,s,text,key+':major')
-            else:notice(c,s,title,text,key+':opinion')
-            if mood=='失望':
-                v.setdefault('history',[]).append(dict(id='major-report:'+key,date=s.date,title=title,text=text))
+            if reaction:
+                v.setdefault('major_reactions',{})[key]=reaction
+                context.update(team=mine['name'],player=c.player_name,rank=reaction['rank'] or '未记录',
+                    placement=reaction['placement'],expected=reaction['expected_label'],
+                    expected_en=reaction['expected_en'],opponent=reaction['opponent'],final_score=reaction['final_score'],
+                    reward_key='press:'+key+':major',
+                    performance=f"{c.player_name}在已记录的{len(maps)}张地图中，地图平均Career Rating为{sum(maps)/len(maps):.2f}。" if maps else '本次未保存完整个人数据，本文不推测个人发挥。')
+                if reaction['mood']:
+                    report_kind={'激动':'major_excited','失望':'major_disappointed','预料之中':'major_expected'}[reaction['mood']]
+                    title,text=report(c,report_kind,key,context)
+                    english_context={**context,'expected':reaction['expected_en'],
+                        'placement':{'stage1':'Stage 1 exit','stage2':'Stage 2 exit','stage3':'Stage 3 exit',
+                            'quarter_final':'Quarter-final exit','semi_final':'Semi-final exit','final':'Runner-up',
+                            'champion':'Champion'}.get(reaction['exit'],'Completed'),
+                        'performance':f"{c.player_name} averaged a map Career Rating of {sum(maps)/len(maps):.2f} across {len(maps)} recorded maps." if maps else 'Individual map statistics are unavailable.'}
+                    title_en,text_en=report(c,report_kind,key,english_context,language='en')
+                else:
+                    title=f"{mine['name']}结束{ev['name']}征程"
+                    text=f"本届记录：{reaction['placement']}。\n\n{context['performance']}"
+                    title_en=f"{mine['name']} finish their {ev['name']} campaign"
+                    text_en=f"{c.player_name}: {len(maps)} recorded maps"+(f", average map Career Rating {sum(maps)/len(maps):.2f}." if maps else '. Individual statistics are unavailable.')
+                c._push_mail('news',s.date,{'title':title,'from':'Major赛后观察','body':text},
+                    {'status':'closed','event_id':ev['id'],'title_en':title_en,'body_en':text_en,'from_en':'Major review'})
+                # Keep one long report in mail/archive and one exit scene. Do
+                # not additionally replay the legacy final-loss/press notices.
+                v.setdefault('history',[]).append(dict(id='major-report:'+key,date=s.date,title=title,text=text,title_en=title_en,text_en=text_en))
+                if reaction['exit']=='champion':
+                    notice(c,s,title,text,key+':opinion',title_en=title_en,text_en=text_en)
+                elif reaction['comparison']:
+                    queue(c,s,'major_exit_'+reaction['exit']+'_'+reaction['comparison'],key,context)
+                    if reaction['comparison']=='below':v['last_press']=s.date
     check_politics(c,s)
 
 
@@ -607,8 +676,13 @@ def na_first_assessment(c,s,progress):
         assessment=f"你的正式比赛记录是{progress['maps']}张地图，地图平均Career Rating {rating}。"+
         ('个人表现已经达到了职业邀约的数据标准。我们看见了你的努力，也知道一个人打得好不一定立刻有冠军。' if progress['passed'] else '目前的样本量或个人表现，还没有达到约定的数据标准。这不是给你的天赋下结论，却是我们需要一起面对的现状。'))
     key='na-family:'+v['deadline']
+    ctx['achievement_en']='You won '+', '.join(e.get('name') or e.get('key') or e['type']+' tournament' for e in titles)
+    ctx['assessment_en']=(f"Your official record covers {progress['maps']} maps, with an average Career Rating of {rating}. " if progress['rating'] is not None else 'There are no valid official performance samples yet. ')+(
+        "Your individual performance meets the standard for a professional invitation. We see the work you've put in, and we know playing well doesn't always bring a title straight away." if progress['passed'] else
+        "Your sample size or individual performance hasn't reached the agreed standard yet. That isn't a verdict on your talent, but it is something we need to face together.")
     title,text=report(c,'family_support' if titles else 'family_return',key,ctx)
-    publish(c,s,key,title,text,sender='家里',popup=True)
+    title_en,text_en=report(c,'family_support' if titles else 'family_return',key,ctx,language='en')
+    publish(c,s,key,title,text,sender='家里',popup=True,title_en=title_en,text_en=text_en)
     if titles or progress['passed']:
         v['na']='invite_wait'
     else:
@@ -618,16 +692,19 @@ def na_first_assessment(c,s,progress):
 def tick(c,s):
     if not active(c):return
     v=state(c);r=config()['rules']
+    from .story_timing import window, reconcile
+    reconcile(c,s)
+    in_break=bool(window(c,s))
     from .transfers import locked
     team=c.my_team(s.teams)
     # Do not present a blocking roster decision which can only be resolved
     # after finishing the very tournament the decision would prevent playing.
     roster_busy=bool(c.training_session or (team and locked(s,team)))
-    if not roster_busy:check_politics(c,s)
+    if in_break and not roster_busy:check_politics(c,s)
     if v['romance']=='dating' and v.get('pace') and after(v['romance_started'],r['marriage_days'])<=s.date:
         queue(c,s,'marriage','six-months')
     na=v.get('na','')
-    if na in ('study','pro','returned') and s.date>=v['deadline'] and not roster_busy and not any(x.get('choices') for x in c.story_queue):
+    if in_break and na in ('study','pro','returned') and s.date>=v['deadline'] and not roster_busy and not any(x.get('choices') for x in c.story_queue):
         progress=na_progress(c,commit=True)
         if na in ('study','pro'):na_first_assessment(c,s,progress)
         else:
@@ -637,14 +714,15 @@ def tick(c,s):
             v['na']='achieved';queue(c,s,'dota_partner','return-success')
     # Never let an invitation lock the player out of advancing the tournament
     # the target club must first finish. The family letter is already readable.
-    if v.get('na')=='invite_wait' and not roster_busy and not any(x.get('choices') for x in c.story_queue):
+    if in_break and v.get('na')=='invite_wait' and not roster_busy and not any(x.get('choices') for x in c.story_queue):
         target=next((t for t in s.teams if t['name']==r['lvg_team_name']),None)
         if not target or not locked(s,target):
             queue(c,s,'lvg_invite','anniversary');v['na']='lvg_pending'
             row=next((x for x in c.story_queue if x.get('arc')=='lvg_invite'),None)
             if row:
                 from .news import publish
-                publish(c,s,'na-invite:'+v['deadline'],row['title'],row['text'],sender=r['lvg_team_name'])
+                publish(c,s,'na-invite:'+v['deadline'],row['title'],row['text'],sender=r['lvg_team_name'],
+                        title_en=row.get('title_en'),text_en=row.get('text_en'))
     if v.get('na')=='returned' and s.date>=after(v['returned'],r['return_partner_days']) and v.get('partner')!='dota':
         queue(c,s,'dota_partner','home-meeting')
     injury=v.get('injury_active',{})
@@ -682,7 +760,8 @@ def tick(c,s):
 def public(c):
     v=state(c)
     out={k:deepcopy(v.get(k)) for k in ('enabled','na','deadline','romance','partner','heat','injury_active')}
-    out['history']=deepcopy(v.get('history',[])[-30:])
+    from .localization import present
+    out['history']=[present(r) for r in deepcopy(v.get('history',[])[-30:])]
     out['na_bonus']=config()['rules']['na_bonus']
     if v.get('na') in ('study','pro','returned'):
         out['na_progress']=na_progress(c)
@@ -695,5 +774,6 @@ def history_page(c, page=1):
     """Paginate saved text, not reconstructed/re-simulated historical scenes."""
     if page<1:raise ValueError('页码应为正整数')
     rows=state(c).get('history',[]);end=max(0,len(rows)-(page-1)*20)
-    return dict(rows=deepcopy(list(reversed(rows[max(0,end-20):end]))),page=page,
+    from .localization import present
+    return dict(rows=[present(r) for r in deepcopy(list(reversed(rows[max(0,end-20):end])))],page=page,
                 pages=max(1,(len(rows)+19)//20),total=len(rows))

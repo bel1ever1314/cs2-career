@@ -185,11 +185,12 @@ def _side_lines(
         if (row.get("team") or "").lower() != side:
             continue
         player = _pick_roster(row.get("name") or "", team["players"], human_name, row.get("is_bot"), row.get("player_id") or "")
-        if not player or player["name"] in used:
+        identity = (player.get('player_id') or player['name']) if player else ''
+        if not player or identity in used:
             continue
         if role_by_id is not None:
             player = dict(player, role=role_by_id.get(player.get('player_id') or stable_player_id(player['name']),''))
-        used.add(player["name"])
+        used.add(identity)
         out.append(
             _line(player, row, rounds)
         )

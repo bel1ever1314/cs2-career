@@ -24,4 +24,38 @@
 .event-auto-overlay.awaiting-story {z-index:75;}
 .event-auto-card .bracket-node.mine {border:2px solid #f4b566;box-shadow:0 0 18px #b7774433;}
 .event-auto-score {min-height:50px;text-align:center;font-size:clamp(20px,3vw,36px);color:#f2c78b;font-variant-numeric:tabular-nums;}
+.season-mode {margin-bottom:16px;border-color:#8c6f49;}
+.season-mode .btn {white-space:normal;line-height:1.5;}
+.season-run {position:sticky;top:60px;z-index:4;margin-bottom:16px;box-shadow:0 8px 20px #0003;}
+.season-run .row {flex-wrap:wrap;}
+.season-run p {margin:9px 0;}
+.season-latest-score {font-size:19px;color:#efc78c;font-variant-numeric:tabular-nums;}
+.season-timeline {max-width:1200px;margin:auto;border-left:2px solid #38404c;padding-left:20px;}
+.season-month {font-size:15px;margin:22px 0 12px;letter-spacing:1px;}
+.season-event {padding:14px 16px;margin-bottom:10px;}
+.season-event.mine {border-left:3px solid #d9ac65;}
+.season-event.live {background:#223146;}
+.season-event-head {display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.season-event-head time {font-size:12px;color:#91a0b4;min-width:112px;}
+.season-event-head>.text-link {font-size:15px;flex:1;text-align:left;min-width:180px;}
+.season-participation {font-size:12px;color:#acb8c8;}
+.season-event.mine .season-participation {color:#efc78c;}
+.season-results {display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.season-match {display:flex;flex-direction:column;gap:5px;align-items:flex-start;background:#111923;border:1px solid #354355;color:#c6d1e0;padding:8px 11px;border-radius:5px;cursor:pointer;}
+.season-match small {color:#90a1b6;}
+.season-match.pending {border-style:dashed;}
+.season-match:disabled {opacity:.85;cursor:default;}
+.mail-body {white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.75;margin:14px 0;}
+.mail-digest {display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px 24px;margin:12px 0;}
+.mail-digest h4 {margin:0 0 8px;color:#dac19f;}
+.mail-digest ul {padding-left:19px;margin:0;line-height:1.7;}
+.mail-digest li+li {margin-top:6px;}
+.home-notice {padding:10px 0;border-bottom:1px solid #354355;}
+.home-notice summary {cursor:pointer;display:flex;gap:10px;align-items:baseline;line-height:1.6;}
+.home-notice summary small {color:#94a5ba;flex-shrink:0;}
+.home-notice summary span {color:#dbc39f;}
+.home-notice .mail-body {font-size:13px;}
+.home-notice .mail-digest {grid-template-columns:1fr;}
+.activity-source {font-size:12px;letter-spacing:.5px;margin:16px 0 8px;color:#abb8c9;}
+@media(max-width:700px) {.season-run {position:static}.season-timeline {padding-left:10px}.season-event-head time {min-width:100%}.season-event-head>.text-link {min-width:100%}}
 @media(max-width:700px) {.watch-overlay {padding:10px}.watch-card {padding:16px;max-height:calc(100dvh - 20px)}.watch-score {gap:10px;margin:18px 0}.watch-card h2 {font-size:20px}.watch-top {letter-spacing:0}}

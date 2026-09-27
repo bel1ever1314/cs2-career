@@ -1,0 +1,9 @@
+{
+  "id": "example.phase-story",
+  "name": "比赛阶段事件示例",
+  "version": "1.0.0",
+  "schema_version": 1,
+  "description": "在第一张地图开打前触发一条可验证的战术决定；默认模板不启用。",
+  "types": ["incidents"],
+  "enabled": true
+}

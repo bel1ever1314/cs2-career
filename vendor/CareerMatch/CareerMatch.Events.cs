@@ -44,7 +44,9 @@ public sealed partial class CareerMatchPlugin
     {
         // A scene may span intermission and freeze time, never the next firefight.
         _chatPlayback.Cancel();
+        BeginOfficialRound("freeze_end");
         CaptureRoundPawns();
+        StartNaturalRound();
         return HookResult.Continue;
     }
 
@@ -203,6 +205,7 @@ public sealed partial class CareerMatchPlugin
     {
         if (!_roundLive || InWarmup()) return HookResult.Continue;
         if (ev.DmgHealth <= 0) return HookResult.Continue;
+        NaturalObserveCombat(ev.Attacker, ev.Userid, false);
         BindPlayerSlots();
         var victim = EventRow(ev.Userid);
         var attacker = EventRow(ev.Attacker, ev.Weapon);
@@ -219,6 +222,7 @@ public sealed partial class CareerMatchPlugin
     private HookResult OnPlayerDeath(EventPlayerDeath ev, GameEventInfo info)
     {
         if (!_roundLive || InWarmup()) return HookResult.Continue;
+        NaturalObserveCombat(ev.Attacker, ev.Userid, true);
         BindPlayerSlots();
         var victim = EventRow(ev.Userid);
         if (victim is null) return HookResult.Continue;

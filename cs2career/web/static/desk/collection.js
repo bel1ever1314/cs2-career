@@ -41,7 +41,7 @@
        else{const current=S.career.skins.market.find(x=>x.id===p.id)||p;dialog(current,kind);images($('collection-modal'));}
      }catch(error){toast('购买失败：'+error.message,true);e.target.disabled=false;}
    };
-   if($('collection-sell'))$('collection-sell').onclick=async()=>{if(confirm(`出售 ${p.name}，获得 ${money(p.sell)}？`)){await command('/api/skins/sell',{id:p.id});closeModal();}};
+   if($('collection-sell'))$('collection-sell').onclick=async()=>{const question=`出售 ${p.name}，获得 ${money(p.sell)}？`;if(confirm(window.CareerI18n?.t(question)??question)){await command('/api/skins/sell',{id:p.id});closeModal();}};
    box.querySelector('.close-detail').focus();
  }
  function images(host){host.querySelectorAll('.skin-photo img').forEach(img=>{img.onerror=()=>{img.hidden=true;img.parentElement.querySelector('.skin-placeholder').hidden=false;};if(img.complete&&!img.naturalWidth)img.onerror();});}

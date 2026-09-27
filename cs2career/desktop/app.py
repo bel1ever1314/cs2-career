@@ -91,7 +91,7 @@ class DesktopApp(Pages, tk.Tk):
         footer = tk.Frame(self.sidebar,bg=SIDEBAR)
         footer.pack(side="bottom",fill="x",padx=22,pady=12)
         label(footer,"●  本地生涯",size=9,color=GREEN).pack(anchor="w")
-        label(footer,"DESKTOP / 1.5.0",size=8,color=DIM,display=True).pack(anchor="w",pady=(5,0))
+        label(footer,"DESKTOP / 1.6.0",size=8,color=DIM,display=True).pack(anchor="w",pady=(5,0))
         self.right = tk.Frame(self,bg=BG)
         self.right.pack(side="left",fill="both",expand=True)
         self.topbar = tk.Frame(self.right,bg=BG,height=74)

@@ -171,7 +171,9 @@ class PersonalTransferTests(unittest.TestCase):
         self.assertEqual('expired',row['status'])
 
     def test_transfer_hooks_do_not_deadlock_decision_and_extend_with_flags(self):
-        payload={'schema_version':1,'_pack_id':'transfer.test','incidents':[dict(id='joined',when='transfer_joined',title='欢迎 {player}',
+        # Explicitly immediate: ordinary transfer fiction now waits for a
+        # Major break, while an extension can request an actionable hook.
+        payload={'schema_version':1,'_pack_id':'transfer.test','incidents':[dict(id='joined',when='transfer_joined',timing='match',title='欢迎 {player}',
             text='{old_team} → {new_team}',choices=[dict(id='promise',label='努力',effects=[dict(type='flag',key='promised',value=True)])])]}
         validate_payload('incidents',{k:v for k,v in payload.items() if k!='_pack_id'})
         registry=SimpleNamespace(payloads=lambda _: [payload])

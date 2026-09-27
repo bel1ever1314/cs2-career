@@ -28,6 +28,8 @@ TRIGGERS = (
 
 def load_stories() -> list[dict]:
     raw = json.loads(data_file("stories.json").read_text(encoding="utf-8"))
+    from .localization import enrich
+    raw = enrich('stories',raw)
     try:
         from ..content import get_registry
 
@@ -81,12 +83,17 @@ def render(story: dict, ctx: dict) -> dict:
     except (KeyError, ValueError):
         text = story.get("text") or ""
         title = story.get("title") or ""
-    return {
+    out = {
         "id": story["id"],
         "when": story["when"],
         "title": title,
         "text": text,
     }
+    for field in ('title_en','text_en'):
+        if story.get(field):
+            try:out[field]=story[field].format_map(mapping)
+            except (KeyError,ValueError):out[field]=story[field]
+    return out
 
 
 def collect(ctx: dict, seen: set[str], queued: set[str]) -> list[dict]:

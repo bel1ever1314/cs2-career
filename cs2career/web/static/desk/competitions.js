@@ -1,6 +1,12 @@
 /* Tournament graph and box scores consume saved engine data, not UI forecasts. */
 (() => {
  const ui=CareerUI;
+ function provenance(ev){
+   const p=ev.provenance;if(!p)return '';
+   const known=p.status==='verified_edition',dates=Array.isArray(ev.real_event_dates)?ev.real_event_dates:[];
+   const sources=(p.sources||[]).filter(x=>typeof x==='string'&&/^https:\/\//i.test(x));
+   return `<details class="card event-provenance"><summary>${known?'真实赛事 · 查看资料来源':'未来赛季 · 模拟赛事'}</summary>${known?'<p>已核验赛事名称与真实举办日期；游戏中的参赛名单、奖金和赛制可能经过适配。</p>':'<p>此赛事用于尚未发生的未来赛季，属于生涯模拟内容。</p>'}${dates.length?`<p><span>真实举办日期：</span><span>${esc(dates.join(' — '))}</span></p>`:''}${p.simulation_adaptations?`<p class="hint">${esc(p.simulation_adaptations)}</p>`:''}${ev.simulation_note?`<p class="hint">${esc(ev.simulation_note)}</p>`:''}${sources.length?`<div class="filterbar">${sources.map((url,i)=>`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer"><span>资料来源</span> ${i+1} ↗</a>`).join('')}</div>`:''}</details>`;
+ }
  function stats(lines){
    if(!lines?.length)return ui.empty('没有保存这支队伍的选手战绩。');
    return `<div class="table-scroll"><table class="box-score"><thead><tr><th>选手</th><th>K</th><th>D</th><th>A</th><th>伤害</th><th>ADR</th><th>KAST</th><th>首杀/首死</th><th>Rating</th></tr></thead><tbody>${[...lines].sort((a,b)=>(b.rating||0)-(a.rating||0)).map(p=>`<tr class="${p.name===S.career?.player_name?'me':''}"><td>${ui.link('player',p.resolved_player_id||p.player_id||p.name,p.name)}</td><td>${ui.num(p.k)}</td><td>${ui.num(p.d)}</td><td>${ui.num(p.a)}</td><td>${ui.num(p.damage)}</td><td>${ui.num(p.adr,1)}</td><td>${p.kast==null?'—':ui.num(p.kast*100,1)+'%'}</td><td>${ui.num(p.opening_kills)} / ${ui.num(p.opening_deaths)}</td><td class="rating">${ui.num(p.rating,2)}</td></tr>`).join('')}</tbody></table></div>`;
@@ -85,10 +91,11 @@
    const tab=r.tab||'graph';
    const dates=ev.dates||[], dateLabel=dates.length>1?`${dates[0]} — ${dates[dates.length-1]}`:dates[0]||'';
    let h=ui.head(ev.name,`${dateLabel} · ${FORMAT[ev.resolved_format||ev.format]||ev.format||'历史赛事'} · ${STATUS[ev.status]||'已结束'} · 奖金 ${money(ev.prize||0)}`);
+   h+=provenance(ev);
    if(Array.isArray(directory))h+=`<div class="filterbar"><label>本季与历史赛事 <select id="event-directory">${[...directory].sort((a,b)=>(b.dates?.[0]||'').localeCompare(a.dates?.[0]||'')).map(e=>`<option value="${esc(e.id)}" ${e.id===ev.id?'selected':''}>${esc(e.dates?.[0]||'日期未知')} · ${esc(e.name)} · ${esc(STATUS[e.status]||'已结束')}</option>`).join('')}</select></label></div>`;
    h+=ui.tabs([['graph','赛制进程'],['list','比赛列表'],['field','参赛队伍'],['awards','赛事荣誉']],tab);
    if(ev.status!=='done' && !ev.archived && ((ev.field||[]).includes(myTeamName()) || (S.career?.registered||[]).includes(ev.legacy_id||String(ev.id||'').split('::').pop())))
-     h+='<div class="filterbar"><button class="btn primary" id="event-auto-start">自动模拟本届赛事 / 继续</button><span class="hint">遇到事件、生死战或决赛时暂停，由你选择。</span></div>';
+     h+='<div class="filterbar"><button class="btn primary" id="event-auto-start">自动模拟本届赛事 / 继续</button><span class="hint">比赛只在决赛暂停询问；需要选择的事件仍由你处理。</span></div>';
    if(tab==='field')h+=`<div class="team-grid">${(ev.field||[...new Set(ev.matches.flatMap(m=>[m.team_a,m.team_b]))]).filter(t=>t!=='BYE').map(t=>`<div class="card">${crest(t,36)} ${ui.link('team',t,t)}</div>`).join('')}</div>`;
    else if(tab==='awards')h+=`<div class="card"><h3>冠军</h3>${ev.champion?ui.link('team',ev.champion,ev.champion):'尚未产生'}<h3>MVP</h3>${ev.awards?.mvp?ui.link('player',ev.awards.mvp.player,ev.awards.mvp.player):'尚未产生'}<h3>EVP</h3>${(ev.awards?.evp||[]).map(p=>ui.link('player',p.player,p.player)).join(' · ')||'尚未产生'}<h3>最佳阵容</h3><p class="hint">按本届赛事已记录的主要位置分别评选。旧战报缺少位置时不猜测补位。</p>${(ev.awards?.five||[]).map(p=>`<p>${esc(ROLE[p.role]||'旧记录未注明位置')} · ${ui.link('player',p.player_id||p.player,p.player)} · Rating ${ui.num(p.rating,2)}</p>`).join('')||'尚未产生'}</div>`;
    else if(!ev.matches?.length)h+=ui.empty('对阵尚未生成。接受邀请并推进至开赛后显示；未确定的对手不会被虚构。');

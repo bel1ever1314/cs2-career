@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "revision": "2026-09-27.1",
+  "note": "Independent local game ladder, not FACEIT connectivity or an official ranking. UI displays Elo only. Provenance stays here. Historical snapshots are intentionally fixed; unlisted players use the game curve. Never reseed a player after their first queue.",
+  "origins": {"street": 1400, "academy": 2200, "prodigy": 3000},
+  "ability_curve": [[45, 700], [55, 1200], [60, 1600], [68, 2200], [78, 3000], [85, 3500], [90, 3900], [95, 4400], [100, 4700]],
+  "match_bands": [200, 400, 600, 900, 1200],
+  "veto_maps": ["dust2", "mirage", "inferno", "nuke", "ancient", "overpass", "train"],
+  "sources": {
+    "bo3-2025-07-21": {"url": "https://bo3.gg/news/donk-wins-fifth-faceit-season-sets-elo-record", "date": "2025-07-21", "kind": "reported_snapshot", "note": "Values reported on this date, not a claim of the official final season standings. Other reports give different final totals."},
+    "metizport-2025-11-18": {"url": "https://metizport.com/mail09-wins-faceit-season-6-in-historical-feat", "date": "2025-11-18", "kind": "team_reported_snapshot", "note": "Team announcement quotes current Elo 5403, not the title-clinching or career peak value."},
+    "levels": {"url": "https://support.faceit.com/hc/en-us/articles/10525200579740-FACEIT-CS2-Elo-and-skill-levels", "date": "2025-04-01", "kind": "official", "note": "Level thresholds only. Our seed curve and K=32 Elo formula are local game rules."}
+  },
+  "players": [
+    {"name": "donk", "elo": 5360, "source": "bo3-2025-07-21"},
+    {"name": "kyousuke", "elo": 4967, "source": "bo3-2025-07-21"},
+    {"name": "m0NESY", "elo": 4879, "source": "bo3-2025-07-21"},
+    {"name": "MaiL09", "elo": 5403, "source": "metizport-2025-11-18"}
+  ]
+}

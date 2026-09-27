@@ -16,6 +16,14 @@ from .world import apply_roles
 
 
 class ApplicationState:
+    @property
+    def arena(self):
+        """One local ladder store; never included in career settlement/saves."""
+        if not hasattr(self, '_arena'):
+            from .arena import Arena
+            self._arena = Arena()
+        return self._arena
+
     def __init__(self) -> None:
         self._recover_personal_command()
         self.season = Season.load_or_new()
@@ -26,10 +34,17 @@ class ApplicationState:
         for player in [*self.career.free, self.career.you_card or {}]:
             role_upgrade = ensure_role_calibration(player) or role_upgrade
             refresh_player_ability(player)
-        if role_upgrade:
+        if role_upgrade or getattr(self.season, '_calendar_changed', False):
             self.backup()  # Back up the original pair before optional v2 fields are saved.
         dirty = bool(getattr(self.season, "_calendar_changed", False))
         dirty = dirty or role_upgrade
+        obsolete=set(getattr(self.season, '_calendar_removed_ids', ())) | set(getattr(self.season, '_calendar_replaced_ids', ()))
+        if obsolete:
+            self.career.registered=[eid for eid in self.career.registered if eid not in obsolete]
+            for row in self.career.inbox:
+                if row.get('kind')=='invite' and row.get('event_id') in obsolete:
+                    row.update(kind='calendar_notice', status='expired', calendar_legacy=True)
+            for eid in obsolete:self.season.qualified.pop(eid,None)
         if self.career.exists:
             if self.career.fix_placeholder_mates(self.season):
                 dirty = True
@@ -83,6 +98,10 @@ class ApplicationState:
             self.career._dispatch_contracts(self.season)
         elif not self.career.unsigned and not self.career.over():
             self.career.dispatch_invites(self.season)
+        from .career.story_timing import reconcile
+        from .career.notifications import reconcile as file_notices
+        dirty = file_notices(self.career, self.season) or dirty
+        dirty = reconcile(self.career, self.season) or dirty
         return dirty or len(self.career.inbox) != before
 
     def sync(self) -> None:
@@ -95,6 +114,7 @@ class ApplicationState:
             self.career.apply_throw_flag(self.season)
 
     def payload(self, msg: str = "") -> dict:
+        from .career.localization import present
         self.sync()
         ingested = ""
         try:
@@ -108,13 +128,19 @@ class ApplicationState:
             "ok": True,
             "msg": msg,
             "state": self.season.public(),
-            "stories": list(self.career.story_queue or []),
+            "stories": [present(r) for r in self.career.story_queue or []],
         }
 
     def persist(self) -> None:
         from .career.assistance import process_invites, process_points
+        from .career.story_timing import reconcile
+        from .career.notifications import reconcile as file_notices
+        file_notices(self.career, self.season)
+        reconcile(self.career, self.season)
         process_invites(self.career, self.season)
         process_points(self.career, self.season)
+        reconcile(self.career, self.season)
+        file_notices(self.career, self.season)
         self.season.save()
         self.career.save()
 

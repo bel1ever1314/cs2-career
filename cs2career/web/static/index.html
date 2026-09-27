@@ -8,6 +8,9 @@
 <link rel="stylesheet" href="desk.css?v=1">
 <link rel="stylesheet" href="theme.css?v=2">
 <link rel="stylesheet" href="desk/spectator.css?v=1">
+<link rel="stylesheet" href="desk/i18n.css?v=160">
+<link rel="stylesheet" href="desk/quick-stage.css?v=160">
+<link rel="stylesheet" href="desk/arena.css?v=160">
 </head>
 <body>
 <div class="app">
@@ -27,6 +30,7 @@
 
     <div class="nav-group">
       <h5>赛场</h5>
+      <button data-view="arena">对战大厅</button>
       <button data-view="schedule">赛程</button>
       <button data-view="event">赛事</button>
       <button data-view="ranking">世界排名</button>
@@ -41,6 +45,7 @@
       <button data-view="cases">武器箱</button>
     </div>
     <div class="nav-group"><h5>系统</h5><button data-view="workshop">扩展工坊</button><button data-view="settings">游戏设置</button></div>
+    <label class="language-switch"><span>语言</span><select data-career-language aria-label="界面语言"><option value="zh-CN" translate="no">简体中文</option><option value="en" translate="no">English</option></select></label>
     <div class="side-foot" id="side-foot"></div>
   </aside>
 
@@ -68,7 +73,9 @@
     <section class="view" id="view-mail"></section>
     <section class="view" id="view-market"></section>
     <section class="view" id="view-play"></section>
+    <section class="view" id="view-arena"></section>
     <section class="view" id="view-schedule"></section>
+    <section class="view" id="view-season"></section>
     <section class="view" id="view-event"></section>
     <section class="view" id="view-match"></section>
     <section class="view" id="view-ranking"></section>
@@ -81,12 +88,17 @@
     <section class="view" id="view-workshop"></section>
   </main>
 </div>
+<script src="desk/locales/en.js?v=160"></script>
+<script src="desk/i18n.js?v=160"></script>
 <script src="desk/dom.js"></script>
 <script src="desk/navigation.js"></script>
+<script src="desk/arena.js?v=160"></script>
 <script src="desk/profiles.js"></script>
 <script src="desk/competitions.js"></script>
 <script src="desk/spectator.js"></script>
 <script src="desk/assistance.js"></script>
+<script src="desk/quick-results.js"></script>
+<script src="desk/season.js"></script>
 <script src="desk/collection.js"></script>
 <script src="desk/economy.js"></script>
 <script src="desk/settings.js"></script>

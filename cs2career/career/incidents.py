@@ -58,6 +58,7 @@ def emit(career, season, when, occurrence='', event_type='', context=None):
     """
     if not career.exists or career.over() or season is None or pending(career):
         return
+    from .story_timing import MATCH_TRIGGERS, window, reconcile
     team = career.my_team(season.teams)
     transfer_hook = when.startswith('transfer_')
     if not team and not transfer_hook:
@@ -69,6 +70,10 @@ def emit(career, season, when, occurrence='', event_type='', context=None):
         for row in payload.get('incidents', []):
             if row['when'] != when:
                 continue
+            timing=row.get('timing', 'match' if when in MATCH_TRIGGERS else 'offseason')
+            # Do not consume daily event rolls out of season, nor enqueue the
+            # same long-running plot repeatedly while its delivery is deferred.
+            if timing=='offseason' and when=='day' and not window(career,season):continue
             key = payload['_pack_id'] + ':' + row['id']
             conditions = row.get('conditions', {})
             values_context = {'mode': career.mode, 'origin': career.origin, 'event_type': event_type, **extra}
@@ -90,9 +95,10 @@ def emit(career, season, when, occurrence='', event_type='', context=None):
             count = record.get('count', 0) + 1
             values['seen'][key] = {'count': count, 'day': today}
             def render(line):
-                # Flat, explicit transfer tokens only; substituted text is not parsed again.
-                tokens = {k: str(extra.get(k, '')) for k in ('player', 'old_team', 'new_team', 'transfer_role')}
-                return re.sub(r'\{(player|old_team|new_team|transfer_role)\}', lambda m: tokens[m[1]], line) if transfer_hook else line
+                # Flat whitelisted tokens; substituted text is never reparsed.
+                tokens = {'player':career.player_name, 'team':(team or {}).get('name',''),
+                          **{k:str(extra.get(k,'')) for k in ('old_team','new_team','transfer_role','event_name','stage','match_id','map_index')}}
+                return re.sub(r'\{([a-z_]+)\}', lambda m: tokens.get(m[1],m[0]), line)
             choices = copy.deepcopy(row['choices'])
             for choice in choices:
                 choice['label'] = render(choice['label'])
@@ -101,7 +107,9 @@ def emit(career, season, when, occurrence='', event_type='', context=None):
                 'title': render(row['title']), 'text': render(row['text']),
                 'choices': choices, 'pack_id': payload['_pack_id'],
                 'team_id': (team or {}).get('id', ''), 'trigger': when, 'date': season.date,
+                'timing': timing,
             })
+            reconcile(career,season)
             return
 
 

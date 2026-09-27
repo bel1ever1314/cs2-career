@@ -78,7 +78,7 @@ class Handler(SimpleHTTPRequestHandler):
         if not self._allowed():
             self._json({"ok": False, "msg": "无效会话"}, 403)
             return
-        if getattr(self.server,'game_disabled',False) and (urlparse(self.path).path.startswith('/api/cs2/') or urlparse(self.path).path in ('/api/play','/api/series/launch','/api/skins/pref','/api/train/finish','/api/scrim')):
+        if getattr(self.server,'game_disabled',False) and (urlparse(self.path).path.startswith('/api/cs2/') or urlparse(self.path).path in ('/api/play','/api/series/launch','/api/skins/pref','/api/train/finish','/api/scrim','/api/arena/launch','/api/arena/ingest','/api/arena/cancel')):
             self._json({'ok':False,'msg':'隔离流程测试不连接或修改 CS2，请使用模拟比赛。'},403)
             return
         if getattr(self.server, 'preview', False) and urlparse(self.path).path not in {
@@ -135,6 +135,24 @@ class Handler(SimpleHTTPRequestHandler):
     def _get(self):
         url = urlparse(self.path)
         path = url.path
+        if path in ('/api/arena', '/api/arena/recommend'):
+            try:
+                query = parse_qs(url.query)
+                mode = (query.get('mode') or ['rank'])[0]
+                if mode not in ('rank', 'fpl', 'custom'):
+                    raise ValueError('未知房间模式')
+                arena = self.state.arena
+                if path.endswith('/recommend'):
+                    self._json({'ok': True, 'players': arena.recommend(self.state, mode, (query.get('human_id') or [''])[0])})
+                else:
+                    self._json(arena.public(self.state, mode))
+            except (ValueError, OSError) as exc:
+                self._json({'ok': False, 'msg': str(exc)}, 400)
+            return
+        if path == '/api/assist/season-board':
+            from ..career.season_board import public
+            self._json(public(self.state.career, self.state.season))
+            return
         if (getattr(self.server, 'preview', False) or getattr(self.server,'game_disabled',False)) and (path.startswith('/api/cs2/') or path == '/api/play/result'):
             self._json({'ready': False, 'status': 'none', 'msg': '隔离预览不连接 CS2。'})
             return
@@ -253,12 +271,38 @@ class Handler(SimpleHTTPRequestHandler):
 
     def _post(self):
         path = urlparse(self.path).path
+        if path.startswith('/api/arena/'):
+            action = path.rsplit('/', 1)[-1]
+            if action not in ('matchmake', 'create', 'pick', 'advance', 'ban', 'choose_side', 'configure', 'launch', 'ingest', 'cancel'):
+                self._json({'ok': False, 'msg': 'unknown endpoint'}, 404)
+                return
+            # Do not call career.persist/payload even when an arena command fails.
+            try:
+                arena = self.state.arena
+                body = self._body()
+                method = getattr(arena, action)
+                msg = method(self.state, body) if action in ('matchmake', 'create', 'launch') else method(body)
+                mode = (arena.data['lobby'] or {}).get('mode', body.get('mode', 'rank'))
+                self._json({'ok': True, 'msg': msg or '', 'arena': arena.public(self.state, mode)})
+            except (ValueError, OSError, RuntimeError) as exc:
+                self._json({'ok': False, 'msg': str(exc)}, 400)
+            except Exception as exc:
+                self._json({'ok': False, 'msg': f'{type(exc).__name__}: {exc}'}, 500)
+            return
+        if path in ('/api/play', '/api/series/launch'):
+            try:
+                if getattr(self.state, 'arena', None) and self.state.arena.pending:
+                    raise ValueError('对战大厅仍有比赛待回传，请先录入或放弃该场。')
+            except (ValueError, OSError) as exc:
+                self._json({'ok': False, 'msg': str(exc)}, 400)
+                return
         try:
             if path in {
                 '/api/market/buy', '/api/ops/found', '/api/logo'
             } and getattr(self.state.career, 'personal_transfers', {}).get('player_only'):
                 raise ValueError('你现在是签约选手，俱乐部人事和经营由管理层负责。')
-            handler = getattr(self, "post_" + path.strip("/").replace("/", "_"), None)
+            handler_name = "post_api_assist_season_mode" if path == '/api/assist/season-mode' else "post_" + path.strip("/").replace("/", "_")
+            handler = getattr(self, handler_name, None)
             if handler is None:
                 self._json({"ok": False, "msg": "unknown endpoint"}, 404)
                 return
@@ -296,9 +340,39 @@ class Handler(SimpleHTTPRequestHandler):
 
     def post_api_assist_settings(self):
         from ..career.assistance import configure
-        msg=configure(self.state.career,self.state.season,self._body())
+        try:
+            msg=configure(self.state.career,self.state.season,self._body())
+        except ValueError as exc:
+            self._json({'ok':False,'msg':str(exc)},400)
+            return
         self.state.persist()
         self._json(self.state.payload(msg))
+
+    def post_api_assist_season_mode(self):
+        from ..career.fast_mode import configure_season
+        body=self._body()
+        def reject(message):
+            self._json({'ok':False,'msg':message},400)
+        if type(body.get('quick_mode')) is not bool or type(body.get('year')) is not int:
+            return reject('请选择本赛季的正常模式或快速模式。')
+        token=body.get('token')
+        if not isinstance(token,str) or not 8<=len(token)<=100:
+            return reject('缺少有效的模式选择编号，请刷新。')
+        c,s=self.state.career,self.state.season
+        prior=c.assist.get('last_season_choice') or {}
+        identity={'year':body['year'],'quick_mode':body['quick_mode']}
+        if prior.get('token')==token:
+            if prior.get('identity')!=identity:
+                return reject('这个请求编号已用于其他选择。')
+            return self._json(self.state.payload(prior.get('msg','')))
+        try:
+            configure_season(c,s,body['quick_mode'],body['year'])
+        except ValueError as exc:
+            return reject(str(exc))
+        message='本赛季采用快速模式。' if body['quick_mode'] else '本赛季采用正常模式。'
+        c.assist['last_season_choice']={'token':token,'identity':identity,'msg':message}
+        self.state.persist()
+        self._json(self.state.payload(message))
 
     def post_api_assist_tournament(self):
         from ..league.tournament_auto import step
@@ -306,6 +380,38 @@ class Handler(SimpleHTTPRequestHandler):
         if type(body.get('revision')) is not int:
             raise ValueError('缺少模拟进度编号，请刷新赛事。')
         result=step(self.state.career,self.state.season,str(body.get('event_id') or ''),body.get('token'),body['revision'])
+        self.state.persist()
+        self._json({**self.state.payload(''), 'auto_step':result})
+
+    def post_api_assist_quick(self):
+        from ..career.fast_mode import step
+        from ..career.story_timing import window
+        body=self._body()
+        def reject(message):
+            # Invalid input must not reach the generic error handler's persist
+            # path, which intentionally saves valid queued match decisions.
+            self._json({'ok':False,'msg':message},400)
+        if type(body.get('revision')) is not int:
+            return reject('缺少模拟进度编号，请刷新。')
+        c,s=self.state.career,self.state.season
+        token=body.get('token')
+        if not isinstance(token,str) or not 8<=len(token)<=100:
+            return reject('缺少有效的快速模拟请求编号。')
+        prior=c.assist.get('last_fast_step') or {}
+        if prior.get('token')==token:
+            self._json({**self.state.payload(''), 'auto_step':prior['result']})
+            return
+        if body['revision']!=int(c.assist.get('step_counter') or 0):
+            return reject('模拟进度已变化，请刷新后继续。')
+        if 'resume_break' in body and type(body['resume_break']) is not bool:
+            return reject('休赛期继续标记必须为布尔值。')
+        current=window(c,s)
+        # A stale resume click must not acknowledge a different future break.
+        if body.get('resume_break'):
+            if not current or body.get('break_key')!=current['key']:
+                return reject('休赛窗口已变化，请刷新后继续。')
+            c.assist['quick_break_ack']=current['key']
+        result=step(c,s,token,body['revision'])
         self.state.persist()
         self._json({**self.state.payload(''), 'auto_step':result})
 

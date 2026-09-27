@@ -26,7 +26,7 @@ def run(state=None, *, preview=False, browser=False):
             webbrowser.open(url)
             worker.join()
         else:
-            webview.create_window('CS2 Career · '+('隔离设计预览' if preview else '隔离流程测试' if server.game_disabled else '生涯中心'), url,
+            webview.create_window('CS2 Career 1.6.0 · '+('隔离设计预览' if preview else '隔离流程测试' if server.game_disabled else '生涯中心'), url,
                                   width=1440, height=900, min_size=(1060, 680), background_color='#101318',
                                   text_select=True, zoomable=True)
             # Explicit renderer: never silently use deprecated MSHTML.

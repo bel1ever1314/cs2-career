@@ -17,19 +17,19 @@ def key(s, ev, match):
 
 
 def decisive(ev, match):
+    """Only a final asks to switch from automatic to manual play.
+
+    Elimination risk is still visible in the bracket, but no longer adds an
+    extra modal in either normal tournament automation or the season runner.
+    """
     if match.get('stage') == 'GF':
         return 'final'
-    if match.get('stage') in ('R16','QF','SF'):
-        return 'elimination'
-    if (match.get('meta') or {}).get('kind') in ('elim','decider'):
-        return 'elimination'
-    record = str((match.get('meta') or {}).get('record') or '').split('-')
-    if len(record)==2 and record[1]=='2':
-        return 'elimination'
     return ''
 
 
 def blocker(c, s):
+    from ..career.notifications import reconcile
+    reconcile(c, s)
     if c.over(): return '这段生涯已经结束。'
     if c.unsigned: return '当前是自由身，请先决定新的队伍。'
     if c.loan_default_pending: return '请先处理俱乐部最后通牒。'
@@ -55,6 +55,12 @@ def moment(c, s, ev, match, kind):
         'title':text(raw[kind]['title']),'text':text(raw[kind]['text']),
         'choices':[{'id':name,'label':raw['choices'][name]} for name in ('manual','simulate','later')],
         'auto_match':key(s,ev,match),'event_id':ev['id'],'match_id':match['id'],'team_id':c.team_id})
+    row=c.story_queue[-1]
+    for field in ('title_en','text_en'):
+        if raw[kind].get(field):row[field]=text(raw[kind][field])
+    for choice in row['choices']:
+        if raw.get('choices_en',{}).get(choice['id']):
+            choice['label_en']=raw['choices_en'][choice['id']]
 
 
 def resolve(c, s, row, choice):
@@ -102,11 +108,19 @@ def step(c, s, eid, token, expected=None):
         reason=c.gate_match(s,match['id']) or blocker(c,s)
         if reason: return finish('paused',reason)
         start=len(match.get('maps') or [])
-        s.skip_your_series(match['id'])
-        c.assist['tournament']={'event_id':eid,'choice':'running','approval':''}
-        # Only map winners, not kills or an invented intermediate round path.
-        return finish('played','本场模拟完成。',match={'id':match['id'],'team_a':match['team_a'],'team_b':match['team_b'],
-            'best_of':match['best_of'],'start':start,'winners':[m.get('winner') for m in match.get('maps') or []]})
+        # Freeze the career identity before post-match stories can change teams.
+        player_id=(c.my_player(s.teams) or {}).get('player_id')
+        player_team=s.your_team_name()
+        message=s.skip_your_series(match['id'])
+        if match.get('played'):
+            c.assist['tournament']={'event_id':eid,'choice':'running','approval':''}
+        from ..career.quick_report import series_report
+        # Saved totals accompany winners; the client reveals them only at the
+        # end. No invented intermediate kills or extra result-fetch required.
+        return finish('played' if match.get('played') else 'paused',message,match={'id':match['id'],'team_a':match['team_a'],'team_b':match['team_b'],
+            'best_of':match['best_of'],'start':start,'result_id':f'{s.year}:{eid}:{match["id"]}',
+            'date':match.get('date') or s.date,'winners':[m.get('winner') for m in match.get('maps') or []],
+            **series_report(match,player_id,player_team)})
     s.next_stage()
     reason=blocker(c,s)
     return finish('paused' if reason else 'done' if ev.get('status')=='done' else 'progress',

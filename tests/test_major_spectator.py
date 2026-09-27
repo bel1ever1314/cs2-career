@@ -130,9 +130,9 @@ class MajorSpectatorTests(unittest.TestCase):
         for i,e in enumerate(majors):
             e.update(size=16,format='swiss_playoff',status='live' if i else 'upcoming',matches=[])
         old=deepcopy(majors[1])
-        season=SimpleNamespace(year=2026,events=events)
+        season=SimpleNamespace(year=2026,date='2026-01-08',events=events)
         self.assertTrue(Season.align_calendar(season))
-        self.assertEqual(32,majors[0]['size'])
+        self.assertEqual(32,next(e for e in season.events if e['id']==majors[0]['id'])['size'])
         self.assertEqual(old,majors[1])
         self.assertFalse(Season.align_calendar(season))
 

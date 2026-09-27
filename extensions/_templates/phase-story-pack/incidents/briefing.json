@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "incidents": [{
+    "id": "first_map_briefing",
+    "when": "map_started",
+    "timing": "match",
+    "title": "耳机戴上之前",
+    "text": "{event_name}，第{map_index}张图。教练把战术本摊在你面前：‘前两回合别急着补第二个身位，等队友把信息说完。’你把鼠标往惯用的位置推了推，点头。",
+    "conditions": {"map_index": "1"},
+    "probability": 1,
+    "cooldown_days": 1,
+    "max_per_career": 1,
+    "choices": [
+      {"id": "focus", "label": "把配合再确认一遍（属性点+2）", "effects": [{"type": "skill_points", "amount": 2}]},
+      {"id": "ready", "label": "我记住了，准备开始。", "effects": []}
+    ]
+  }]
+}

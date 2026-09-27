@@ -1,0 +1,113 @@
+/* Quick mode is a bounded viewing surface, never a scrolling event itinerary.
+   Normal-mode calendars, story dialogs and their scrolling are unchanged. */
+body:has(#view-season.on .quick-dashboard) {overflow:hidden;}
+body:has(#view-season.on .quick-dashboard) .app {height:100dvh;min-height:0;}
+body:has(#view-season.on .quick-dashboard) .main {min-height:0;overflow:hidden;}
+body:has(#view-season.on .quick-dashboard) .top,
+body:has(#view-season.on .quick-dashboard) .breadcrumbs {flex-shrink:0;}
+#view-season.on:has(.quick-dashboard) {display:flex;flex:1;min-height:0;padding:12px 20px 16px;overflow:hidden;}
+.quick-dashboard {width:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:12px;}
+.quick-header {display:flex;align-items:center;gap:24px;padding:4px 0;}
+.quick-header small,.quick-header span,.quick-mini small,.quick-mini>span {color:var(--mute);}
+.quick-header h2 {font-size:22px;line-height:1.2;}
+.quick-header h2 span {font-size:14px;}
+.quick-calendar {display:grid;gap:2px;}
+.quick-calendar b {font-variant-numeric:tabular-nums;}
+.quick-progress {margin-left:auto;width:min(240px,30%);display:grid;gap:6px;text-align:right;font-size:12px;}
+.quick-progress progress {width:100%;height:6px;accent-color:var(--acc);}
+.quick-body {display:grid;grid-template-columns:minmax(0,1fr) minmax(155px,23%);gap:12px;min-height:0;}
+.quick-arena {display:flex;flex-direction:column;justify-content:center;gap:20px;min-height:0;padding:24px;border:1px solid var(--line);border-radius:10px;background:radial-gradient(ellipse at 50% 50%,#323341 0%,#181d24 75%);}
+.quick-arena.win {background:radial-gradient(ellipse at 50% 50%,#214c42 0%,#142922 80%);border-color:#44886a;}
+.quick-arena.loss {background:radial-gradient(ellipse at 50% 50%,#512d38 0%,#2a1b24 80%);border-color:#975363;}
+.quick-arena {transition:background-color .2s,border-color .2s;}
+.quick-event {text-align:center;}
+.quick-event small {color:var(--acc);}
+.quick-event h2 {font-size:clamp(16px,2vw,26px);line-height:1.35;overflow-wrap:anywhere;}
+.quick-match {display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:18px;text-align:center;}
+.quick-match strong {min-width:0;white-space:normal;font-size:clamp(15px,1.7vw,25px);line-height:1.25;overflow-wrap:anywhere;}
+.quick-match>b {font-size:clamp(34px,5vw,76px);font-variant-numeric:tabular-nums;white-space:nowrap;line-height:1.5;color:#ffd1a8;}
+.quick-match-note {margin:0;text-align:center;color:var(--mute);font-size:12px;}
+.quick-recap {display:grid;grid-template-rows:repeat(3,minmax(0,1fr));gap:12px;min-height:0;}
+.quick-mini {display:flex;flex-direction:column;justify-content:center;gap:8px;min-height:0;padding:14px;background:var(--panel);border:1px solid var(--line);border-radius:8px;}
+.quick-mini>b {font-size:16px;line-height:1.3;overflow-wrap:anywhere;}
+.quick-mini>span {font-size:12px;line-height:1.25;overflow-wrap:anywhere;}
+.quick-mini>b,.quick-mini>span {display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;}
+.quick-record b {font-variant-numeric:tabular-nums;font-size:24px;}
+.quick-record b span {font-size:13px;color:var(--mute);}
+.quick-record {justify-content:flex-start;}
+.quick-record>b {flex-shrink:0;}
+.quick-dots {display:grid;grid-template-columns:repeat(20,minmax(0,1fr));grid-template-rows:repeat(var(--dot-rows),minmax(0,1fr));gap:1px;width:100%;flex:1;min-height:0;max-height:95px;align-items:center;}
+.result-dot {display:block;height:min(8px,100%);width:auto;max-width:100%;aspect-ratio:1;border-radius:50%;justify-self:center;}
+.result-dot.win {background:#63d69a;}
+.result-dot.loss {background:#f0808b;}
+.quick-arena.show-report {gap:8px;padding:16px;}
+.show-report .quick-match,.show-report .quick-match-note {display:none;}
+.show-report .quick-event h2 {font-size:17px;}
+[data-quick-scorecard] {min-height:0;}
+.quick-report-heading {display:flex;align-items:center;gap:10px;justify-content:space-between;font-size:12px;margin-bottom:8px;}
+.quick-report-heading>span {min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.quick-player-spotlight {display:flex;align-items:center;gap:16px;justify-content:space-between;padding:12px;margin-bottom:10px;border:1px solid #d4b869;border-radius:6px;background:#493d23;color:#ffe5a8;font-size:12px;}
+.quick-player-spotlight>strong {min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.quick-player-spotlight>span {flex-shrink:0;}
+.quick-player-spotlight b {font-size:18px;margin-left:5px;font-variant-numeric:tabular-nums;}
+.quick-player-spotlight em,.quick-you em {display:inline-block;padding:0 4px;margin-left:4px;border-radius:3px;background:#e4c374;color:#211e18;font-size:10px;font-style:normal;}
+.quick-team-reports {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;}
+.quick-team-report {min-width:0;}
+.quick-team-report h4 {font-size:12px;margin:0 0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.quick-team-report table {width:100%;table-layout:fixed;font-size:11px;line-height:1.25;}
+.quick-team-report th,.quick-team-report td {padding:6px 3px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.quick-team-report th:first-child,.quick-team-report td:first-child {width:26%;text-align:left;}
+.quick-team-report th:nth-child(2) {width:24%;}
+.quick-team-report tr.quick-you td {background:#493d23;color:#ffe5a8;font-weight:700;}
+.quick-team-report tr.quick-you td:first-child {border-left:3px solid #e4c374;}
+.quick-report-warning {font-size:11px;color:#f1d097;margin:4px 0 0;}
+@media(max-width:1400px) {
+  .quick-extra-stat {display:none;}
+  .quick-team-report th:first-child {width:30%;}
+  .quick-team-report th:nth-child(2) {width:32%;}
+}
+@media(max-height:680px) {
+  .quick-arena.show-report {padding:10px;gap:4px;}
+  .quick-player-spotlight {padding:6px;margin-bottom:6px;gap:8px;font-size:10px;}
+  .quick-player-spotlight b {font-size:14px;}
+  .quick-team-report th,.quick-team-report td {padding:3px 2px;}
+  .quick-report-heading {margin-bottom:5px;}
+  .quick-record {gap:4px;}
+}
+@media(prefers-reduced-motion:reduce) {.quick-arena {transition:none;}}
+.quick-footer {border-top:1px solid var(--line);padding-top:10px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;}
+.quick-footer p {margin:0;font-size:12px;line-height:1.4;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;}
+.quick-controls {display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+.quick-controls .btn {white-space:normal;}
+.quick-break {display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;color:#efd099;font-size:12px;}
+.quick-mode-choice .season-mode {margin:0;background:transparent;border:0;padding:0;}
+.quick-mode-choice .season-mode h3 {font-size:18px;}
+.quick-mode-choice .season-mode .row {flex-wrap:wrap;gap:8px;}
+.quick-mode-choice .season-mode .btn {white-space:normal;}
+@media(max-height:680px) {
+  .quick-dashboard,.quick-body,.quick-recap {gap:8px;}
+  .quick-arena {padding:14px;gap:12px;}
+  .quick-header {gap:18px;padding:0;}
+  .quick-header h2 {font-size:19px;}
+  .quick-mini {padding:10px;gap:4px;}
+  .quick-mini>b {font-size:14px;}
+  .quick-mode-choice .season-mode>p {font-size:11px;margin:7px 0;}
+  .quick-footer {padding-top:6px;gap:8px;}
+}
+@media(max-width:950px) {
+  body:has(#view-season.on .quick-dashboard) .app {grid-template-columns:1fr;}
+  body:has(#view-season.on .quick-dashboard) .side {display:none;}
+  .quick-body {grid-template-columns:minmax(0,1fr) 170px;}
+  .quick-footer {grid-template-columns:1fr;gap:6px;}
+  .quick-controls {justify-content:flex-start;}
+}
+@media(max-height:480px) {
+  .quick-mini:not(.quick-record)>span {display:none;}
+  .quick-recap {grid-template-rows:minmax(0,1fr) minmax(0,1fr) minmax(0,2fr);}
+  .quick-record>b {font-size:20px;}
+  body:has(#view-season.on .quick-dashboard) .breadcrumbs {display:none;}
+  #view-season.on:has(.quick-dashboard) {padding:8px 12px;}
+  .quick-match-note,.quick-mode-choice .season-mode>p:last-child {display:none;}
+  .quick-match>b {font-size:38px;}
+  .quick-mini>span {font-size:10px;-webkit-line-clamp:1;}
+}

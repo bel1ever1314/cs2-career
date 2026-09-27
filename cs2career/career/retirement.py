@@ -13,6 +13,8 @@ from ..paths import data_file
 @lru_cache(maxsize=1)
 def config():
     raw=json.loads(data_file('career_retirement.json').read_text('utf-8'))
+    from .localization import enrich
+    raw=enrich('career_retirement',raw)
     limits={'legend_min_majors':100,'legend_min_titles':1000,'legend_min_top20':100,
             'veteran_min_age':100,'veteran_min_years':100,'veteran_min_active_seasons':100,
             'veteran_min_maps':100000}

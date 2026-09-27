@@ -5,26 +5,43 @@ use stable IDs; no invented transfer fees, rumours, interviews or future results
 The lightweight journal survives season rollover in Career.incident_state.
 Text templates are data/career_news.json, overridden by arc_overrides.reports.
 """
-from collections import Counter
+from copy import deepcopy
 import hashlib
+import math
+import re
 
 
-def report(c, kind, occurrence, context):
+def report(c, kind, occurrence, context, *, language='zh-CN'):
     from .arcs import config, render
     node=config()['reports'][kind]
     index=int.from_bytes(hashlib.sha256((kind+'|'+occurrence).encode()).digest()[:8],'big')%len(node['text'])
+    if language=='en' and node.get('title_en') and node.get('text_en'):
+        translated={**context}
+        for key,value in context.items():
+            if key.endswith('_en'):translated[key[:-3]]=value
+        return render(node['title_en'],translated),render(node['text_en'][index%len(node['text_en'])],translated)
     return render(node['title'],context),render(node['text'][index],context)
 
 
-def publish(c,s,key,title,text,*,sender='世界赛场编辑部',popup=False):
+def publish(c,s,key,title,text,*,sender='世界赛场编辑部',popup=False,
+            title_en=None,text_en=None,sections=None):
     sent=c.incident_state.setdefault('news_publications',[])
     if key in sent:return
     sent.append(key)
-    c._push_mail('news',s.date,dict(title=title,body=text,**{'from':sender}),{'status':'closed'})
+    localized={}
+    if title_en is not None:localized['title_en']=title_en
+    if text_en is not None:localized['text_en']=text_en
+    if sections is not None:localized['sections']=deepcopy(sections)
+    mail_extra={'status':'closed','publication_key':key,**localized}
+    if text_en is not None:mail_extra['body_en']=text_en
+    quiet_month=key.startswith('monthly:') and c.assist.get('quick_mode')
+    if not quiet_month:
+        c._push_mail('news',s.date,dict(title=title,body=text,**{'from':sender}),mail_extra)
     archive=c.incident_state.setdefault('arcs',{}).setdefault('history',[])
-    archive.append(dict(id='news:'+key,date=s.date,title=title,text=text))
-    if popup:
-        c.story_queue.append(dict(id='news:'+key,kind='story',when='world_news',title=title,text=text))
+    archive.append(dict(id='news:'+key,date=s.date,title=title,text=text,publication_key=key,**localized))
+    # Quick monthly digests are archive-only: no unread badge or interruption.
+    if popup and not quiet_month:
+        c.story_queue.append(dict(id='news:'+key,kind='story',when='world_news',title=title,text=text,publication_key=key,**localized))
 
 
 def roster(s):
@@ -58,9 +75,14 @@ def capture_roster(c,s):
         if before and after and before['team_id']==after['team_id']:continue
         if before and after:
             text=f"{after['player']} 从 {before['team']} 转入 {after['team']}。"
-        elif after:text=f"{after['player']} 进入 {after['team']} 的现役阵容。"
-        else:text=f"{before['player']} 离开 {before['team']} 的现役阵容。"
-        v['facts'].append(dict(date=s.date,kind='transfer',text=text,player_id=pid))
+            text_en=f"{after['player']} joined {after['team']} from {before['team']}."
+        elif after:
+            text=f"{after['player']} 进入 {after['team']} 的现役阵容。"
+            text_en=f"{after['player']} joined the active roster of {after['team']}."
+        else:
+            text=f"{before['player']} 离开 {before['team']} 的现役阵容。"
+            text_en=f"{before['player']} left the active roster of {before['team']}."
+        v['facts'].append(dict(date=s.date,kind='transfer',text=text,text_en=text_en,player_id=pid))
     v['roster']=new
 
 
@@ -73,14 +95,45 @@ def event_done(c,s,ev):
     if not winner:return
     mvp=(ev.get('awards') or {}).get('mvp') or {}
     text=f"{ev['name']}：{winner} 夺冠。"
-    if mvp.get('player'):text+=f"本届MVP为 {mvp['player']}。"
-    v['facts'].append(dict(date=s.date,kind='champion',text=text,champion=winner,
+    text_en=f"{ev['name']}: {winner} won the title."
+    if mvp.get('player'):
+        text+=f"本届MVP为 {mvp['player']}。"
+        text_en+=f" MVP: {mvp['player']}."
+    v['facts'].append(dict(date=s.date,kind='champion',text=text,text_en=text_en,champion=winner,
                           event_type=ev.get('type'),name=ev['name'],key=key))
 
 
 def next_month(stamp):
     year,month=map(int,stamp.split('-'))
     return f'{year+1}-01' if month==12 else f'{year}-{month+1:02d}'
+
+
+def _fact_item(row):
+    """Translate older recorded facts without inventing absent event details."""
+    text=row.get('text','')
+    translated=row.get('text_en')
+    if translated is None:
+        for pattern,template in (
+            (r'^(.+) 从 (.+) 转入 (.+)。$', lambda m:f"{m[1]} joined {m[3]} from {m[2]}."),
+            (r'^(.+) 进入 (.+) 的现役阵容。$', lambda m:f"{m[1]} joined the active roster of {m[2]}."),
+            (r'^(.+) 离开 (.+) 的现役阵容。$', lambda m:f"{m[1]} left the active roster of {m[2]}."),
+            (r'^(.+)：(.+) 夺冠。(?:本届MVP为 (.+)。)?$', lambda m:f"{m[1]}: {m[2]} won the title."+ (f" MVP: {m[3]}." if m[3] else '')),
+        ):
+            match=re.fullmatch(pattern,text)
+            if match:
+                translated=template(match);break
+    return dict(text=text,text_en=translated if translated is not None else text)
+
+
+def _section(key,title,title_en,items):
+    return dict(id=key,title=title,title_en=title_en,items=items)
+
+
+def _section_text(sections,english=False):
+    field='text_en' if english else 'text'
+    heading='title_en' if english else 'title'
+    return '\n\n'.join('【'+section[heading]+'】\n'+
+        '\n'.join('• '+row[field] for row in section['items']) for section in sections)
 
 
 def tick(c,s):
@@ -96,34 +149,58 @@ def tick(c,s):
     while v['month']<month:
         stamp=v['month'];following=next_month(stamp)
         facts=[r for r in v['facts'] if r['date'][:7]==stamp]
-        titles=[r for r in facts if r['kind']=='champion']
-        moves=[r for r in facts if r['kind']=='transfer']
-        champions='\n'.join(r['text'] for r in titles) or '本期记录中没有新产生的赛事冠军。尚未结束的比赛不提前填写结果。'
-        counts=Counter(r['champion'] for r in titles)
-        repeats=[f'{name}（{count}冠）' for name,count in counts.items() if count>1]
-        if repeats:champions+='\n本月多冠队伍：'+'、'.join(repeats)+'。'
-        transfers='\n'.join(r['text'] for r in moves) or '本期未记录到现役名单变动。没有官宣不等于存在传闻，本报不推测私下接触。'
-        if following==month:
-            leaders=sorted(current.values(),key=lambda r:r['rank'])[:5]
-            rankings=f"截至发稿日{s.date}，VRS前五："+'、'.join(f"{r['name']}（{r['rank']}）" for r in leaders)+'。'
-            risers=[(delta,row) for delta,row in changes if delta>0][:3]
-            if risers:rankings+='\n相较上次记录，上升较多的队伍：'+'、'.join(f"{r['name']}上升{d}位" for d,r in risers)+'。'
-            fallers=sorted(((-delta,row) for delta,row in changes if delta<0),key=lambda x:(-x[0],x[1]['rank']))[:2]
-            if fallers:rankings+='\n排名回落：'+'、'.join(f"{r['name']}下降{d}位" for d,r in fallers)+'。排名变化不是某一名选手的单独责任。'
-        else:rankings='这段跨月期间未保存独立月末排名快照，不用当前排名冒充当时的榜单。'
-        rows=[r for r in c.incident_state.get('arcs',{}).get('series',[]) if r['date'][:7]==stamp]
-        ratings=[m['rating'] for r in rows for m in r.get('maps',[]) if type(m.get('rating')) in (int,float)]
-        personal=f"本期已记录你的{len(rows)}场系列赛，{sum(bool(r['win']) for r in rows)}胜{sum(not r['win'] for r in rows)}负。" if rows else '本期没有可汇总的个人正式系列赛记录；这不等同于推断你没有训练或参加活动。'
-        if ratings:personal+=f"{len(ratings)}张有效地图的地图平均Career Rating为{sum(ratings)/len(ratings):.2f}。"
-        calendar=sorted((e for e in s.events if e.get('status') in ('live','upcoming') and e.get('dates')),key=lambda e:e['dates'][0])[:4]
-        upcoming=f"截至发稿日{s.date}的赛历：\n"+'\n'.join(f"{e['name']} · {'进行中' if e['status']=='live' else e['dates'][0]+'开始'}" for e in calendar) if calendar else '当前赛历暂无待开始赛事，已结束的赛事仍可从赛事资料页查看。'
         priority={'major':0,'t1':1,'t2':2,'qual':3,'cct':4}
-        lead=min(titles,key=lambda r:priority.get(r.get('event_type'),5)) if titles else None
-        headline=f"{lead['champion']}拿下{lead['name']}" if lead else '阵容有了新变化' if moves else '赛历翻页，等待下一次交锋'
-        title,text=report(c,'monthly',stamp,dict(month=stamp,headline=headline,coverage=v['started'],
-            champions=champions,transfers=transfers,rankings=rankings,personal=personal,upcoming=upcoming))
-        # One visible summary after a multi-month jump; all months stay in mail.
-        publish(c,s,'monthly:'+stamp,title,text,popup=following==month)
+        titles=sorted((r for r in facts if r['kind']=='champion'),
+                      key=lambda r:(priority.get(r.get('event_type'),5),r['date'],r.get('key','')))
+        moves=[r for r in facts if r['kind']=='transfer']
+        rows=[r for r in c.incident_state.get('arcs',{}).get('series',[]) if r['date'][:7]==stamp]
+        ratings=[m['rating'] for r in rows for m in r.get('maps',[])
+                 if type(m.get('rating')) in (int,float) and math.isfinite(m['rating'])]
+        sections=[]
+        if rows:
+            wins=sum(bool(r['win']) for r in rows);losses=len(rows)-wins
+            items=[dict(text=f"{len(rows)} 场系列赛 · {wins} 胜 {losses} 负",
+                        text_en=f"{len(rows)} series · {wins} wins, {losses} losses")]
+            if ratings:
+                average=sum(ratings)/len(ratings)
+                items.append(dict(text=f"个人地图平均 Career Rating {average:.2f} · {len(ratings)} 张已记录地图",
+                                  text_en=f"Personal average map Career Rating {average:.2f} · {len(ratings)} recorded maps"))
+            sections.append(_section('team','你的赛程','Your month',items))
+        if titles:
+            sections.append(_section('champions','赛场冠军','Tournament winners',[_fact_item(r) for r in titles]))
+        if moves:
+            sections.append(_section('transfers','转会与阵容','Transfers and rosters',[_fact_item(r) for r in moves]))
+        # Only the final covered month has a contemporaneous ranking snapshot.
+        # Earlier skipped months omit ranking rather than backdate today's data.
+        if following==month and current:
+            leaders=sorted(current.values(),key=lambda r:r['rank'])[:5]
+            items=[dict(text=f"截至 {s.date} · "+'、'.join(f"#{r['rank']} {r['name']}" for r in leaders),
+                        text_en=f"As of {s.date} · "+' / '.join(f"#{r['rank']} {r['name']}" for r in leaders))]
+            risers=[(delta,row) for delta,row in changes if delta>0][:3]
+            fallers=sorted(((-delta,row) for delta,row in changes if delta<0),key=lambda x:(-x[0],x[1]['rank']))[:2]
+            for direction,rows_changed in (('up',risers),('down',fallers)):
+                for delta,row in rows_changed:
+                    items.append(dict(text=f"{row['name']} {'↑' if direction=='up' else '↓'} {delta} 位 → #{row['rank']}",
+                                      text_en=f"{row['name']} {direction} {delta} → #{row['rank']}"))
+            sections.append(_section('ranking','排名变化','Ranking changes',items))
+        lead=titles[0] if titles else None
+        headline=f"{lead['champion']}夺冠" if lead else '阵容更新' if moves else '本月记录'
+        headline_en=f"{lead['champion']} take the title" if lead else 'Roster changes' if moves else 'The month in review'
+        summary=f"{len(titles)} 项赛事收官 · {len(moves)} 次名单变动"
+        summary_en=f"{len(titles)} tournaments concluded · {len(moves)} roster changes"
+        # Empty months keep a short, honest record instead of five empty headings.
+        body=_section_text(sections) or '本月没有新增的赛事或阵容记录。'
+        body_en=_section_text(sections,True) or 'No new tournament or roster records this month.'
+        context=dict(month=stamp,headline=headline,headline_en=headline_en,coverage=v['started'],
+            summary=summary,summary_en=summary_en,sections=body,sections_en=body_en,
+            # Keep old extension report placeholders functional.
+            champions='\n'.join(r['text'] for r in titles),transfers='\n'.join(r['text'] for r in moves),
+            rankings='\n'.join(r['text'] for sec in sections if sec['id']=='ranking' for r in sec['items']),
+            personal='\n'.join(r['text'] for sec in sections if sec['id']=='team' for r in sec['items']),upcoming='')
+        title,text=report(c,'monthly',stamp,context)
+        title_en,text_en=report(c,'monthly',stamp,context,language='en')
+        publish(c,s,'monthly:'+stamp,title,text,popup=following==month and not c.assist.get('quick_mode'),
+                title_en=title_en,text_en=text_en,sections=sections)
         v['month']=following
     v['facts']=[r for r in v['facts'] if r['date'][:7]>=month]
     v['ranking']=current

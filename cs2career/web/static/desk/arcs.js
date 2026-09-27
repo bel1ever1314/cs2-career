@@ -2,6 +2,7 @@
    pagination never advances the clock and text is always HTML-escaped. */
 (() => {
   const ui=CareerUI;
+  document.addEventListener('career:language',()=>{if(ui.route()?.view==='story-history')ui.render();});
   ui.arcSummary=c=>{
     const v=c.story_arcs;
     if(!v?.enabled)return '';
@@ -23,7 +24,7 @@
     if(!active())return;
     host.innerHTML=ui.head('故事档案',`已保存 ${data.total} 段 · 不会重放或重复结算奖励`)+
       `<div class="filterbar"><button class="btn" data-arc-page="${data.page-1}" ${data.page<=1?'disabled':''}>上一页</button><span>${data.page} / ${data.pages}</span><button class="btn" data-arc-page="${data.page+1}" ${data.page>=data.pages?'disabled':''}>下一页</button></div>`+
-      (data.rows.length?data.rows.map(r=>`<details class="card" style="margin-bottom:10px"><summary>${esc(r.date)} · ${esc(r.title)}</summary><p style="white-space:pre-wrap">${esc(r.text)}</p>${r.choice?`<p class="hint">当时的选择：${esc(r.choice)}</p>`:''}</details>`).join(''):ui.empty('还没有新的剧情记录。此前未保存文本的旧剧情不补造。'));
+      (data.rows.length?data.rows.map(r=>`<details class="card" style="margin-bottom:10px"><summary>${esc(r.date)} · <span data-no-i18n>${esc(window.CareerI18n?.field(r,'title')??r.title)}</span></summary><p data-no-i18n style="white-space:pre-wrap">${esc(window.CareerI18n?.field(r,'text')??r.text)}</p>${r.choice?`<p class="hint"><span>当时的选择：</span><span data-no-i18n>${esc(window.CareerI18n?.field(r,'choice')??r.choice)}</span></p>`:''}</details>`).join(''):ui.empty('还没有新的剧情记录。此前未保存文本的旧剧情不补造。'));
     host.querySelectorAll('[data-arc-page]').forEach(b=>b.onclick=()=>ui.go('story-history',{page:Number(b.dataset.arcPage)},true));
   };
 })();

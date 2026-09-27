@@ -67,11 +67,14 @@ public sealed class DialoguePlayback
 {
     private long _epoch;
     private int _next;
+    private bool _ended;
+    public void EndMatch() { _ended = true; Cancel(); }
+    public void ResetMatch() { Cancel(); _ended = false; }
     public long Begin() { _next = 0; return ++_epoch; }
     public void Cancel() { ++_epoch; _next = 0; }
     public bool Take(long epoch, int index)
     {
-        if (epoch != _epoch || index != _next) return false;
+        if (_ended || epoch != _epoch || index != _next) return false;
         _next++; return true;
     }
 }
@@ -89,6 +92,17 @@ public sealed class MatchDialogue
     {
         _used.Clear(); _lastRound = _total = _wins = _losses = 0; _lastMessage = -100;
     }
+
+    public static Dictionary<string, string> WithoutStatistics(Dictionary<string, string> context)
+    {
+        var clean = new Dictionary<string, string>(context);
+        foreach (var key in new[] { "kills", "deaths", "assists", "damage", "round_kills", "clutch", "clutch_player" })
+            clean.Remove(key);
+        return clean;
+    }
+
+    private static bool HasTokens(string text, Dictionary<string, string> context) =>
+        Token.Matches(text).Cast<Match>().All(m => context.ContainsKey(m.Groups[1].Value));
 
     public static string Clean(string? text, int maxBytes = 320)
     {
@@ -221,6 +235,8 @@ public sealed class MatchDialogue
                 var cast = scene.DistinctSpeakers ? people.Where(p => !spoken.Contains(p.Id)).ToList() : people;
                 var person = Speaker(speech, nonce, round, cast, humanTeam);
                 if (person is null) { lines.Clear(); break; } // Never deliver half a missing-cast scene.
+                var values = new Dictionary<string, string>(context) { ["speaker"] = person.Name, ["speaker_id"] = person.Id };
+                if (!HasTokens(step.Text, values)) { lines.Clear(); break; }
                 spoken.Add(person.Id);
                 if (lines.Count > 0) delay += step.Delay;
                 lines.Add(new(Render(speech, step.Text, person, context), delay));
@@ -240,7 +256,9 @@ public sealed class MatchDialogue
                 if (person is null) continue;
                 var values = new Dictionary<string,string>(context) { ["speaker"] = person.Name, ["speaker_id"] = person.Id };
                 if (!Matches(rule, values)) continue;
-                var line = rule.Text[(int)(Draw(nonce, rule.Id + round + "line") % (uint)rule.Text.Count)];
+                var texts = rule.Text.Where(text => HasTokens(text, values)).ToList();
+                if (texts.Count == 0) continue;
+                var line = texts[(int)(Draw(nonce, rule.Id + round + "line") % (uint)texts.Count)];
                 output.Add(new(Render(rule, line, person, values), output.Count * 1.5));
                 Consume(rule, round); break;
             }
@@ -275,7 +293,9 @@ public sealed class MatchDialogue
                 : pool[(int)(Draw(nonce, rule.Id + round + "speaker") % (uint)pool.Count)];
             context["speaker"] = person.Name; context["speaker_id"] = person.Id;
             if (!Matches(rule, context) || Draw(nonce, rule.Id + round + "chance") / 4294967296.0 >= rule.Probability) continue;
-            var line = rule.Text[(int)(Draw(nonce, rule.Id + round + "line") % (uint)rule.Text.Count)];
+            var texts = rule.Text.Where(text => HasTokens(text, context)).ToList();
+            if (texts.Count == 0) continue;
+            var line = texts[(int)(Draw(nonce, rule.Id + round + "line") % (uint)texts.Count)];
             line = Token.Replace(line, m => context.GetValueOrDefault(m.Groups[1].Value, ""));
             var color = rule.Color switch { "green" => "\x04", "blue" => "\x0B", "gold" => "\x10", _ => "\x01" };
             // Mark as scripted career dialogue, never impersonate a real chat packet.

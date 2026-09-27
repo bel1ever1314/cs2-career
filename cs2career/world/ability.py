@@ -66,6 +66,10 @@ AWP_SNIPE_BONUS = 0.06
 STRETCH_MIN = 16.56
 STRETCH_MAX = 79.08
 COMMAND_STAMP_MULT = 2.2
+ROLE_FORMULA_VERSION = 2
+# A position changes fit, not the player's historical level. Training in the
+# reference position is applied separately, so this is not a growth ceiling.
+MAX_ROLE_FIT_DELTA = 6.0
 SHAPE = {
     "awp":     {"firepower": 1.02, "entrying": 0.88, "trading": 0.96, "opening": 1.00, "clutching": 1.04, "sniping": 1.12, "utility": 0.94},
     "entry":   {"firepower": 1.04, "entrying": 1.10, "trading": 0.96, "opening": 1.08, "clutching": 0.94, "sniping": 0.70, "utility": 0.90},
@@ -100,6 +104,15 @@ def gun_score(stats: dict, role: str) -> float:
     return s
 
 
+def _role_weight_sum(role: str) -> float:
+    return sum(_weights(role).values()) / 100.0 + (AWP_SNIPE_BONUS if role == 'awp' else 0.0)
+
+
+def normalized_role_score(stats: dict, role: str) -> float:
+    """Use the same scale for IGL (legacy total .88), rifle (1) and AWP (1.06)."""
+    return gun_score(stats, role) / _role_weight_sum(role)
+
+
 def stretch_gun(score: float) -> float:
     span = STRETCH_MAX - STRETCH_MIN
     if span <= 0:
@@ -116,14 +129,23 @@ def unstretch(ability: float) -> float:
 def ability_of(stats: dict, role: str) -> float:
     """Current-position ability, calibrated to the player's original strength.
 
-    Compare UNCLIPPED weighted scores: clipping each role first would make
-    high-axis stars identical in every role. The anchor never moves on a role
-    switch, so switching back is lossless and cannot farm permanent ability.
+    Compare normalized, unclipped role scores. Earlier formulas compared totals
+    of .88/1/1.06, letting an IGL gain free ability just by changing position.
+    Reference-position growth and position fit are separate. Switching back is
+    lossless and repeated swaps never move the permanent anchor.
     Bare legacy axes still support generation/fit_axes without a calibration.
     """
     if stats.get("role_reference_score") is not None and stats.get("ability") is not None:
-        delta = (gun_score(stats, role) - float(stats["role_reference_score"])) * 58 / (STRETCH_MAX - STRETCH_MIN)
-        return round(max(40.0, min(100.0, float(stats["ability"]) + delta)), 1)
+        reference = stats.get('role_reference') or role
+        original = float(stats['role_reference_score'])
+        if int(stats.get('role_formula_version') or 1) < ROLE_FORMULA_VERSION:
+            original /= _role_weight_sum(reference)
+        current = normalized_role_score(stats, reference)
+        scale = 58 / (STRETCH_MAX - STRETCH_MIN)
+        growth = (current - original) * scale
+        fit = (normalized_role_score(stats, role) - current) * scale
+        fit = max(-MAX_ROLE_FIT_DELTA, min(MAX_ROLE_FIT_DELTA, fit))
+        return round(max(40.0, min(100.0, float(stats['ability']) + growth + fit)), 1)
     return stretch_gun(gun_score(stats, role))
 
 
@@ -131,7 +153,8 @@ def calibrate_role(stats: dict, role: str, baseline: float) -> None:
     """Stamp a new/aged baseline. Never call this merely to change positions."""
     stats["ability"] = round(float(baseline), 1)
     stats["role_reference"] = role
-    stats["role_reference_score"] = gun_score(stats, role)
+    stats["role_reference_score"] = normalized_role_score(stats, role)
+    stats['role_formula_version'] = ROLE_FORMULA_VERSION
 
 
 def ensure_role_calibration(player: dict) -> bool:
@@ -141,8 +164,16 @@ def ensure_role_calibration(player: dict) -> bool:
     Historical match snapshots are never passed here or recalculated.
     """
     stats = player.get("stats")
-    if not stats or stats.get("role_reference_score") is not None:
+    if not stats:
         return False
+    if stats.get('role_reference_score') is not None:
+        if int(stats.get('role_formula_version') or 1) >= ROLE_FORMULA_VERSION:
+            return False
+        reference = stats.get('role_reference') or player.get('role') or 'rifle'
+        stats['role_reference'] = reference
+        stats['role_reference_score'] = float(stats['role_reference_score']) / _role_weight_sum(reference)
+        stats['role_formula_version'] = ROLE_FORMULA_VERSION
+        return True
     role = player.get("role") or "rifle"
     calibrate_role(stats, role, float(player.get("ability", stats.get("ability", 70))))
     if player.get("form_delta") is None:

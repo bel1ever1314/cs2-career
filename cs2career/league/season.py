@@ -22,40 +22,15 @@ from ..engine import (
     veto_maps,
 )
 from ..engine.rating import kda_rating
-from ..paths import data_file, save_file
+from ..paths import save_file
 from ..world import MAPS, apply_roles, build_teams, crest
 from . import awards, formats
 from .vrs import VRS
+from .calendar import calendar_for, load_calendar, reconcile_calendar
 
 STATE_PATH = save_file("season.json")
 
 PRIZE_SPLIT = awards.PRIZE_SPLIT
-
-
-def load_calendar() -> dict:
-    raw = json.loads(data_file("calendar.json").read_text(encoding="utf-8"))
-    seen = {row.get("id") for row in raw.get("events") or []}
-    try:
-        from ..content import get_registry
-
-        for payload in get_registry().payloads("events"):
-            for row in payload.get("events") or []:
-                if not isinstance(row, dict) or not row.get("id") or row["id"] in seen:
-                    continue
-                row = dict(row)
-                dates = []
-                for value in row.get("dates") or []:
-                    text = str(value)
-                    if len(text) == 5 and text[2] == "-":
-                        text = f"{raw.get('season', 2026)}-{text}"
-                    dates.append(text)
-                row["dates"] = dates
-                raw.setdefault("events", []).append(row)
-                seen.add(row["id"])
-    except (OSError, TypeError, ValueError):
-        pass
-    raw["events"].sort(key=lambda row: ((row.get("dates") or ["9999"])[0], row.get("id") or ""))
-    return raw
 
 
 CAL_RAW = load_calendar()
@@ -65,42 +40,6 @@ def reload_calendar() -> dict:
     global CAL_RAW
     CAL_RAW = load_calendar()
     return CAL_RAW
-
-
-MAJOR_TITLES = {
-    2024: {
-        "major-1": ("Copenhagen Major 2024", "Copenhagen"),
-        "major-2": ("Shanghai Major 2024", "Shanghai"),
-    }
-}
-
-
-def calendar_for(year: int) -> dict:
-    blob = json.loads(json.dumps(CAL_RAW))
-    base = str(blob.get("season", 2026))
-    blob["season"] = year
-    blob["start"] = f"{year}-01-08"
-    kept = []
-    for ev in blob["events"]:
-        if ev.get("gate") == "rmr" and year >= 2025:
-            continue
-        ev["dates"] = [d.replace(base, str(year), 1) for d in ev["dates"]]
-        ev["name"] = ev["name"].replace(base, str(year))
-        title = (MAJOR_TITLES.get(year) or {}).get(ev["id"])
-        if title:
-            ev["name"], ev["short"] = title
-        if ev.get("type") == "major":
-            ev["format"] = "major_stages"
-            ev["size"] = 32 if year >= 2025 else 24
-            # Five Swiss rounds per stage, followed by QF/SF/GF. Preserve the
-            # calendar's final day; expand its opening date, not its ending.
-            days = 18 if year >= 2025 else 13
-            end = date.fromisoformat(ev["dates"][-1])
-            ev["dates"] = [(end - timedelta(days=i)).isoformat() for i in reversed(range(days))]
-        kept.append(ev)
-    kept.sort(key=lambda e: e["dates"][0])
-    blob["events"] = kept
-    return blob
 
 
 def _d(s: str) -> date:
@@ -171,8 +110,8 @@ class Season:
         return int(ev.get("size", 16))
 
     def has_qualifier(self, ev: dict) -> bool:
-        if ev.get("type") == "major" and not self.major_uses_rmr():
-            return False
+        # Austin 2025 has MRQs even though the old RMR system has ended.
+        # Qualification belongs to the edition's data, not a year switch.
         return any(e.get("feeds") == ev["id"] for e in self.events)
 
     def field_for(self, ev: dict) -> list[dict]:
@@ -193,12 +132,12 @@ class Season:
             skip = {t["id"] for t in ranked[: self.dest_direct(dest)]}
 
         if kind == "qual":
-            global_pi = ev.get("scope") == "global" or (dest and dest.get("type") == "t1")
+            global_pi = ev.get("scope") == "global" or (ev.get("scope") != "regional" and dest and dest.get("type") == "t1")
             if global_pi:
                 pool = [t for t in ranked if t["id"] not in skip]
             else:
                 pool = [t for t in ranked if t["region"] == region and t["id"] not in skip]
-        elif kind == "cct":
+        elif kind == "cct" or ev.get("regional_only"):
             pool = [t for t in in_band if t["region"] == region]
             pool += [t for t in rest if t["region"] == region]
         else:  # t2 and anything else: global, but skip the very top
@@ -247,6 +186,12 @@ class Season:
         if not mine:
             return picked[:size]
         accepted = ev["id"] in (career.registered or [])
+        destination = next((row for row in self.events if row["id"] == ev.get("feeds")), None)
+        regional = ev.get("regional_only") or ev.get("type") == "cct" or (
+            ev.get("type") == "qual" and (ev.get("scope") == "regional" or (
+                ev.get("scope") != "global" and (not destination or destination.get("type") != "t1"))))
+        if regional and mine.get("region") != ev.get("region"):
+            accepted = False
         from ..career.incidents import competition_paused
         if competition_paused(career, self.date):
             accepted = False
@@ -260,7 +205,12 @@ class Season:
             picked.sort(key=lambda t: order.get(t["id"], 99))
         if len(picked) < size:
             have = {t["id"] for t in picked} | ({mine["id"]} if not accepted else set())
-            for t in self.ranked():
+            replacements = self.ranked()
+            if regional:
+                # The first reserve for an Asian cup must also be Asian, not
+                # the first unused world-ranked club after a player declines.
+                replacements.sort(key=lambda t: t.get("region") != ev.get("region"))
+            for t in replacements:
                 if t["id"] not in have:
                     picked.append(t)
                     have.add(t["id"])
@@ -568,6 +518,8 @@ class Season:
         if self.career:
             from ..career import arcs
             arcs.on_series(self.career, self, ev, match)
+            from .phases import emit
+            emit(self, ev, match, 'series_finished')
         self.advance_event(ev)
         if self.career:
             self.career.on_series_done(self)
@@ -602,6 +554,9 @@ class Season:
         self.open_your_series(ev, match)
         if match.get("played"):
             raise ValueError("这场已经打完了")
+        if self._phase_gate(ev, match):
+            self.save()
+            raise ValueError('请先处理比赛阶段事件，再进入这张地图。')
         session = match.get("cs2_session")
         raw = read_result(request_nonce=(session or {}).get("nonce"))
         if session and result_usable(raw, session) == "":
@@ -677,6 +632,8 @@ class Season:
         match["last_ended_at"] = stamp
         match["cs2_session"] = None
         n = idx + 1
+        from .phases import emit
+        emit(self, ev, match, 'map_finished', idx)
         if self._series_over(match):
             self._finalize_human(ev, match)
             return f"第 {n} 图 {box['score']}，系列赛结束 {match['series']}。"
@@ -706,14 +663,32 @@ class Season:
         for map_name in order[len(maps) :]:
             if max(wins.values()) >= need:
                 break
+            if self._phase_gate(ev, match):
+                return '比赛阶段事件已暂停模拟，请先作出选择。'
             box = play_map(a, b, map_name)
             box["source"] = "sim"
             maps.append(box)
             wins[box["winner"]] = wins.get(box["winner"], 0) + 1
+            from .phases import emit
+            emit(self, ev, match, 'map_finished', len(maps)-1)
+            from ..career.incidents import pending
+            if max(wins.values()) < need and self.career and pending(self.career):
+                self.open_your_series(ev, match)
+                return '地图已保存；阶段事件已暂停模拟，请先作出选择。'
         self._finalize_human(ev, match)
         if kept:
             return f"前 {kept} 图保留你打的战绩，剩余按数值结算：{match['series']}。"
         return f"已按角色数值结算：{a['name']} {match['series']} {b['name']}。"
+
+    def _phase_gate(self, ev, match):
+        """Command-only hook: a GET/poll must never create a story or roll."""
+        from .phases import emit
+        from ..career.incidents import pending
+        for phase, index in (('tournament_stage_started',None), ('series_started',None),
+                             ('map_started',len(match.get('maps') or []))):
+            emit(self,ev,match,phase,index)
+            if self.career and pending(self.career):return True
+        return False
 
     def _forfeit_yours(self, ev: dict, match: dict) -> None:
         mine = self.career.my_team(self.teams) if self.career else None
@@ -810,7 +785,16 @@ class Season:
                     days.append(m["date"])
         return min(days) if days else None
 
-    def next_stage(self) -> str:
+    def _await_quick_season_choice(self) -> bool:
+        """Every player-facing advance respects the quick season boundary.
+
+        The explicit season-mode command can still call roll_year directly.
+        Normal mode and nonterminal calendars keep their existing behavior.
+        """
+        return bool(self.career and self.career.assist.get('quick_mode') and self.events
+                    and all(ev.get('status') == 'done' for ev in self.events))
+
+    def next_stage(self, *, stop_at_season_end: bool = False) -> str:
         if self.career:
             from ..career.incidents import pending
             if pending(self.career):
@@ -829,6 +813,8 @@ class Season:
         if not self.due_matches():
             nxt = self._next_busy_day()
             if not nxt:
+                if stop_at_season_end or self._await_quick_season_choice():
+                    return f"{self.year} 赛季的全部赛程已完成。请选择下一赛季的模式。"
                 return self.roll_year()
             self.date = nxt
             self.ensure_live()
@@ -899,6 +885,8 @@ class Season:
                 break
         nxt = next((e for e in self.events if e["status"] == "upcoming"), None)
         if not nxt:
+            if self._await_quick_season_choice():
+                return f"{self.year} 赛季的全部赛程已完成。请选择下一赛季的模式。"
             return self.roll_year()
         self.date = nxt["dates"][0]
         self.ensure_live()
@@ -1258,41 +1246,19 @@ class Season:
     def align_calendar(self) -> bool:
         """Update future calendar entries without rewriting played/live brackets."""
         want = [_blank_event(json.loads(json.dumps(e))) for e in calendar_for(self.year)["events"]]
-        want_ids = {e["id"] for e in want}
-        before = [e["id"] for e in self.events]
-        changed = False
-        kept = []
-        for ev in self.events:
-            if ev["id"] in want_ids:
-                src = next(e for e in want if e["id"] == ev["id"])
-                if ev.get("status") == "upcoming" and not ev.get("matches") and src.get("type") == "major":
-                    for key in ("format", "size", "dates"):
-                        if ev.get(key) != src[key]:
-                            ev[key] = src[key]
-                            changed = True
-                for key in ("direct", "scope", "feeds", "qualify", "gate"):
-                    if key in src:
-                        ev[key] = src[key]
-                kept.append(ev)
-            elif ev.get("status") == "done":
-                kept.append(ev)
-            # Never change a final already launched in CS2 or with a saved map.
-            if ev.get("type") in ("t1", "major") and ev.get("status") != "done":
-                for m in ev.get("matches") or []:
-                    if (m.get("stage") == "GF" and not m.get("played") and not m.get("maps")
-                            and not m.get("cs2_session") and m.get("team_b") != "BYE"
-                            and m.get("best_of") != 5):
-                        m["best_of"] = 5
-                        m.pop("veto", None)
-                        m.pop("pending_map", None)
-                        changed = True
-        have = {e["id"] for e in kept}
-        for ev in want:
-            if ev["id"] not in have:
-                kept.append(ev)
-        kept.sort(key=lambda e: (e.get("dates") or [""])[0])
+        old = {ev["id"]: ev for ev in self.events}
+        kept = reconcile_calendar(self.events, want, self.date)
+        new = {ev["id"]: ev for ev in kept}
+        # ApplicationState backs up both save files before persisting and uses
+        # these IDs to invalidate stale invitations/registrations. An unchanged
+        # event retains its registration; an old fake edition cannot lend its
+        # accepted invitation to a different real edition with the same ID.
+        self._calendar_removed_ids = set(old) - set(new)
+        self._calendar_replaced_ids = {eid for eid in old.keys() & new.keys()
+                                      if old[eid] != new[eid]}
+        changed = kept != self.events
         self.events = kept
-        return changed or [e["id"] for e in kept] != before
+        return changed
 
 
 def reset_season(year: int = 2026, era: str = "2026") -> Season:

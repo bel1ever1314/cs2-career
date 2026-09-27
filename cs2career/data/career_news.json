@@ -1,34 +1,82 @@
 {
   "champion_favourite": {
-    "title": "{champion}：把期待铸成冠军",
-    "text": ["{event}落幕，{champion}成为最后举起奖杯的队伍。决赛记录：{final}。冠军阵容：{roster}。本届MVP：{mvp}。\n\n从赛前被看好，到最终站在领奖台中央，中间从来不只是把实力排名照抄一遍。热门队伍背着另一种压力出发：赢了被说成理所当然，输了就要回答所有问题。这一次，{champion}用最终的名次交出了答案。\n\n一份冠军报道不该只留下一个名字。个人表现让观众记住镜头里的主角，五个人共同完成的比赛才让奖杯有了归属。没有完整回合记录的地方，我们不替比赛编造神奇的翻盘；已经写进赛果的冠军，也不需要额外的传说来证明分量。\n\n夺冠不是停止改进的理由。下一站比赛，对手会用更认真的准备迎接他们，外界也会把期待再抬高一些。但至少今晚，不必急着讨论王朝是否开始。这个冠军属于{champion}，属于这套阵容一起走完的这一届Major。"]
+    "title": "{champion}夺冠｜这一届，奖杯归他们",
+    "text": [
+      "{event}落幕，{champion}成为最后举起奖杯的队伍。决赛记录：{final}。冠军阵容：{roster}。本届 MVP：{mvp}。\n\n奖杯有了归属，这届比赛才终于到了可以回头看的时候。名单上的五个名字，会和这个冠军一起留在赛事记录里。赛历还会往下排，选手以后也可能各奔东西，但说起这一届 Major，人们首先会找到这套阵容。\n\nMVP 的名字值得单独写下。个人奖项让出色的发挥有了明确的落款，团队冠军则把其余队员也留在同一页上。有人拿到了最多的关注，有人的贡献不容易放进一张海报；冠军阵容里，五个人的位置都在。\n\n对俱乐部来说，这也是一次难得的喘息。围绕名单、位置和训练的讨论还会继续，下一场比赛也照常要赢。只是今晚可以先把那些问题放一放，让选手接完电话，让一直跟着赛程熬夜的人把夺冠的消息发出去。漫长的赛季里，很少有这样的晚上。\n\n从下一站开始，对手会把他们放进更加仔细的备战名单。能否延续成绩，要留给后面的比赛回答。今天已经有一件事不再需要争论：{champion}拿下了{event}，这座奖杯与这五个名字，都已经写进历史。"
+    ],
+    "title_en": "{champion} win the title | Their Major",
+    "text_en": [
+      "{champion} have won {event}. Final: {final}. Championship roster: {roster}. MVP: {mvp}.\n\nWith the trophy decided, this edition finally becomes something to look back on. The five names will remain beside the title even as future schedules and rosters change.\n\nThe MVP deserves a line of their own. That award recognises an outstanding individual performance; the team title keeps all five players on the same page. Not every contribution fits on a poster, but every place in the championship roster is recorded.\n\nFor the club, there is room to breathe. Questions about positions and practice will return, and the next match will still need to be won. Tonight can belong to phone calls and celebrations among people who followed the whole campaign.\n\nAt the next tournament, opponents will study the champions closely. Future results will answer what comes next. Today's record is settled: {champion} won {event}."
+    ]
   },
   "champion_surprise": {
-    "title": "{champion}：预测之外，奖杯之下",
-    "text": ["{event}的冠军已经产生：{champion}。决赛记录：{final}。冠军阵容：{roster}。本届MVP：{mvp}。赛前的阵容实力预测没有把他们排在最前列，最后的冠军栏却清清楚楚地写着他们的名字。\n\n预测能描述出发时的位置，不能替任何队伍打完淘汰赛。这次结果最动人的地方，并不是证明所有分析都毫无用处，而是提醒人们：比赛始终给准备、发挥和机会留下了空间。没有站在热门队伍的位置，也不代表只能作为别人夺冠故事里的背景。\n\n我们不把所有胜利简单解释成运气，也不因为一届冠军就抹掉阵容可能存在的问题。真正值得保留的是这套名单和这份结果。几个月以后再回头看，人们也许会对他们的实力给出不同判断，但不会再有人能把这个Major冠军从记录中移走。\n\n下一次出场，他们将被当作冠军研究。那会带来新的困难，也意味着队伍已经赢得了新的位置。今晚的掌声可以先不附带条件：{champion}没有按照预测结束自己的比赛，而是走到了所有预测都必须重新落笔的地方。"]
+    "title": "{champion}夺冠｜从此，冠军名单里有了这个名字",
+    "text": [
+      "{event}的冠军已经产生：{champion}。决赛记录：{final}。冠军阵容：{roster}。本届 MVP：{mvp}。\n\n这届赛事结束后，再提起这支队伍，介绍里会多出一句 Major 冠军。几个字很短，却会跟着他们走过很长一段时间：出场字幕上会写，新的对手会提，下一份合同与下一次签约讨论里，也很难绕开。\n\n对于一直关注他们的人，这个结果不只是一条新闻。曾经要主动翻赛程才能找到的队名，如今放在了最后一场比赛的胜者栏里。那些陪着队伍走过来的关注，可以在今天得到一个很具体的回应。\n\n新关注也会带来新的麻烦。每一个失误可能被看得更仔细，每一次阵容调整都会引来更多讨论。如何安排训练、如何分配职责、如何让队员从庆祝里回到日常，是俱乐部接下来要处理的事。奖杯放进荣誉室以后，训练室依旧需要按时开门。\n\n不过那是休息之后的工作。今天的报道应当先把名字写完整，把决赛结果和个人奖项留清楚，让以后翻到这一页的人知道，这届赛事最后留下的是谁。{champion}拿到了自己的冠军，属于他们的这一晚，不必急着翻过去。"
+    ],
+    "title_en": "{champion} win the title | A name on the trophy",
+    "text_en": [
+      "{champion} are the champions of {event}. Final: {final}. Championship roster: {roster}. MVP: {mvp}.\n\nFrom now on, their introduction includes the words Major champions. It is a short phrase that will follow them into broadcasts, opponents' preparation and future contract discussions.\n\nFor those who followed the team throughout the season, this is more than another headline. A name they once searched for on the schedule now occupies the winner's line in the final.\n\nNew attention also brings new demands. Mistakes will be examined more closely and roster decisions will draw more discussion. After the trophy reaches the cabinet, the practice room still has to open on time.\n\nThat work can wait until after the break. Today's record should preserve the full roster, the final and the individual award. {champion} have their championship, and this evening belongs to them."
+    ]
   },
   "major_disappointed": {
-    "title": "{team}止步{placement}：期待没有兑现，答案不能只剩换人",
-    "text": ["{event}结束，{team}最终取得{placement}。赛前按参赛阵容实力评估，他们位列第{rank}，对应的预期是{expected}。结果低于这个起点，失望因而有了具体的理由，而不只是输掉比赛后的情绪。\n\n{performance}这份数字提供了观察个人表现的入口，却不足以独自解释团队为什么离开了赛场。把五个人的数据分别截出来，并不会自动得到五个人如何一起比赛的答案；同样，不能拿“团队游戏”作为永远不用讨论个人问题的挡箭牌。\n\n此刻的讨论正在两种声音之间拉扯。一种希望俱乐部尽快给出变化，用新名单证明自己没有接受失败；另一种则提醒，一次失利之后最容易做出的决定，未必是最能解决问题的决定。\n\n对于{player}，真正困难的不是给这次成绩挑一个听起来体面的形容词，而是回到训练室后仍愿意把问题讲清楚。哪些是个人没有完成的职责，哪些是配合与准备上的缺口，需要一项项区分，而不是让压力最后落在最沉默的人身上。\n\nMajor已经结束，下一站不会因为解释充分就自动变得容易。{team}需要的也许不是立即许诺一个冠军，而是一份能在后续比赛里看见改变的答卷。支持者可以失望，队伍也仍有重新赢得信任的机会；但这一次，机会必须用比赛去回应。"]
+    "title": "{team}止步{placement}｜回去以后，这场球还要谈",
+    "text": [
+      "{event}结束，{team}最终取得{placement}。这个结果很难让关注他们的人满意。输球之后，换人的话题往往来得比复盘更快，可赛程已经走到这里，问题仍要回到这支队伍自己的比赛里去找。\n\n{performance}个人数据让讨论有了抓手，也容易让人只盯住一张排名表。谁先承担风险，谁负责收住残局，谁要在局面混乱的时候给出决定，这些职责并不会在同一列数字里完整出现。回头看比赛，需要把分工和结果放在一起，而不是只挑最难看的那一行。\n\n支持者的失望不是凭空来的。大家花时间跟完赛事，在被淘汰后仍然点开队伍消息，总希望能看见一点具体变化。俱乐部不必马上给出漂亮的承诺，但之后的报名、训练和阵容决定，会慢慢让人看出他们是否真的处理了问题。\n\n对{player}来说，接下来的休赛期未必轻松。录像可以反复拖回同一个时间点，比赛却不能重开。哪些失误要先承认，哪些分歧需要和队友讲清楚，哪些内容必须等重新合练才能解决，都要在回到赛场之前一件件做完。只靠把自己关起来多打一晚，并不能替代这些沟通。\n\n这届 Major 的名次已经定了。{team}还会有新的比赛，关注他们的人也会继续看，只是下一次需要看见的，应当是比赛里的变化。"
+    ],
+    "title_en": "{team} finish {placement} | A review that cannot wait",
+    "text_en": [
+      "{team} finish {event} in {placement}. It is a difficult result for their supporters to accept. Calls for roster changes often arrive before the review; the team still has to find answers in its own matches.\n\n{performance} Individual numbers give the discussion a starting point, but responsibilities do not fit into a single column. Taking the first risk, handling a late round and making a call under pressure are different jobs. A useful review needs both the roles and the outcomes.\n\nSupporters spent time following this campaign. After elimination, they want to see something change. The club does not need an immediate grand promise, but later practice and roster decisions will show whether the problems were addressed.\n\nThe break may not be easy for {player}. A demo can be rewound; the tournament cannot. Mistakes to own, disagreements to settle and combinations to practise must be dealt with before returning. One extra night alone at the computer cannot replace those conversations.\n\nThis Major's placing is final. {team} will have new matches, and their supporters will keep watching for changes in the play itself."
+    ]
   },
   "major_expected": {
-    "title": "{team}的Major答卷：在预期之内，下一步往哪里走",
-    "text": ["{team}以{placement}结束了{event}。按照赛事开始时的阵容实力排序，他们位列参赛队第{rank}，原本的预期是{expected}。把结果和出发点放在一起看，这不是一场需要强行渲染的崩溃，也还不足以被包装成改变格局的突破。\n\n{performance}个人记录值得认真读，但队伍的发展不该被一个单独数字取代。对这个阶段的{team}来说，站稳已有的位置是一件事，找到跨过下一道门槛的办法，则是另一件事。完成预期不意味着什么都不用改，也不意味着过去的努力只配得到一句“正常”。\n\n虽然被淘汰的那一刻外界依然嘈杂，但当潮水退去，外界相对平静的反应，反而给赛训留下了珍贵的讨论空间。没有必须立刻兑现的狂热，也没有一夜推倒重来的理由。俱乐部可以更从容地判断：该继续磨合现有阵容，还是为某个明确的短板寻找补充？只有先说清要解决什么，改变才不至于只是看起来很忙。\n\n{player}的下一段成长同样不必依靠一个夸张的转折。把目前能够完成的职责做得更稳定，在更强的对手面前争取多一些贡献，这些不总能成为醒目的标题，却可能让下一届赛事的预期真正向前移动。\n\n这一届Major留给{team}的，不是传奇式结尾，而是一条可以继续走下去的路。成绩已经记入历史，问题也还在。接下来的赛历，会告诉人们这是一段停留，还是一次突破之前不太喧闹的准备。"]
+    "title": "{team}止步{placement}｜收好这一站，准备下一场",
+    "text": [
+      "{team}以{placement}结束了{event}。最后一场输掉以后，前面赢过的比赛并不会消失；可对刚刚离开比赛席的人来说，要把两件事同时放在心里，也没有那么容易。\n\n{performance}这段记录已经归档，接下来可以慢慢拆开看。哪些习惯在大赛里仍然可靠，哪些配合一遇到变化就需要重新沟通，休赛期会给队伍留下比临场暂停更多的时间。问题不一定都要靠换人回答，也不能因为暂时没有变化就一直拖着。\n\n围绕这次成绩的讨论相对平静，反而让俱乐部有机会把事情做得细一些。确定下一段训练安排，和队员谈清位置，为几张一直拿不稳的地图留出完整时间。这些工作很少出现在热闹的标题里，等到下一次碰上同样的对手，人们才会看到效果。\n\n{player}同样需要把休息放进日程。赛季里经常是刚输完一场，下一项赛事的名单又来了，连不舒服的地方也只能留到以后再说。现在终于有空回看这段比赛，可以先找队友对一遍想法，再决定最先补哪一块，而不是把所有问题都变成一个人练得不够多。\n\n{event}留下了一个确定的名次，也留下了仍能继续使用的经验。等新赛程开始，{team}会带着这套东西重新上场。到那时，这段休息有没有用，会在比赛里慢慢看出来。"
+    ],
+    "title_en": "{team} finish {placement} | Taking the next step",
+    "text_en": [
+      "{team} end {event} in {placement}. Losing the final match does not erase the wins that came before it, though remembering both can be difficult immediately after leaving the server.\n\n{performance} The record is now available to review at a slower pace. Which habits held up, and which combinations needed clearer communication when a round changed? The break allows more time than a timeout. Not every answer requires a new player, and familiar problems should not be left indefinitely.\n\nA relatively calm discussion gives the club room to work: settle roles, plan practice and make time for less dependable maps. Those decisions rarely create a headline, but their effect can become visible against the next opponent.\n\n{player} also needs room for rest. During the season, another tournament often arrives before there is time to discuss the previous one. Now there is an opportunity to compare notes with teammates and choose what to address first.\n\n{event} leaves a placing and experience the team can still use. When the next schedule begins, their matches will show what changed during the break."
+    ]
   },
   "major_excited": {
-    "title": "{team}拿下{placement}：这一次，期待追着他们的脚步走",
-    "text": ["{event}的最终成绩是{placement}，属于{team}。赛前阵容实力在参赛队中排第{rank}，预期为{expected}。如今再看这份结果，人们有充分的理由感到激动：冠军本身就值得庆祝，而超出预期的突破，也让原本保守的想象有了新的边界。\n\n{performance}对{player}而言，这不只是个人资料页多出一行赛事记录。和队友一起走到这里，会改变下一次面对强队时的参照——过去只能设想的舞台，如今已经有了自己留下的比赛。\n\n兴奋不需要建立在虚构的关键回合或采访之上。最终名次、参赛阵容和已保存的数据，已经足够支撑这份喜悦。支持者终于能把一句“也许有机会”，换成对这届成绩的具体回忆；曾经不把他们放在讨论中心的人，也需要重新考虑这支队伍的位置。\n\n当然，一届赛事不会让所有问题消失。新的关注意味着更高的期待，过去可以被理解的失误，以后也许会被反复放大。赛训接下来的任务，是把这一次表现中可以重复的部分留住，而不是要求每个队员永远维持庆祝之夜的兴奋。\n\n但这些事可以留到重新开机之后。今晚，{team}不必急着为下一次失利提前辩解，也不必立刻给未来许下更大的承诺。先记住这次成绩，记住同一张名单上的彼此。属于这段生涯的高光，已经真实地写进了这一届Major。"]
+    "title": "{team}拿下{placement}｜这次的比赛，值得多留一会儿",
+    "text": [
+      "{event}落幕，{team}取得{placement}。赛果已经写进记录，围绕这支队伍的讨论却还没有结束。无论是把奖杯带走，还是一步步走到更大的舞台，这一站都给关注他们的人留下了可以反复翻看的成绩。\n\n{performance}对{player}来说，资料页上多出的这一行，会和这段时间的训练与队友联系在一起。以后再碰上类似的局面，不必只从别人的录像里找办法，自己的比赛也已经可以拿出来看了。\n\n这份成绩会带来更多目光。过去需要俱乐部主动介绍的队名，现在会出现在对手的准备名单里；愿意约训练、关注选手下一步去向的人，也会认真看这套阵容。如何接住这些变化，仍然要靠日常安排，而不是要求队员一直维持刚赢球时的兴奋。\n\n休赛期是一个合适的间隔。可以让身体慢下来，可以回家吃几顿按时做好的饭，也可以把这次打得顺手的配合挑出来，等重新集合再练。对年轻队伍来说，有时最容易丢掉的恰恰是刚做好的东西：下一站忙起来，又换回原来的习惯。把它们记下来，比急着保证下一座奖杯更有用。\n\n但这些工作不必挤在今天一起做完。{team}已经完成了这届赛事，支持他们的人也终于等到一份值得高兴的结果。这一晚，可以先让掌声多留一会儿。"
+    ],
+    "title_en": "{team} take {placement} | A campaign worth keeping",
+    "text_en": [
+      "{event} has concluded with {team} taking {placement}. The result is recorded, but discussion around the team continues. Whether bringing home a trophy or reaching a larger stage, this campaign gives their supporters something concrete to revisit.\n\n{performance} For {player}, the new line in the record belongs to a period of practice and work with teammates. Future preparation can draw on their own matches as well as other teams' demos.\n\nThe result brings more attention. Opponents will study this roster; prospective practice partners and people following the players' careers will take a closer look. Handling that attention requires everyday organisation, not permanent celebration.\n\nThe break creates a useful gap. There is time to rest, visit home and identify the combinations worth preserving. A young team can lose a new habit when the next tournament arrives too quickly. Writing down what worked matters more than promising another trophy.\n\nThat work need not all happen tonight. {team} have completed the event, and their supporters have a result worth enjoying. Let the applause last a little longer."
+    ]
   },
   "monthly": {
-    "title": "{month} 世界赛场月报｜{headline}",
-    "text": ["一个月过去，自己的训练表之外，职业世界也留下了新的记录。本期整理的是{month}在这份生涯存档中实际记录的变化，报道覆盖从{coverage}开始。\n\n【奖杯去了哪里】\n{champions}\n\n【名单上的新名字】\n{transfers}\n\n【排名观察】\n{rankings}\n\n【你的这一段路】\n{personal}\n\n【接下来值得留意】\n{upcoming}\n\n冠军会成为下一站的目标，新阵容也还要接受比赛检验。月报记下的是已经发生的事，不替任何队伍预订未来。下一次打开赛历时，看看这些名字里，谁会出现在你的对面。", "{month}翻到最后一页。有人收下奖杯，有人在名单里换了位置，也有队伍还在等待下一站开赛。以下只汇总当前存档从{coverage}起记录的事实，不使用现实新闻替代生涯世界。\n\n【本月赛果】\n{champions}\n\n【转会与阵容】\n{transfers}\n\n【积分榜的方向】\n{rankings}\n\n【留给自己的记录】\n{personal}\n\n【下一页赛历】\n{upcoming}\n\n热闹的月份和安静的月份，都是职业生涯的一部分。一次签约能改变谁和谁并肩作战，一次夺冠能让对手重新安排准备；至于这些变化会不会走到你面前，下一站比赛会慢慢给出答案。"]
+    "title": "{month} 月报｜{headline}",
+    "text": [
+      "{summary}\n\n{sections}"
+    ],
+    "title_en": "{month} Monthly review | {headline}",
+    "text_en": [
+      "{summary}\n\n{sections}"
+    ]
   },
   "family_return": {
+    "title_en": "A letter from home | The door is still open",
+    "text_en": [
+      "{player},\n\nAnother year has passed. When we first saw you off, we kept asking whether you had your documents. We never thought to ask how many difficult things you might face alone, or how many of them you wouldn't want to mention on the phone. Later we heard you had started competing. You hadn't told us, but we looked up the results across the time difference anyway. We still don't understand all the terms. We always recognize your name.\n\n{assessment}\n\nWe're still worried. You can't keep putting everything on hold for a match you might win next time. We'd like you to think about coming home, eating a few proper meals, and taking time to work out what comes next for your studies and your career.\n\nIf a club has offered you a real opportunity, send us the contract and tell us your plan. We'll listen. If there isn't an offer yet, the door is still open here.\n\nLook after yourself first. Send us your flight details if you need picking up. You don't have to work everything out before you come home.\n\nLove,\nYour family"
+    ],
     "title": "家书｜门一直给你留着",
-    "text": ["{player}：\n\n又过了一年。最初送你出门时，我们反复问证件带了没有，却没来得及问，你一个人到了那边，会不会有很多不愿意打电话说的难处。后来听说你开始打比赛，你没有和我们说，但我们还是隔着时差找赛果，很多术语还是看不懂，但你的名字一直认得。\n\n{assessment}\n\n我们仍然担心你。继续把生活悬在下一场可能赢的比赛上，终究不是一个能够一直等下去的安排。家里希望你考虑回来，吃几顿按时做好的饭，把今后的学业和职业认真理一理。\n\n如果有俱乐部给了你明确的机会，把合同和打算一起发回来，我们愿意认真听；如果暂时没有，家里的门也一直给你留着。\n\n先照顾好自己。需要接机就把航班告诉我们，不用等到把所有事都想明白才回家。\n\n——家里"]
+    "text": [
+      "{player}：\n\n又过了一年。最初送你出门时，我们反复问证件带了没有，却没来得及问，你一个人到了那边，会不会有很多不愿意打电话说的难处。后来听说你开始打比赛，你没有和我们说，但我们还是隔着时差找赛果，很多术语还是看不懂，但你的名字一直认得。\n\n{assessment}\n\n我们仍然担心你。继续把生活悬在下一场可能赢的比赛上，终究不是一个能够一直等下去的安排。家里希望你考虑回来，吃几顿按时做好的饭，把今后的学业和职业认真理一理。\n\n如果有俱乐部给了你明确的机会，把合同和打算一起发回来，我们愿意认真听；如果暂时没有，家里的门也一直给你留着。\n\n先照顾好自己。需要接机就把航班告诉我们，不用等到把所有事都想明白才回家。\n\n——家里"
+    ]
   },
   "family_support": {
+    "title_en": "A letter from home | We support you",
+    "text_en": [
+      "{player},\n\nWe watched your matches. {achievement}. We still can't name all the maps, but seeing the result helped us understand why you've taken this so seriously. You haven't just been talking about giving it a try. You've made something of the thing you love.\n\nWe know this year hasn't always been easy. You haven't told us much, but we've heard a few things. We were afraid you might get stuck waiting for a dream that never answered you. That didn't mean we thought what you cared about was worthless.\n\nWe support your choice. Think carefully about your next team, read the contract, and know when your body needs a rest. If you receive another invitation, we can talk it through together. Stay abroad or come home: if it's a career decision you've thought through, we want to hear it.\n\nRemember to eat before your next match. Call when you have time afterwards. We want to hear more than the score. Tell us how you've been.\n\nLove,\nYour family"
+    ],
     "title": "家书｜这一次，我们支持你继续走",
-    "text": ["{player}：\n\n你的比赛我们看到了，。{achievement}。我们还是叫不全那些地图的名字，可看见结果的时候，终于理解你为什么会为这条路那么认真。你不是只在说想试一试，而是真的在喜欢的领域发光发热。\n\n这一年有没有辛苦，家里不是完全不知道，虽然你从来没有和我们说过，但我们依然听说了一些消息。我们过去怕你把自己困在一个迟迟没有回应的梦想里，不是觉得你喜欢的东西没有价值。\n\n我们支持你的选择。队伍怎么选、合同怎么看、身体什么时候该休息，都要认真想。收到了新的邀请，可以和我们一起商量；留下或者回国，只要是你想清楚的职业选择，我们都愿意听。\n\n下次比赛前记得吃饭，结束后有空打个电话。我们想听的除了比分，还有你最近过得怎么样。\n\n——家里"]
+    "text": [
+      "{player}：\n\n你的比赛我们看到了。{achievement}。我们还是叫不全那些地图的名字，可看见结果的时候，终于理解你为什么会为这条路那么认真。你不是只在说想试一试，而是真的在喜欢的领域发光发热。\n\n这一年有没有辛苦，家里不是完全不知道，虽然你从来没有和我们说过，但我们依然听说了一些消息。我们过去怕你把自己困在一个迟迟没有回应的梦想里，不是觉得你喜欢的东西没有价值。\n\n我们支持你的选择。队伍怎么选、合同怎么看、身体什么时候该休息，都要认真想。收到了新的邀请，可以和我们一起商量；留下或者回国，只要是你想清楚的职业选择，我们都愿意听。\n\n下次比赛前记得吃饭，结束后有空打个电话。我们想听的除了比分，还有你最近过得怎么样。\n\n——家里"
+    ]
   }
 }

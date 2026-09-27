@@ -21,6 +21,10 @@ class CareerArcTests(TestCase):
             self.c.create(dict(mode='create',era='2026',name='ArcTester',org='Arc Club',
                                origin='academy',role='rifle',region='EU'),self.s)
         self.c.story_queue=[];self.s.events=[]
+        # These tests exercise narrative branches, including multi-year ones.
+        # Delivery timing itself is covered separately in test_v160_timing.
+        self.c.incident_state['story_timing']={'windows':[
+            {'key':'branch-fixture','start':'2020-01-01','until':'2099-12-31','event':'Branch fixture'}], 'deferred':[]}
         self.v=arcs.state(self.c);self.v['seed']='fixed-story-seed'
         self.mine=self.c.my_team(self.s.teams)
 
@@ -56,12 +60,11 @@ class CareerArcTests(TestCase):
         arcs.on_series(self.c,self.s,ev,match)
         return ev,match
 
-    def test_first_real_series_not_training_forfeit_and_only_once(self):
+    def test_first_real_series_keeps_romance_waiting_and_records_once(self):
         ev,match=self.result()
-        self.assertEqual(1,len([r for r in self.c.story_queue if r.get('arc')=='romance_start']))
+        self.assertFalse(any(r.get('arc')=='romance_start' for r in self.c.story_queue))
         arcs.on_series(self.c,self.s,ev,match)
         self.assertEqual(1,len(self.v['series']))
-        self.choose('romance_start','none')
         old=self.c.attr_points
         self.result(2)
         self.assertEqual(old,self.c.attr_points)
@@ -97,7 +100,7 @@ class CareerArcTests(TestCase):
         self.queue('marriage')['chance']=.1
         self.choose('marriage','talk');self.choose('stable','ok')
         arcs.opinion(self.c,self.s,'失望','bad')
-        self.assertIn('林知夏',self.row('press')['text'])
+        self.assertIn(arcs.PARTNERS['ordinary'],self.row('press')['text'])
         self.choose('press','endure')
         arcs.queue(self.c,self.s,'marriage','separate-branch-fixture')
         row=self.row('marriage');row['chance']=.9
@@ -119,7 +122,7 @@ class CareerArcTests(TestCase):
         for chapter,action,prefix in [('confirm_love','yes','love'),('confirm_press','yes','press')]:
             for chance,suffix in ((.1,'home' if prefix=='love' else 'stream'),(.9,'stream' if prefix=='love' else 'other')):
                 with self.subTest(chapter=chapter,chance=chance):
-                    self.c.retired=False;self.c.story_queue=[];self.v['seen']=[]
+                    self.c.retired=False;self.c.story_queue=[];self.v['seen']=[];self.c.seen_stories=[]
                     self.queue(chapter)['chance']=chance
                     self.choose(chapter,action)
                     self.assertEqual('arc.'+prefix+'_'+suffix,self.c.ending)
@@ -136,7 +139,7 @@ class CareerArcTests(TestCase):
         self.assertEqual(1,len([m for m in self.c.inbox if m.get('kind')=='news']))
         self.assertIn(champion['name'],self.c.inbox[-1]['title'])
 
-    def test_major_final_loss_requires_own_played_final_and_only_once(self):
+    def test_major_final_exit_requires_own_played_final_and_only_once(self):
         for n,(kind,stage,won,forfeit,participated,expected) in enumerate([
             ('major','GF',False,False,True,1),('major','GF',True,False,True,0),
             ('major','SF',False,False,True,0),('t1','GF',False,False,True,0),
@@ -144,30 +147,35 @@ class CareerArcTests(TestCase):
             match=dict(id='final',stage=stage,played=True,forfeit=forfeit,
                 team_a=self.mine['name'],team_b='Other',winner=self.mine['name'] if won else 'Other',series='2-0' if won else '0-2')
             ev=dict(id='final-check'+str(n),name='Final check',type=kind,status='done',
-                field=[self.mine['name'],'Other'],awards={},champion=match['winner'],matches=[match])
+                field=[self.mine['name'],'Other'],awards={},champion=match['winner'],matches=[match],
+                arc_expectations={self.c.team_id:2})
             self.v['series']=[dict(key=arcs.key_for(self.s,ev,match) if participated else 'another-match',
                 event=arcs.key_for(self.s,ev),maps=[],win=won,team_id=self.c.team_id,
                 roster=sorted(p['player_id'] for p in self.mine['players']))]
             self.c.story_queue=[]
             arcs.event_done(self.c,self.s,ev);arcs.event_done(self.c,self.s,ev)
-            self.assertEqual(expected,sum(r.get('arc')=='major_final_loss' for r in self.c.story_queue))
+            self.assertEqual(expected,sum(r.get('arc')=='major_exit_final_expected' for r in self.c.story_queue))
+            self.assertFalse(any(r.get('arc')=='major_final_loss' for r in self.c.story_queue))
 
     def test_major_moods_follow_opening_expectation_champion_always_excited(self):
-        for n,(rank,stage,won,mood) in enumerate([(1,'QF',False,'失望'),(2,'SF',False,'预料之中'),
+        for n,(rank,stage,won,mood) in enumerate([(1,'QF',False,'失望'),(3,'SF',False,'预料之中'),
                                                  (12,'QF',False,'激动'),(1,'GF',True,'激动')]):
             ev=dict(id='major-mood'+str(n),name='Mood Major',type='major',status='done',
                     field=[self.mine['name'],'Other'],awards={},champion=self.mine['name'] if won else 'Other',
-                    arc_expectations={self.c.team_id:rank},matches=[dict(stage=stage,played=True,
+                    arc_expectations={self.c.team_id:rank},matches=[dict(id='own-final',stage=stage,played=True,
                         team_a=self.mine['name'],team_b='Other',winner=self.mine['name'] if won else 'Other')])
-            self.v['series']=[dict(event=arcs.key_for(self.s,ev),win=won,team_id=self.c.team_id,
+            self.v['series']=[dict(event=arcs.key_for(self.s,ev),key=arcs.key_for(self.s,ev,ev['matches'][0]),win=won,team_id=self.c.team_id,
                                   roster=sorted(p['player_id'] for p in self.mine['players']))]
             self.c.story_queue=[]
             arcs.event_done(self.c,self.s,ev)
-            if mood=='失望':self.assertIn(mood,self.row('press')['text'])
-            else:
-                report=self.c.inbox[-1]
-                self.assertGreater(len(report['body']),400)
-                self.assertTrue(any(r.get('title')==report['title'] for r in self.c.story_queue))
+            self.assertEqual(mood,self.v['major_reactions'][arcs.key_for(self.s,ev)]['mood'])
+            report=self.c.inbox[-1]
+            self.assertGreater(len(report['body']),400)
+            exits=[r for r in self.c.story_queue if r.get('arc','').startswith('major_exit_')]
+            self.assertEqual(0 if won else 1,len(exits))
+            if mood=='失望':
+                self.assertEqual({'endure','retire'},{ch['id'] for ch in exits[0]['choices']})
+                self.assertFalse(any(r.get('arc')=='press' for r in self.c.story_queue))
 
     def test_heat_offset_is_reproducible_bounded_and_not_long_term(self):
         self.v['heat']=True;ev,match=self.result()
@@ -243,7 +251,7 @@ class CareerArcTests(TestCase):
 
     def test_na_major_title_qualifies_without_map_threshold(self):
         self.na('study')
-        self.v['events']=[dict(winner=True,type='major',date=self.s.date,name='Test Major',key='major')]
+        self.v['events']=[dict(winner=True,type='major',date=self.s.date,name='Test Major',key='major',team_id=self.c.team_id,wins=1)]
         self.s.date=self.v['deadline'];arcs.tick(self.c,self.s)
         self.assertIsNotNone(self.row('lvg_invite'))
         self.assertTrue(self.v['na_assessment']['achievement'])
@@ -269,7 +277,7 @@ class CareerArcTests(TestCase):
         ev['status']='done';arcs.tick(self.c,self.s)
         self.assertIsNotNone(self.row('na_return'))
 
-    def test_real_simulated_series_callback_starts_romance(self):
+    def test_real_simulated_series_callback_records_progress_without_early_romance(self):
         ev=dict(id='arc-flow-cup',name='Arc Cup',type='cct',region='EU',size=2,
                 format='single_elim',dates=[self.s.date,self.s.date],status='upcoming',
                 matches=[],field=[],prize=1000,vrs_weight=1,best_of=1)
@@ -282,7 +290,7 @@ class CareerArcTests(TestCase):
         self.assertTrue(match['played']);self.assertEqual('done',ev['status'])
         self.assertEqual(1,len(self.v['series']));self.assertEqual(1,len(self.v['events']))
         self.assertTrue(self.v['series'][0]['maps'])
-        self.assertIsNotNone(self.row('romance_start'))
+        self.assertFalse(any(r.get('arc')=='romance_start' for r in self.c.story_queue))
         self.c.save();self.s.save()
         loaded=Career.load();self.assertTrue(arcs.state(loaded)['series'][0]['maps'])
 

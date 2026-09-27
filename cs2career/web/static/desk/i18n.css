@@ -1,0 +1,15 @@
+/* Long English labels and story choices must remain readable at desktop zoom. */
+.language-switch { display:flex; align-items:center; gap:8px; padding:4px 8px; color:var(--mute); font-size:12px; }
+.language-switch select { min-width:0; width:100%; font-size:12px; padding:5px; }
+html[lang="en"] .nav-group h5 { letter-spacing:.05em; }
+html[lang="en"] .nav-group button { white-space:normal; line-height:1.25; }
+html[lang="en"] .is-playtest .breadcrumbs:after { content:'Isolated playtest · Local saves · No CS2 connection'; }
+.story-card button, .story-options button, .story-choices button { white-space:normal; overflow-wrap:anywhere; height:auto; min-height:38px; line-height:1.5; }
+.story-card { max-height:calc(100dvh - 48px); overflow-y:auto; }
+.story-card p { line-height:1.8; }
+.story-card .story-body { overflow-wrap:anywhere; }
+.filterbar { flex-wrap:wrap; }
+.filterbar label, .filterbar select { min-width:0; max-width:100%; }
+.filterbar .btn { white-space:normal; }
+@media(max-height:780px) { .side { overflow-y:auto; }.nav-group { flex-shrink:0; }.language-switch { flex-shrink:0; } }
+@media(max-width:1100px) { html[lang="en"] .top .acts { gap:4px; } html[lang="en"] .top .btn { font-size:12px; padding:7px; } }

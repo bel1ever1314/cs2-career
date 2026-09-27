@@ -5,7 +5,14 @@
   },
   "final": {
     "title": "奖杯就在下一场之后",
+    "title_en": "One match from the trophy",
+    "text_en": "{team} have reached the final of {event}. The opponent is {opponent}.\nThe coach checks the map order once more. ‘We got here one match at a time. Today is no different.’\nA teammate reaches into the centre of the desk for a fist bump. ‘{player}, let's finish this together.’\nThe match is about to start. Will you play it yourself, or let the team compete using their current abilities?",
     "text": "{team}走到了{event}的决赛，对手是{opponent}。\n一路的比分、失误和逆转，此刻都暂时留在门外。教练最后检查了一遍地图顺序，没有再追加一大段叮嘱：‘能到这里，是我们一场场打出来的。今天也一样。’\n队友把拳头伸到桌子中央：‘{player}，一起把最后这场打好。’\n比赛即将开始。是亲自握住鼠标，还是让队伍按照既定打法去争取冠军？这个决定仍然属于你。"
+  },
+  "choices_en": {
+    "manual": "Play myself · Open the match",
+    "simulate": "Trust the team · Simulate this final",
+    "later": "Pause here · Decide later"
   },
   "choices": {
     "manual": "这场我亲自打 · 打开比赛页",

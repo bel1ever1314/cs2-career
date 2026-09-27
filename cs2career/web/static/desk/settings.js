@@ -6,6 +6,7 @@ CareerUI.pages.settings = async (_route,host,active) => {
   const setUp=cfg.ready&&cfg.mod_installed&&cfg.levels_ok;
   const refresh=()=>{PLAY.cs2=null;CareerUI.go('settings',{},true);};
   let h=CareerUI.head('游戏设置','路径、Bot 与换肤配置集中在此处；无需加入战队即可查看。');
+  h += `<div class="card" style="margin-bottom:12px"><h3>语言与显示</h3><label>界面语言 <select data-career-language><option value="zh-CN" translate="no">简体中文</option><option value="en" translate="no">English</option></select></label><p class="hint">中文与英文可随时切换，选择保存在本机。</p><p class="hint">核心菜单与操作支持英文；未提供翻译的扩展剧情保留原文。</p></div>`;
   h += `<div class="card" style="margin-bottom:12px"><h3>${setUp ? "游戏路径" : "首次设置（进 CS2 必做）"}</h3><div class="form">
     <label>steam.exe ${cfg.steam_ok ? "✓" : "✗"}<input id="p-steam" value="${esc(cfg.steam_exe || "")}"></label>
     <label>csgo 目录 ${cfg.csgo_ok ? "✓" : "✗"}<input id="p-csgo" value="${esc(cfg.csgo_path || "")}" placeholder="要到 game\\csgo 那一层，填游戏根目录也会自动补"></label>
@@ -13,7 +14,7 @@ CareerUI.pages.settings = async (_route,host,active) => {
     <label>换肤插件目录 ${cfg.skins_ok ? "✓" : "✗"}<input id="p-skins" value="${esc(cfg.skins_source_path || "")}" placeholder="可空，默认用生涯自带的修过读取的插件"></label>
     <div class="row"><button class="btn" id="p-save">保存路径</button>
       <button class="btn primary" id="p-install" ${cfg.ready && !live ? "" : "disabled"}>把人机增强装进游戏</button>
-      <button class="btn" id="p-sync" disabled>每场自动生成 9 人</button>
+      <button class="btn" id="p-sync" disabled>按模式自动生成 9／10 人</button>
       <button class="btn" id="p-skins-install" ${cfg.mod_installed && (cfg.skins_ok || cfg.skins_installed) && !live ? "" : "disabled"}>把换肤插件装进游戏</button>
       <button class="btn ghost" id="p-gamedata">更新换肤签名</button>
     </div>
@@ -94,6 +95,6 @@ CareerUI.pages.settings = async (_route,host,active) => {
     };
   }
 
-  if(S.design_preview)host.querySelectorAll('button,input,select').forEach(e=>e.disabled=true);
+  if(S.design_preview)host.querySelectorAll('button,input,select:not([data-career-language])').forEach(e=>e.disabled=true);
 };
 })();

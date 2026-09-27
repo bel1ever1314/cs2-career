@@ -4,6 +4,9 @@ internal sealed record TeamMembership(string Id, string OpeningSide, int Current
 
 internal static class TeamScoreMapping
 {
+    public static bool OpeningRosterReady(IReadOnlyList<TeamMembership> players) =>
+        OpeningCtCurrentSide(players) == 3;
+
     public static int LiveRoundIndex(int ct, int t) => Math.Max(0, ct) + Math.Max(0, t) + 1;
     // CT/T in the result contract mean OPENING roster sides, not the current
     // in-game side. Use stable roster membership, not a halftime round formula

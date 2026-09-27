@@ -15,22 +15,34 @@ internal sealed class IdentityBindings
     public void Clear() { Slots.Clear(); _connections.Clear(); _humanAccount = 0; }
     public void Remove(int slot) { Slots.Remove(slot); _connections.Remove(slot); }
 
-    public void Update(IReadOnlyList<IdentitySlot> live, IReadOnlyList<IdentityBot> bots, string humanId)
+    public void Update(IReadOnlyList<IdentitySlot> live, IReadOnlyList<IdentityBot> bots, string humanId,
+        bool requireProfile = false)
     {
+        bool CanBeBot(IdentitySlot p) => p.IsBot || p.AuthorizedId == 0
+            || bots.Any(b => b.SteamId == p.AuthorizedId || b.SteamId == p.SteamId);
         foreach (var slot in Slots.Keys.ToList())
             if (!live.Any(p => p.Slot == slot && p.Connection == _connections[slot])) Remove(slot);
         var used = Slots.Values.ToHashSet();
         foreach (var player in live)
         {
             if (Slots.ContainsKey(player.Slot)) continue;
-            var matches = bots.Where(b => b.SteamId != 0 && b.SteamId == player.SteamId).ToList();
-            if (matches.Count == 0)
+            // In observer matches an authenticated spectator cannot acquire a
+            // Bot identity just by using the same nickname/profile string.
+            if (!CanBeBot(player)) continue;
+            // BotHider may allocate a random unused persona before the engine
+            // finalizes the profile name. A synthetic SID is presentation, not
+            // proof of which BotProfile (and ability) was actually spawned.
+            var matches = bots.Where(b => b.Profile == player.Name).ToList();
+            if (matches.Count > 0 && live.Count(p => CanBeBot(p) && p.Name == player.Name) != 1) continue;
+            if (matches.Count == 0 && !requireProfile)
+                matches = bots.Where(b => b.SteamId != 0 && b.SteamId == player.SteamId).ToList();
+            if (matches.Count == 0 && !requireProfile)
                 matches = bots.Where(b => b.Profile == player.Name || b.Name == player.Name).ToList();
             if (matches.Count != 1 || used.Contains(matches[0].Id)) continue;
             Bind(player, matches[0].Id);
             used.Add(matches[0].Id);
         }
-        if (used.Contains(humanId)) return;
+        if (string.IsNullOrEmpty(humanId) || used.Contains(humanId)) return;
         var candidates = live.Where(p => !Slots.ContainsKey(p.Slot) && !p.IsBot
             && p.AuthorizedId != 0 && !bots.Any(b => b.SteamId == p.AuthorizedId
                 || b.SteamId == p.SteamId || b.Profile == p.Name || b.Name == p.Name)

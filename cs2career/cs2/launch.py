@@ -43,6 +43,8 @@ DEFAULTS = {
     "match_chat": "on",
     "bot_aim": "mixed",
     "bot_nades": "normal",
+    # Experimental live navigation tuning. The first evidence pack is Dust2.
+    "bot_movement": "classic",
     # "player" drops the BOT tag: managed bots publish a name, SteamID and ping.
     "bot_identity": "player",
     "skins_source_path": "",
@@ -52,6 +54,9 @@ DIFFICULTIES = ("Low", "Medium", "High")
 AIM_MODES = ("head", "mixed", "body")
 NADE_MODES = ("off", "less", "normal", "more", "max")
 IDENTITY_MODES = ("player", "bot")
+# 1.6 public Career builds do not enable the unfinished standalone Bot Lab AI.
+# Research data/executors remain source-compatible, not a released play mode.
+MOVEMENT_MODES = ("classic",)
 
 LIVE_MEMORY_BYTES = 80 * 1024 * 1024
 
@@ -242,6 +247,8 @@ def _clean(cfg: dict) -> dict:
         cfg["bot_nades"] = DEFAULTS["bot_nades"]
     if cfg.get("bot_identity") not in IDENTITY_MODES:
         cfg["bot_identity"] = DEFAULTS["bot_identity"]
+    if cfg.get("bot_movement") not in MOVEMENT_MODES:
+        cfg["bot_movement"] = DEFAULTS["bot_movement"]
     return cfg
 
 
@@ -262,8 +269,12 @@ def settings() -> dict:
 def save_settings(patch: dict) -> dict:
     cfg = settings()
     old_difficulty = cfg.get("difficulty")
-    if cs2_is_live() and patch.get("difficulty") and patch.get("difficulty") != cfg.get("difficulty"):
-        raise ValueError("CS2 运行时不能修改难度。请完全退出游戏后再选择。")
+    old_movement = cfg.get("bot_movement")
+    if cs2_is_live():
+        if patch.get("difficulty") and patch.get("difficulty") != cfg.get("difficulty"):
+            raise ValueError("CS2 运行时不能修改难度。请完全退出游戏后再选择。")
+        if patch.get("bot_movement") and patch.get("bot_movement") != cfg.get("bot_movement"):
+            raise ValueError("CS2 运行时不能修改行为风格。请完全退出游戏后再选择。")
     for key, val in patch.items():
         if key not in DEFAULTS or not val:
             continue
@@ -275,20 +286,24 @@ def save_settings(patch: dict) -> dict:
     SETTINGS_PATH.write_text(json.dumps(cfg, indent=2, ensure_ascii=False), encoding="utf-8")
     # A staged match is a generated artifact of the chosen difficulty. Rebuild
     # it immediately while CS2 is closed so UI selection and active VPK agree.
-    if old_difficulty != cfg.get("difficulty"):
+    if old_difficulty != cfg.get("difficulty") or old_movement != cfg.get("bot_movement"):
         csgo = resolve_csgo_path(cfg.get("csgo_path") or "")
         request_path = plugin_dir(csgo) / "match_request.json"
         if is_csgo_dir(csgo) and request_path.is_file():
             try:
                 match = json.loads(request_path.read_text(encoding="utf-8-sig"))
                 if match.get("active") and int(match.get("schema_version") or 0) == 2:
-                    install_match_avatars(csgo, match)
-                    generate_match_vpk(csgo, match, cfg["difficulty"])
+                    if old_difficulty != cfg.get("difficulty"):
+                        install_match_avatars(csgo, match)
+                        generate_match_vpk(csgo, match, cfg["difficulty"])
+                    from .natural_behavior import configure_match
+                    configure_match(match, cfg.get("bot_movement", "classic"))
+                    write_career_cfg(csgo, match, cfg)
                     temp = request_path.with_suffix(".json.tmp")
                     temp.write_text(json.dumps(match, indent=2, ensure_ascii=False), encoding="utf-8")
                     os.replace(temp, request_path)
             except (OSError, ValueError, TypeError) as exc:
-                raise ValueError(f"难度已保存，但待开始比赛重新生成失败：{exc}") from exc
+                raise ValueError(f"设置已保存，但待开始比赛重新生成失败：{exc}") from exc
     return settings()
 
 
@@ -318,7 +333,7 @@ def game_levels_ok(csgo: Path) -> bool:
 
 def sync_live_profiles() -> dict:
     return {"ok": True, "added": 0, "disabled": True,
-            "msg": "1.5 不同步人物数据库；开始比赛时会生成并校验本场恰好 9 人。"}
+            "msg": "开赛时自动生成本场 Bot 档案：亲自上场 9 人，观察者模式 10 人。"}
 
 
 def plugin_dir(csgo: Path) -> Path:
@@ -706,7 +721,7 @@ def install_mod(csgo: Path | None = None, mod: Path | None = None) -> dict:
     return {
         "ok": True,
         "files": files,
-        "msg": f"已把 {files} 个人机增强文件装进游戏。人物库未复制；每场开赛前生成 9 人档案。",
+        "msg": f"已把 {files} 个人机增强文件装进游戏。人物库未复制；开赛前按模式生成 9／10 人档案。",
     }
 
 
@@ -721,6 +736,20 @@ def status() -> dict:
     applied = manifest.get("difficulty", "") if manifest.get("valid") else ""
     pending = bool(applied and cfg.get("difficulty") != applied)
     process_difficulty = ""
+    movement_style: dict = {}
+    natural_runtime: dict = {}
+    if csgo.is_dir():
+        try:
+            request = json.loads((plugin_dir(csgo) / "match_request.json").read_text(encoding="utf-8-sig"))
+            if isinstance(request.get("movement_style"), dict):
+                movement_style = request["movement_style"]
+            runtime_path = plugin_dir(csgo) / "natural_status.json"
+            if runtime_path.is_file() and runtime_path.stat().st_size < 65536:
+                runtime = json.loads(runtime_path.read_text(encoding="utf-8-sig"))
+                if isinstance(runtime, dict) and runtime.get("nonce") == request.get("nonce"):
+                    natural_runtime = runtime
+        except (OSError, ValueError, TypeError):
+            pass
     if csgo.is_dir() and cs2_is_live() and manifest.get("valid"):
         active = csgo / "overrides" / "botprofile.vpk"
         if active.stat().st_mtime < cs2_started_at():
@@ -739,6 +768,15 @@ def status() -> dict:
         "aim_modes": list(AIM_MODES),
         "nade_modes": list(NADE_MODES),
         "identity_modes": list(IDENTITY_MODES),
+        "movement_modes": list(MOVEMENT_MODES),
+        "movement_supported_maps": ["de_dust2"],
+        "active_movement": movement_style.get("active", ""),
+        "active_movement_map": movement_style.get("map", ""),
+        "movement_profile_id": movement_style.get("profile_id", ""),
+        "movement_profile_hash": movement_style.get("profile_hash", ""),
+        "movement_fallback_reason": movement_style.get("fallback_reason", ""),
+        "movement_route_count": movement_style.get("route_count", 0),
+        "natural_runtime": natural_runtime,
         "installed_difficulty": applied if applied in DIFFICULTIES else "",
         "active_vpk_type": manifest.get("type", "career_match_9") if manifest else "",
         "match_nonce": manifest.get("nonce", ""),
@@ -779,9 +817,17 @@ def _powershell(script: str) -> str:
 
 
 def live_cs2_pids() -> list[int]:
-    """Even a small/starting process can load the VPK; never infer safety from RAM use."""
+    """Return real CS2 processes, excluding an already-terminated Windows residue.
+
+    A starting CS2 process can load the VPK while its working set is still tiny,
+    so memory usage must never be used as the safety test.  Windows can however
+    briefly retain a process-table entry with no handles after CS2 has exited.
+    Such an entry cannot execute or hold game files and would otherwise leave the
+    launcher permanently stuck on "CS2 is running".
+    """
     out = _powershell(
         "(Get-Process -Name cs2 -ErrorAction SilentlyContinue | "
+        "Where-Object { $_.HandleCount -ne 0 } | "
         "Select-Object -ExpandProperty Id) -join ','"
     )
     return [int(x) for x in out.split(",") if x.strip().isdigit()]
@@ -799,6 +845,7 @@ def cs2_started_at() -> float:
     """Unix seconds when the running game started, 0 if it is not running."""
     out = _powershell(
         "(Get-Process -Name cs2 -ErrorAction SilentlyContinue | "
+        "Where-Object { $_.HandleCount -ne 0 } | "
         "Sort-Object StartTime | Select-Object -First 1 -ExpandProperty StartTime | "
         "Get-Date -UFormat %s)"
     )
@@ -861,11 +908,29 @@ def build_request(my_team: dict, opp: dict, player_name: str, map_code: str, sid
         "ct": ct,
         "t": t,
         "player": player_name,
-        "human_player_id": stable_player_id(player_name),
+        "human_player_id": next((p.get('player_id') for p in my_team['players'] if p['name']==player_name),None) or stable_player_id(player_name),
         # Always ask for a full 5v5 so the game backfills any name we dropped.
         "quota": 9,
         "nonce": uuid.uuid4().hex,
     }
+
+
+def build_lobby_request(ct: dict, t: dict, human_id: str, map_code: str, nonce: str) -> dict:
+    """A frozen five-versus-five lobby; empty human_id means ten Bot spectatorship."""
+    roster = ct['players'] + t['players']
+    ids = [p.get('player_id') for p in roster]
+    if len(ct['players']) != 5 or len(t['players']) != 5 or not all(ids) or len(set(ids)) != 10:
+        raise ValueError('需要两边各五名不同的选手')
+    if human_id and human_id not in ids:
+        raise ValueError('控制的选手必须在本场十人中')
+    human = next((p for p in roster if p['player_id']==human_id),None)
+    request = dict(schema_version=2,active=True,map=map_code,nonce=nonce,observer=not bool(human_id),
+        human_team=('ct' if human_id in [p['player_id'] for p in ct['players']] else 't') if human_id else 'spectator',
+        human_player_id=human_id,player=human['name'] if human else '',quota=9 if human else 10)
+    for side,team in (('ct',ct),('t',t)):
+        request[side]=dict(team_id=team['id'],name=team['name'],logo='',
+            players=[_pick_bots([p],1,set())[0] for p in team['players'] if p['player_id']!=human_id])
+    return request
 
 
 def write_career_cfg(csgo: Path, match: dict, opts: dict | None = None) -> None:
@@ -889,6 +954,7 @@ def write_career_cfg(csgo: Path, match: dict, opts: dict | None = None) -> None:
         "bot_auto_vacate 0",
         "bot_join_after_player 0",
         "bot_quota_mode normal",
+        f"mp_forcecamera {0 if match.get('observer') else 1}",
         f"bot_quota {total}",
         f"mp_teamname_1 \"{cfg_text(match['ct']['name'])}\"",
         f"mp_teamname_2 \"{cfg_text(match['t']['name'])}\"",
@@ -897,6 +963,8 @@ def write_career_cfg(csgo: Path, match: dict, opts: dict | None = None) -> None:
         f"bot_aim {opts['bot_aim']}",
         f"bot_nades {opts['bot_nades']}",
     ]
+    from .natural_behavior import cfg_lines
+    lines.extend(cfg_lines(match))
     body = "\n".join(lines) + "\n"
     (cfg_dir / "career_rules.cfg").write_text(body, encoding="utf-8")
     (cfg_dir / "career_quick.cfg").write_text(body, encoding="utf-8")
@@ -1105,18 +1173,20 @@ def install_match_avatars(csgo: Path, match: dict) -> None:
 
 
 def install_match_identities(csgo: Path, match: dict) -> dict:
-    """Write exactly nine stable BotHider identities for the active career match.
+    """Write nine player-match or ten observer-match BotHider identities.
 
     BotHider needs a distinct SteamID for each synthetic player; duplicate or
     missing IDs make CS2 collapse scoreboard rows and prevent avatar lookup.
     The per-match file replaces Bot Improver's large identity database.
     """
     bots = sorted(match.get("bots") or [], key=lambda row: str(row.get("player_id") or ""))
-    if len(bots) != 9:
-        raise ValueError(f"本场 BotHider 身份必须恰好为 9 人，当前为 {len(bots)} 人")
+    from .profiles import expected_bot_count
+    count = expected_bot_count(match)
+    if len(bots) != count:
+        raise ValueError(f"本场 BotHider 身份必须恰好为 {count} 人，当前为 {len(bots)} 人")
     ids = [str(bot.get("player_id") or "") for bot in bots]
     profiles = [str(bot.get("profile_name") or "") for bot in bots]
-    if not all(ids) or len(set(ids)) != 9 or not all(profiles) or len(set(profiles)) != 9:
+    if not all(ids) or len(set(ids)) != count or not all(profiles) or len(set(profiles)) != count:
         raise ValueError("本场 BotHider 的 player_id 或 profile_name 不唯一")
 
     used: set[int] = set()
@@ -1124,7 +1194,7 @@ def install_match_identities(csgo: Path, match: dict) -> dict:
     for bot in bots:
         digest = hashlib.sha256(("c2c-bot:" + bot["player_id"]).encode("utf-8")).digest()
         low = int.from_bytes(digest[:4], "little") & 0x7FFFFFFF
-        for offset in range(9):
+        for offset in range(count):
             account_id = 0x80000000 | ((low + offset) & 0x7FFFFFFF)
             if account_id not in used:
                 break
@@ -1203,16 +1273,20 @@ def prepare_game(
         )
     if not mod_source.is_dir():
         raise FileNotFoundError(f"找不到 mod 目录：{mod_source}")
-    require_cs2_closed("生成并安装本场 9 人 BotProfile")
+    from .profiles import expected_bot_count
+    count = expected_bot_count(match)
+    require_cs2_closed(f"生成并安装本场 {count} 人 BotProfile")
     if not mod_installed(csgo):
         raise ValueError("游戏中缺少人机增强运行组件，请先在游戏设置安装人机增强。")
     _copy_career_match(csgo, mod_source)
     _copy_botbuy_patch(csgo)
     match["bot_identity"] = opts["bot_identity"]
+    from .natural_behavior import configure_match
+    configure_match(match, opts.get("bot_movement", "classic"))
     want = opts["difficulty"]
     install_match_avatars(csgo, match)
     manifest = generate_match_vpk(csgo, match, want)
-    if not manifest.get("manifest_hash") or manifest.get("count") != 9:
+    if not manifest.get("manifest_hash") or manifest.get("count") != count:
         raise ValueError("本场 BotProfile 清单校验失败，已阻止开赛")
     install_match_identities(csgo, match)
     try:
@@ -1270,6 +1344,7 @@ DIFFICULTY_LABEL = {"Low": "简单", "Medium": "中等", "High": "极难"}
 NADE_LABEL = {"off": "关闭", "less": "偏少", "normal": "正常", "more": "偏多", "max": "最多"}
 AIM_LABEL = {"head": "爆头优先", "mixed": "混合", "body": "身体优先"}
 IDENTITY_LABEL = {"player": "真人身份", "bot": "显示 BOT"}
+MOVEMENT_LABEL = {"classic": "原版增强", "natural": "自然"}
 
 
 def start_match(
@@ -1280,12 +1355,12 @@ def start_match(
     side: str,
     teams: list[dict] | None = None,
     career=None,
-    *, purpose: str = "series",
+    *, purpose: str = "series", request_override: dict | None = None,
 ) -> dict:
     cfg = settings()
     if not Path(cfg['steam_exe']).is_file():
         raise FileNotFoundError("找不到 steam.exe，请先在游戏设置保存有效路径。")
-    match = build_request(my_team, opp, player_name, map_code, side)
+    match = request_override if request_override is not None else build_request(my_team, opp, player_name, map_code, side)
     prepare_game(
         Path(cfg["csgo_path"]),
         Path(cfg["mod_source_path"]),
@@ -1298,21 +1373,23 @@ def start_match(
     if purpose == "training" and career is not None:
         career.remember_training(match)
     you_side = "CT" if match["human_team"] == "ct" else "T"
+    identity_tip = "你将作为观察者观看十名 Bot 对战。" if match.get('observer') else f"你是 {player_name}，{you_side} 方。"
     tune = (
         f"难度{DIFFICULTY_LABEL.get(cfg['difficulty'], cfg['difficulty'])}"
         f" · 瞄准{AIM_LABEL.get(cfg['bot_aim'], cfg['bot_aim'])}"
         f" · 道具{NADE_LABEL.get(cfg['bot_nades'], cfg['bot_nades'])}"
         f" · {IDENTITY_LABEL.get(cfg['bot_identity'], cfg['bot_identity'])}"
-        f" · Bot档案 9/9 · {match['bot_profile']['short_hash']}"
+        f" · 行为{MOVEMENT_LABEL.get(match['movement_style']['active'], match['movement_style']['active'])}"
+        f" · Bot档案 {match['bot_profile']['count']}/{match['bot_profile']['count']} · {match['bot_profile']['short_hash']}"
     )
     tip = f"CS2 正在启动。进游戏后选：与机器人游戏 → 竞技 → {map_code}。"
+    fallback = str(match.get("movement_style", {}).get("fallback_reason") or "")
     return {
         "ok": True,
         "match": match,
         "already_running": state == "already_running",
         "msg": (
-            f"{tip} 你是 {player_name}，{you_side} 方 {my_team['name']}，"
-            f"对手 {opp['name']}。{tune}。"
+            f"{tip} {identity_tip} {my_team['name']} vs {opp['name']}。{tune}。{(' ' + fallback) if fallback else ''}"
         ),
     }
 

@@ -33,6 +33,10 @@
 
 ## 外部运行依赖
 
+沙二自然动作试验使用 XBribo/CS2-Bot-Controller 的 ABI 20 移动输入接口。
+接口定义参考 https://github.com/XBribo/CS2-Bot-Controller （AGPL-3.0）；不打包或替换其原生 DLL。
+本地 Demo 派生动作包放在测试版 natural_routes 目录，不随公开源码或标准 Release 分发。
+
 进入 CS2 需要 Steam、CS2、Metamod、CounterStrikeSharp、BotHider 和 Bot Improver 的运行组件，
 玩家从官方/上游发行页获取。这些完整产品不包含在本发行包中，不受本项目 LICENSE 重新授权。
 CounterStrikeSharp 的许可说明：

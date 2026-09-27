@@ -66,13 +66,13 @@ class AssistanceTests(unittest.TestCase):
         self.assertEqual(3,sum(p['stats'].get(a,0)-old.get(a,0) for a in ALL_AXES))
 
     def test_decisive_rules(self):
-        for stage,meta,expected in [('GF',{},'final'),('QF',{},'elimination'),('SW3',{'record':'0-2'},'elimination'),
-            ('M2-SW5',{'record':'2-2'},'elimination'),('SW3',{'record':'2-0'},''),('G2',{'kind':'winners'},''),
-            ('G2',{'kind':'elim'},'elimination'),('G3',{'kind':'decider'},'elimination')]:
+        for stage,meta,expected in [('GF',{},'final'),('QF',{},''),('SW3',{'record':'0-2'},''),
+            ('M2-SW5',{'record':'2-2'},''),('SW3',{'record':'2-0'},''),('G2',{'kind':'winners'},''),
+            ('G2',{'kind':'elim'},''),('G3',{'kind':'decider'},'')]:
             self.assertEqual(expected,decisive({},dict(stage=stage,meta=meta)))
 
-    def test_final_and_elimination_require_player_choice(self):
-        for stage,record,word in [('GF','0-0','奖杯'),('SW3','0-2','退路')]:
+    def test_only_final_requires_player_choice(self):
+        for stage,record,word in [('GF','0-0','奖杯')]:
             self.c.story_queue=[];self.c.assist={};ev,m=self.open_match(stage,record)
             out=step(self.c,self.s,ev['id'],'decision-'+stage)
             self.assertEqual('decision',out['status']);self.assertFalse(m['played'])
@@ -94,6 +94,11 @@ class AssistanceTests(unittest.TestCase):
             self.assertEqual(result,step(self.c,self.s,ev['id'],'playing1'))
             self.assertEqual(saved,m)
         self.assertTrue(m['played']);self.assertIn(len(result['match']['winners']),(2,3))
+        receipt=result['match']
+        self.assertTrue(receipt['data_complete']);self.assertEqual(10,len(receipt['totals']))
+        self.assertEqual(self.c.my_player(self.s.teams)['player_id'],receipt['player_id'])
+        self.assertEqual(self.mine['name'],receipt['player_team'])
+        self.assertEqual(f'{self.s.year}:{ev["id"]}:{m["id"]}',receipt['result_id'])
 
     def test_cs2_pending_is_never_overwritten(self):
         ev,m=self.open_match();m['cs2_session']={'nonce':'pending'}
@@ -101,7 +106,7 @@ class AssistanceTests(unittest.TestCase):
         self.assertFalse(m['played'])
 
     def test_later_reprompts_and_manual_does_not_authorize_simulation(self):
-        ev,m=self.open_match('QF');step(self.c,self.s,ev['id'],'first001')
+        ev,m=self.open_match('GF');step(self.c,self.s,ev['id'],'first001')
         row=self.c.story_queue[0];self.c.ack_story(row['id'],'later',self.s)
         self.assertEqual('decision',step(self.c,self.s,ev['id'],'second01')['status'])
         self.c.ack_story(row['id'],'manual',self.s)
@@ -109,7 +114,7 @@ class AssistanceTests(unittest.TestCase):
 
     def test_before_match_story_stops_before_simulation(self):
         ev,m=self.open_match()
-        def gate(*args):self.c.story_queue.append({'id':'surprise','text':'Choose first'});return ''
+        def gate(*args):self.c.story_queue.append({'id':'surprise','text':'Choose first','choices':[{'id':'yes'}]});return ''
         with patch.object(self.c,'gate_match',side_effect=gate),patch.object(self.s,'skip_your_series') as skip:
             self.assertEqual('paused',step(self.c,self.s,ev['id'],'newstory')['status']);skip.assert_not_called()
 
@@ -118,7 +123,7 @@ class AssistanceTests(unittest.TestCase):
         self.assertEqual(self.c.assist,self.c.to_json()['assist'])
 
     def test_delayed_retry_cannot_advance_a_new_step(self):
-        ev,m=self.open_match();self.c.story_queue=[{'id':'hold','text':'wait'}]
+        ev,m=self.open_match();self.c.story_queue=[{'id':'hold','text':'wait','choices':[{'id':'yes'}]}]
         first=step(self.c,self.s,ev['id'],'first001',0)
         self.assertEqual(first,step(self.c,self.s,ev['id'],'first001',0))
         step(self.c,self.s,ev['id'],'second01',1)
@@ -133,15 +138,22 @@ class AssistanceTests(unittest.TestCase):
         for i in range(80):
             if self.c.story_queue:
                 row=self.c.story_queue[0]
+                if row.get('choices'):
+                    queued=deepcopy(self.c.story_queue)
+                    self.assertEqual('paused',step(self.c,self.s,ev['id'],f'pending-choice-{i}')['status'])
+                    self.assertEqual(queued,self.c.story_queue,'the runner must never answer a real incident')
                 choice='simulate' if row.get('when')=='tournament_decision' else (row.get('choices') or [{'id':''}])[0]['id']
                 self.c.ack_story(row['id'],choice,self.s)
-                decisions+=1
+                # Random match-fixing/birthday incidents are choices too, but
+                # are not additional final confirmations.
+                decisions+=int(row.get('when')=='tournament_decision')
                 continue
             result=step(self.c,self.s,ev['id'],f'whole-event-{i}')
             if result['status']=='done':break
         else:self.fail('event loop stalled')
         self.assertEqual('done',ev['status'])
-        self.assertTrue(decisions>0)
+        finals = [m for m in ev['matches'] if m['stage'] == 'GF' and self.mine['name'] in (m['team_a'], m['team_b'])]
+        self.assertEqual(len(finals), decisions)
         self.assertTrue(all(m['played'] for m in ev['matches']))
         self.assertEqual(3,len(ev['matches']))
 

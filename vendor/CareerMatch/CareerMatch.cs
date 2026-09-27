@@ -14,12 +14,18 @@ namespace CareerMatch;
 
 public sealed class MatchRequest
 {
+    [JsonPropertyName("movement_style")]
+    public JsonElement? MovementStyle { get; set; }
     [JsonPropertyName("match_chat")]
     public JsonElement? MatchChat { get; set; }
     [JsonPropertyName("schema_version")]
     public int SchemaVersion { get; set; }
     [JsonPropertyName("active")]
     public bool Active { get; set; }
+
+    [JsonPropertyName("observer")]
+    public bool Observer { get; set; }
+    [JsonIgnore] public int ExpectedBots => Observer ? 10 : 9;
 
     [JsonPropertyName("map")]
     public string Map { get; set; } = "de_dust2";
@@ -76,6 +82,8 @@ public sealed class BotConfig
     [JsonPropertyName("avatar_path")] public string AvatarPath { get; set; } = "";
     [JsonPropertyName("avatar_hash")] public string AvatarHash { get; set; } = "";
     [JsonPropertyName("avatar_kind")] public string AvatarKind { get; set; } = "default";
+    [JsonPropertyName("role")] public string Role { get; set; } = "rifle";
+    [JsonPropertyName("effective_strength")] public float EffectiveStrength { get; set; } = 75;
 }
 
 public sealed class TeamConfig
@@ -213,7 +221,7 @@ public sealed record TakeoverRecord(
 public sealed partial class CareerMatchPlugin : BasePlugin
 {
     public override string ModuleName => "CareerMatch";
-    public override string ModuleVersion => "1.5.0-assistchat.1";
+    public override string ModuleVersion => "1.6.0-dialogue.3";
     public override string ModuleAuthor => "CS2 Career Sim";
     public override string ModuleDescription =>
         "Auto-setup named career bots, force human side, export score + box score.";
@@ -341,7 +349,12 @@ public sealed partial class CareerMatchPlugin : BasePlugin
         RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnect);
         RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
         RegisterEventHandler<EventWarmupEnd>(OnWarmupEnd);
+        RegisterEventHandler<EventBombPlanted>((e, i) => { NaturalBombPlanted(e); return HookResult.Continue; });
+        RegisterEventHandler<EventBombDefused>((e, i) => { NaturalBombCleared(); return HookResult.Continue; });
+        RegisterEventHandler<EventBombExploded>((e, i) => { NaturalBombCleared(); return HookResult.Continue; });
         RegisterListener<Listeners.OnMapStart>(OnMapStart);
+        RegisterListener<Listeners.OnTick>(TickNatural);
+        RegisterEventHandler<EventRoundEnd>((e, i) => { StopNatural("round_end"); return HookResult.Continue; }, HookMode.Pre);
         AddTimer(1.0f, CheckWarmupRoster, TimerFlags.REPEAT);
         AddTimer(1.0f, RefreshDisplayNames, TimerFlags.REPEAT);
         AddTimer(12.0f, TickSnapshot, TimerFlags.REPEAT);
@@ -349,9 +362,10 @@ public sealed partial class CareerMatchPlugin : BasePlugin
 
     private void CheckWarmupRoster()
     {
+        PinObservers();
         if (!_setupDone || _request is not { Active: true } || !InWarmup()) return;
         BindPlayerSlots();
-        var ready = _slotIds.Count == 10 && _slotIds.Values.Distinct().Count() == 10
+        var ready = TeamScoreMapping.OpeningRosterReady(LiveTeamMembership())
             && AllSlots().Count(p => p.Team == CsTeam.CounterTerrorist) == 5
             && AllSlots().Count(p => p.Team == CsTeam.Terrorist) == 5
             && string.IsNullOrEmpty(_contractError);
@@ -361,6 +375,9 @@ public sealed partial class CareerMatchPlugin : BasePlugin
         if (notice != _rosterNotice)
         {
             _rosterNotice = notice;
+            TraceIdentity("warmup_roster", new { ready, members = LiveTeamMembership(),
+                slots = AllSlots().Select(p => new { slot = p.Slot, name = p.PlayerName,
+                    side = (int)p.Team, id = _slotIds.GetValueOrDefault(p.Slot) }).ToList() });
             Server.PrintToChatAll($" \x04CareerMatch：{notice}\x01");
         }
     }
@@ -376,6 +393,7 @@ public sealed partial class CareerMatchPlugin : BasePlugin
 
     private void OnMapStart(string mapName)
     {
+        StopNatural("map_change");
         var incoming = ReadRequest();
         var nonce = incoming?.Nonce ?? "";
         var newSession = !string.IsNullOrEmpty(nonce) && nonce != _sessionNonce;
@@ -386,6 +404,7 @@ public sealed partial class CareerMatchPlugin : BasePlugin
         }
 
         _request = incoming;
+        LoadNatural();
         _dialogue.Reset();
         LoadDialogue();
         _setupDone = false;
@@ -498,10 +517,13 @@ public sealed partial class CareerMatchPlugin : BasePlugin
 
     private static void StartWarmup()
     {
+        // Offline games must opt in; otherwise engine startup can leave warmup
+        // before the human has selected a side. Only the roster gate releases it.
+        Server.ExecuteCommand("mp_warmup_offline_enabled 1");
         Server.ExecuteCommand($"mp_warmuptime {WarmupSeconds}");
         Server.ExecuteCommand($"mp_warmuptime_all_players_connected {WarmupSeconds - 10}");
-        Server.ExecuteCommand("mp_warmup_pausetimer 0");
         Server.ExecuteCommand("mp_warmup_start");
+        Server.ExecuteCommand("mp_warmup_pausetimer 1");
     }
 
     private static bool InWarmup()
@@ -535,10 +557,14 @@ public sealed partial class CareerMatchPlugin : BasePlugin
         if (_request is not { Active: true }) return "";
         var bots = _request.Ct.Players.Concat(_request.T.Players).ToList();
         if (_request.SchemaVersion != 2) return "比赛请求不是 schema v2";
-        if (bots.Count != 9 || _request.BotProfile.Count != 9) return "Bot 清单不是 9 人";
-        if (bots.Select(x => x.PlayerId).Distinct().Count() != 9) return "player_id 不唯一";
-        if (bots.Select(x => x.ProfileName).Distinct().Count() != 9) return "profile_name 不唯一";
-        if (bots.Any(x => x.SteamId == 0) || bots.Select(x => x.SteamId).Distinct().Count() != 9)
+        var count = _request.ExpectedBots;
+        if (_request.Observer && (_request.HumanPlayerId.Length != 0 || _request.Ct.Players.Count != 5 || _request.T.Players.Count != 5))
+            return "观察者请求必须是十名 Bot，不绑定真人身份";
+        if (!_request.Observer && string.IsNullOrEmpty(_request.HumanPlayerId)) return "缺少真人身份";
+        if (bots.Count != count || _request.BotProfile.Count != count) return "Bot 清单人数不匹配";
+        if (bots.Select(x => x.PlayerId).Distinct().Count() != count) return "player_id 不唯一";
+        if (bots.Select(x => x.ProfileName).Distinct().Count() != count) return "profile_name 不唯一";
+        if (bots.Any(x => x.SteamId == 0) || bots.Select(x => x.SteamId).Distinct().Count() != count)
             return "Bot 合成 SteamID 缺失或不唯一";
         foreach (var bot in bots)
         {
@@ -567,11 +593,12 @@ public sealed partial class CareerMatchPlugin : BasePlugin
                     || node.GetProperty("template_hash").GetString() != _request.BotProfile.TemplateHash)
                     return "活动 VPK 预设来源不一致";
             }
-            if (node.GetProperty("count").GetInt32() != 9) return "活动清单不是 9 人";
+            if (node.GetProperty("count").GetInt32() != count) return "活动清单人数不匹配";
+            if (node.GetProperty("type").GetString() != (_request.Observer ? "observer_match_10" : "career_match_9")) return "活动清单模式不匹配";
             if (node.GetProperty("vpk_sha256").GetString() != _request.BotProfile.VpkSha256)
                 return "活动清单与请求的 VPK 哈希不一致";
             var manifestBots = node.GetProperty("bots").EnumerateArray().ToList();
-            if (manifestBots.Count != 9) return "活动清单 Bot 数量不是 9";
+            if (manifestBots.Count != count) return "活动清单 Bot 数量不匹配";
             var requestBots = bots.ToDictionary(x => x.PlayerId, StringComparer.Ordinal);
             foreach (var item in manifestBots)
             {
@@ -614,7 +641,13 @@ public sealed partial class CareerMatchPlugin : BasePlugin
         }).ToList();
         var previous = _slotIds.Values.ToHashSet();
         _identities.Update(snapshots, configs.Select(c => new IdentityBot(c.PlayerId,
-            c.ProfileName, SafeCommandText(c.DisplayName), c.SteamId)).ToList(), _request.HumanPlayerId);
+            c.ProfileName, SafeCommandText(c.DisplayName), c.SteamId)).ToList(), _request.HumanPlayerId,
+            requireProfile: true);
+        foreach (var player in snapshots.Where(p => _slotIds.ContainsKey(p.Slot)
+            && !previous.Contains(_slotIds[p.Slot])))
+            TraceIdentity("identity_bound", new { slot = player.Slot, id = _slotIds[player.Slot],
+                observedName = player.Name, side = (int)live.Single(p => p.Slot == player.Slot).Team,
+                source = _slotIds[player.Slot] == _request.HumanPlayerId ? "authenticated_human" : "exact_profile" });
         foreach (var missing in previous.Except(_slotIds.Values)) _disconnected.Add(missing);
         foreach (var id in _slotIds.Values)
         {
@@ -684,6 +717,9 @@ public sealed partial class CareerMatchPlugin : BasePlugin
 
     private HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)
     {
+        _chatPlayback.Cancel(); // Previous-round scene cannot spill into a new round.
+        StopNatural("round_start");
+        NaturalRoundReset();
         if (_resultWritten) return HookResult.Continue;
         // Map initialization can emit round_start before warmup/setup exists.
         // It is not a scored career round and must not poison the match.
@@ -695,50 +731,59 @@ public sealed partial class CareerMatchPlugin : BasePlugin
             RestoreBestToDisk();
             return HookResult.Continue;
         }
-        if (!InWarmup())
-        {
-            BindPlayerSlots();
-            var openingScore = ReadTeamScores();
-            _chatOwnScoreAtStart = _request.HumanTeam == "t" ? openingScore.T : openingScore.Ct;
-            if (_slotIds.Count != 10 || _slotIds.Values.Distinct().Count() != 10)
-            {
-                _rosterReadiness.Missing(openingScore.Ct + openingScore.T, _roundLive);
-                TraceIdentity("roster_waiting", new { score = openingScore.Ct + openingScore.T,
-                    bindings = new Dictionary<int,string>(_slotIds), reason = _rosterReadiness.Error });
-                _roundLive = false;
-                return HookResult.Continue;
-            }
-            _rosterReadiness.Ready(openingScore.Ct + openingScore.T);
-            // round_start may fire again while leaving warmup. Derive the
-            // round index from the actual score, not the number of callbacks.
-            _liveRounds = TeamScoreMapping.LiveRoundIndex(openingScore.Ct, openingScore.T);
-            _roundLive = true;
-            _scoreAtRoundStart = openingScore.Ct + openingScore.T;
-            _openingRecorded = false;
-            _pendingTrades.Clear();
-            _actors.NewRound();
-            _clutchCandidates.Clear();
-            _pendingControls.Clear();
-            BindPlayerSlots();
-            _roundSnapshot.Clear();
-            _roundStatisticsError = _health.StatisticsError;
-            _roundTakeoverCount = _takeovers.Count;
-            foreach (var pair in _ledger)
-            {
-                _roundSnapshot[pair.Key] = pair.Value.Copy();
-            }
-            foreach (var row in _ledger.Values)
-            {
-                row.RoundKill = row.RoundAssist = row.RoundDead = row.RoundTraded = false;
-            }
-            CaptureRoundPawns();
-            if (_liveRounds == 2)
-            {
-                AnnounceDifficulty();
-            }
-        }
+        if (!InWarmup()) BeginOfficialRound("round_start");
         WriteSnapshot(Server.MapName, _resultWritten ? "finished" : "in_progress");
         return HookResult.Continue;
+    }
+
+    // round_start can precede the human joining a team. Freeze-end is the
+    // second safe boundary: initialize before combat, never midway through it.
+    private void BeginOfficialRound(string source)
+    {
+        if (_resultWritten || !_setupDone || _request is not { Active: true }
+            || IsEmptyMap(Server.MapName) || InWarmup()) return;
+        BindPlayerSlots();
+        var openingScore = ReadTeamScores();
+        if (_roundLive && _scoreAtRoundStart == openingScore.Ct + openingScore.T) return;
+        if (TeamScoreMapping.OpeningCtCurrentSide(LiveTeamMembership()) is null)
+        {
+            _rosterReadiness.Missing(openingScore.Ct + openingScore.T, _roundLive);
+            TraceIdentity("roster_waiting", new { score = openingScore.Ct + openingScore.T,
+                source, bindings = new Dictionary<int,string>(_slotIds), reason = _rosterReadiness.Error });
+            _roundLive = false;
+            return;
+        }
+        _rosterReadiness.Ready(openingScore.Ct + openingScore.T);
+        _chatOwnScoreAtStart = _request.HumanTeam == "t" ? openingScore.T : openingScore.Ct;
+        // round_start may fire again while leaving warmup. Derive the
+        // round index from the actual score, not the number of callbacks.
+        _liveRounds = TeamScoreMapping.LiveRoundIndex(openingScore.Ct, openingScore.T);
+        _roundLive = true;
+        _scoreAtRoundStart = openingScore.Ct + openingScore.T;
+        _openingRecorded = false;
+        _pendingTrades.Clear();
+        _actors.NewRound();
+        _clutchCandidates.Clear();
+        _pendingControls.Clear();
+        BindPlayerSlots();
+        _roundSnapshot.Clear();
+        _roundStatisticsError = _health.StatisticsError;
+        _roundTakeoverCount = _takeovers.Count;
+        foreach (var pair in _ledger)
+        {
+            _roundSnapshot[pair.Key] = pair.Value.Copy();
+        }
+        foreach (var row in _ledger.Values)
+        {
+            row.RoundKill = row.RoundAssist = row.RoundDead = row.RoundTraded = false;
+        }
+        CaptureRoundPawns();
+        TraceIdentity("round_begin", new { source, score = _scoreAtRoundStart,
+            readiness = _rosterReadiness.Error, members = LiveTeamMembership() });
+        if (_liveRounds == 2)
+        {
+            AnnounceDifficulty();
+        }
     }
 
     private HookResult OnPlayerDisconnect(EventPlayerDisconnect @event, GameEventInfo info)
@@ -791,7 +836,7 @@ public sealed partial class CareerMatchPlugin : BasePlugin
         var tuning = _request?.BotProfile.DifficultyModel == "bot_improver_career_tuned_v2"
             ? "原版增强参数 + 生涯个人微调" : "旧版调校（下场重新生成）";
         Server.PrintToChatAll($" \x04{tuning}\x01");
-        Server.PrintToChatAll($" \x04本场 Bot 档案: 9/9 · {_request?.BotProfile.ShortHash}\x01");
+        Server.PrintToChatAll($" \x04本场 Bot 档案: {_request?.ExpectedBots}/{_request?.ExpectedBots} · {_request?.BotProfile.ShortHash}\x01");
         Server.PrintToConsole($"[CareerMatch] Difficulty {name} [{level}] model={_request?.BotProfile.DifficultyModel} preset={_request?.BotProfile.PresetSourceHash}");
     }
 
@@ -819,6 +864,7 @@ public sealed partial class CareerMatchPlugin : BasePlugin
         Server.ExecuteCommand("bot_kick");
         Server.ExecuteCommand("bot_quota 0");
 
+        if (_request.Observer) PinObservers();
         var humanTeam = _request.HumanTeam.Trim().ToLowerInvariant();
         if (humanTeam is "ct" or "t")
         {
@@ -841,8 +887,8 @@ public sealed partial class CareerMatchPlugin : BasePlugin
             }
         }
 
-        // Never backfill with a random bot: contract validation guarantees nine.
-        Server.ExecuteCommand("bot_quota 9");
+        // Contract supplies nine Bots + player, or ten Bots + spectator.
+        Server.ExecuteCommand($"bot_quota {_request.ExpectedBots}");
         Server.ExecuteCommand("bot_quota_mode normal");
 
         if (!string.IsNullOrWhiteSpace(_request.Ct.Name))
@@ -912,12 +958,30 @@ public sealed partial class CareerMatchPlugin : BasePlugin
         Server.ExecuteCommand("mp_human_team any");
     }
 
+    private void PinObservers()
+    {
+        if (!_setupDone || _request is not { Active: true, Observer: true }) return;
+        BindPlayerSlots();
+        var configs = _request.Ct.Players.Concat(_request.T.Players).ToList();
+        foreach (var player in AllSlots())
+        {
+            if (_slotIds.ContainsKey(player.Slot) || player.IsBot || player.Team == CsTeam.Spectator) continue;
+            ulong authorized = 0;
+            try { authorized = player.AuthorizedSteamID?.SteamId64 ?? 0; } catch { }
+            if (authorized == 0 || configs.Any(b => b.SteamId == authorized || b.SteamId == player.SteamID)) continue;
+            try { player.SwitchTeam(CsTeam.Spectator); }
+            catch (Exception ex) { Logger.LogWarning(ex, "CareerMatch: spectator SwitchTeam failed"); }
+        }
+    }
+
     private void ApplyNamesAndSide()
     {
         if (_request is not { Active: true })
         {
             return;
         }
+
+        if (_request.Observer) { PinObservers(); ApplyBotNames(); return; }
 
         var humanWant = _request.HumanTeam.Trim().ToLowerInvariant() == "t"
             ? CsTeam.Terrorist
@@ -1001,6 +1065,11 @@ public sealed partial class CareerMatchPlugin : BasePlugin
     }
 
     private int? _openingCtCurrentSide;
+    private List<TeamMembership> LiveTeamMembership() =>
+        AllSlots().Where(p => _slotIds.ContainsKey(p.Slot))
+            .Select(p => new TeamMembership(_slotIds[p.Slot],
+                _ledger.TryGetValue(_slotIds[p.Slot], out var row) ? row.Team : "", (int)p.Team)).ToList();
+
     private (int Ct, int T) ReadTeamScores()
     {
         var ct = 0;
@@ -1017,9 +1086,7 @@ public sealed partial class CareerMatchPlugin : BasePlugin
             }
         }
 
-        var members = AllSlots().Where(p => _slotIds.ContainsKey(p.Slot))
-            .Select(p => new TeamMembership(_slotIds[p.Slot],
-                _ledger.TryGetValue(_slotIds[p.Slot], out var row) ? row.Team : "", (int)p.Team)).ToList();
+        var members = LiveTeamMembership();
         var mapped = TeamScoreMapping.OpeningCtCurrentSide(members);
         if (mapped is not null && mapped != _openingCtCurrentSide)
         {
@@ -1057,6 +1124,9 @@ public sealed partial class CareerMatchPlugin : BasePlugin
         else
         {
             var counted = _roundLive && !InWarmup() && scores.Ct + scores.T == _scoreAtRoundStart + 1;
+            TraceIdentity("round_end", new { counted, ct = scores.Ct, t = scores.T,
+                live = _roundLive, warmup = InWarmup(), startScore = _scoreAtRoundStart,
+                readiness = _rosterReadiness.Error });
             FinalizeRound();
             if (counted) AnnounceRoundDialogue(scores.Ct, scores.T);
         }
@@ -1071,6 +1141,7 @@ public sealed partial class CareerMatchPlugin : BasePlugin
 
     private HookResult OnMatchEnd(EventCsWinPanelMatch @event, GameEventInfo info)
     {
+        _chatPlayback.EndMatch();
         var scores = ReadTeamScores();
         FinishMatch(scores.Ct, scores.T);
         return HookResult.Continue;
@@ -1091,6 +1162,7 @@ public sealed partial class CareerMatchPlugin : BasePlugin
 
     private void FinishMatch(int ct, int t)
     {
+        _chatPlayback.EndMatch();
         if (_resultWritten)
         {
             return;
@@ -1142,6 +1214,7 @@ public sealed partial class CareerMatchPlugin : BasePlugin
 
         if (IsMatchOver(scores.Item1, scores.Item2))
         {
+            _chatPlayback.EndMatch();
             status = "finished";
             if (string.IsNullOrEmpty(_endedAt))
             {
@@ -1260,8 +1333,8 @@ public sealed partial class CareerMatchPlugin : BasePlugin
         if (!actualMap.Equals(wantedMap, StringComparison.OrdinalIgnoreCase)) return "地图与请求不匹配";
         if (rows.Count != 10) return $"只采集到 {rows.Count}/10 名选手";
         if (rows.Select(x => x.PlayerId).Distinct().Count() != 10) return "结果 player_id 不唯一";
-        var expected = _request.Ct.Players.Concat(_request.T.Players).Select(x => x.PlayerId)
-            .Append(_request.HumanPlayerId).ToHashSet();
+        var expected = _request.Ct.Players.Concat(_request.T.Players).Select(x => x.PlayerId).ToHashSet();
+        if (!_request.Observer) expected.Add(_request.HumanPlayerId);
         if (!expected.SetEquals(rows.Select(x => x.PlayerId))) return "结果选手与请求的十人身份不一致";
         if (_disconnected.Count > 0) return "仍有选手断线未重连";
         if (rows.Count(x => x.Team == "ct") != 5 || rows.Count(x => x.Team == "t") != 5)

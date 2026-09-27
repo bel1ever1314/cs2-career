@@ -1,0 +1,703 @@
+{
+  "schema_version": 2,
+  "season": 2026,
+  "coverage": "Curated real editions; not an exhaustive world calendar",
+  "events": [
+    {
+      "id": "blast-bounty",
+      "name": "BLAST Premier Bounty Season 1 2026",
+      "type": "t1",
+      "region": "EU",
+      "window": [
+        "01-13",
+        "01-25"
+      ],
+      "source_ids": [
+        "bounty-2026-season-1"
+      ]
+    },
+    {
+      "id": "iem-krakow",
+      "name": "IEM Kraków 2026",
+      "type": "t1",
+      "region": "EU",
+      "window": [
+        "01-28",
+        "02-08"
+      ],
+      "source_ids": [
+        "iem-krakow-2026"
+      ],
+      "prestige": "premier",
+      "prize": 1000000
+    },
+    {
+      "id": "epl-s23",
+      "name": "ESL Pro League Season 23",
+      "type": "t1",
+      "region": "EU",
+      "window": [
+        "03-03",
+        "03-15"
+      ],
+      "source_ids": [
+        "esl-pro-league-season-23-2026"
+      ],
+      "prize": 400000
+    },
+    {
+      "id": "blast-open-1",
+      "name": "BLAST Premier Open Rotterdam 2026",
+      "type": "t1",
+      "region": "EU",
+      "window": [
+        "03-18",
+        "03-29"
+      ],
+      "source_ids": [
+        "open-2026-season-1"
+      ]
+    },
+    {
+      "id": "blast-rivals-1",
+      "name": "BLAST Premier Rivals Fort Worth 2026",
+      "type": "t1",
+      "region": "AM",
+      "window": [
+        "04-29",
+        "05-03"
+      ],
+      "source_ids": [
+        "rivals-2026-season-1"
+      ],
+      "size": 8
+    },
+    {
+      "id": "iem-atlanta",
+      "name": "IEM Atlanta 2026",
+      "type": "t1",
+      "region": "AM",
+      "window": [
+        "05-11",
+        "05-17"
+      ],
+      "source_ids": [
+        "iem-atlanta-2026"
+      ],
+      "prize": 300000
+    },
+    {
+      "id": "major-1",
+      "name": "IEM Cologne Major 2026",
+      "type": "major",
+      "region": "EU",
+      "window": [
+        "06-02",
+        "06-21"
+      ],
+      "source_ids": [
+        "iem-cologne-major-2026"
+      ],
+      "direct": 32
+    },
+    {
+      "id": "blast-open-2",
+      "name": "BLAST Premier Open Porto 2026",
+      "type": "t1",
+      "region": "EU",
+      "window": [
+        "08-26",
+        "09-06"
+      ],
+      "source_ids": [
+        "open-2026-season-2"
+      ]
+    },
+    {
+      "id": "epl-s24",
+      "name": "ESL Pro League Season 24",
+      "type": "t1",
+      "region": "EU",
+      "window": [
+        "10-03",
+        "10-11"
+      ],
+      "source_ids": [
+        "esl-pro-league-season-24-2026"
+      ],
+      "prize": 400000
+    },
+    {
+      "id": "major-2",
+      "name": "PGL Major Singapore 2026",
+      "type": "major",
+      "region": "AS",
+      "window": [
+        "11-25",
+        "12-13"
+      ],
+      "source_ids": [
+        "singapore"
+      ],
+      "direct": 32
+    },
+    {
+      "id": "ecl-s51-eu-1",
+      "name": "ESL Challenger League Season 51 Europe Cup 1",
+      "type": "t2",
+      "region": "EU",
+      "window": [
+        "02-13",
+        "02-24"
+      ],
+      "source_ids": [
+        "ecl51c1"
+      ],
+      "prize": 25000,
+      "regional_only": true
+    },
+    {
+      "id": "ecl-s51-eu-2",
+      "name": "ESL Challenger League Season 51 Europe Cup 2",
+      "type": "t2",
+      "region": "EU",
+      "window": [
+        "03-16",
+        "03-27"
+      ],
+      "source_ids": [
+        "ecl51c2"
+      ],
+      "prize": 25000,
+      "regional_only": true
+    },
+    {
+      "id": "ecl-s52-eu-1",
+      "name": "ESL Challenger League Season 52 Europe Cup 1",
+      "type": "t2",
+      "region": "EU",
+      "window": [
+        "07-12",
+        "07-14"
+      ],
+      "source_ids": [
+        "ecl52",
+        "ecl52teams"
+      ],
+      "prize": 25000,
+      "regional_only": true
+    },
+    {
+      "id": "ecl-s52-eu-2",
+      "name": "ESL Challenger League Season 52 Europe Cup 2",
+      "type": "t2",
+      "region": "EU",
+      "window": [
+        "08-02",
+        "08-04"
+      ],
+      "source_ids": [
+        "ecl52",
+        "ecl52teams"
+      ],
+      "prize": 25000,
+      "regional_only": true
+    },
+    {
+      "id": "ecl-s52-eu-3",
+      "name": "ESL Challenger League Season 52 Europe Cup 3",
+      "type": "t2",
+      "region": "EU",
+      "window": [
+        "08-14",
+        "08-16"
+      ],
+      "source_ids": [
+        "ecl52",
+        "ecl52teams"
+      ],
+      "prize": 25000,
+      "regional_only": true
+    },
+    {
+      "id": "ecl-s51-am-1",
+      "name": "ESL Challenger League Season 51 North America Cup 1",
+      "type": "t2",
+      "region": "AM",
+      "window": [
+        "02-17",
+        "02-24"
+      ],
+      "source_ids": [
+        "ecl51c1"
+      ],
+      "prize": 17500,
+      "regional_only": true
+    },
+    {
+      "id": "ecl-s51-am-2",
+      "name": "ESL Challenger League Season 51 North America Cup 2",
+      "type": "t2",
+      "region": "AM",
+      "window": [
+        "03-20",
+        "03-27"
+      ],
+      "source_ids": [
+        "ecl51c2"
+      ],
+      "prize": 17500,
+      "regional_only": true
+    },
+    {
+      "id": "ecl-s52-am-1",
+      "name": "ESL Challenger League Season 52 North America Cup 1",
+      "type": "t2",
+      "region": "AM",
+      "window": [
+        "08-25",
+        "09-01"
+      ],
+      "source_ids": [
+        "ecl52",
+        "ecl52teams"
+      ],
+      "prize": 17500,
+      "regional_only": true
+    },
+    {
+      "id": "ecl-s52-am-2",
+      "name": "ESL Challenger League Season 52 North America Cup 2",
+      "type": "t2",
+      "region": "AM",
+      "window": [
+        "09-22",
+        "09-29"
+      ],
+      "source_ids": [
+        "ecl52",
+        "ecl52teams"
+      ],
+      "prize": 17500,
+      "regional_only": true
+    },
+    {
+      "id": "ecl-s52-am-3",
+      "name": "ESL Challenger League Season 52 North America Cup 3",
+      "type": "t2",
+      "region": "AM",
+      "window": [
+        "10-07",
+        "10-14"
+      ],
+      "source_ids": [
+        "ecl52",
+        "ecl52teams"
+      ],
+      "prize": 17500,
+      "regional_only": true
+    },
+    {
+      "id": "ecl-s51-as-1",
+      "name": "ESL Challenger League Season 51 Asia-Pacific Cup 1",
+      "type": "t2",
+      "region": "AS",
+      "window": [
+        "02-17",
+        "02-24"
+      ],
+      "source_ids": [
+        "ecl51c1"
+      ],
+      "prize": 10000,
+      "regional_only": true
+    },
+    {
+      "id": "ecl-s51-as-2",
+      "name": "ESL Challenger League Season 51 Asia-Pacific Cup 2",
+      "type": "t2",
+      "region": "AS",
+      "window": [
+        "03-20",
+        "03-27"
+      ],
+      "source_ids": [
+        "ecl51c2"
+      ],
+      "prize": 10000,
+      "regional_only": true
+    },
+    {
+      "id": "ecl-s52-as-1",
+      "name": "ESL Challenger League Season 52 Asia-Pacific Cup 1",
+      "type": "t2",
+      "region": "AS",
+      "window": [
+        "08-25",
+        "09-01"
+      ],
+      "source_ids": [
+        "ecl52",
+        "ecl52teams"
+      ],
+      "prize": 10000,
+      "regional_only": true
+    },
+    {
+      "id": "ecl-s52-as-2",
+      "name": "ESL Challenger League Season 52 Asia-Pacific Cup 2",
+      "type": "t2",
+      "region": "AS",
+      "window": [
+        "09-22",
+        "09-29"
+      ],
+      "source_ids": [
+        "ecl52",
+        "ecl52teams"
+      ],
+      "prize": 10000,
+      "regional_only": true
+    },
+    {
+      "id": "ecl-s52-as-3",
+      "name": "ESL Challenger League Season 52 Asia-Pacific Cup 3",
+      "type": "t2",
+      "region": "AS",
+      "window": [
+        "10-07",
+        "10-14"
+      ],
+      "source_ids": [
+        "ecl52",
+        "ecl52teams"
+      ],
+      "prize": 10000,
+      "regional_only": true
+    },
+    {
+      "id": "cct-s3-eu-13",
+      "name": "CCT Season 3 Europe Series 13",
+      "type": "cct",
+      "region": "EU",
+      "window": [
+        "01-12",
+        "01-30"
+      ],
+      "source_ids": [
+        "cct2026"
+      ],
+      "prize": 50000
+    },
+    {
+      "id": "cct-s3-eu-17",
+      "name": "CCT Season 3 Europe Series 17",
+      "type": "cct",
+      "region": "EU",
+      "window": [
+        "02-23",
+        "03-13"
+      ],
+      "source_ids": [
+        "cct2026"
+      ],
+      "prize": 50000
+    },
+    {
+      "id": "cct-s3-eu-20",
+      "name": "CCT Season 3 Europe Series 20",
+      "type": "cct",
+      "region": "EU",
+      "window": [
+        "03-23",
+        "04-10"
+      ],
+      "source_ids": [
+        "cct2026"
+      ],
+      "prize": 50000
+    },
+    {
+      "id": "cct-eu-1",
+      "name": "CCT 2026 Europe Series 1",
+      "type": "cct",
+      "region": "EU",
+      "window": [
+        "04-27",
+        "05-15"
+      ],
+      "source_ids": [
+        "cct2026"
+      ],
+      "prize": 50000
+    },
+    {
+      "id": "cct-eu-5",
+      "name": "CCT 2026 Europe Series 5",
+      "type": "cct",
+      "region": "EU",
+      "window": [
+        "07-15",
+        "08-02"
+      ],
+      "source_ids": [
+        "cct2026"
+      ],
+      "prize": 50000
+    },
+    {
+      "id": "cct-eu-9",
+      "name": "CCT 2026 Europe Series 9",
+      "type": "cct",
+      "region": "EU",
+      "window": [
+        "09-09",
+        "09-27"
+      ],
+      "source_ids": [
+        "cct2026"
+      ],
+      "prize": 50000
+    },
+    {
+      "id": "cct-eu-14",
+      "name": "CCT 2026 Europe Series 14",
+      "type": "cct",
+      "region": "EU",
+      "window": [
+        "11-04",
+        "11-22"
+      ],
+      "source_ids": [
+        "cct2026"
+      ],
+      "prize": 50000
+    },
+    {
+      "id": "cct-s3-am-7",
+      "name": "CCT Season 3 South America Series 7",
+      "type": "cct",
+      "region": "AM",
+      "window": [
+        "01-13",
+        "01-25"
+      ],
+      "source_ids": [
+        "cct2026"
+      ],
+      "prize": 20000
+    },
+    {
+      "id": "cct-s3-am-9",
+      "name": "CCT Season 3 South America Series 9",
+      "type": "cct",
+      "region": "AM",
+      "window": [
+        "02-21",
+        "03-05"
+      ],
+      "source_ids": [
+        "cct2026"
+      ],
+      "prize": 20000
+    },
+    {
+      "id": "cct-am-1",
+      "name": "CCT 2026 Challengers South America Series 1",
+      "type": "cct",
+      "region": "AM",
+      "window": [
+        "04-18",
+        "04-26"
+      ],
+      "source_ids": [
+        "cct2026"
+      ],
+      "prize": 20000
+    },
+    {
+      "id": "cct-am-5",
+      "name": "CCT 2026 Challengers South America Series 5",
+      "type": "cct",
+      "region": "AM",
+      "window": [
+        "08-15",
+        "08-23"
+      ],
+      "source_ids": [
+        "cct2026"
+      ],
+      "prize": 20000
+    },
+    {
+      "id": "cct-am-8",
+      "name": "CCT 2026 Challengers South America Series 8",
+      "type": "cct",
+      "region": "AM",
+      "window": [
+        "10-17",
+        "10-25"
+      ],
+"source_ids": [
+        "cct2026"
+      ],
+      "prize": 20000
+    },
+    {
+      "id": "pgl-cluj",
+      "name": "PGL Cluj-Napoca 2026",
+      "type": "t1",
+      "region": "EU",
+      "window": [
+        "02-14",
+        "02-22"
+      ],
+      "source_ids": [
+        "pgl-cluj-napoca-2026"
+      ]
+    },
+    {
+      "id": "iem-rio",
+      "name": "IEM Rio 2026",
+      "type": "t1",
+      "region": "AM",
+      "window": [
+        "04-13",
+        "04-19"
+      ],
+      "source_ids": [
+        "iem-brazil-2026"
+      ]
+    },
+    {
+      "id": "blast-bounty-2",
+      "name": "BLAST Bounty Season 2 2026",
+      "type": "t1",
+      "region": "EU",
+      "window": [
+        "07-21",
+        "08-02"
+      ],
+      "source_ids": [
+        "bounty-2026-season-2"
+      ]
+    },
+    {
+      "id": "iem-beijing",
+      "name": "IEM Beijing 2026",
+      "type": "t1",
+      "region": "AS",
+      "window": [
+        "11-02",
+        "11-08"
+      ],
+      "source_ids": [
+        "iem-china-2026"
+      ]
+    },
+    {
+      "id": "blast-rivals-2",
+      "name": "BLAST Rivals Hong Kong 2026",
+      "type": "t1",
+      "region": "AS",
+      "window": [
+        "11-11",
+        "11-15"
+      ],
+      "source_ids": [
+        "rivals-2026-season-2"
+      ],
+      "size": 8
+    },
+    {
+      "id": "ecl-s51-eu-3",
+      "name": "ESL Challenger League Season 51 Europe Cup 3",
+      "type": "t2",
+      "region": "EU",
+      "regional_only": true,
+      "window": [
+        "03-29",
+        "04-09"
+      ],
+      "source_ids": [
+        "ecl51details"
+      ],
+      "prize": 25000
+    },
+    {
+      "id": "ecl-s51-eu-4",
+      "name": "ESL Challenger League Season 51 Europe Cup 4",
+      "type": "t2",
+      "region": "EU",
+      "regional_only": true,
+      "window": [
+        "04-22",
+        "05-03"
+      ],
+      "source_ids": [
+        "ecl51details"
+      ],
+      "prize": 25000
+    },
+    {
+      "id": "ecl-s51-am-3",
+      "name": "ESL Challenger League Season 51 North America Cup 3",
+      "type": "t2",
+      "region": "AM",
+      "regional_only": true,
+      "window": [
+        "04-02",
+        "04-09"
+      ],
+      "source_ids": [
+        "ecl51details"
+      ],
+      "prize": 17500
+    },
+    {
+      "id": "ecl-s51-am-4",
+      "name": "ESL Challenger League Season 51 North America Cup 4",
+      "type": "t2",
+      "region": "AM",
+      "regional_only": true,
+      "window": [
+        "04-26",
+        "05-03"
+      ],
+      "source_ids": [
+        "ecl51details"
+      ],
+      "prize": 17500
+    },
+    {
+      "id": "ecl-s51-as-3",
+      "name": "ESL Challenger League Season 51 Asia Cup 3",
+      "type": "t2",
+      "region": "AS",
+      "regional_only": true,
+      "window": [
+        "04-02",
+        "04-09"
+      ],
+      "source_ids": [
+        "ecl51details"
+      ],
+      "prize": 10000
+    },
+    {
+      "id": "ecl-s51-as-4",
+      "name": "ESL Challenger League Season 51 Asia Cup 4",
+      "type": "t2",
+      "region": "AS",
+      "regional_only": true,
+      "window": [
+        "04-26",
+        "05-03"
+      ],
+      "source_ids": [
+        "ecl51details"
+      ],
+      "prize": 10000
+    }
+  ]
+}

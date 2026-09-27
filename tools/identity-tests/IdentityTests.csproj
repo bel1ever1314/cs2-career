@@ -3,10 +3,14 @@
     <OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings>
     <NuGetAudit>false</NuGetAudit>
+    <DefaultItemExcludes>$(DefaultItemExcludes);obj/**;bin/**</DefaultItemExcludes>
   </PropertyGroup>
   <ItemGroup><Compile Include="../../vendor/CareerMatch/IdentityBindings.cs" Link="IdentityBindings.cs" /></ItemGroup>
   <ItemGroup><Compile Include="../../vendor/CareerMatch/SessionHealth.cs" Link="SessionHealth.cs" /></ItemGroup>
   <ItemGroup>
+    <Compile Include="../../vendor/CareerMatch/NaturalMotion.cs" Link="NaturalMotion.cs" />
+    <Compile Include="../../vendor/CareerMatch/MotionClip.cs" Link="MotionClip.cs" />
+    <None Include="../../cs2career/data/natural_behavior/de_dust2_clips.json" Link="de_dust2_clips.json" CopyToOutputDirectory="PreserveNewest" />
     <Compile Include="../../vendor/CareerMatch/MatchDialogue.cs" Link="MatchDialogue.cs" />
     <None Include="../../cs2career/data/match_chat.json" Link="match_chat.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../extensions/_templates/match-scene-pack/match_chat/example.json" Link="match_scene_example.json" CopyToOutputDirectory="PreserveNewest" />

@@ -1,5 +1,5 @@
 # coding=utf-8
-"""Generate a self-contained nine-bot profile pack for one career match.
+"""Generate a self-contained 9-Bot player or 10-Bot observer match pack.
 
 1.5 never copies Bot Improver's player database. The only persistent input is
 the sanitised template file shipped with this app.
@@ -102,6 +102,14 @@ def _profile_block(bot: dict) -> str:
     return "\n".join(lines)
 
 
+def expected_bot_count(match: dict) -> int:
+    if match.get('observer') is True:
+        if match.get('human_player_id') or any(len(match.get(side, {}).get('players') or []) != 5 for side in ('ct','t')):
+            raise ValueError('观察者模式必须是两边各 5 个 Bot，不能绑定真人选手')
+        return 10
+    return 9
+
+
 def prepare_bots(match: dict, difficulty: str) -> list[dict]:
     rows: list[dict] = []
     for side in ("ct", "t"):
@@ -141,9 +149,10 @@ def prepare_bots(match: dict, difficulty: str) -> list[dict]:
                 raise ValueError(f"{pid} 没有通过校验的本地安全头像")
             rows.append(row)
     ids, names = [r["player_id"] for r in rows], [r["profile_name"] for r in rows]
-    if len(rows) != 9:
-        raise ValueError(f"本场必须恰好有 9 个 Bot，当前为 {len(rows)} 个")
-    if len(set(ids)) != 9 or len(set(names)) != 9:
+    count = expected_bot_count(match)
+    if len(rows) != count:
+        raise ValueError(f"本场必须恰好有 {count} 个 Bot，当前为 {len(rows)} 个")
+    if len(set(ids)) != count or len(set(names)) != count:
         raise ValueError("本场 Bot 的 player_id 或 profile_name 重复")
     return rows
 
@@ -245,13 +254,15 @@ def _manifest_hash(manifest: dict) -> str:
 
 def generate_match_vpk(csgo: Path, match: dict, difficulty: str, cache_root: Path | None = None) -> dict:
     bots = prepare_bots(match, difficulty)
+    count = expected_bot_count(match)
+    profile_type = 'observer_match_10' if count == 10 else 'career_match_9'
     preset = improver_presets.preset(difficulty)
     db_text = _template_text(difficulty) + "".join(_profile_block(bot) for bot in bots)
     if PROFILE_RE.findall(db_text) != [b["profile_name"] for b in bots]:
         raise ValueError("生成后的 BotProfile 清单与请求不一致")
     payload, vpk_sha = vpk_bytes(db_text), hashlib.sha256(vpk_bytes(db_text)).hexdigest()
     manifest = {
-        "schema_version": 2, "type": "career_match_9", "nonce": match["nonce"], "difficulty": difficulty, "count": 9,
+        "schema_version": 2, "type": profile_type, "nonce": match["nonce"], "difficulty": difficulty, "count": count,
         "difficulty_model": improver_presets.MODEL,
         "preset_source_hash": preset['source_hash'], "template_hash": preset['template_hash'],
         "bots": [{k: b[k] for k in ("player_id", "profile_name", "display_name", "side", "overall", "form_delta", "effective_strength", "role", "tier", "stats", "aim_preset", "parameters", "profile_hash", "avatar_path", "avatar_hash", "avatar_kind")} for b in bots],
@@ -268,7 +279,7 @@ def generate_match_vpk(csgo: Path, match: dict, difficulty: str, cache_root: Pat
     if hashlib.sha256(active.read_bytes()).hexdigest() != vpk_sha:
         raise ValueError("活动 VPK 写入后的 SHA-256 校验失败")
     match.update({"schema_version": 2, "difficulty": difficulty, "bots": manifest["bots"]})
-    match["bot_profile"] = {"type": "career_match_9", "nonce": match["nonce"], "count": 9, "difficulty": difficulty, "vpk_sha256": vpk_sha, "manifest_hash": manifest["manifest_hash"], "short_hash": manifest["manifest_hash"][:8]}
+    match["bot_profile"] = {"type": profile_type, "nonce": match["nonce"], "count": count, "difficulty": difficulty, "vpk_sha256": vpk_sha, "manifest_hash": manifest["manifest_hash"], "short_hash": manifest["manifest_hash"][:8]}
     match['bot_profile'].update({key: manifest[key] for key in ('difficulty_model','preset_source_hash','template_hash')})
     for side in ("ct", "t"):
         match[side]["players"] = [b for b in manifest["bots"] if b["side"] == side]
@@ -282,6 +293,7 @@ def active_manifest(csgo: Path) -> dict:
         bots = data.get("bots") or []
         ids = [bot.get("player_id") for bot in bots]
         names = [bot.get("profile_name") for bot in bots]
+        count = 10 if data.get('type') == 'observer_match_10' else 9
         model = data.get("difficulty_model")
         if model:
             if model != improver_presets.MODEL:
@@ -291,17 +303,18 @@ def active_manifest(csgo: Path) -> dict:
                     or data.get("template_hash") != preset["template_hash"]):
                 raise ValueError("Bot 基础预设来源不一致")
         data["valid"] = (
-            active.is_file()
+            data.get('type') in ('career_match_9', 'observer_match_10')
+            and active.is_file()
             and hashlib.sha256(active.read_bytes()).hexdigest() == data.get("vpk_sha256")
-            and data.get("count") == 9
-            and len(bots) == 9
-            and len(set(ids)) == 9
-            and len(set(names)) == 9
+            and data.get("count") == count
+            and len(bots) == count
+            and len(set(ids)) == count
+            and len(set(names)) == count
             and data.get("manifest_hash") == _manifest_hash(data)
             and all(_avatar_valid(bot) for bot in bots)
         )
         if not data["valid"]:
-            data["error"] = "活动 VPK 哈希或 9 人清单不一致"
+            data["error"] = "活动 VPK 哈希或选手清单不一致"
         return data
     except (OSError, ValueError, KeyError, TypeError):
         return {"valid": False, "error": "活动 BotProfile 清单不存在或损坏"}

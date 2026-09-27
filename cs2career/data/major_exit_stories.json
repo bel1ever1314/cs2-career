@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "note": "Six exit stages x three comparisons with the team's frozen pre-event ability expectation. quarter_final means the first playoff round. Text can be overridden through arc_overrides.chapters.",
+  "stories": {
+    "stage1_below": {
+      "title": "机票改到了明天",
+      "title_en": "An earlier flight home",
+      "text": [
+        "{event}的第一阶段结束了，你们也结束了。教练把接下来几天的训练安排划掉，提醒大家别把设备落在桌上。你把鼠标线绕了两圈，发现缠得太紧，又松开重绕。旁边的队友已经收好东西，却迟迟没有起身。\n\n车上有人问要不要今晚复盘。后排传来一句‘现在看了也只会吵’，没人反驳。你想起最后一张图里那个明明说好要等的回合，想给自己找个解释，话到嘴边又停住。教练让大家明天各自写三件做错的事，不能替别人写。\n\n回到房间，群里是新的航班信息。你把消息往上翻，翻到出发那天大家发的合照，退出去，打开了录像文件夹。"
+      ],
+      "text_en": [
+        "{event} ended in Stage 1 for your team. The coach crosses out the next few days of practice and reminds everyone to check the desks for forgotten gear. You wind your mouse cable too tightly and start again. The teammate beside you has finished packing but stays seated.\n\nOn the bus, someone suggests reviewing tonight. ‘We'll only argue right now,’ comes a voice from the back. You remember the round when everyone had agreed to wait. The explanation you were about to offer suddenly sounds thin. The coach asks each player to write down three mistakes tomorrow, their own mistakes.\n\nBack in your room, the team chat contains an earlier flight. You scroll past the departure photo, close the chat and open the demo folder."
+      ]
+    },
+    "stage1_expected": {
+      "title": "还没拆封的队服",
+      "title_en": "The spare jersey",
+      "text": [
+        "出发前，领队多给了你一件队服，说晋级后拍摄可能用得上。现在{event}第一阶段打完，它还装在透明袋里。你把袋子塞进行李箱，又拿出来看了一眼，还是忍不住去算那几个没拿下的回合。\n\n队友坐在行李箱上吃已经凉了的三明治，问你哪张图最想再打一遍。你说出地图名字，两个人很快争起来：一个觉得先掉的枪位没站好，一个觉得后续补枪太急。教练从门外进来，听了半分钟，把你们说的时间点记进手机。\n\n临走时你把那件队服从袋里拿出来，叠进自己的衣服中间。机场还有几个认出队标的人，你停下来跟他们拍了照。"
+      ],
+      "text_en": [
+        "The manager packed a spare jersey in case you advanced and needed it for photos. After Stage 1 of {event}, it is still sealed in plastic. You put it into the suitcase, take it out again and find yourself counting the rounds you could not close.\n\nA teammate sits on a suitcase with a cold sandwich and asks which map you want to replay. Within a minute you are debating the first death and the rushed trade that followed. The coach listens from the doorway and notes the timestamps.\n\nBefore leaving, you take the jersey out of its wrapper and fold it into your clothes. At the airport, a few people recognise the badge. You stop for a photograph."
+      ]
+    },
+    "stage1_above": {
+      "title": "有人记住了这支队伍",
+      "title_en": "They remembered the team",
+      "text": [
+        "第一阶段的最后一场已经打完。你蹲在桌边拔线，工作人员来问能不能再留一会儿，外面有观众想要签名。刚来的时候，你们连队名都经常需要重复两遍；今天有人拿着你们比赛的照片。\n\n签表上的结果仍然是出局，教练却把复盘约在休息之后：‘想去的地方还没到，先把已经走过的路记清楚。’队友把那张打赢强队的比分截图发进群里，又补上一句，让谁都别拿它当下一季免训练的理由。\n\n你给最后一位观众签好名字，把笔还过去。回程的车快来了，队友站在门边催你，语气跟普通训练日没两样。"
+      ],
+      "text_en": [
+        "Your final Stage 1 match is over. As you unplug your gear, a staff member asks you to stay: some spectators want signatures. When you arrived, people often asked you to repeat the team's name. Today they have photographs from your matches.\n\nThe bracket still says eliminated. The coach schedules the review after some rest. A teammate posts the screenshot of your win against a stronger opponent, then warns everyone that it does not excuse missing practice next season.\n\nYou return the pen to the last spectator. The car is nearly here, and a teammate calls you from the door as if this were an ordinary training day."
+      ]
+    },
+    "stage2_below": {
+      "title": "没用上的下一套准备",
+      "title_en": "Preparation left unused",
+      "text": [
+        "{event}第二阶段出局后，分析师把电脑合上了。昨晚他还在整理下一阶段对手的习惯，旁边放着两罐空咖啡。你过去说了声辛苦，他摇摇头，问你要不要把刚才那张图一起看完。\n\n你还不想回家，行李甚至没开始收。录像里的问题却很具体：同一个角度连续漏了两次，暂停后的第一轮执行又没等齐人。队友起初还在解释，看到第三遍时，把自己那句‘差不多到了’改成了‘我应该直接报还没到’。\n\n外面有人敲门催收设备。你把复盘进度记下来，跟分析师约好回去接着看。新的训练表还没写，你先在手机里记下了这两个回合。"
+      ],
+      "text_en": [
+        "After Stage 2 of {event}, the analyst closes a laptop beside two empty coffee cans. Last night he was already preparing the next opponents. When you thank him, he asks whether you want to finish reviewing the map.\n\nYou are not ready to go home and have not even started packing. The demo offers specific problems: the same angle left open twice, then a post-timeout execute before everyone was ready. On the third replay, a teammate admits that ‘almost there’ should have been ‘not there yet’.\n\nA knock at the door interrupts the review. You save the timestamp and agree to continue at home. Before a new practice schedule exists, those two rounds are already in your notes."
+      ]
+    },
+    "stage2_expected": {
+      "title": "第二阶段的那扇门",
+      "title_en": "The next room",
+      "text": [
+        "从第一天搬进比赛区到现在，你已经记住了热水在哪、哪把椅子的扶手会松。到了{event}第二阶段，对手换了一批，那些在训练里好用的办法突然需要多想一步。你们最后停在这里。队友站起来时扶了一下那把椅子，才发现自己也记住了它的毛病。\n\n吃晚饭时，队友还在比画一颗差点封好的烟。服务员来收盘子，他才发现自己拿叉子挡住了别人。大家笑了一阵，又接着聊下一次碰到这种站位怎么打。你没有插话，先把饭吃完，随后借了他的手机，把自己的想法画在截图上。\n\n明天可以晚起一点。教练把集合时间改了，你第一次没有马上去算还能挤出几场练习，而是给家里回了电话。"
+      ],
+      "text_en": [
+        "By now you know where the hot water is and which chair has a loose armrest. Stage 2 of {event} brought a new set of opponents and made familiar ideas harder to execute. This is where your run ends. A teammate steadies the chair as he stands; he has learnt its fault too.\n\nOver dinner, a teammate uses a fork to explain a smoke that nearly worked. Everyone laughs when a waiter cannot reach the plate beneath his hand. Then the discussion resumes. You finish eating, borrow his phone and draw your alternative on the screenshot.\n\nThe coach moves tomorrow's meeting back. For once, you do not immediately calculate how many practice games will fit. You call home."
+      ]
+    },
+    "stage2_above": {
+      "title": "房卡多刷了几天",
+      "title_en": "A longer stay",
+      "text": [
+        "酒店前台替你换房卡时，笑着说又见面了。你们因为晋级续过一次房，今天终于要退。{event}第二阶段结束，队里有人一边收行李一边抱怨，早知道能多待几天就该多带两件衣服。\n\n这几天，你们把那些只在录像里研究过的队伍拖进了苦战。输掉最后一场还是难受，尤其是设备刚收好，隔壁房间就传来晋级队伍的喊声。队长没急着安慰，只把下次训练的安排往后推了两天，让大家先回家。\n\n你在电梯里翻消息，有人问以后能不能约训练。你把那条消息转给教练，电梯到了，队友替你挡住门，催你赶上。"
+      ],
+      "text_en": [
+        "The receptionist recognises you when you return the key. Advancing meant extending the booking; after Stage 2 of {event}, it is finally time to leave. A teammate complains that he should have packed more clothes.\n\nTeams you once studied only through demos had to fight hard against you. The last defeat still hurts, especially when cheers come from another team's room. Your captain postpones practice for two days and lets everyone go home first.\n\nIn the lift, you find a message asking about future scrims and forward it to the coach. A teammate holds the door while you catch up."
+      ]
+    },
+    "stage3_below": {
+      "title": "场馆还在搭建",
+      "title_en": "The stage being built",
+      "text": [
+        "去采访区的路上，要经过通向淘汰赛场馆的门。里面还在调灯，工作人员推着设备箱过去。你没有往里走的证件了。{event}第三阶段出局，昨天还在确认的入场安排，今天已经从群里撤掉了。\n\n采访的人问哪里出了问题，你说需要回去看录像。说完才觉得这话像提前准备好的，便又补了一句：今天有几轮你们都在等别人先决定。回到休息室，队友正在争最后一次暂停该怎么用。你坐下来，把刚才采访里那句话也告诉了他们。\n\n这次没人把话题岔开。外设箱放在门口，大家把椅子又拖回来。领队进来提醒车已经到了，教练让他再等十分钟。"
+      ],
+      "text_en": [
+        "On the way to the interview, you pass the door to the playoff arena. Technicians are adjusting the lights. Your pass will not take you there now. After Stage 3 of {event}, the arena arrangements discussed yesterday have disappeared from the team chat.\n\nAsked what went wrong, you say you need to review the demos. The answer sounds rehearsed, so you add that several rounds stalled because everyone waited for somebody else to decide. Back in the room, teammates are arguing about the last timeout. You sit down and repeat what you told the interviewer.\n\nNobody changes the subject. Chairs are pulled back around the table. When the manager says the car is ready, the coach asks for ten more minutes."
+      ]
+    },
+    "stage3_expected": {
+      "title": "最后一轮瑞士轮",
+      "title_en": "The end of the Swiss stage",
+      "text": [
+        "{event}第三阶段的签表刷新了，你们的队名移到了出局的一边。刚才你还开着另一场的比分，算谁会成为下一轮对手。现在你关掉窗口，桌面露出一张还没写完的复盘表。\n\n队友在门口等你。他说刚才握手时，对面有人夸了你们的准备。你问他是不是客气话，他想了想，说至少他们暂停叫得挺及时。两个人下楼找吃的，走到半路又聊起那次差一点成功的回防，谁也没能把谁说服。\n\n回到酒店，教练发来新的文件名，只写了‘下次要补的’。你点开，在第一条后面加上了自己的时间点。"
+      ],
+      "text_en": [
+        "The Stage 3 bracket at {event} updates and your name moves to the eliminated side. A moment ago you were checking another match to see who might come next. You close that window and return to an unfinished review sheet.\n\nA teammate waiting at the door says an opponent complimented your preparation. You ask whether he was just being polite. ‘They did use their timeouts quickly,’ he replies. Walking out for food, you disagree again about a retake that nearly worked.\n\nAt the hotel, the coach sends a document called ‘For next time’. You open it and add your timestamp to the first item."
+      ]
+    },
+    "stage3_above": {
+      "title": "离那道门只差一点",
+      "title_en": "Close to the arena",
+      "text": [
+        "第三阶段打完，{event}的淘汰赛终究没有你们。走出比赛区时，有观众隔着护栏叫你的名字。你起初以为听错了，转过头，才看见对方举起手机里的合照，是几天前刚拍的。\n\n这几天每赢一场，领队就要重新查一次航班。领队终于订了票，队友把购票通知转进群里，配了个哭脸。你们笑归笑，收外设时还是比平时慢。教练让每个人挑一个最值得保留的配合，回去继续练，再挑一个必须改掉的习惯。\n\n你给那位观众补签了名字。队友在前面等你，手里多拿着你的背包。你追上去时，他说下次别再带这么多没穿过的衣服。"
+      ],
+      "text_en": [
+        "Your run at {event} ends in Stage 3, short of the playoffs. Outside, a spectator calls your name and holds up a photo taken with you a few days earlier.\n\nAfter every win these past few days, the manager had to check the flights again. Now the tickets are booked. A teammate posts the confirmation with a crying face; everyone laughs, but packing still takes longer than usual. The coach asks each player to identify one piece of teamwork worth keeping and one habit that must change.\n\nYou sign the spectator's photo. Further along, a teammate waits with your backpack. When you catch up, he tells you to pack fewer unworn clothes next time."
+      ]
+    },
+    "quarter_final_below": {
+      "title": "只打了一天的大舞台",
+      "title_en": "One day on the main stage",
+      "text": [
+        "{event}的八强赛结束，你从舞台走下来，耳朵里还留着观众席的声音。场务指了回休息室的路，昨天彩排时才走过，今天却已经是最后一次。淘汰赛只打了一轮，队友甚至还没记熟后台的路。\n\n领队说采访可以晚几分钟。队长把毛巾扔到椅背上，问刚才为什么又没有人报那条侧路。有人马上回他，声音都不低。你本想劝他们别吵，想到自己那轮也没说清位置，便先把自己的问题讲了。争执停了一下，又变成逐个对时间点。\n\n晚点，大家一起去接受采访。你站在队友旁边，看见他伸手把队徽压平。主持人叫到队名，你们一同往前走。"
+      ],
+      "text_en": [
+        "After the quarter-final at {event}, the crowd is still ringing in your ears. The route back to the room was new at rehearsal yesterday; today you walk it for the last time. You played one playoff round; a teammate still needs help finding the way backstage.\n\nThe manager buys you a few minutes before interviews. Your captain asks why nobody called the flank again. Replies come quickly and loudly. You almost ask everyone to calm down, then remember your own incomplete call and explain it first. The argument becomes a comparison of timestamps.\n\nLater, you line up for the interview together. A teammate smooths the badge on his jersey. When the host calls the team's name, you move forward with him."
+      ]
+    },
+    "quarter_final_expected": {
+      "title": "散场以后再谈",
+      "title_en": "After the crowd leaves",
+      "text": [
+        "{event}停在了八强。工作人员来收回比赛证件时，你还挂在脖子上，拉了两次才发现挂绳被衣领压住。你在采访区喝了半瓶水，仍觉得嗓子干，队友递来纸巾，提醒你耳机压出的印子还在。\n\n教练没有把输球说成完成任务，也没在今天把整套体系推翻。他约你们休假回来先练两张最薄的图。你说想再看一次决胜图的中期，队友立刻接话，说他也有几个回合没想明白。领队听着，把原定今晚的长会从日程里划掉，只留下明早一个小时。\n\n你们最后从侧门离开。观众已经散了不少，有人还举着应援牌。你朝他们挥了挥手，跟上前面的队伍。"
+      ],
+      "text_en": [
+        "Your run at {event} ends in the quarter-final. A staff member asks for your player pass, and you tug at it twice before noticing the lanyard caught beneath your collar. At the interview area, you drink half a bottle of water. A teammate hands you a tissue and points out the marks left by your headset.\n\nThe coach schedules work on the two weakest maps after the break. You ask to revisit several mid-round decisions; another player has questions about the same rounds. Hearing this, the manager replaces tonight's long meeting with an hour tomorrow morning.\n\nYou leave through a side door. A few supporters remain. You wave and catch up with the others."
+      ]
+    },
+    "quarter_final_above": {
+      "title": "第一次把声音带回来",
+      "title_en": "Bringing the noise home",
+      "text": [
+        "{event}八强赛最后一个回合结束，你摘下耳机，才发现观众仍在为你们鼓掌。灯光从舞台扫过看台，你终于看清几块写着队名的牌子。输球那一下很难受，听见队名从看台上传下来时，你还是抬起了头。\n\n回到休息室，队友给你看一段手机录像，镜头晃得厉害，几乎看不清人，只听得见现场喊声。他说这是家里人从转播里录的。你们挤在一块看完，随后有人问下次进场还能不能坐同一边，引得领队笑骂，说先把下一次资格打出来。\n\n教练把录像发到群里，没有加评语。你下载下来，跟这次比赛的复盘文件放在了一起。"
+      ],
+      "text_en": [
+        "When the last quarter-final round at {event} ends, you remove your headset and hear people still applauding your team. The lights sweep across the stands, and you finally make out several signs bearing your team's name. Losing hurts, but hearing the badge's name from the stands makes you look up.\n\nIn the room, a teammate plays a shaky phone recording his family made from the broadcast. You can barely see anyone; the noise is unmistakable. Someone asks whether you can sit on the same side of the stage next time. The manager laughs and tells him to qualify first.\n\nThe coach posts the clip in the team chat without a caption. You save it beside the review files from the event."
+      ]
+    },
+    "semi_final_below": {
+      "title": "明天不用集合了",
+      "title_en": "No meeting tomorrow",
+      "text": [
+        "半决赛输了。{event}明天还有决赛，酒店大厅贴着的接驳车时刻表已经与你们无关。你顺手设好闹钟，过了一会儿才想起来，教练刚在群里取消了集合。\n\n没人愿意现在就用‘四强也不错’结束这次比赛。晚饭时队长一直没碰甜点，后来突然问，如果那个暂停早叫一轮会怎样。你说也许有用，但先前丢掉的几轮同样得看。桌上又慢慢有了声音，大家把各自记得的片段补齐，有的已经和录像里的真实顺序对不上。\n\n饭后你借了队友的电脑，把几个回合找出来。看完第一遍，你把明天的闹钟调晚了一小时，给自己留了早餐时间。"
+      ],
+      "text_en": [
+        "The semi-final is over. {event} has a final tomorrow, but the shuttle timetable in the lobby no longer concerns you. You set an alarm out of habit before remembering that the coach cancelled the meeting.\n\nAt dinner, the captain asks whether calling the timeout a round earlier would have changed things. You think it might have, but the rounds before it also need attention. The conversation slowly fills with fragments of the match, some already out of order.\n\nAfter dinner, you borrow a laptop and locate those rounds. When the first replay ends, you move tomorrow's alarm back an hour and make room for breakfast."
+      ]
+    },
+    "semi_final_expected": {
+      "title": "离决赛还有一场",
+      "title_en": "One match short",
+      "text": [
+        "{event}半决赛打完，你看见对面几个人抱在一起，站了几秒才过去握手。刚才还在想下一张图的手枪局该怎么打，现在不用再想了。队友轻轻碰了下你的胳膊，陪你一起走完那一排。\n\n采访结束后，教练让大家先各自歇一会儿。你回房间洗了把脸，手机里有家人的消息，说比赛看完了，让你按时吃饭。你打了很长一段解释，又删到只剩一句，今晚想早点睡。过了一会儿，队友来敲门，问楼下吃面去不去。\n\n你跟着下楼。面端上来时，大家还在聊比赛，但这次先聊的是打得好的一轮。你终于想起，那一轮你们几个笑得很大声。"
+      ],
+      "text_en": [
+        "After the semi-final at {event}, you need a few seconds before walking over to shake hands. A moment ago you were thinking about the next map's pistol round. There will not be one. A teammate nudges your arm and goes with you.\n\nBack in the hotel room, your family asks whether you have eaten. You type a long explanation and replace it with a message saying you want an early night. A teammate knocks and asks if you want noodles downstairs.\n\nYou go. The match comes up again over dinner, beginning this time with a round that worked. You remember how loudly everyone laughed when it ended."
+      ]
+    },
+    "semi_final_above": {
+      "title": "返程前多了一场采访",
+      "title_en": "One more interview",
+      "text": [
+        "{event}四强。领队把最后的名次报给你时，你还在用纸巾擦鼠标垫。手机里的祝贺消息已经堆了几页，可刚刚输掉的那张图仍然占着脑子，哪一轮还能做得更好，你记得很清楚。\n\n临走前，媒体又约了一次采访。这次问的不只是爆冷，还问你们下个赛季有什么打算。队长回答得很慢，说先把阵容和训练安排落实。你站在旁边，第一次发现这些通常只在训练室里讨论的话，也有人愿意认真听。\n\n回去的车上，队友把头靠在窗边睡着了。教练关小了音量，让领队到酒店再叫大家。你的手机亮了一下，是新约到的训练赛时间。"
+      ],
+      "text_en": [
+        "A semi-final finish at {event}. When the manager confirms the placing, you are cleaning your mousepad. Congratulations fill your phone, though the lost map remains clear in your mind.\n\nThere is another interview before you leave. This time the questions concern next season as well as upsets. Your captain answers slowly: first the roster and practice schedule need to be settled. Listening beside him, you realise people want to hear about the work normally discussed only in the practice room.\n\nOn the ride back, a teammate falls asleep against the window. The coach turns the music down. Your phone lights up with a newly arranged scrim."
+      ]
+    },
+    "final_below": {
+      "title": "银牌放在桌上",
+      "title_en": "Silver on the desk",
+      "text": [
+        "{event}决赛结束，最后赢的人不是你们。对手举起奖杯时，你跟着鼓了掌，走到领奖的位置却慢了半步。你接过银牌，没有马上戴上，跟着队友走到镜头前。\n\n回到酒店，队长把决赛录像发进群里，又撤回，说今晚先别看。过了几分钟，他私下问你是不是也睡不着。你们在走廊碰面，谁都没有带电脑，只到楼下买了两瓶水。说起最后那几轮，你发现自己记得队友的声音比比分还清楚。\n\n回房后，你把银牌放在桌上，给家里回了电话。你说输了，很难受。那边没有急着劝你，说饭还热着，只是隔得太远，没法端过来。"
+      ],
+      "text_en": [
+        "The final of {event} is over and somebody else has won. You applaud as your opponents lift the trophy, then fall half a step behind on the way to the ceremony. You take the silver medal and follow your teammates towards the cameras.\n\nAt the hotel, your captain posts the demo and immediately deletes it: no reviewing tonight. Minutes later, he asks privately whether you can sleep. You meet in the corridor without laptops and buy water downstairs. Discussing the final rounds, you remember your teammates' voices more clearly than the score.\n\nBack in your room, you set the medal on the desk and call home. You say that losing hurts. They let you finish."
+      ]
+    },
+    "final_expected": {
+      "title": "第二名不是一句话",
+      "title_en": "More than a placing",
+      "text": [
+        "{event}的奖杯就在几步外，捧起它的是对手。你等着前面的队友握完手，才把攥在掌心的纸巾扔进旁边的垃圾桶。握手的时候，你跟他们说恭喜，声音比自己想的稳，回到座位收外设时却总也找不到耳机袋。\n\n队友从桌子下面捡起来递给你，问今晚想吃什么。你说什么都行，他说那可难办了，五个人都这么说。这个很小的问题让大家聊了几句，领队终于订好餐厅。教练答应今晚不讲录像，刚坐下又差点提起一个回合，被队长拦住，把菜单塞到他手里。\n\n吃完饭，你把家里发来的照片给队友看。屏幕里几个人挤在电视前，比赛结束以后也没有散。你把照片保存下来，收起了手机。"
+      ],
+      "text_en": [
+        "The trophy at {event} is only a few steps away, in your opponents' hands. While waiting for the teammate ahead to finish shaking hands, you discard the tissue crushed in your palm. Your congratulations come out steadily. Packing afterwards, you cannot find the headset bag.\n\nA teammate retrieves it from beneath the desk and asks what you want for dinner. ‘Anything.’ He laughs: all five players have given the same answer. Eventually a restaurant is booked. The coach promises no demo talk, almost breaks the promise, and is handed a menu by the captain.\n\nAfter dinner, you show a teammate a photo from home: several people still crowded around the television after the match. You save it and put your phone away."
+      ]
+    },
+    "final_above": {
+      "title": "下一次还想坐在这里",
+      "title_en": "Wanting to come back",
+      "text": [
+        "你们以亚军结束{event}。你收设备时才发现，决赛给每个人准备的名牌可以带走。你把它夹在鼠标垫里，想起今天坐下之前，自己还摸了一遍桌沿。\n\n退场时看台上有人喊队名，队友拉着你转身，几个人站成一排鞠躬。后台有人问能不能拍张合照，你本来觉得自己笑不出来，旁边的队友却在快门按下前说，至少这回所有衣服都穿上了。你没忍住，照片里正好留了下来。\n\n酒店房间只剩你一个人时，难过才又慢慢回来。你给教练发消息，问休假后第一天几点到。他隔了一会儿回，说先好好休息，等通知。你把消息看完，给明早点了一份平时总来不及吃的早餐。"
+      ],
+      "text_en": [
+        "You finish {event} as runners-up. Packing up, you learn that you can keep the nameplate made for the final. You slip it inside your mousepad, remembering how you ran a hand along the desk before sitting down.\n\nThe stands call the team's name as you leave. A teammate pulls you around and the five of you bow together. Backstage, someone asks for a photo. You think you cannot smile until a teammate jokes that, at least this time, he used every shirt he packed. The camera catches your laugh.\n\nAlone at the hotel, the defeat catches up again. You ask the coach what time to report after the break. He tells you to rest and wait for the schedule. You order the breakfast you usually never have time to eat."
+      ]
+    }
+  }
+}

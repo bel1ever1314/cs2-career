@@ -196,7 +196,7 @@ class FinanceTests(unittest.TestCase):
             def table(_teams, _date):
                 return [{"id": "mine", "name": "Mine", "rank": 10, "vrs": 1500}]
 
-        season = SimpleNamespace(teams=[team], date="2026-03-01", vrs=Vrs(), events=[])
+        season = SimpleNamespace(teams=[team], year=2026, date="2026-03-01", vrs=Vrs(), events=[])
         career = Career()
         career.exists = True
         career.team_id = "mine"
