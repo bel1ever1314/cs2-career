@@ -1,0 +1,2973 @@
+{
+  "schema_version": 1,
+  "map": "de_dust2",
+  "kind": "semantic_botlab_reuse",
+  "source": {
+    "demo_count": 17,
+    "available_nav_areas": 2242,
+    "available_directed_links": 6275,
+    "available_gun_positions": 79,
+    "route_references": 2725,
+    "aggregate_nodes": 515,
+    "files": [
+      {
+        "name": "dust2_team_atlas.json",
+        "sha256": "9527654279418c69a61080e1da46e410160384340cf995c35eee04bf63b5b18b"
+      },
+      {
+        "name": "de_dust2_nodes.json",
+        "sha256": "d1675e184393253f73f8931632f549806d2d32211f4abbb6ffb993eeda683428"
+      },
+      {
+        "name": "team_playbook.json",
+        "sha256": "2da49fd8a63765a6397ebabd00e06a05ece46e24fb8667904f734829d2b7ec32"
+      }
+    ]
+  },
+  "limitations": [
+    "Semantic preferences, not CS2 collision geometry or a professional AI certificate.",
+    "Original Demo trajectories/NAV meshes/account IDs are not included.",
+    "The 2D schematic has authored sight blockers; real height and utility are not reproduced.",
+    "Preference never overrides reachability, cover, bomb objectives or actual visibility."
+  ],
+  "regions": {
+    "ARamp": {
+      "samples": 110778,
+      "nodes": 24,
+      "roles": {
+        "t": {
+          "awp": 0.1216,
+          "entry": 0.3039,
+          "igl": 0.0771,
+          "lurk": 0.0026,
+          "rifle": 0.4948
+        },
+        "ct": {
+          "awp": 0.2323,
+          "entry": 0.1219,
+          "igl": 0.2044,
+          "lurk": 0.0284,
+          "rifle": 0.413
+        }
+      },
+      "watch_preferences": {
+        "t": [
+          {
+            "region": "BombsiteA",
+            "events": 31
+          },
+          {
+            "region": "Catwalk",
+            "events": 9
+          },
+          {
+            "region": "LongA",
+            "events": 9
+          }
+        ],
+        "ct": [
+          {
+            "region": "BombsiteA",
+            "events": 197
+          },
+          {
+            "region": "LongA",
+            "events": 9
+          }
+        ]
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "BombsiteA",
+            "routes": 4,
+            "source_series": 4,
+            "median_game_units": 114.34
+          },
+          {
+            "region": "LongA",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 214.8
+          },
+          {
+            "region": "UnderA",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 155.59
+          }
+        ],
+        "ct": [
+          {
+            "region": "BombsiteA",
+            "routes": 7,
+            "source_series": 6,
+            "median_game_units": 128.01
+          },
+          {
+            "region": "LongA",
+            "routes": 6,
+            "source_series": 6,
+            "median_game_units": 210.13
+          },
+          {
+            "region": "UnderA",
+            "routes": 3,
+            "source_series": 3,
+            "median_game_units": 803.37
+          },
+          {
+            "region": "CTSpawn",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 812.58
+          }
+        ]
+      },
+      "movement_samples": {
+        "stationary": 55011,
+        "walk": 55767
+      }
+    },
+    "BDoors": {
+      "samples": 77371,
+      "nodes": 24,
+      "roles": {
+        "t": {
+          "awp": 0.0729,
+          "entry": 0.2184,
+          "igl": 0.0674,
+          "lurk": 0.0328,
+          "rifle": 0.6084
+        },
+        "ct": {
+          "awp": 0.0618,
+          "entry": 0.1897,
+          "igl": 0.0708,
+          "lurk": 0.0661,
+          "rifle": 0.6116
+        }
+      },
+      "watch_preferences": {
+        "t": [
+          {
+            "region": "BombsiteB",
+            "events": 41
+          }
+        ],
+        "ct": [
+          {
+            "region": "BombsiteB",
+            "events": 96
+          },
+          {
+            "region": "Middle",
+            "events": 18
+          },
+          {
+            "region": "UpperTunnel",
+            "events": 9
+          }
+        ]
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "MidDoors",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 171.31
+          },
+          {
+            "region": "BombsiteB",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 234.21
+          }
+        ],
+        "ct": [
+          {
+            "region": "MidDoors",
+            "routes": 14,
+            "source_series": 8,
+            "median_game_units": 440.51
+          },
+          {
+            "region": "BombsiteB",
+            "routes": 10,
+            "source_series": 7,
+            "median_game_units": 346.72
+          },
+          {
+            "region": "Hole",
+            "routes": 4,
+            "source_series": 4,
+            "median_game_units": 114.47
+          },
+          {
+            "region": "CTSpawn",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 1399.38
+          }
+        ]
+      },
+      "movement_samples": {
+        "stationary": 19048,
+        "walk": 58323
+      }
+    },
+    "BombsiteA": {
+      "samples": 84356,
+      "nodes": 24,
+      "roles": {
+        "t": {
+          "awp": 0.131,
+          "entry": 0.2905,
+          "igl": 0.1496,
+          "lurk": 0.0107,
+          "rifle": 0.4181
+        },
+        "ct": {
+          "awp": 0.1728,
+          "entry": 0.081,
+          "igl": 0.1876,
+          "lurk": 0.0811,
+          "rifle": 0.4775
+        }
+      },
+      "watch_preferences": {
+        "t": [
+          {
+            "region": "BombsiteA",
+            "events": 69
+          },
+          {
+            "region": "LongA",
+            "events": 10
+          }
+        ],
+        "ct": [
+          {
+            "region": "BombsiteA",
+            "events": 132
+          },
+          {
+            "region": "LongA",
+            "events": 9
+          }
+        ]
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "ExtendedA",
+            "routes": 7,
+            "source_series": 5,
+            "median_game_units": 137.85
+          },
+          {
+            "region": "ARamp",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 227.12
+          },
+          {
+            "region": "UnderA",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 161.15
+          }
+        ],
+        "ct": [
+          {
+            "region": "ExtendedA",
+            "routes": 7,
+            "source_series": 5,
+            "median_game_units": 412.17
+          },
+          {
+            "region": "ARamp",
+            "routes": 3,
+            "source_series": 2,
+            "median_game_units": 120.15
+          },
+          {
+            "region": "UnderA",
+            "routes": 3,
+            "source_series": 2,
+            "median_game_units": 209.25
+          }
+        ]
+      },
+      "movement_samples": {
+        "stationary": 72578,
+        "walk": 11778
+      }
+    },
+    "BombsiteB": {
+      "samples": 172280,
+      "nodes": 24,
+      "roles": {
+        "t": {
+          "awp": 0.1827,
+          "entry": 0.1657,
+          "igl": 0.1202,
+          "lurk": 0.0277,
+          "rifle": 0.5037
+        },
+        "ct": {
+          "awp": 0.0315,
+          "entry": 0.2061,
+          "igl": 0.0329,
+          "lurk": 0.0864,
+          "rifle": 0.6431
+        }
+      },
+      "watch_preferences": {
+        "t": [
+          {
+            "region": "BombsiteB",
+            "events": 240
+          },
+          {
+            "region": "BDoors",
+            "events": 11
+          }
+        ],
+        "ct": [
+          {
+            "region": "BombsiteB",
+            "events": 147
+          },
+          {
+            "region": "UpperTunnel",
+            "events": 39
+          },
+          {
+            "region": "Middle",
+            "events": 22
+          },
+          {
+            "region": "BDoors",
+            "events": 10
+          }
+        ]
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "BDoors",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 110.28
+          },
+          {
+            "region": "Hole",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 219.18
+          },
+          {
+            "region": "UpperTunnel",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 352.63
+          }
+        ],
+        "ct": [
+          {
+            "region": "Hole",
+            "routes": 5,
+            "source_series": 4,
+            "median_game_units": 115.32
+          },
+          {
+            "region": "BDoors",
+            "routes": 4,
+            "source_series": 4,
+            "median_game_units": 223.13
+          },
+          {
+            "region": "MidDoors",
+            "routes": 4,
+            "source_series": 3,
+            "median_game_units": 1133.82
+          },
+          {
+            "region": "UpperTunnel",
+            "routes": 3,
+            "source_series": 2,
+            "median_game_units": 197.94
+          }
+        ]
+      },
+      "movement_samples": {
+        "stationary": 96808,
+        "walk": 75472
+      }
+    },
+    "CTSpawn": {
+      "samples": 264926,
+      "nodes": 24,
+      "roles": {
+        "t": {
+          "awp": 0.0673,
+          "entry": 0.1326,
+          "igl": 0.1044,
+          "lurk": 0.0931,
+          "rifle": 0.6027
+        },
+        "ct": {
+          "awp": 0.1065,
+          "entry": 0.06,
+          "igl": 0.1106,
+          "lurk": 0.0114,
+          "rifle": 0.7114
+        }
+      },
+      "watch_preferences": {
+        "t": [],
+        "ct": [
+          {
+            "region": "Middle",
+            "events": 88
+          },
+          {
+            "region": "BDoors",
+            "events": 14
+          }
+        ]
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "MidDoors",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 200.65
+          }
+        ],
+        "ct": [
+          {
+            "region": "LongA",
+            "routes": 170,
+            "source_series": 16,
+            "median_game_units": 1943.76
+          },
+          {
+            "region": "MidDoors",
+            "routes": 144,
+            "source_series": 17,
+            "median_game_units": 1098.31
+          },
+          {
+            "region": "UnderA",
+            "routes": 71,
+            "source_series": 17,
+            "median_game_units": 725.36
+          },
+          {
+            "region": "BombsiteB",
+            "routes": 67,
+            "source_series": 14,
+            "median_game_units": 2847.74
+          },
+          {
+            "region": "LongDoors",
+            "routes": 51,
+            "source_series": 13,
+            "median_game_units": 2876.03
+          },
+          {
+            "region": "BDoors",
+            "routes": 44,
+            "source_series": 16,
+            "median_game_units": 1739.06
+          },
+          {
+            "region": "LowerTunnel",
+            "routes": 31,
+            "source_series": 12,
+            "median_game_units": 1992.79
+          },
+          {
+            "region": "ARamp",
+            "routes": 27,
+            "source_series": 12,
+            "median_game_units": 2396.06
+          },
+          {
+            "region": "Middle",
+            "routes": 16,
+            "source_series": 6,
+            "median_game_units": 1915.14
+          },
+          {
+            "region": "Pit",
+            "routes": 11,
+            "source_series": 5,
+            "median_game_units": 3203.41
+          },
+          {
+            "region": "UpperTunnel",
+            "routes": 9,
+            "source_series": 5,
+            "median_game_units": 3752.39
+          },
+          {
+            "region": "BombsiteA",
+            "routes": 5,
+            "source_series": 2,
+            "median_game_units": 3837.1
+          },
+          {
+            "region": "TunnelStairs",
+            "routes": 5,
+            "source_series": 4,
+            "median_game_units": 3507.07
+          },
+          {
+            "region": "TopofMid",
+            "routes": 3,
+            "source_series": 3,
+            "median_game_units": 2408.12
+          },
+          {
+            "region": "TSpawn",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 6827.4
+          }
+        ]
+      },
+      "movement_samples": {
+        "stationary": 212791,
+        "walk": 52135
+      }
+    },
+    "Catwalk": {
+      "samples": 164607,
+      "nodes": 24,
+      "roles": {
+        "t": {
+          "awp": 0.2335,
+          "entry": 0.1567,
+          "igl": 0.1969,
+          "lurk": 0.0138,
+          "rifle": 0.399
+        },
+        "ct": {
+          "awp": 0.3195,
+          "entry": 0.1105,
+          "igl": 0.122,
+          "lurk": 0.0279,
+          "rifle": 0.4201
+        }
+      },
+      "watch_preferences": {
+        "t": [
+          {
+            "region": "Catwalk",
+            "events": 37
+          },
+          {
+            "region": "Middle",
+            "events": 23
+          },
+          {
+            "region": "BombsiteA",
+            "events": 9
+          }
+        ],
+        "ct": [
+          {
+            "region": "Middle",
+            "events": 41
+          },
+          {
+            "region": "Catwalk",
+            "events": 17
+          }
+        ]
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "ShortStairs",
+            "routes": 13,
+            "source_series": 10,
+            "median_game_units": 596.27
+          },
+          {
+            "region": "Middle",
+            "routes": 5,
+            "source_series": 5,
+            "median_game_units": 107.83
+          },
+          {
+            "region": "ExtendedA",
+            "routes": 3,
+            "source_series": 3,
+            "median_game_units": 878.24
+          },
+          {
+            "region": "TopofMid",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 154.22
+          }
+        ],
+        "ct": [
+          {
+            "region": "ShortStairs",
+            "routes": 5,
+            "source_series": 5,
+            "median_game_units": 263.87
+          },
+          {
+            "region": "ExtendedA",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 914.22
+          },
+          {
+            "region": "Middle",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 101.75
+          },
+          {
+            "region": "TopofMid",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 105.0
+          }
+        ]
+      },
+      "movement_samples": {
+        "stationary": 41104,
+        "walk": 123503
+      }
+    },
+    "ExtendedA": {
+      "samples": 78042,
+      "nodes": 24,
+      "roles": {
+        "t": {
+          "awp": 0.1788,
+          "entry": 0.2399,
+          "igl": 0.1423,
+          "lurk": 0.0213,
+          "rifle": 0.4177
+        },
+        "ct": {
+          "awp": 0.3202,
+          "entry": 0.123,
+          "igl": 0.1764,
+          "lurk": 0.0134,
+          "rifle": 0.367
+        }
+      },
+      "watch_preferences": {
+        "t": [
+          {
+            "region": "BombsiteA",
+            "events": 147
+          },
+          {
+            "region": "LongA",
+            "events": 53
+          },
+          {
+            "region": "Catwalk",
+            "events": 41
+          }
+        ],
+        "ct": [
+          {
+            "region": "Catwalk",
+            "events": 34
+          },
+          {
+            "region": "BombsiteA",
+            "events": 21
+          },
+          {
+            "region": "LongA",
+            "events": 12
+          }
+        ]
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "BombsiteA",
+            "routes": 5,
+            "source_series": 5,
+            "median_game_units": 377.04
+          },
+          {
+            "region": "ShortStairs",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 215.26
+          },
+          {
+            "region": "UnderA",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 106.59
+          }
+        ],
+        "ct": [
+          {
+            "region": "BombsiteA",
+            "routes": 13,
+            "source_series": 8,
+            "median_game_units": 269.06
+          },
+          {
+            "region": "ShortStairs",
+            "routes": 13,
+            "source_series": 9,
+            "median_game_units": 431.67
+          },
+          {
+            "region": "UnderA",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 105.58
+          },
+          {
+            "region": "Catwalk",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 1141.78
+          }
+        ]
+      },
+      "movement_samples": {
+        "stationary": 30703,
+        "walk": 47339
+      }
+    },
+    "Hole": {
+      "samples": 22231,
+      "nodes": 8,
+      "roles": {
+        "t": {
+          "awp": 0.0725,
+          "entry": 0.234,
+          "igl": 0.047,
+          "lurk": 0.0424,
+          "rifle": 0.6041
+        },
+        "ct": {
+          "awp": 0.1073,
+          "entry": 0.1175,
+          "igl": 0.0541,
+          "lurk": 0.0797,
+          "rifle": 0.6414
+        }
+      },
+      "watch_preferences": {
+        "t": [
+          {
+            "region": "BombsiteB",
+            "events": 41
+          },
+          {
+            "region": "BDoors",
+            "events": 9
+          },
+          {
+            "region": "Middle",
+            "events": 9
+          }
+        ],
+        "ct": [
+          {
+            "region": "BombsiteB",
+            "events": 100
+          },
+          {
+            "region": "Middle",
+            "events": 24
+          },
+          {
+            "region": "BDoors",
+            "events": 12
+          },
+          {
+            "region": "UpperTunnel",
+            "events": 9
+          }
+        ]
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "BombsiteB",
+            "routes": 4,
+            "source_series": 3,
+            "median_game_units": 171.1
+          }
+        ],
+        "ct": [
+          {
+            "region": "BombsiteB",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 165.2
+          },
+          {
+            "region": "BDoors",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 97.75
+          }
+        ]
+      },
+      "movement_samples": {
+        "stationary": 11000,
+        "walk": 11231
+      }
+    },
+    "LongA": {
+      "samples": 172879,
+      "nodes": 24,
+      "roles": {
+        "t": {
+          "awp": 0.0756,
+          "entry": 0.1372,
+          "igl": 0.1943,
+          "lurk": 0.0306,
+          "rifle": 0.5623
+        },
+        "ct": {
+          "awp": 0.2701,
+          "entry": 0.1194,
+          "igl": 0.2495,
+          "lurk": 0.0055,
+          "rifle": 0.3555
+        }
+      },
+      "watch_preferences": {
+        "t": [
+          {
+            "region": "Catwalk",
+            "events": 11
+          },
+          {
+            "region": "LongA",
+            "events": 9
+          },
+          {
+            "region": "BombsiteA",
+            "events": 8
+          }
+        ],
+        "ct": [
+          {
+            "region": "LongA",
+            "events": 168
+          },
+          {
+            "region": "BombsiteA",
+            "events": 56
+          },
+          {
+            "region": "Middle",
+            "events": 24
+          }
+        ]
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "ARamp",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 341.94
+          },
+          {
+            "region": "LongDoors",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 505.78
+          },
+          {
+            "region": "Pit",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 208.89
+          }
+        ],
+        "ct": [
+          {
+            "region": "LongDoors",
+            "routes": 10,
+            "source_series": 9,
+            "median_game_units": 1161.13
+          },
+          {
+            "region": "UnderA",
+            "routes": 7,
+            "source_series": 5,
+            "median_game_units": 459.74
+          },
+          {
+            "region": "ARamp",
+            "routes": 6,
+            "source_series": 5,
+            "median_game_units": 186.86
+          },
+          {
+            "region": "CTSpawn",
+            "routes": 3,
+            "source_series": 3,
+            "median_game_units": 2222.6
+          },
+          {
+            "region": "Pit",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 790.84
+          },
+          {
+            "region": "BombsiteA",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 96.15
+          }
+        ]
+      },
+      "movement_samples": {
+        "stationary": 100271,
+        "walk": 72608
+      }
+    },
+    "LongDoors": {
+      "samples": 168518,
+      "nodes": 24,
+      "roles": {
+        "t": {
+          "awp": 0.1047,
+          "entry": 0.2044,
+          "igl": 0.1472,
+          "lurk": 0.0176,
+          "rifle": 0.5262
+        },
+        "ct": {
+          "awp": 0.0674,
+          "entry": 0.1394,
+          "igl": 0.2962,
+          "lurk": 0.0155,
+          "rifle": 0.4816
+        }
+      },
+      "watch_preferences": {
+        "t": [
+          {
+            "region": "LongA",
+            "events": 216
+          }
+        ],
+        "ct": [
+          {
+            "region": "LongA",
+            "events": 17
+          }
+        ]
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "LongA",
+            "routes": 9,
+            "source_series": 5,
+            "median_game_units": 396.09
+          },
+          {
+            "region": "OutsideLong",
+            "routes": 5,
+            "source_series": 5,
+            "median_game_units": 223.62
+          },
+          {
+            "region": "TopofMid",
+            "routes": 4,
+            "source_series": 3,
+            "median_game_units": 1001.59
+          },
+          {
+            "region": "ARamp",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 1251.76
+          },
+          {
+            "region": "LowerTunnel",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 2231.0
+          }
+        ],
+        "ct": [
+          {
+            "region": "LongA",
+            "routes": 3,
+            "source_series": 2,
+            "median_game_units": 182.23
+          },
+          {
+            "region": "OutsideLong",
+            "routes": 3,
+            "source_series": 3,
+            "median_game_units": 371.92
+          },
+          {
+            "region": "TopofMid",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 511.24
+          }
+        ]
+      },
+      "movement_samples": {
+        "stationary": 26132,
+        "walk": 142386
+      }
+    },
+    "LowerTunnel": {
+      "samples": 129980,
+      "nodes": 21,
+      "roles": {
+        "t": {
+          "awp": 0.0849,
+          "entry": 0.2139,
+          "igl": 0.069,
+          "lurk": 0.0989,
+          "rifle": 0.5333
+        },
+        "ct": {
+          "awp": 0.1553,
+          "entry": 0.182,
+          "igl": 0.1502,
+          "lurk": 0.0606,
+          "rifle": 0.4519
+        }
+      },
+      "watch_preferences": {
+        "t": [],
+        "ct": [
+          {
+            "region": "UpperTunnel",
+            "events": 28
+          }
+        ]
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "TunnelStairs",
+            "routes": 7,
+            "source_series": 5,
+            "median_game_units": 189.49
+          },
+          {
+            "region": "MidDoors",
+            "routes": 6,
+            "source_series": 5,
+            "median_game_units": 397.73
+          },
+          {
+            "region": "Middle",
+            "routes": 3,
+            "source_series": 3,
+            "median_game_units": 110.39
+          },
+          {
+            "region": "UpperTunnel",
+            "routes": 3,
+            "source_series": 2,
+            "median_game_units": 620.39
+          }
+        ],
+        "ct": [
+          {
+            "region": "MidDoors",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 118.41
+          },
+          {
+            "region": "UpperTunnel",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 469.61
+          }
+        ]
+      },
+      "movement_samples": {
+        "stationary": 31934,
+        "walk": 98046
+      }
+    },
+    "MidDoors": {
+      "samples": 168779,
+      "nodes": 24,
+      "roles": {
+        "t": {
+          "awp": 0.1455,
+          "entry": 0.1846,
+          "igl": 0.1542,
+          "lurk": 0.0459,
+          "rifle": 0.4697
+        },
+        "ct": {
+          "awp": 0.2338,
+          "entry": 0.1217,
+          "igl": 0.1013,
+          "lurk": 0.0405,
+          "rifle": 0.5027
+        }
+      },
+      "watch_preferences": {
+        "t": [
+          {
+            "region": "Middle",
+            "events": 103
+          },
+          {
+            "region": "BDoors",
+            "events": 20
+          },
+          {
+            "region": "Catwalk",
+            "events": 11
+          }
+        ],
+        "ct": [
+          {
+            "region": "Middle",
+            "events": 206
+          }
+        ]
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "BDoors",
+            "routes": 4,
+            "source_series": 3,
+            "median_game_units": 714.49
+          },
+          {
+            "region": "LowerTunnel",
+            "routes": 3,
+            "source_series": 3,
+            "median_game_units": 266.2
+          },
+          {
+            "region": "CTSpawn",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 322.19
+          },
+          {
+            "region": "Middle",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 212.02
+          },
+          {
+            "region": "TunnelStairs",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 809.17
+          },
+          {
+            "region": "UpperTunnel",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 1123.4
+          }
+        ],
+        "ct": [
+          {
+            "region": "BombsiteB",
+            "routes": 19,
+            "source_series": 12,
+            "median_game_units": 1344.38
+          },
+          {
+            "region": "BDoors",
+            "routes": 15,
+            "source_series": 8,
+            "median_game_units": 492.26
+          },
+          {
+            "region": "CTSpawn",
+            "routes": 5,
+            "source_series": 3,
+            "median_game_units": 108.65
+          },
+          {
+            "region": "UnderA",
+            "routes": 5,
+            "source_series": 4,
+            "median_game_units": 1014.34
+          },
+          {
+            "region": "LowerTunnel",
+            "routes": 4,
+            "source_series": 4,
+            "median_game_units": 435.47
+          },
+          {
+            "region": "Middle",
+            "routes": 3,
+            "source_series": 2,
+            "median_game_units": 125.77
+          },
+          {
+            "region": "ARamp",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 1910.28
+          },
+          {
+            "region": "LongA",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 1969.42
+          }
+        ]
+      },
+      "movement_samples": {
+        "stationary": 67973,
+        "walk": 100806
+      }
+    },
+    "Middle": {
+      "samples": 115351,
+      "nodes": 24,
+      "roles": {
+        "t": {
+          "awp": 0.1701,
+          "entry": 0.1713,
+          "igl": 0.1764,
+          "lurk": 0.0351,
+          "rifle": 0.4471
+        },
+        "ct": {
+          "awp": 0.2551,
+          "entry": 0.1462,
+          "igl": 0.0828,
+          "lurk": 0.0601,
+          "rifle": 0.4558
+        }
+      },
+      "watch_preferences": {
+        "t": [
+          {
+            "region": "Middle",
+            "events": 74
+          }
+        ],
+        "ct": [
+          {
+            "region": "Middle",
+            "events": 49
+          }
+        ]
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "MidDoors",
+            "routes": 10,
+            "source_series": 9,
+            "median_game_units": 544.32
+          },
+          {
+            "region": "Catwalk",
+            "routes": 6,
+            "source_series": 5,
+            "median_game_units": 120.91
+          },
+          {
+            "region": "LowerTunnel",
+            "routes": 5,
+            "source_series": 5,
+            "median_game_units": 103.42
+          },
+          {
+            "region": "TopofMid",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 135.82
+          },
+          {
+            "region": "BDoors",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 1774.06
+          },
+          {
+            "region": "TunnelStairs",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 814.77
+          },
+          {
+            "region": "UpperTunnel",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 1136.46
+          }
+        ],
+        "ct": [
+          {
+            "region": "Catwalk",
+            "routes": 3,
+            "source_series": 3,
+            "median_game_units": 98.87
+          },
+          {
+            "region": "MidDoors",
+            "routes": 3,
+            "source_series": 2,
+            "median_game_units": 108.93
+          },
+          {
+            "region": "CTSpawn",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 1715.9
+          },
+          {
+            "region": "LowerTunnel",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 256.41
+          },
+          {
+            "region": "TopofMid",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 161.12
+          }
+        ]
+      },
+      "movement_samples": {
+        "stationary": 38645,
+        "walk": 76706
+      }
+    },
+    "OutsideLong": {
+      "samples": 101214,
+      "nodes": 24,
+      "roles": {
+        "t": {
+          "awp": 0.1832,
+          "entry": 0.1456,
+          "igl": 0.183,
+          "lurk": 0.0096,
+          "rifle": 0.4787
+        },
+        "ct": {
+          "awp": 0.2028,
+          "entry": 0.1148,
+          "igl": 0.1502,
+          "lurk": 0.0684,
+          "rifle": 0.4638
+        }
+      },
+      "watch_preferences": {
+        "t": [],
+        "ct": [
+          {
+            "region": "Middle",
+            "events": 24
+          }
+        ]
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "TopofMid",
+            "routes": 14,
+            "source_series": 9,
+            "median_game_units": 386.29
+          },
+          {
+            "region": "LongDoors",
+            "routes": 7,
+            "source_series": 6,
+            "median_game_units": 201.75
+          },
+          {
+            "region": "Middle",
+            "routes": 3,
+            "source_series": 3,
+            "median_game_units": 1441.4
+          },
+          {
+            "region": "Catwalk",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 1333.63
+          },
+          {
+            "region": "LowerTunnel",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 1741.5
+          },
+          {
+            "region": "TSpawn",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 498.05
+          }
+        ],
+        "ct": [
+          {
+            "region": "TopofMid",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 778.95
+          }
+        ]
+      },
+      "movement_samples": {
+        "stationary": 35906,
+        "walk": 65308
+      }
+    },
+    "OutsideTunnel": {
+      "samples": 20564,
+      "nodes": 24,
+      "roles": {
+        "t": {
+          "awp": 0.1427,
+          "entry": 0.1009,
+          "igl": 0.0746,
+          "lurk": 0.0682,
+          "rifle": 0.6136
+        },
+        "ct": {
+          "awp": 0.0774,
+          "entry": 0.0018,
+          "igl": 0.1734,
+          "lurk": 0.0494,
+          "rifle": 0.6979
+        }
+      },
+      "watch_preferences": {
+        "t": [],
+        "ct": []
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "UpperTunnel",
+            "routes": 30,
+            "source_series": 13,
+            "median_game_units": 1186.0
+          },
+          {
+            "region": "LowerTunnel",
+            "routes": 8,
+            "source_series": 6,
+            "median_game_units": 2008.07
+          },
+          {
+            "region": "TunnelStairs",
+            "routes": 8,
+            "source_series": 7,
+            "median_game_units": 1557.56
+          },
+          {
+            "region": "Middle",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 2383.27
+          },
+          {
+            "region": "BombsiteB",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 1973.97
+          }
+        ],
+        "ct": []
+      },
+      "movement_samples": {
+        "stationary": 6190,
+        "walk": 14374
+      }
+    },
+    "Pit": {
+      "samples": 37692,
+      "nodes": 24,
+      "roles": {
+        "t": {
+          "awp": 0.2911,
+          "entry": 0.142,
+          "igl": 0.1115,
+          "lurk": 0.082,
+          "rifle": 0.3734
+        },
+        "ct": {
+          "awp": 0.1263,
+          "entry": 0.0949,
+          "igl": 0.3657,
+          "rifle": 0.4131
+        }
+      },
+      "watch_preferences": {
+        "t": [],
+        "ct": [
+          {
+            "region": "LongA",
+            "events": 11
+          }
+        ]
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "LongA",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 218.68
+          },
+          {
+            "region": "Side",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 205.07
+          }
+        ],
+        "ct": [
+          {
+            "region": "LongA",
+            "routes": 5,
+            "source_series": 4,
+            "median_game_units": 161.42
+          },
+          {
+            "region": "LongDoors",
+            "routes": 4,
+            "source_series": 4,
+            "median_game_units": 200.7
+          }
+        ]
+      },
+      "movement_samples": {
+        "stationary": 21092,
+        "walk": 16600
+      }
+    },
+    "ShortStairs": {
+      "samples": 127968,
+      "nodes": 24,
+      "roles": {
+        "t": {
+          "awp": 0.1619,
+          "entry": 0.1629,
+          "igl": 0.1981,
+          "lurk": 0.0243,
+          "rifle": 0.4529
+        },
+        "ct": {
+          "awp": 0.3392,
+          "entry": 0.1686,
+          "igl": 0.1465,
+          "lurk": 0.0452,
+          "rifle": 0.3005
+        }
+      },
+      "watch_preferences": {
+        "t": [
+          {
+            "region": "BombsiteA",
+            "events": 62
+          },
+          {
+            "region": "Catwalk",
+            "events": 51
+          }
+        ],
+        "ct": [
+          {
+            "region": "Catwalk",
+            "events": 48
+          }
+        ]
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "ExtendedA",
+            "routes": 9,
+            "source_series": 8,
+            "median_game_units": 728.61
+          },
+          {
+            "region": "Catwalk",
+            "routes": 7,
+            "source_series": 5,
+            "median_game_units": 139.55
+          }
+        ],
+        "ct": [
+          {
+            "region": "Catwalk",
+            "routes": 12,
+            "source_series": 8,
+            "median_game_units": 325.23
+          },
+          {
+            "region": "ExtendedA",
+            "routes": 7,
+            "source_series": 6,
+            "median_game_units": 439.55
+          }
+        ]
+      },
+      "movement_samples": {
+        "stationary": 18689,
+        "walk": 109279
+      }
+    },
+    "Side": {
+      "samples": 10168,
+      "nodes": 12,
+      "roles": {
+        "t": {
+          "awp": 0.4434,
+          "entry": 0.0274,
+          "igl": 0.263,
+          "rifle": 0.2662
+        },
+        "ct": {
+          "awp": 0.7247,
+          "entry": 0.1552,
+          "rifle": 0.1202
+        }
+      },
+      "watch_preferences": {
+        "t": [],
+        "ct": []
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "LongA",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 108.7
+          },
+          {
+            "region": "Pit",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 407.83
+          }
+        ],
+        "ct": []
+      },
+      "movement_samples": {
+        "stationary": 7526,
+        "walk": 2642
+      }
+    },
+    "TRamp": {
+      "samples": 4710,
+      "nodes": 12,
+      "roles": {
+        "t": {
+          "awp": 0.1326,
+          "entry": 0.0021,
+          "igl": 0.1282,
+          "lurk": 0.0836,
+          "rifle": 0.6535
+        },
+        "ct": {
+          "awp": 0.4243,
+          "rifle": 0.5757
+        }
+      },
+      "watch_preferences": {
+        "t": [],
+        "ct": []
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "OutsideTunnel",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 166.76
+          }
+        ],
+        "ct": []
+      },
+      "movement_samples": {
+        "stationary": 4278,
+        "walk": 432
+      }
+    },
+    "TSpawn": {
+      "samples": 193061,
+      "nodes": 22,
+      "roles": {
+        "t": {
+          "awp": 0.0667,
+          "entry": 0.0225,
+          "igl": 0.1535,
+          "lurk": 0.0038,
+          "rifle": 0.7535
+        },
+        "ct": {
+          "awp": 0.267,
+          "entry": 0.0195,
+          "igl": 0.2916,
+          "lurk": 0.1085,
+          "rifle": 0.3133
+        }
+      },
+      "watch_preferences": {
+        "t": [],
+        "ct": []
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "OutsideLong",
+            "routes": 125,
+            "source_series": 16,
+            "median_game_units": 1527.24
+          },
+          {
+            "region": "LongDoors",
+            "routes": 44,
+            "source_series": 14,
+            "median_game_units": 2364.47
+          },
+          {
+            "region": "TopofMid",
+            "routes": 39,
+            "source_series": 12,
+            "median_game_units": 2244.87
+          },
+          {
+            "region": "Catwalk",
+            "routes": 7,
+            "source_series": 3,
+            "median_game_units": 3528.22
+          },
+          {
+            "region": "Middle",
+            "routes": 6,
+            "source_series": 4,
+            "median_game_units": 3699.11
+          },
+          {
+            "region": "UpperTunnel",
+            "routes": 5,
+            "source_series": 1,
+            "median_game_units": 7220.42
+          },
+          {
+            "region": "BDoors",
+            "routes": 2,
+            "source_series": 1,
+            "median_game_units": 6108.78
+          },
+          {
+            "region": "LongA",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 4309.16
+          },
+          {
+            "region": "LowerTunnel",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 4057.49
+          },
+          {
+            "region": "MidDoors",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 5176.55
+          },
+          {
+            "region": "OutsideTunnel",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 110.9
+          },
+          {
+            "region": "TRamp",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 104.78
+          },
+          {
+            "region": "TunnelStairs",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 6083.02
+          }
+        ],
+        "ct": []
+      },
+      "movement_samples": {
+        "stationary": 191996,
+        "walk": 1065
+      }
+    },
+    "TopofMid": {
+      "samples": 126855,
+      "nodes": 24,
+      "roles": {
+        "t": {
+          "awp": 0.2645,
+          "entry": 0.098,
+          "igl": 0.2573,
+          "lurk": 0.0052,
+          "rifle": 0.375
+        },
+        "ct": {
+          "awp": 0.2201,
+          "entry": 0.1041,
+          "igl": 0.1298,
+          "lurk": 0.035,
+          "rifle": 0.511
+        }
+      },
+      "watch_preferences": {
+        "t": [
+          {
+            "region": "Middle",
+            "events": 43
+          },
+          {
+            "region": "Catwalk",
+            "events": 9
+          }
+        ],
+        "ct": [
+          {
+            "region": "Middle",
+            "events": 16
+          }
+        ]
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "OutsideLong",
+            "routes": 26,
+            "source_series": 13,
+            "median_game_units": 531.76
+          },
+          {
+            "region": "LongDoors",
+            "routes": 9,
+            "source_series": 6,
+            "median_game_units": 1250.54
+          },
+          {
+            "region": "Catwalk",
+            "routes": 7,
+            "source_series": 6,
+            "median_game_units": 1719.26
+          },
+          {
+            "region": "Middle",
+            "routes": 5,
+            "source_series": 5,
+            "median_game_units": 384.14
+          },
+          {
+            "region": "TSpawn",
+            "routes": 4,
+            "source_series": 4,
+            "median_game_units": 195.5
+          },
+          {
+            "region": "LowerTunnel",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 1028.05
+          }
+        ],
+        "ct": [
+          {
+            "region": "Catwalk",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 268.01
+          },
+          {
+            "region": "OutsideLong",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 369.84
+          }
+        ]
+      },
+      "movement_samples": {
+        "stationary": 66705,
+        "walk": 60150
+      }
+    },
+    "TunnelStairs": {
+      "samples": 53231,
+      "nodes": 8,
+      "roles": {
+        "t": {
+          "awp": 0.0455,
+          "entry": 0.2409,
+          "igl": 0.0541,
+          "lurk": 0.1132,
+          "rifle": 0.5463
+        },
+        "ct": {
+          "awp": 0.1242,
+          "entry": 0.1396,
+          "igl": 0.1492,
+          "lurk": 0.0698,
+          "rifle": 0.5172
+        }
+      },
+      "watch_preferences": {
+        "t": [],
+        "ct": [
+          {
+            "region": "UpperTunnel",
+            "events": 10
+          }
+        ]
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "LowerTunnel",
+            "routes": 9,
+            "source_series": 7,
+            "median_game_units": 410.6
+          },
+          {
+            "region": "UpperTunnel",
+            "routes": 5,
+            "source_series": 5,
+            "median_game_units": 208.72
+          },
+          {
+            "region": "Middle",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 1013.42
+          }
+        ],
+        "ct": [
+          {
+            "region": "UpperTunnel",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 285.25
+          },
+          {
+            "region": "LowerTunnel",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 233.93
+          }
+        ]
+      },
+      "movement_samples": {
+        "walk": 53231
+      }
+    },
+    "UnderA": {
+      "samples": 72546,
+      "nodes": 24,
+      "roles": {
+        "t": {
+          "awp": 0.0252,
+          "entry": 0.09,
+          "igl": 0.0775,
+          "lurk": 0.0167,
+          "rifle": 0.7905
+        },
+        "ct": {
+          "awp": 0.1686,
+          "entry": 0.1346,
+          "igl": 0.2124,
+          "lurk": 0.0388,
+          "rifle": 0.4455
+        }
+      },
+      "watch_preferences": {
+        "t": [],
+        "ct": [
+          {
+            "region": "BombsiteA",
+            "events": 84
+          },
+          {
+            "region": "Catwalk",
+            "events": 11
+          }
+        ]
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "BombsiteA",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 135.34
+          },
+          {
+            "region": "ExtendedA",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 145.74
+          }
+        ],
+        "ct": [
+          {
+            "region": "CTSpawn",
+            "routes": 13,
+            "source_series": 8,
+            "median_game_units": 448.11
+          },
+          {
+            "region": "ExtendedA",
+            "routes": 11,
+            "source_series": 6,
+            "median_game_units": 106.13
+          },
+          {
+            "region": "LongA",
+            "routes": 9,
+            "source_series": 8,
+            "median_game_units": 580.32
+          },
+          {
+            "region": "BombsiteA",
+            "routes": 5,
+            "source_series": 5,
+            "median_game_units": 221.01
+          },
+          {
+            "region": "MidDoors",
+            "routes": 4,
+            "source_series": 4,
+            "median_game_units": 1537.66
+          },
+          {
+            "region": "ARamp",
+            "routes": 3,
+            "source_series": 3,
+            "median_game_units": 728.75
+          },
+          {
+            "region": "BDoors",
+            "routes": 2,
+            "source_series": 2,
+            "median_game_units": 1990.66
+          }
+        ]
+      },
+      "movement_samples": {
+        "stationary": 18337,
+        "walk": 54209
+      }
+    },
+    "UpperTunnel": {
+      "samples": 210300,
+      "nodes": 24,
+      "roles": {
+        "t": {
+          "awp": 0.1148,
+          "entry": 0.1578,
+          "igl": 0.0608,
+          "lurk": 0.1126,
+          "rifle": 0.554
+        },
+        "ct": {
+          "awp": 0.0942,
+          "entry": 0.1003,
+          "igl": 0.0973,
+          "lurk": 0.088,
+          "rifle": 0.6202
+        }
+      },
+      "watch_preferences": {
+        "t": [
+          {
+            "region": "BombsiteB",
+            "events": 29
+          },
+          {
+            "region": "UpperTunnel",
+            "events": 24
+          }
+        ],
+        "ct": [
+          {
+            "region": "UpperTunnel",
+            "events": 32
+          },
+          {
+            "region": "BombsiteB",
+            "events": 8
+          }
+        ]
+      },
+      "route_preferences": {
+        "t": [
+          {
+            "region": "BombsiteB",
+            "routes": 8,
+            "source_series": 7,
+            "median_game_units": 651.66
+          },
+          {
+            "region": "TunnelStairs",
+            "routes": 8,
+            "source_series": 7,
+            "median_game_units": 196.48
+          },
+          {
+            "region": "LowerTunnel",
+            "routes": 5,
+            "source_series": 5,
+            "median_game_units": 1095.51
+          },
+          {
+            "region": "OutsideTunnel",
+            "routes": 5,
+            "source_series": 4,
+            "median_game_units": 289.48
+          },
+          {
+            "region": "Middle",
+            "routes": 1,
+            "source_series": 1,
+            "median_game_units": 1349.16
+          }
+        ],
+        "ct": [
+          {
+            "region": "BombsiteB",
+            "routes": 3,
+            "source_series": 3,
+            "median_game_units": 329.39
+          },
+          {
+            "region": "LowerTunnel",
+            "routes": 2,
+            "source_series": 1,
+            "median_game_units": 1252.16
+          }
+        ]
+      },
+      "movement_samples": {
+        "stationary": 82290,
+        "walk": 128010
+      }
+    }
+  },
+  "transitions": [
+    {
+      "from_region": "ARamp",
+      "side": "ct",
+      "to_region": "BombsiteA",
+      "samples": 224
+    },
+    {
+      "from_region": "ARamp",
+      "side": "ct",
+      "to_region": "LongA",
+      "samples": 391
+    },
+    {
+      "from_region": "ARamp",
+      "side": "t",
+      "to_region": "BombsiteA",
+      "samples": 112
+    },
+    {
+      "from_region": "BDoors",
+      "side": "ct",
+      "to_region": "BombsiteB",
+      "samples": 487
+    },
+    {
+      "from_region": "BDoors",
+      "side": "ct",
+      "to_region": "Hole",
+      "samples": 152
+    },
+    {
+      "from_region": "BDoors",
+      "side": "ct",
+      "to_region": "MidDoors",
+      "samples": 295
+    },
+    {
+      "from_region": "BDoors",
+      "side": "t",
+      "to_region": "Hole",
+      "samples": 38
+    },
+    {
+      "from_region": "BombsiteA",
+      "side": "ct",
+      "to_region": "ARamp",
+      "samples": 71
+    },
+    {
+      "from_region": "BombsiteA",
+      "side": "ct",
+      "to_region": "ExtendedA",
+      "samples": 137
+    },
+    {
+      "from_region": "BombsiteA",
+      "side": "t",
+      "to_region": "ARamp",
+      "samples": 79
+    },
+    {
+      "from_region": "BombsiteB",
+      "side": "ct",
+      "to_region": "BDoors",
+      "samples": 280
+    },
+    {
+      "from_region": "BombsiteB",
+      "side": "ct",
+      "to_region": "Hole",
+      "samples": 351
+    },
+    {
+      "from_region": "CTSpawn",
+      "side": "ct",
+      "to_region": "MidDoors",
+      "samples": 1436
+    },
+    {
+      "from_region": "CTSpawn",
+      "side": "ct",
+      "to_region": "UnderA",
+      "samples": 1340
+    },
+    {
+      "from_region": "Catwalk",
+      "side": "ct",
+      "to_region": "Middle",
+      "samples": 18
+    },
+    {
+      "from_region": "Catwalk",
+      "side": "ct",
+      "to_region": "ShortStairs",
+      "samples": 197
+    },
+    {
+      "from_region": "Catwalk",
+      "side": "ct",
+      "to_region": "TopofMid",
+      "samples": 33
+    },
+    {
+      "from_region": "Catwalk",
+      "side": "t",
+      "to_region": "Middle",
+      "samples": 76
+    },
+    {
+      "from_region": "Catwalk",
+      "side": "t",
+      "to_region": "ShortStairs",
+      "samples": 621
+    },
+    {
+      "from_region": "Catwalk",
+      "side": "t",
+      "to_region": "TopofMid",
+      "samples": 45
+    },
+    {
+      "from_region": "ExtendedA",
+      "side": "ct",
+      "to_region": "BombsiteA",
+      "samples": 225
+    },
+    {
+      "from_region": "ExtendedA",
+      "side": "ct",
+      "to_region": "ShortStairs",
+      "samples": 344
+    },
+    {
+      "from_region": "ExtendedA",
+      "side": "ct",
+      "to_region": "UnderA",
+      "samples": 239
+    },
+    {
+      "from_region": "ExtendedA",
+      "side": "t",
+      "to_region": "ShortStairs",
+      "samples": 161
+    },
+    {
+      "from_region": "ExtendedA",
+      "side": "t",
+      "to_region": "UnderA",
+      "samples": 24
+    },
+    {
+      "from_region": "Hole",
+      "side": "ct",
+      "to_region": "BDoors",
+      "samples": 90
+    },
+    {
+      "from_region": "Hole",
+      "side": "ct",
+      "to_region": "BombsiteB",
+      "samples": 482
+    },
+    {
+      "from_region": "Hole",
+      "side": "t",
+      "to_region": "BDoors",
+      "samples": 14
+    },
+    {
+      "from_region": "LongA",
+      "side": "ct",
+      "to_region": "ARamp",
+      "samples": 594
+    },
+    {
+      "from_region": "LongA",
+      "side": "ct",
+      "to_region": "UnderA",
+      "samples": 470
+    },
+    {
+      "from_region": "LongA",
+      "side": "t",
+      "to_region": "LongDoors",
+      "samples": 72
+    },
+    {
+      "from_region": "LongDoors",
+      "side": "t",
+      "to_region": "LongA",
+      "samples": 184
+    },
+    {
+      "from_region": "LongDoors",
+      "side": "t",
+      "to_region": "OutsideLong",
+      "samples": 235
+    },
+    {
+      "from_region": "LowerTunnel",
+      "side": "ct",
+      "to_region": "Middle",
+      "samples": 82
+    },
+    {
+      "from_region": "LowerTunnel",
+      "side": "ct",
+      "to_region": "TunnelStairs",
+      "samples": 89
+    },
+    {
+      "from_region": "LowerTunnel",
+      "side": "t",
+      "to_region": "Middle",
+      "samples": 570
+    },
+    {
+      "from_region": "LowerTunnel",
+      "side": "t",
+      "to_region": "TunnelStairs",
+      "samples": 505
+    },
+    {
+      "from_region": "MidDoors",
+      "side": "ct",
+      "to_region": "CTSpawn",
+      "samples": 561
+    },
+    {
+      "from_region": "MidDoors",
+      "side": "t",
+      "to_region": "Middle",
+      "samples": 229
+    },
+    {
+      "from_region": "Middle",
+      "side": "ct",
+      "to_region": "Catwalk",
+      "samples": 67
+    },
+    {
+      "from_region": "Middle",
+      "side": "ct",
+      "to_region": "LowerTunnel",
+      "samples": 157
+    },
+    {
+      "from_region": "Middle",
+      "side": "t",
+      "to_region": "Catwalk",
+      "samples": 382
+    },
+    {
+      "from_region": "Middle",
+      "side": "t",
+      "to_region": "LowerTunnel",
+      "samples": 356
+    },
+    {
+      "from_region": "Middle",
+      "side": "t",
+      "to_region": "MidDoors",
+      "samples": 459
+    },
+    {
+      "from_region": "OutsideLong",
+      "side": "t",
+      "to_region": "LongDoors",
+      "samples": 595
+    },
+    {
+      "from_region": "OutsideLong",
+      "side": "t",
+      "to_region": "TopofMid",
+      "samples": 535
+    },
+    {
+      "from_region": "OutsideTunnel",
+      "side": "t",
+      "to_region": "UpperTunnel",
+      "samples": 680
+    },
+    {
+      "from_region": "Pit",
+      "side": "ct",
+      "to_region": "LongDoors",
+      "samples": 14
+    },
+    {
+      "from_region": "ShortStairs",
+      "side": "ct",
+      "to_region": "Catwalk",
+      "samples": 215
+    },
+    {
+      "from_region": "ShortStairs",
+      "side": "ct",
+      "to_region": "ExtendedA",
+      "samples": 287
+    },
+    {
+      "from_region": "ShortStairs",
+      "side": "t",
+      "to_region": "Catwalk",
+      "samples": 217
+    },
+    {
+      "from_region": "ShortStairs",
+      "side": "t",
+      "to_region": "ExtendedA",
+      "samples": 492
+    },
+    {
+      "from_region": "TopofMid",
+      "side": "ct",
+      "to_region": "Catwalk",
+      "samples": 37
+    },
+    {
+      "from_region": "TopofMid",
+      "side": "t",
+      "to_region": "Catwalk",
+      "samples": 273
+    },
+    {
+      "from_region": "TopofMid",
+      "side": "t",
+      "to_region": "OutsideLong",
+      "samples": 147
+    },
+    {
+      "from_region": "TunnelStairs",
+      "side": "ct",
+      "to_region": "LowerTunnel",
+      "samples": 53
+    },
+    {
+      "from_region": "TunnelStairs",
+      "side": "ct",
+      "to_region": "UpperTunnel",
+      "samples": 69
+    },
+    {
+      "from_region": "TunnelStairs",
+      "side": "t",
+      "to_region": "LowerTunnel",
+      "samples": 723
+    },
+    {
+      "from_region": "TunnelStairs",
+      "side": "t",
+      "to_region": "UpperTunnel",
+      "samples": 291
+    },
+    {
+      "from_region": "UnderA",
+      "side": "ct",
+      "to_region": "CTSpawn",
+      "samples": 394
+    },
+    {
+      "from_region": "UnderA",
+      "side": "ct",
+      "to_region": "ExtendedA",
+      "samples": 579
+    },
+    {
+      "from_region": "UnderA",
+      "side": "ct",
+      "to_region": "LongA",
+      "samples": 810
+    },
+    {
+      "from_region": "UnderA",
+      "side": "t",
+      "to_region": "ExtendedA",
+      "samples": 14
+    },
+    {
+      "from_region": "UpperTunnel",
+      "side": "ct",
+      "to_region": "TunnelStairs",
+      "samples": 35
+    },
+    {
+      "from_region": "UpperTunnel",
+      "side": "t",
+      "to_region": "OutsideTunnel",
+      "samples": 64
+    },
+    {
+      "from_region": "UpperTunnel",
+      "side": "t",
+      "to_region": "TunnelStairs",
+      "samples": 493
+    }
+  ],
+  "tactics": [
+    {
+      "id": "t_default",
+      "side": "t",
+      "condition": "default",
+      "source_kind": "botlab_authored",
+      "duties": [
+        {
+          "kind": "take_space",
+          "region": "OutsideLong",
+          "role": "entry",
+          "next_regions": [
+            "LongDoors",
+            "LongA",
+            "BombsiteA"
+          ],
+          "pair": "long"
+        },
+        {
+          "kind": "trade",
+          "region": "LongDoors",
+          "role": "rifle",
+          "next_regions": [
+            "LongA",
+            "BombsiteA"
+          ],
+          "pair": "long"
+        },
+        {
+          "kind": "control",
+          "region": "TopofMid",
+          "role": "awp",
+          "next_regions": [
+            "Middle",
+            "Catwalk",
+            "ShortStairs",
+            "BombsiteA"
+          ],
+          "pair": null
+        },
+        {
+          "kind": "carry_bomb",
+          "region": "UpperTunnel",
+          "role": "support",
+          "next_regions": [
+            "BombsiteB"
+          ],
+          "pair": "tunnel"
+        },
+        {
+          "kind": "flank",
+          "region": "LowerTunnel",
+          "role": "lurker",
+          "next_regions": [
+            "Middle",
+            "BDoors",
+            "BombsiteB"
+          ],
+          "pair": "tunnel"
+        }
+      ]
+    },
+    {
+      "id": "t_a_long",
+      "side": "t",
+      "condition": "attack",
+      "source_kind": "botlab_authored",
+      "duties": [
+        {
+          "kind": "entry",
+          "region": "LongDoors",
+          "role": "entry",
+          "next_regions": [
+            "LongA",
+            "ARamp",
+            "BombsiteA"
+          ],
+          "pair": "main"
+        },
+        {
+          "kind": "trade",
+          "region": "LongDoors",
+          "role": "rifle",
+          "next_regions": [
+            "LongA",
+            "ARamp",
+            "BombsiteA"
+          ],
+          "pair": "main"
+        },
+        {
+          "kind": "cover",
+          "region": "LongDoors",
+          "role": "awp",
+          "next_regions": [
+            "LongA",
+            "ARamp",
+            "BombsiteA"
+          ],
+          "pair": null
+        },
+        {
+          "kind": "carry_bomb",
+          "region": "LongDoors",
+          "role": "support",
+          "next_regions": [
+            "LongA",
+            "ARamp",
+            "BombsiteA"
+          ],
+          "pair": null
+        },
+        {
+          "kind": "flank",
+          "region": "Catwalk",
+          "role": "lurker",
+          "next_regions": [],
+          "pair": null
+        }
+      ]
+    },
+    {
+      "id": "t_a_short",
+      "side": "t",
+      "condition": "attack",
+      "source_kind": "botlab_authored",
+      "duties": [
+        {
+          "kind": "entry",
+          "region": "Catwalk",
+          "role": "entry",
+          "next_regions": [
+            "ShortStairs",
+            "ExtendedA",
+            "BombsiteA"
+          ],
+          "pair": "main"
+        },
+        {
+          "kind": "trade",
+          "region": "Catwalk",
+          "role": "rifle",
+          "next_regions": [
+            "ShortStairs",
+            "ExtendedA",
+            "BombsiteA"
+          ],
+          "pair": "main"
+        },
+        {
+          "kind": "cover",
+          "region": "Catwalk",
+          "role": "awp",
+          "next_regions": [
+            "ShortStairs",
+            "ExtendedA",
+            "BombsiteA"
+          ],
+          "pair": null
+        },
+        {
+          "kind": "carry_bomb",
+          "region": "Catwalk",
+          "role": "support",
+          "next_regions": [
+            "ShortStairs",
+            "ExtendedA",
+            "BombsiteA"
+          ],
+          "pair": null
+        },
+        {
+          "kind": "flank",
+          "region": "LongA",
+          "role": "lurker",
+          "next_regions": [],
+          "pair": null
+        }
+      ]
+    },
+    {
+      "id": "t_b_tunnel",
+      "side": "t",
+      "condition": "attack",
+      "source_kind": "botlab_authored",
+      "duties": [
+        {
+          "kind": "entry",
+          "region": "UpperTunnel",
+          "role": "entry",
+          "next_regions": [
+            "BombsiteB"
+          ],
+          "pair": "main"
+        },
+        {
+          "kind": "trade",
+          "region": "UpperTunnel",
+          "role": "rifle",
+          "next_regions": [
+            "BombsiteB"
+          ],
+          "pair": "main"
+        },
+        {
+          "kind": "cover",
+          "region": "UpperTunnel",
+          "role": "awp",
+          "next_regions": [
+            "BombsiteB"
+          ],
+          "pair": null
+        },
+        {
+          "kind": "carry_bomb",
+          "region": "UpperTunnel",
+          "role": "support",
+          "next_regions": [
+            "BombsiteB"
+          ],
+          "pair": null
+        },
+        {
+          "kind": "flank",
+          "region": "LowerTunnel",
+          "role": "lurker",
+          "next_regions": [],
+          "pair": null
+        }
+      ]
+    },
+    {
+      "id": "t_split_b",
+      "side": "t",
+      "condition": "attack",
+      "source_kind": "botlab_authored",
+      "duties": [
+        {
+          "kind": "entry",
+          "region": "MidDoors",
+          "role": "entry",
+          "next_regions": [
+            "BDoors",
+            "BombsiteB"
+          ],
+          "pair": "mid"
+        },
+        {
+          "kind": "trade",
+          "region": "Middle",
+          "role": "rifle",
+          "next_regions": [
+            "MidDoors",
+            "BDoors",
+            "BombsiteB"
+          ],
+          "pair": "mid"
+        },
+        {
+          "kind": "cover",
+          "region": "TopofMid",
+          "role": "awp",
+          "next_regions": [
+            "MidDoors",
+            "BDoors"
+          ],
+          "pair": null
+        },
+        {
+          "kind": "carry_bomb",
+          "region": "UpperTunnel",
+          "role": "support",
+          "next_regions": [
+            "BombsiteB"
+          ],
+          "pair": "tunnel"
+        },
+        {
+          "kind": "entry",
+          "region": "UpperTunnel",
+          "role": "lurker",
+          "next_regions": [
+            "BombsiteB"
+          ],
+          "pair": "tunnel"
+        }
+      ]
+    },
+    {
+      "id": "ct_default",
+      "side": "ct",
+      "condition": "default",
+      "source_kind": "botlab_authored",
+      "duties": [
+        {
+          "kind": "anchor",
+          "region": "BombsiteA",
+          "role": "support",
+          "next_regions": [],
+          "pair": null
+        },
+        {
+          "kind": "hold_entrance",
+          "region": "LongA",
+          "role": "awp",
+          "next_regions": [],
+          "pair": null
+        },
+        {
+          "kind": "rotate",
+          "region": "CTSpawn",
+          "role": "rifle",
+          "next_regions": [
+            "MidDoors"
+          ],
+          "pair": null
+        },
+        {
+          "kind": "anchor",
+          "region": "BombsiteB",
+          "role": "lurker",
+          "next_regions": [],
+          "pair": null
+        },
+        {
+          "kind": "hold_entrance",
+          "region": "BDoors",
+          "role": "entry",
+          "next_regions": [],
+          "pair": null
+        }
+      ]
+    },
+    {
+      "id": "ct_contest",
+      "side": "ct",
+      "condition": "contest",
+      "source_kind": "botlab_authored",
+      "duties": [
+        {
+          "kind": "anchor",
+          "region": "BombsiteA",
+          "role": "support",
+          "next_regions": [],
+          "pair": null
+        },
+        {
+          "kind": "hold_entrance",
+          "region": "LongA",
+          "role": "awp",
+          "next_regions": [],
+          "pair": null
+        },
+        {
+          "kind": "info_peek",
+          "region": "MidDoors",
+          "role": "entry",
+          "next_regions": [
+            "CTSpawn"
+          ],
+          "pair": "mid"
+        },
+        {
+          "kind": "trade",
+          "region": "CTSpawn",
+          "role": "rifle",
+          "next_regions": [
+            "MidDoors",
+            "CTSpawn"
+          ],
+          "pair": "mid"
+        },
+        {
+          "kind": "anchor",
+          "region": "BombsiteB",
+          "role": "lurker",
+          "next_regions": [],
+          "pair": null
+        }
+      ]
+    }
+  ]
+}

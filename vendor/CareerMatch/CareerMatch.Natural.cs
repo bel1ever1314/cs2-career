@@ -481,7 +481,11 @@ public sealed partial class CareerMatchPlugin
         _naturalStuckTicks.Clear(); _naturalStarted=0;
     }
 
-    public override void Unload(bool hotReload) => StopNatural("unload");
+    public override void Unload(bool hotReload)
+    {
+        StopTacticalCommands("unload");
+        StopNatural("unload");
+    }
 
     private BotConfig? NaturalConfig(int slot)
     {
@@ -1028,6 +1032,9 @@ public sealed partial class CareerMatchPlugin
 
             foreach(var player in players)
             {
+                // A player-issued opening plan owns strategic navigation for
+                // this side. Never let natural clips/holds fight that command.
+                if (TacticalOwnsActor(player.Slot, LiveSide(player))) continue;
                 var cfg=NaturalConfig(player.Slot); var pawn=player.PlayerPawn.Value;
                 // BotHider may clear the engine fake-client flag. The signed
                 // career roster + native bot body identify eligibility; IsBot

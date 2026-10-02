@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "default_font": "rounded",
+  "font_file": "res://fonts/ChillRoundF.ttf",
+  "font_source": "https://github.com/Warren2060/ChillRound",
+  "font_commit": "46dda1602729b58de96e3fdee9f918d7aaa64727",
+  "font_sha256": "ebeb471ae9778a26012a18136f8a9ae99450832cd8bb259265684720d60839f0",
+  "license_sha256": "d45891f8adfd21368c98e803603df1f575ff3fc4a6ec713ba7ccf0e3cba15b28",
+  "license": "OFL-1.1"
+}

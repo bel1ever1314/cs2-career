@@ -3,6 +3,13 @@
 CareerUI.pages.settings = async (_route,host,active) => {
   const cfg = await get('/api/cs2/status'); if(!active())return;
   const c=S.career||{},gd=cfg.gamedata||{},live=!!cfg.cs2_live;
+  const integration=cfg.skin_integration||c.skins?.skin_integration||{};
+  const syncIntegration=value=>{if(value&&c.skins)c.skins.skin_integration={...value};};
+  // Global integration metadata is display state; do not replace the career
+  // inventory or request a whole-state refresh when saving these settings.
+  syncIntegration(cfg.skin_integration);
+  const inventoryMode=cfg.skins_inventory_mode==='external'?'external':'career';
+  const inspectEnabled=cfg.skin_inspect_enabled===true;
   const setUp=cfg.ready&&cfg.mod_installed&&cfg.levels_ok;
   const refresh=()=>{PLAY.cs2=null;CareerUI.go('settings',{},true);};
   let h=CareerUI.head('游戏设置','路径、Bot 与换肤配置集中在此处；无需加入战队即可查看。');
@@ -11,16 +18,18 @@ CareerUI.pages.settings = async (_route,host,active) => {
     <label>steam.exe ${cfg.steam_ok ? "✓" : "✗"}<input id="p-steam" value="${esc(cfg.steam_exe || "")}"></label>
     <label>csgo 目录 ${cfg.csgo_ok ? "✓" : "✗"}<input id="p-csgo" value="${esc(cfg.csgo_path || "")}" placeholder="要到 game\\csgo 那一层，填游戏根目录也会自动补"></label>
     <label>人机增强目录 ${cfg.mod_ok ? "✓" : "✗"}<input id="p-mod" value="${esc(cfg.mod_source_path || "")}"></label>
-    <label>换肤插件目录 ${cfg.skins_ok ? "✓" : "✗"}<input id="p-skins" value="${esc(cfg.skins_source_path || "")}" placeholder="可空，默认用生涯自带的修过读取的插件"></label>
+    <label>换肤插件目录 ${cfg.skins_ok ? "✓" : "✗"}<input id="p-skins" value="${esc(cfg.skins_source_path || "")}" placeholder="可空，默认用生涯自带的修过读取的插件" ${inventoryMode==='external'?'disabled':''}></label>
     <div class="row"><button class="btn" id="p-save">保存路径</button>
       <button class="btn primary" id="p-install" ${cfg.ready && !live ? "" : "disabled"}>把人机增强装进游戏</button>
       <button class="btn" id="p-sync" disabled>按模式自动生成 9／10 人</button>
-      <button class="btn" id="p-skins-install" ${cfg.mod_installed && (cfg.skins_ok || cfg.skins_installed) && !live ? "" : "disabled"}>把换肤插件装进游戏</button>
-      <button class="btn ghost" id="p-gamedata">更新换肤签名</button>
+      <button class="btn" id="p-skins-install" ${inventoryMode==='career' && cfg.mod_installed && (cfg.skins_ok || cfg.skins_installed) && !live ? "" : "disabled"}>把换肤插件装进游戏</button>
+      <button class="btn ghost" id="p-gamedata" ${inventoryMode==='external'?'disabled':''}>更新换肤签名</button>
     </div>
     <p class="hint">${
       live
         ? "CS2 还开着：不能安装、不能同步。难度若刚改过，也必须先退游戏再进局。"
+        : inventoryMode==='external'
+        ? "外部模式：换肤插件、签名和配装请按外部项目文档自行管理。"
         : cfg.ready
         ? (
             !cfg.mod_installed
@@ -39,12 +48,33 @@ CareerUI.pages.settings = async (_route,host,active) => {
     <p class="hint">扩展工坊的 match_chat 包可自定义文字、说话者、颜色和触发规则；当前使用 CS2 原生聊天框，不支持调整框体位置或尺寸。</p></div>`;
   h+=`<div class="card"><h3>游戏内换肤</h3>
     <p class="hint">只影响已安装换肤插件的本地 CS2 对局；生涯饰品在收藏分区管理。</p>
-    <label class="row"><input id="skin-real" type="checkbox" ${c.real_skins?'checked':''}>启用游戏内换肤</label>
-    <div class="row"><input id="skin-sid" class="locker-input" value="${esc(c.steam_id||'')}" placeholder="17 位 SteamID"><button id="skin-pref" class="btn">保存换肤偏好</button></div>
+    <label>配装来源 <select id="skin-inventory-mode" ${live?'disabled':''}><option value="career" ${inventoryMode==='career'?'selected':''}>生涯配装（默认）</option><option value="external" ${inventoryMode==='external'?'selected':''}>外部插件配装</option></select></label>
+    <p class="hint">切换库存来源前，请退出 CS2。</p>
+    <p class="hint">${inventoryMode==='external'?'外部模式：插件和自定义配装由你自行管理，生涯不会写入或覆盖外部库存配置。':'生涯模式：进局时将当前生涯装备同步给已安装的换肤插件。'}</p>
+    <label class="row"><input id="skin-real" type="checkbox" ${c.real_skins?'checked':''} ${inventoryMode==='external'?'disabled':''}>启用游戏内换肤</label>
+    <div class="row"><input id="skin-sid" class="locker-input" value="${esc(c.steam_id||'')}" placeholder="17 位 SteamID" ${inventoryMode==='external'?'disabled':''}><button id="skin-pref" class="btn" ${inventoryMode==='external'?'disabled':''}>保存换肤偏好</button></div>
     ${S.design_preview?'<p class="hint">隔离预览中只展示设置，不会修改游戏或配置。</p>':''}
+  </div>`;
+  h+=`<div class="card" style="margin-top:12px"><h3>外部饰品工具（可选）</h3>
+    <label class="row"><input id="skin-inspect-enabled" type="checkbox" ${inspectEnabled?'checked':''}>启用外部在线 3D 检视</label>
+    <p class="hint">在线 3D 由外部项目提供，未随生涯打包。</p>
+    <p class="hint">默认关闭；启用后仍需点击饰品的 3D 按钮才会连接外部服务。只发送当前饰品外观，不关联 Steam 账号。</p>
+    <p class="hint">生涯商店、收藏和高级贴纸编辑始终可用；也可在外部网页制作自己的配装。</p>
+    <div class="skin-external-links">${globalThis.CareerSkinCrafts?.integrationLinks(integration,{viewer:true})||''}</div>
   </div>`;
   CareerUI.paint(host,h);
   bindBotSettings(refresh);bindSkinPref();
+  $('skin-inventory-mode').onchange=async e=>{
+    if(live)return;
+    e.target.disabled=true;
+    try{const out=await post('/api/cs2/settings',{skins_inventory_mode:e.target.value});syncIntegration(out?.skin_integration);refresh();}
+    finally{if(e.target.isConnected)e.target.disabled=live;}
+  };
+  $('skin-inspect-enabled').onchange=async e=>{
+    e.target.disabled=true;
+    try{const out=await post('/api/cs2/settings',{skin_inspect_enabled:e.target.checked});syncIntegration(out?.skin_integration);refresh();}
+    finally{if(e.target.isConnected)e.target.disabled=false;}
+  };
   $('match-chat').onchange=async e=>{await post('/api/cs2/settings',{match_chat:e.target.value});refresh();};
   if ($("p-save")) {
     $("p-save").onclick = async () => {

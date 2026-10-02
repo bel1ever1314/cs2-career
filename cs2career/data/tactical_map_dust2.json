@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "map": "de_dust2",
+  "image": "/tactical_maps/de_dust2.png",
+  "width": 1024,
+  "height": 1024,
+  "pos_x": -2476,
+  "pos_y": 3239,
+  "scale": 4.4,
+  "coordinate_system": "world x right, world y up; radar pixel x right, pixel y down",
+  "image_sha256": "3be20317d1383da6f390a5bb245cabb65857ef08b1e2c5b82b5938a8cb3167bb",
+  "source": {
+    "repository": "https://github.com/MurkyYT/cs2-map-icons",
+    "image_url": "https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/main/images/radars/de_dust2_radar_psd.png",
+    "overview_url": "https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/main/data/radar_info/de_dust2.txt",
+    "retrieved": "2026-09-30",
+    "rights_holder": "Valve Corporation",
+    "note": "Official game radar converted to PNG. Image pixels are not navigation or collision data. Live CS2 NAV determines executable positions; no other tactical editor source is copied."
+  }
+}

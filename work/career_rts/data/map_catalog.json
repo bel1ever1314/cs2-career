@@ -1,0 +1,124 @@
+{
+  "schema_version": 2,
+  "default_map": "de_dust2",
+  "maps": {
+    "de_dust2": {
+      "name": "Dust II",
+      "status": "playable",
+      "career_ready": true,
+      "data_file": "res://data/dust2_game.json",
+      "knowledge_file": "res://data/botlab_knowledge.json",
+      "geometry": "actual_NAV_agent_centres",
+      "layers": [
+        "upper"
+      ]
+    },
+    "de_mirage": {
+      "name": "Mirage",
+      "status": "playable",
+      "career_ready": true,
+      "data_file": "res://data/mirage_game.json",
+      "geometry": "actual_NAV_agent_centres",
+      "layers": [
+        "upper"
+      ],
+      "nav_sha256": "2ba8608994c178dc5ff2553fefdd2a8473aadd0e0b09b8004201e1fa578bb0bd"
+    },
+    "de_inferno": {
+      "name": "Inferno",
+      "status": "playable",
+      "career_ready": true,
+      "data_file": "res://data/inferno_game.json",
+      "geometry": "actual_NAV_agent_centres",
+      "layers": [
+        "upper"
+      ],
+      "nav_sha256": "8d312122a9758a1b64b397f0e02b16e18e9432f738ab7308d0b73cb7df118111"
+    },
+    "de_ancient": {
+      "name": "Ancient",
+      "status": "playable",
+      "career_ready": true,
+      "data_file": "res://data/ancient_game.json",
+      "geometry": "actual_NAV_agent_centres",
+      "layers": [
+        "upper"
+      ],
+      "nav_sha256": "09cbb2a4568998b72ce504b19352456c20f046fa5b3f165c43bfc38fb7602c8d"
+    },
+    "de_anubis": {
+      "name": "Anubis",
+      "status": "playable",
+      "career_ready": true,
+      "data_file": "res://data/anubis_game.json",
+      "geometry": "actual_NAV_agent_centres",
+      "layers": [
+        "upper"
+      ],
+      "nav_sha256": "5d492f867497cc47a6072fc803fb7b0fcf8f1b99030590e3fbff627c9cba7eeb"
+    },
+    "de_overpass": {
+      "name": "Overpass",
+      "status": "playable",
+      "career_ready": true,
+      "career_validation": {
+        "date": "2026-10-02",
+        "method": "natural_autonomous_match_after_ray_circle_collision_fix",
+        "seeds": [20261002, 42, 2024],
+        "round_counts": [19, 17, 16],
+        "overtime_enabled": true,
+        "actual_overtime_in_these_fixtures": false
+      },
+      "data_file": "res://data/overpass_game.json",
+      "geometry": "actual_NAV_agent_centres",
+      "layers": [
+        "upper"
+      ],
+      "nav_sha256": "1b25515cb10277b908c8e1894aca59be2b19d5bab1b6beba2b40f7ca7be8fb63"
+    },
+    "de_train": {
+      "name": "Train",
+      "status": "playable",
+      "career_ready": true,
+      "data_file": "res://data/train_game.json",
+      "geometry": "actual_NAV_agent_centres",
+      "layers": [
+        "upper"
+      ],
+      "nav_sha256": "a3bcc607b918ed00b6f9d83bb65e6c74e1ba8fd39c0201ab2d0078565d9476e1"
+    },
+    "de_nuke": {
+      "name": "Nuke",
+      "status": "awaiting_layered_nav",
+      "career_ready": false,
+      "reason": "Real NAV extracted with XYZ; current 2D runtime cannot preserve overlapping floor identity or traversal physics. Gameplay disabled to prevent false floor connections.",
+      "layers": [
+        "upper",
+        "lower"
+      ],
+      "nav_sha256": "f331ebc7830b910bd8405e6c5ff4512937c8c7917ffc6b37fb6fc3a078a49b57"
+    },
+    "de_vertigo": {
+      "name": "Vertigo",
+      "status": "awaiting_layered_nav",
+      "career_ready": false,
+      "reason": "Real NAV extracted with XYZ; current 2D runtime cannot preserve overlapping floor identity or traversal physics. Gameplay disabled to prevent false floor connections.",
+      "layers": [
+        "upper",
+        "lower"
+      ],
+      "nav_sha256": "efca544d49be608d6017908ef083be1e11ec8a5e819da40808210268da9d6890"
+    },
+    "de_cache": {
+      "name": "Cache",
+      "status": "playable",
+      "career_ready": true,
+      "data_file": "res://data/cache_game.json",
+      "geometry": "actual_NAV_agent_centres",
+      "layers": [
+        "upper"
+      ],
+      "nav_sha256": "a3dd9d3b9b0be9fa319e7f0ab035238ea7987b9773d21e49d25438e7e8a8b0b2"
+    }
+  }
+}

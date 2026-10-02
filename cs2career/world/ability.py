@@ -8,6 +8,7 @@ stamp: IGL 50%, the other four split 50%.
 
 from __future__ import annotations
 
+from copy import deepcopy
 import json
 
 from ..paths import data_file
@@ -135,6 +136,16 @@ def ability_of(stats: dict, role: str) -> float:
     lossless and repeated swaps never move the permanent anchor.
     Bare legacy axes still support generation/fit_axes without a calibration.
     """
+    if stats.get('position_model'):
+        from .calibrated import role_fit, weighted_score
+        reference = stats['position_model']['reference_role']
+        baseline = float(stats['ability'])
+        current = weighted_score(stats, reference)
+        original = float(stats.get('role_reference_score', current))
+        # Reference axes are the only trainable state. Never run expressed
+        # position axes through the old stretch formula or apply fit twice.
+        return round(max(1.0, min(100.0, baseline + current - original
+                                  + role_fit(stats, role))), 3)
     if stats.get("role_reference_score") is not None and stats.get("ability") is not None:
         reference = stats.get('role_reference') or role
         original = float(stats['role_reference_score'])
@@ -151,6 +162,14 @@ def ability_of(stats: dict, role: str) -> float:
 
 def calibrate_role(stats: dict, role: str, baseline: float) -> None:
     """Stamp a new/aged baseline. Never call this merely to change positions."""
+    if stats.get('position_model'):
+        from .calibrated import weighted_score
+        reference = stats['position_model']['reference_role']
+        stats['ability'] = round(float(baseline), 3)
+        stats['role_reference'] = reference
+        stats['role_reference_score'] = weighted_score(stats, reference)
+        stats['role_formula_version'] = 3
+        return
     stats["ability"] = round(float(baseline), 1)
     stats["role_reference"] = role
     stats["role_reference_score"] = normalized_role_score(stats, role)
@@ -198,6 +217,28 @@ def playing_ability(player: dict) -> float:
     if stats.get("role_reference_score") is not None:
         return ability_of(stats, player.get("role") or "rifle")
     return float(player.get("ability") or 70)
+
+
+def playing_stats(player: dict, role: str | None = None) -> dict:
+    """A position view, never the reference axes used by training or saves."""
+    stats = deepcopy(player.get('stats') or {})
+    if stats.get('position_model'):
+        from .calibrated import express_axes
+        stats.update(express_axes(stats, role or player.get('role') or 'rifle'))
+    return stats
+
+
+def position_views(player: dict) -> list[dict]:
+    """Read-only previews share the exact simulation/CS2 ability boundary."""
+    roles = (('rifle', '步枪手'), ('entry', '突破手'), ('awp', '主狙'),
+             ('lurk', '自由人'), ('igl', '指挥'))
+    out = []
+    for role, label in roles:
+        view = dict(player, role=role)
+        stats = playing_stats(player, role)
+        out.append({'role': role, 'label': label, 'ability': playing_ability(view),
+                    'stats': {k: stats.get(k) for k in ALL_AXES}})
+    return out
 
 
 RATING_SCALE = (

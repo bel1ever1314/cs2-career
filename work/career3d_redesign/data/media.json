@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "team_manifest": "../../../media/teams/team-media.json",
+  "skin_cache_roots": [
+    "../../../media/skin_art"
+  ],
+  "map_backgrounds": {
+    "de_dust2": {
+      "kind": "loading_art",
+      "path": "../../../media/maps/de_dust2.png",
+      "source": "installed CS2 panorama/images/map_icons/screenshots/1080p/de_dust2_png.vtex_c"
+    },
+    "de_mirage": {
+      "kind": "loading_art",
+      "path": "../../../media/maps/de_mirage.png",
+      "source": "installed CS2 panorama/images/map_icons/screenshots/1080p/de_mirage_png.vtex_c"
+    },
+    "de_inferno": {
+      "kind": "loading_art",
+      "path": "../../../media/maps/de_inferno.png",
+      "source": "installed CS2 panorama/images/map_icons/screenshots/1080p/de_inferno_png.vtex_c"
+    },
+    "de_nuke": {
+      "kind": "loading_art",
+      "path": "../../../media/maps/de_nuke.png",
+      "source": "installed CS2 panorama/images/map_icons/screenshots/1080p/de_nuke_png.vtex_c"
+    },
+    "de_overpass": {
+      "kind": "loading_art",
+      "path": "../../../media/maps/de_overpass.png",
+      "source": "installed CS2 panorama/images/map_icons/screenshots/1080p/de_overpass_png.vtex_c"
+    },
+    "de_ancient": {
+      "kind": "loading_art",
+      "path": "../../../media/maps/de_ancient.png",
+      "source": "installed CS2 panorama/images/map_icons/screenshots/1080p/de_ancient_png.vtex_c"
+    },
+    "de_anubis": {
+      "kind": "loading_art",
+      "path": "../../../media/maps/de_anubis.png",
+      "source": "installed CS2 panorama/images/map_icons/screenshots/1080p/de_anubis_png.vtex_c"
+    },
+    "de_train": {
+      "kind": "loading_art",
+      "path": "../../../media/maps/de_train.png",
+      "source": "installed CS2 panorama/images/map_icons/screenshots/1080p/de_train_png.vtex_c"
+    },
+    "de_vertigo": {
+      "kind": "loading_art",
+      "path": "../../../media/maps/de_vertigo.png",
+      "source": "installed CS2 panorama/images/map_icons/screenshots/1080p/de_vertigo_png.vtex_c"
+    },
+    "de_cache": {
+      "kind": "loading_art",
+      "path": "../../../media/maps/de_cache.png",
+      "source": "installed CS2 panorama/images/map_icons/screenshots/1080p/de_cache_png.vtex_c"
+    }
+  }
+}

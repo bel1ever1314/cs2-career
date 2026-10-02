@@ -48,6 +48,9 @@ public sealed class MatchRequest
     [JsonPropertyName("human_player_id")]
     public string HumanPlayerId { get; set; } = "";
 
+    [JsonPropertyName("human_tactical_abilities")]
+    public Dictionary<string, float> HumanTacticalAbilities { get; set; } = [];
+
     [JsonPropertyName("player")]
     public string Player { get; set; } = "";
 
@@ -84,6 +87,7 @@ public sealed class BotConfig
     [JsonPropertyName("avatar_kind")] public string AvatarKind { get; set; } = "default";
     [JsonPropertyName("role")] public string Role { get; set; } = "rifle";
     [JsonPropertyName("effective_strength")] public float EffectiveStrength { get; set; } = 75;
+    [JsonPropertyName("tactical_abilities")] public Dictionary<string, float> TacticalAbilities { get; set; } = [];
 }
 
 public sealed class TeamConfig
@@ -221,7 +225,7 @@ public sealed record TakeoverRecord(
 public sealed partial class CareerMatchPlugin : BasePlugin
 {
     public override string ModuleName => "CareerMatch";
-    public override string ModuleVersion => "1.6.0-dialogue.3";
+    public override string ModuleVersion => "1.6.0-tactics.15";
     public override string ModuleAuthor => "CS2 Career Sim";
     public override string ModuleDescription =>
         "Auto-setup named career bots, force human side, export score + box score.";
@@ -349,11 +353,12 @@ public sealed partial class CareerMatchPlugin : BasePlugin
         RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnect);
         RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
         RegisterEventHandler<EventWarmupEnd>(OnWarmupEnd);
-        RegisterEventHandler<EventBombPlanted>((e, i) => { NaturalBombPlanted(e); return HookResult.Continue; });
-        RegisterEventHandler<EventBombDefused>((e, i) => { NaturalBombCleared(); return HookResult.Continue; });
-        RegisterEventHandler<EventBombExploded>((e, i) => { NaturalBombCleared(); return HookResult.Continue; });
+        RegisterEventHandler<EventBombPlanted>((e, i) => { NaturalBombPlanted(e); OnTacticalBombPlanted(e); return HookResult.Continue; });
+        RegisterEventHandler<EventBombDefused>((e, i) => { NaturalBombCleared(); StopPostPlantTactic("bomb_defused"); return HookResult.Continue; });
+        RegisterEventHandler<EventBombExploded>((e, i) => { NaturalBombCleared(); StopPostPlantTactic("bomb_exploded"); return HookResult.Continue; });
         RegisterListener<Listeners.OnMapStart>(OnMapStart);
         RegisterListener<Listeners.OnTick>(TickNatural);
+        LoadTacticalCommands();
         RegisterEventHandler<EventRoundEnd>((e, i) => { StopNatural("round_end"); return HookResult.Continue; }, HookMode.Pre);
         AddTimer(1.0f, CheckWarmupRoster, TimerFlags.REPEAT);
         AddTimer(1.0f, RefreshDisplayNames, TimerFlags.REPEAT);
@@ -393,6 +398,7 @@ public sealed partial class CareerMatchPlugin : BasePlugin
 
     private void OnMapStart(string mapName)
     {
+        ResetTacticalCommands("map_change", newMap: true);
         StopNatural("map_change");
         var incoming = ReadRequest();
         var nonce = incoming?.Nonce ?? "";
@@ -717,6 +723,7 @@ public sealed partial class CareerMatchPlugin : BasePlugin
 
     private HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)
     {
+        ResetTacticalCommands("round_start");
         _chatPlayback.Cancel(); // Previous-round scene cannot spill into a new round.
         StopNatural("round_start");
         NaturalRoundReset();
@@ -731,7 +738,11 @@ public sealed partial class CareerMatchPlugin : BasePlugin
             RestoreBestToDisk();
             return HookResult.Continue;
         }
-        if (!InWarmup()) BeginOfficialRound("round_start");
+        if (!InWarmup())
+        {
+            BeginOfficialRound("round_start");
+            ShowTacticalTip();
+        }
         WriteSnapshot(Server.MapName, _resultWritten ? "finished" : "in_progress");
         return HookResult.Continue;
     }
@@ -1102,6 +1113,7 @@ public sealed partial class CareerMatchPlugin : BasePlugin
 
     private HookResult OnRoundEnd(EventRoundEnd @event, GameEventInfo info)
     {
+        StopTacticalCommands("round_end");
         var scores = ReadTeamScores();
         _rosterReadiness.ObserveScore(scores.Ct + scores.T);
         if (_roundLive && scores.Ct + scores.T <= _scoreAtRoundStart)
@@ -1162,6 +1174,7 @@ public sealed partial class CareerMatchPlugin : BasePlugin
 
     private void FinishMatch(int ct, int t)
     {
+        StopTacticalCommands("match_end");
         _chatPlayback.EndMatch();
         if (_resultWritten)
         {

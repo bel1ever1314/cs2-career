@@ -3,6 +3,7 @@ import json
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from ..career import skins
+from ..cs2.launch import skins_inventory_mode
 
 
 def start_skin_api(career_getter):
@@ -13,10 +14,11 @@ def start_skin_api(career_getter):
         def do_GET(self):
             c = career_getter()
             sid = str(c.steam_id or '')
-            valid = c.real_skins and sid and self.path==f'/api/equipped/v5/{sid}.json'
-            body = skins.equipped_v5_body(c.inventory,c.equipped_ct or {},c.equipped_t or {}) if valid else {}
+            external = skins_inventory_mode() == 'external'
+            valid = not external and c.real_skins and sid and self.path==f'/api/equipped/v5/{sid}.json'
+            body = {'ok': False, 'msg': 'external_inventory_provider'} if external else skins.equipped_v5_body(c.inventory,c.equipped_ct or {},c.equipped_t or {}) if valid else {}
             blob = json.dumps(body).encode()
-            self.send_response(200 if valid else 404)
+            self.send_response(409 if external else 200 if valid else 404)
             self.send_header('Content-Type','application/json')
             self.send_header('Cache-Control','no-store')
             self.send_header('Content-Length',str(len(blob)))

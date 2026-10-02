@@ -4,7 +4,7 @@ window.CareerUI = (() => {
   const pages = {}, stack = [];
   let cursor = -1, route = null, generation = 0;
   const labels = {home:'生涯概览',squad:'我的阵容',honours:'荣誉墙',locker:'俱乐部经营',mail:'收件箱',market:'转会市场',
-    arena:'对战大厅',play:'训练赛',settings:'游戏设置',workshop:'扩展工坊',schedule:'赛季日历',season:'全年赛程',event:'赛事中心',match:'比赛战报',ranking:'战队排名',players:'年度 Top20',data:'选手数据',
+    arena:'对战大厅',tactics:'战术编辑器',play:'训练赛',settings:'游戏设置',workshop:'扩展工坊',schedule:'赛季日历',season:'全年赛程',event:'赛事中心',match:'比赛战报',ranking:'战队排名',players:'年度 Top20',data:'选手数据',
     profile:'资料中心',inventory:'饰品库存',skins:'饰品市场',cases:'武器箱',setup:'创建生涯','story-history':'故事档案'};
   function remember() {
     if (cursor < 0) return;

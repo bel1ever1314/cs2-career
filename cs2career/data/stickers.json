@@ -1,0 +1,326 @@
+{
+  "schema_version": 1,
+  "source_date": "2026-09-30",
+  "source_url": "https://github.com/ianlucas/cs2-lib/blob/d3372d56609c8f0567becfb5d090b190bccf7043/docs/stickers.md",
+  "catalog_source": "https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/stickers.json",
+  "models_source": "https://raw.githubusercontent.com/ianlucas/cs2-lib/d3372d56609c8f0567becfb5d090b190bccf7043/scripts/data/items.json",
+  "models": {
+    "1": {
+      "x_min": -0.6436,
+      "x_max": 0.5803,
+      "y_min": -0.1982,
+      "y_max": 0.3346,
+      "schema_count": 4,
+      "rotation_min": -180,
+      "rotation_max": 180
+    },
+    "4": {
+      "x_min": -0.5636,
+      "x_max": 0.4913,
+      "y_min": -0.3153,
+      "y_max": 0.3401,
+      "schema_count": 4,
+      "rotation_min": -180,
+      "rotation_max": 180
+    },
+    "7": {
+      "x_min": -0.3662,
+      "x_max": 0.6392,
+      "y_min": -0.0298,
+      "y_max": 0.2157,
+      "schema_count": 4,
+      "rotation_min": -180,
+      "rotation_max": 180
+    },
+    "9": {
+      "x_min": -0.4323,
+      "x_max": 0.4206,
+      "y_min": -0.0921,
+      "y_max": 0.1411,
+      "schema_count": 4,
+      "rotation_min": -180,
+      "rotation_max": 180
+    },
+    "16": {
+      "x_min": -0.5819,
+      "x_max": 0.4801,
+      "y_min": -0.0649,
+      "y_max": 0.1917,
+      "schema_count": 4,
+      "rotation_min": -180,
+      "rotation_max": 180
+    },
+    "60": {
+      "x_min": -0.642,
+      "x_max": 0.7985,
+      "y_min": -0.0791,
+      "y_max": 0.1541,
+      "schema_count": 5,
+      "rotation_min": -180,
+      "rotation_max": 180
+    },
+    "61": {
+      "x_min": -0.7788,
+      "x_max": 0.5733,
+      "y_min": -0.2243,
+      "y_max": 0.2598,
+      "schema_count": 5,
+      "rotation_min": -180,
+      "rotation_max": 180
+    }
+  },
+  "stickers": [
+    {
+      "id": "sticker-7928",
+      "def": 7928,
+      "name": "G2 Esports | Shanghai 2024",
+      "name_en": "G2 Esports | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI689W67F_hEhijzJO1qXYIuvP2a_I4IvGXXj6SxLx0tbNsHii1lkkhsWuEysHpLyx0-_Pr6Q"
+    },
+    {
+      "id": "sticker-7929",
+      "def": 7929,
+      "name": "G2 Esports (Glitter) | Shanghai 2024",
+      "name_en": "G2 Esports (Glitter) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI689XL7VXuVQn0jNiy_HRat6r8OPJocvLHXjSWwOgnteRvTniywUsi6m_dydb9eHyebVMkFNIuEqNX9Laz"
+    },
+    {
+      "id": "sticker-7930",
+      "def": 7930,
+      "name": "G2 Esports (Holo) | Shanghai 2024",
+      "name_en": "G2 Esports (Holo) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI689XL4lbrTlOlm86zqnZd7fb6Pf0-JfXFXzTBlLt0s-I8HX3rzEgh4j_cw936dHufcEZ-XTUJUmRI"
+    },
+    {
+      "id": "sticker-7931",
+      "def": 7931,
+      "name": "G2 Esports (Gold) | Shanghai 2024",
+      "name_en": "G2 Esports (Gold) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI689XL7VbrRVOpy8G5_iBZtvH2MaA8I_TDV2PBxeoh4OA6Fn_kxxt2tz_dzN6ueS2ecEZ-XVtfUxLH"
+    },
+    {
+      "id": "sticker-7936",
+      "def": 7936,
+      "name": "Vitality | Shanghai 2024",
+      "name_en": "Vitality | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI64o7g6xe3EEXwzMS0q3AN7qP4aadocKjFXGaVlOgk5rg8Gnm3xEkhtjiDz4urbzvJOSE9Gdr3"
+    },
+    {
+      "id": "sticker-7937",
+      "def": 7937,
+      "name": "Vitality (Glitter) | Shanghai 2024",
+      "name_en": "Vitality (Glitter) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI64o7g62bgTRTlipPys3sIuPetO_c0JfGRWWHFmO8u4Lk4TX_nlE0j5GSEw46gcinDbwFyCcZuBbld2aF1Wpk"
+    },
+    {
+      "id": "sticker-7938",
+      "def": 7938,
+      "name": "Vitality (Holo) | Shanghai 2024",
+      "name_en": "Vitality (Holo) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI64o7g62bvThH-0M63rXoJvKf7a6FrcaGQWjTJkewnsbY6GSiykUVw52XTy96ueSiUOwE-Sswnaz7WsxY"
+    },
+    {
+      "id": "sticker-7939",
+      "def": 7939,
+      "name": "Vitality (Gold) | Shanghai 2024",
+      "name_en": "Vitality (Gold) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI64o7g62bgThH10MayrXAK6fH_MaE5IqmVCjWVmbovtbk-TijixBwj62zdzN2udHyeaFI-SswndAIJYmo"
+    },
+    {
+      "id": "sticker-7940",
+      "def": 7940,
+      "name": "Team Spirit | Shanghai 2024",
+      "name_en": "Team Spirit | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI655f9-BewEh_1xpWw_3UIuKarPvw-I_GXWjTCxe0i4OM9Ti22xE1-623Wzov8bzvJOVIM1Wg-"
+    },
+    {
+      "id": "sticker-7941",
+      "def": 7941,
+      "name": "Team Spirit (Glitter) | Shanghai 2024",
+      "name_en": "Team Spirit (Glitter) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI655f9-GbgTRTlipPys3Za66L2OfRscPLEVmPFlbkh5Oc6TX3klERz5WvTyNmoInnDbg8hCsRuBbldmI9JbkQ"
+    },
+    {
+      "id": "sticker-7942",
+      "def": 7942,
+      "name": "Team Spirit (Holo) | Shanghai 2024",
+      "name_en": "Team Spirit (Holo) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI655f9-GbvThH-0JO2_ydZ7vH4OPBucKfED2XCkrh047NoSSy2whlx5jnUy92gIHuebFM-SswnfVYMKQU"
+    },
+    {
+      "id": "sticker-7943",
+      "def": 7943,
+      "name": "Team Spirit (Gold) | Shanghai 2024",
+      "name_en": "Team Spirit (Gold) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI655f9-GbgThH10JO2rXJY66P6bvE8JqGWDGPBkrck4OQ_H3ixwU4itz6DzY77JHmebVU-SswnwKBrwpg"
+    },
+    {
+      "id": "sticker-8065",
+      "def": 8065,
+      "name": "m0NESY | Shanghai 2024",
+      "name_en": "m0NESY | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI6547z1VS3Txjih9iwq3MIuaf_PfBrdqnADzLFk7Yl5uAxH3u1xUhy5D-EnNmpcS6WOgQjFNIuEjS3ciUw"
+    },
+    {
+      "id": "sticker-8066",
+      "def": 8066,
+      "name": "m0NESY (Glitter) | Shanghai 2024",
+      "name_en": "m0NESY (Glitter) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI6547z1VS3Txjih6nn8StP-_e8JvFrcKjBXGGUwugk5LJoTiu3x0V34zjdzo36cnLGPVQnW8RwRuFc4BWm0oqwSEJdwBY"
+    },
+    {
+      "id": "sticker-8067",
+      "def": 8067,
+      "name": "m0NESY (Holo) | Shanghai 2024",
+      "name_en": "m0NESY (Holo) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI6547z1VS3Txjih6no8i5UoaD4PvI9JfOXCGHIk-9w4rI9THjlzU9-sWTWnN6oI3mXOgR2W8B5FuIU8k7vtR2NrCQ"
+    },
+    {
+      "id": "sticker-8068",
+      "def": 8068,
+      "name": "m0NESY (Gold) | Shanghai 2024",
+      "name_en": "m0NESY (Gold) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI6547z1VS3Txjih6nn8i5fofD3MfE8caHEW2OWlron5rk5HC-1kUUm6z_cyt2vIiiXO1VzXMd1RbMU8k7v32Oz9WU"
+    },
+    {
+      "id": "sticker-8069",
+      "def": 8069,
+      "name": "NiKo | Shanghai 2024",
+      "name_en": "NiKo | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI6547z1VfuShK_yJO3rHsKt6D2afc1d_bGD2bIxLxw5eNrTHnixBki6m2Dw9ysd3LCPBhgVMW73Q9C0A"
+    },
+    {
+      "id": "sticker-8070",
+      "def": 8070,
+      "name": "NiKo (Glitter) | Shanghai 2024",
+      "name_en": "NiKo (Glitter) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI6547z1VfuShLOmZrp6TZe_byrbvY6dqHCXWXIkrhz5LMxHy-ykUR052zdztepc36WbQIoC8QiQuQPrFDmxWmjYoxt"
+    },
+    {
+      "id": "sticker-8071",
+      "def": 8071,
+      "name": "NiKo (Holo) | Shanghai 2024",
+      "name_en": "NiKo (Holo) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI6547z1VfuShLOlpns8mwIu_SoOfM6I6HKXTKVlLwgseJqSnq3wR5z5m_SzY34dS3Cag9zCMZzW6dU5dFdkG87"
+    },
+    {
+      "id": "sticker-8072",
+      "def": 8072,
+      "name": "NiKo (Gold) | Shanghai 2024",
+      "name_en": "NiKo (Gold) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI6547z1VfuShLOmZns-WwKuKWvOaFvI6KWXzOVkL0u4LM7Givhkx5y62TTyYmrdCiTZlAkXsd3W6dU5b-GLCrg"
+    },
+    {
+      "id": "sticker-8093",
+      "def": 8093,
+      "name": "ZywOo | Shanghai 2024",
+      "name_en": "ZywOo | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI6547z1UP-VhL-0MHkriAD7faoP6A0JfWWXGTHw-9w5bltFivixUUl5DyEyIv6cS3COAE-SswnR7lI2rk"
+    },
+    {
+      "id": "sticker-8094",
+      "def": 8094,
+      "name": "ZywOo (Glitter) | Shanghai 2024",
+      "name_en": "ZywOo (Glitter) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI6547z1UP-VhL-oZHs9DZP6uDgOfxocvXHD2PEku8vtLk6TXm3zRty5GjVnIz_d3vFbg8iDsEmRbIOsw74zIMBZo7Nxg"
+    },
+    {
+      "id": "sticker-8095",
+      "def": 8095,
+      "name": "ZywOo (Holo) | Shanghai 2024",
+      "name_en": "ZywOo (Holo) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI6547z1UP-VhL-oZ7v8S0V6_CtOPxrJvbFCjfDwLoisrA5Fnmww04jsjuDyIqsdX2TawUoXMAmEflK7Ed5ecFtyA"
+    },
+    {
+      "id": "sticker-8096",
+      "def": 8096,
+      "name": "ZywOo (Gold) | Shanghai 2024",
+      "name_en": "ZywOo (Gold) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI6547z1UP-VhL-oZHv8SYVuab9bPQ-IqmSWDSSxb536bM-G3nmxE914WzUyNn8JXrCblMpDpdwR_lK7EcUNqhYQw"
+    },
+    {
+      "id": "sticker-8121",
+      "def": 8121,
+      "name": "donk | Shanghai 2024",
+      "name_en": "donk | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI6547z1V3oTxa_yc_mqXUIvaf-a6E9cfKSDTSSk7935ONqTC_rzEUj52XdyNuucy7COBhgVMW4-Ikr3g"
+    },
+    {
+      "id": "sticker-8122",
+      "def": 8122,
+      "name": "donk (Glitter) | Shanghai 2024",
+      "name_en": "donk (Glitter) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI6547z1V3oTxbOmZrp6TZe_bz7afI0IqDKDz7Clegv6bdrTXDnlh4jsGvWwtiueS-TalUnXJF5RLJcrFDmxXYBUw9C"
+    },
+    {
+      "id": "sticker-8123",
+      "def": 8123,
+      "name": "donk (Holo) | Shanghai 2024",
+      "name_en": "donk (Holo) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI6547z1V3oTxbOlpns8mxZ6ar7bfVveKbEWzDCmbkms-drSX7kk0gjtTnUydv4d3iUPABzApUjW6dU5UGTJous"
+    },
+    {
+      "id": "sticker-8124",
+      "def": 8124,
+      "name": "donk (Gold) | Shanghai 2024",
+      "name_en": "donk (Gold) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI6547z1V3oTxbOmZns-WwN7aL2a_duIvPGVj_Ewu0jseJrS3iywh515WjWztqvJy6UawZ2WJYiW6dU5f7qgpDu"
+    },
+    {
+      "id": "sticker-8541",
+      "def": 8541,
+      "name": "donk (Champion) | Shanghai 2024",
+      "name_en": "donk (Champion) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI6547z1V3oTxbOnZ7h8DJS4PzgbKFuJqOQDTDAkrkg6bI_Gn23wx506zyGyYuoJSrDagAlD5JyRORZ5w74zIOKXdunUA"
+    },
+    {
+      "id": "sticker-8542",
+      "def": 8542,
+      "name": "donk (Glitter, Champion) | Shanghai 2024",
+      "name_en": "donk (Glitter, Champion) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI6547z1V3oTxbOnZ7h8DJS4PyRb6hkNOSWHCnGkLwvtrcxTCyxwkVz5TyGw46sdXLDZgBxWcdxTeBf5ELswIbmM7y3-UWA3C2NfLj1"
+    },
+    {
+      "id": "sticker-8543",
+      "def": 8543,
+      "name": "donk (Holo, Champion) | Shanghai 2024",
+      "name_en": "donk (Holo, Champion) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI6547z1V3oTxbOnZ7h8DJS4PyRYKthL77AC2XGl74isbBqSn_ixht16jiBw42heSrFOw5zXJp1F7IMu0Ppw9XuKaq8sOaFoAYT"
+    },
+    {
+      "id": "sticker-8544",
+      "def": 8544,
+      "name": "donk (Gold, Champion) | Shanghai 2024",
+      "name_en": "donk (Gold, Champion) | Shanghai 2024",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNmpNCnHtwI6547z1V3oTxbOnZ7h8DJS4PyRb6thJL6XCmSVw7p3s7U8Sn_kzR8hsWyDwtetdnqXbA8nXpRyQ7Vf5xa8wNK1Kaq8sAOF3lSD"
+    },
+    {
+      "id": "sticker-37",
+      "def": 37,
+      "name": "Crown (Foil)",
+      "name_en": "Crown (Foil)",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjNm1PHic4ERmpsj3-FbwTyL3kZ_ssycDt6v4PvU_dvTGDWGWl-xwtLZoS36ykB4ltTvXy42seS_EPFQpC8BuBbldJQkRI1c"
+    },
+    {
+      "id": "sticker-71",
+      "def": 71,
+      "name": "Ninjas in Pyjamas | Katowice 2014",
+      "name_en": "Ninjas in Pyjamas | Katowice 2014",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjM-sJnCW8Vli_YTxuAm2FVL_l5jq_DFS4eK3YqVgIePdCGHJxOwk5bAwFnDrxBkmsWXUnN_9d3iXZ1AjA8B2QLICt0WwkNC1ZPSiuVKyuwQSVA"
+    },
+    {
+      "id": "sticker-103",
+      "def": 103,
+      "name": "Howling Dawn",
+      "name_en": "Howling Dawn",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjMmuOHaC619h7delpVHoVhH4kJHf-SNM4bz9bKY_dPWQWDCUkLxy57g_H3DgkB5w42uAzIv4I3meOAQlApdwFO5YrFDmxUNp_lL7"
+    },
+    {
+      "id": "sticker-4522",
+      "def": 4522,
+      "name": "Dragon Lore (Foil)",
+      "name_en": "Dragon Lore (Foil)",
+      "image": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJai0ki7VeTHjMmyZyvY5kUnpLjw-FjgThPOkpny-B1d4PuiJvE0JPGWWTHIx70v5bMxGyzmlksi4GSDy9uhd37GOFUiXpciF-dZukWm0oqwD9CZ2wA"
+    }
+  ]
+}

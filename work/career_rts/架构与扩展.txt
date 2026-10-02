@@ -1,0 +1,106 @@
+本项目是隔离的 Godot 4 单机实验，不依赖 Career 的 ApplicationState。
+独立项目的日志和导出战报保留在自己的 runtime 目录；原始地图缓存与隔离 QA 保存在 E 盘。
+
+main.tscn / scripts/game.gd
+  菜单、输入、队伍卡片、战绩和对局状态展示。
+  start_match(mode, team, player_id) 创建独立 MatchSim。
+  initial_map 选择 data/map_catalog.json 中的可用地图；默认 de_dust2。
+  initial_overtime 为 true 时启用正式比赛 MR3 加时；默认独立练习不加时。
+  不参与伤害、命中、经济或胜负判断。
+
+scripts/match_sim.gd
+  固定 60Hz 比赛业务：十人移动、武器、感知、团队指令、炸弹、经济和账本。
+  configure / step / snapshot / pop_events / report 为主要接口。
+  configure(map, rosters, seed, knowledge={}, allow_overtime=false)。
+  report schema_version=2：map、map_schema_version、map_source、map_limitations、seed，
+  每回合 winner/winner_side/score 和十名玩家 k/d/a/damage/kast/survived/traded。
+  opening_kills/opening_deaths 为每回合 0/1；累计字段保留 kast_rounds、survived_rounds。
+  生涯换算应使用这些原始字段，不得把 sample rating 当作已结算数据。
+  每点预计算五个 NAV 可达守包/掩护岗位，距点心至少 60px、互距至少 40px。
+  下包后按实际 C4 位置重新检查岗位视线；看包关键岗位必须有真实二维 LOS，
+  合法岗位不足时保留实际入口掩护，不伪造穿墙视线。存活队友按可达路径承担岗位，
+  已就位的看包队友保留职责，阵亡留下的关键空岗再由存活队友补上。
+  这些分工只读取已知 C4 和己方位置，不读取隐藏 CT；不保证每次守包必然成功。
+  command(team, order, ids) 与 command_move(team, point, ids, append) 下达指令。
+  append 为 true 时追加途经点，最多 16 段，不改当前进行中的路段。
+  select_human(id) 只切换己方存活角色，事件仍按稳定选手 ID 记账。
+  感知取决于自己的朝向、实际二维视线和已经生效的烟雾。
+  观战是否显示全部角色不会改变 AI 的感知。
+  常见开局路线在准备对局时预先计算，回合开始只取路线模板。
+  事件重派优先接入经过验证的已有通路，不用每帧为十人重新全图寻路。
+
+scripts/map_model.gd
+  使用离线导航图与掩码，提供可走性、胶囊移动、路径和视线查询。
+  路径按网格入口/出口、半径和阵营缓存；不能用图像颜色替代通路。
+  真实 NAV 的有向连接用于约束二维导航，重叠楼层仍是近似。
+  NAV_agent_centres 记录的是人物中心通路，默认半径不得再次侵蚀通路。
+  更大体积只检查超出标称半径的净空；路径与运动使用相同有向连接。
+
+scripts/renderer.gd / minimap.gd
+  地图、人物、视野提示、路线、弹道和小地图。
+  队伍视野通过 spotted_by 过滤敌人；全场观战只是展示选项。
+  所有指令信号都交还 game.gd，不从绘制中修改模拟器。
+
+scripts/style.gd / audio.gd
+  界面样式与原创合成音效。音效使用独立随机源，不消耗比赛随机种子。
+
+data/rosters.json
+  两边各五名选手。id 必须唯一，角色、能力和 skills 在这里修改。
+  team_names 用于界面，human_id 只是默认角色。
+  可以替换整套阵容，不要修改玩家生涯数据库。
+
+scripts/map_catalog.gd / data/map_catalog.json
+  schema 2 目录提供 available_maps、entry、load_map；未通过的地图返回空包。
+  可用：Dust2、Mirage、Inferno、Ancient、Anubis、Overpass、Train、Cache。
+  正式比赛入口还必须检查 entry(map_id).career_ready。当前八张可用地图均开放正式 RTS。
+  Overpass 旧版的无限 MR3 缺陷已定位到射线角点：能看见目标中心，却在延长射线时
+  被邻接墙像素截断；现按玩家身体的射线交点判断命中，同时保留中心 LOS 防穿墙。
+  已恢复 Overpass 正式入口；自然整场、守包和加时仍做回归，不宣称完全平衡。
+  Nuke、Vertigo 已提取真实 XYZ NAV 和实体资料，但未解决重叠楼层身份与跨层动作。
+  明确标为 awaiting_layered_nav 并禁止开局，不会借用沙二或伪造全图连通。
+
+data/*_game.json / *_grid.json
+  雷达坐标（1024x1024）、包点、出生候选、观察锚点、导航边和来源。
+  目标点及出生点必须通过 map_model 的可达性检查。
+  每张地图使用独立数据包；游戏、主地图和小地图均读取本场资源路径。
+  七张新地图的出生点来自真实实体，包点来自实际 bomb-target 物理 hull。
+  NAV36 不提供区域名称；区域 Unknown 保留原义，不套用沙二 Bot Lab 知识。
+  A_long/A_short/B_tunnel/B_door 是真实 NAV 路线节点的接口别名，非该图原生叫法。
+
+data/botlab_knowledge.json
+  已有 Bot Lab 和 Demo 资料的区域偏好聚合，不包含完整 Demo 轨迹。
+  偏好不会赋予隔墙看人、无视碰撞或直接确定胜者的能力。
+
+tools/build_map.py
+  从已有 Atlas/雷达构建地图包的离线工具，输出纯数据。
+  修改遮挡/导航后重新运行生成器；不要只手改图片假装改变可走区域。
+  tools/extract_map_nav.py 和 tools/nav_export/ 通过 CRC/EOF 校验读取本机 Valve VPK，
+  离线导出 NAV XYZ、有向边、出生实体、包点 hull；不会修改游戏与插件。
+  tools/build_catalog.py 逐图烘焙，验证双方出生点至所有目标的连通性。
+  原始缓存位于 E:/CS2CareerTools/RTSMultiMapSources-20261002；
+  检查及完整原始战报位于 E:/CS2CareerTools/RTSMultiMapQA-20261002。
+
+tests/
+  map_game_test.gd：真实投影导航、碰撞、视线与方向连接。
+  sim_game_test.gd：输入、武器、道具、接管、目标和统计。
+  sim_route_test.gd：真实地图中五人队伍的 A / B 通路及让行。
+  smoke_scene.gd / input_ui_test.gd：通过真正的游戏场景验证按钮与输入。
+  sim_bot_match_test.gd：固定种子全场自主对局、账本和性能记录。
+  multimap_test.gd：逐图真实全程移动、包点、守点间距、层级拒绝及 MR3。
+  multimap_match_test.gd：八张地图自然整场对局、原始回合与累计选手统计对账。
+  测试不会打开 CS2，不读取 Career 存档。
+
+3D 游戏已通过 tools/career3d_rts.py 和 computer_rts.gd 适配器接入：
+  职业比赛：冻结实际比赛、十名选手 ID、地图、开场阵营、nonce 与 seed；
+  正式终场逐回合账本校验通过后，交回原系列赛/赛事结算，不信任展示用 Rating。
+  本地 Rank 与兼容的 FPL 房间：保留原选人和 BP，胜负只影响同一份本地天梯。
+  自定义对局：使用冻结阵容生成战报，不计本地天梯分或生涯奖励。
+  对局中可切换指挥、亲自操控和观战；观战显示全场不会改变 AI 的感知。
+  取消未完成 RTS 保留原 BP/已录入地图；同场 nonce 的重复战报不会重复结算。
+独立直接启动仍不连接 Career；模拟器本身不访问 STATE 或真实存档，
+绘制函数不结算奖金，只有外部适配器在校验与业务写入边界录入正式结果。
+
+代码沿用主项目 AGPL-3.0，LICENSE 保留在目录中。
+地图图像及原地图资产的权利属于 Valve；名单、队名与商标归各权利人。
+地图来源、数据版本和 SHA-256 记录在每张 *_game.json 的 source 字段。
+这里没有声称拥有这些第三方资源，未上传此隔离样本。

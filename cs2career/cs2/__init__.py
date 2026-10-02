@@ -14,6 +14,8 @@ from .launch import (
     read_result,
     save_settings,
     settings,
+    skins_inventory_mode,
+    skin_integration,
     start_match,
     status,
 )
@@ -35,6 +37,8 @@ __all__ = [
     "result_usable",
     "save_settings",
     "settings",
+    "skins_inventory_mode",
+    "skin_integration",
     "start_match",
     "status",
     "to_cs2_map",

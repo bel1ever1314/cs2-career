@@ -1,0 +1,4 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/lan_venue.gd" id="1"]
+[node name="LanVenue" type="Node3D"]
+script = ExtResource("1")

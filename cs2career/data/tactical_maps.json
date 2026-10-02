@@ -1,0 +1,226 @@
+{
+  "schema_version": 1,
+  "source": {
+    "repository": "https://github.com/MurkyYT/cs2-map-icons",
+    "revision": "55828fc236d97b99cda0e8cb7561b8dd543bee3d",
+    "retrieved": "2026-10-01",
+    "rights_holder": "Valve Corporation",
+    "note": "Official game radar resources. Unrotated overview PNG uses world x right, world y up; overview rotate is an in-game radar display option, not a rotation applied to these images. Pixels are not collision/navigation data; current CS2 NAV resolves executable positions."
+  },
+  "maps": {
+    "de_dust2": {
+      "name": "Dust II",
+      "image": "/tactical_maps/de_dust2.png",
+      "pos_x": -2476,
+      "pos_y": 3239,
+      "scale": 4.4,
+      "width": 1024,
+      "height": 1024,
+      "layers": [
+        {
+          "id": "upper",
+          "name": "地图",
+          "image": "/tactical_maps/de_dust2.png",
+          "image_sha256": "3be20317d1383da6f390a5bb245cabb65857ef08b1e2c5b82b5938a8cb3167bb"
+        }
+      ],
+      "source_overview": "https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/55828fc236d97b99cda0e8cb7561b8dd543bee3d/data/radar_info/de_dust2.txt",
+      "image_sha256": "3be20317d1383da6f390a5bb245cabb65857ef08b1e2c5b82b5938a8cb3167bb"
+    },
+    "de_mirage": {
+      "name": "Mirage",
+      "image": "/tactical_maps/de_mirage.png",
+      "pos_x": -3230,
+      "pos_y": 1713,
+      "scale": 5,
+      "width": 1024,
+      "height": 1024,
+      "layers": [
+        {
+          "id": "upper",
+          "name": "地图",
+          "image": "/tactical_maps/de_mirage.png",
+          "image_sha256": "5de1cc16362e538dc5f4561a24661cb1fb1c15c77ec289e32b44c0fc07bfb85b"
+        }
+      ],
+      "source_overview": "https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/55828fc236d97b99cda0e8cb7561b8dd543bee3d/data/radar_info/de_mirage.txt",
+      "image_sha256": "5de1cc16362e538dc5f4561a24661cb1fb1c15c77ec289e32b44c0fc07bfb85b"
+    },
+    "de_inferno": {
+      "name": "Inferno",
+      "image": "/tactical_maps/de_inferno.png",
+      "pos_x": -2087,
+      "pos_y": 3870,
+      "scale": 4.9,
+      "width": 1024,
+      "height": 1024,
+      "layers": [
+        {
+          "id": "upper",
+          "name": "地图",
+          "image": "/tactical_maps/de_inferno.png",
+          "image_sha256": "e4929829f8475d2edcb44ee3537ffad094dc8008b4d6f5aa81e66e77ddb077ba"
+        }
+      ],
+      "source_overview": "https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/55828fc236d97b99cda0e8cb7561b8dd543bee3d/data/radar_info/de_inferno.txt",
+      "image_sha256": "e4929829f8475d2edcb44ee3537ffad094dc8008b4d6f5aa81e66e77ddb077ba"
+    },
+    "de_nuke": {
+      "name": "Nuke",
+      "image": "/tactical_maps/de_nuke.png",
+      "pos_x": -3453,
+      "pos_y": 2887,
+      "scale": 7,
+      "width": 1024,
+      "height": 1024,
+      "layers": [
+        {
+          "id": "upper",
+          "name": "上层",
+          "image": "/tactical_maps/de_nuke.png",
+          "altitude_min": -495,
+          "image_sha256": "6230346d3ce969006062fbd02220b083245f621ef366ce26a42dc27a80120bd0"
+        },
+        {
+          "id": "lower",
+          "name": "下层",
+          "image": "/tactical_maps/de_nuke_lower.png",
+          "altitude_max": -495,
+          "image_sha256": "040c958f141d0365ca9125388bc20228b0df0ac6abd1fe78d743ecfa1be4bb64"
+        }
+      ],
+      "source_overview": "https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/55828fc236d97b99cda0e8cb7561b8dd543bee3d/data/radar_info/de_nuke.txt",
+      "image_sha256": "6230346d3ce969006062fbd02220b083245f621ef366ce26a42dc27a80120bd0"
+    },
+    "de_ancient": {
+      "name": "Ancient",
+      "image": "/tactical_maps/de_ancient.png",
+      "pos_x": -2953,
+      "pos_y": 2164,
+      "scale": 5,
+      "width": 1024,
+      "height": 1024,
+      "layers": [
+        {
+          "id": "upper",
+          "name": "地图",
+          "image": "/tactical_maps/de_ancient.png",
+          "image_sha256": "88fe108f7cc54d89b9c6179155cc39f419aa02f79df1a3f36031049577fd1952"
+        }
+      ],
+      "source_overview": "https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/55828fc236d97b99cda0e8cb7561b8dd543bee3d/data/radar_info/de_ancient.txt",
+      "image_sha256": "88fe108f7cc54d89b9c6179155cc39f419aa02f79df1a3f36031049577fd1952"
+    },
+    "de_anubis": {
+      "name": "Anubis",
+      "image": "/tactical_maps/de_anubis.png",
+      "pos_x": -2796,
+      "pos_y": 3328,
+      "scale": 5.22,
+      "width": 1024,
+      "height": 1024,
+      "layers": [
+        {
+          "id": "upper",
+          "name": "地图",
+          "image": "/tactical_maps/de_anubis.png",
+          "image_sha256": "7c9badbb4ecb655d3d789724ca9d615bb06abf721d776176018ee3263a8a7b94"
+        }
+      ],
+      "source_overview": "https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/55828fc236d97b99cda0e8cb7561b8dd543bee3d/data/radar_info/de_anubis.txt",
+      "image_sha256": "7c9badbb4ecb655d3d789724ca9d615bb06abf721d776176018ee3263a8a7b94"
+    },
+    "de_overpass": {
+      "name": "Overpass",
+      "image": "/tactical_maps/de_overpass.png",
+      "pos_x": -4831,
+      "pos_y": 1781,
+      "scale": 5.2,
+      "width": 1024,
+      "height": 1024,
+      "layers": [
+        {
+          "id": "upper",
+          "name": "地图",
+          "image": "/tactical_maps/de_overpass.png",
+          "image_sha256": "ab3bfff1c3cc8da47eda921511b3eb34028e24b718b85709ac080f123fd4c108"
+        }
+      ],
+      "source_overview": "https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/55828fc236d97b99cda0e8cb7561b8dd543bee3d/data/radar_info/de_overpass.txt",
+      "image_sha256": "ab3bfff1c3cc8da47eda921511b3eb34028e24b718b85709ac080f123fd4c108"
+    },
+    "de_train": {
+      "name": "Train",
+      "image": "/tactical_maps/de_train.png",
+      "pos_x": -2308,
+      "pos_y": 2078,
+      "scale": 4.082077,
+      "width": 1024,
+      "height": 1024,
+      "layers": [
+        {
+          "id": "upper",
+          "name": "上层",
+          "image": "/tactical_maps/de_train.png",
+          "altitude_min": -50,
+          "image_sha256": "26007eea00d58e722058b11b96b16e08d4b28bf5494a4df141463a7dbcb0648a"
+        },
+        {
+          "id": "lower",
+          "name": "下层",
+          "image": "/tactical_maps/de_train_lower.png",
+          "altitude_max": -50,
+          "image_sha256": "c1852ca4d1f0ba7ccb426a853f57f203ab5431b32e59323b6bd5cd216d7b40ed"
+        }
+      ],
+      "source_overview": "https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/55828fc236d97b99cda0e8cb7561b8dd543bee3d/data/radar_info/de_train.txt",
+      "image_sha256": "26007eea00d58e722058b11b96b16e08d4b28bf5494a4df141463a7dbcb0648a"
+    },
+    "de_vertigo": {
+      "name": "Vertigo",
+      "image": "/tactical_maps/de_vertigo.png",
+      "pos_x": -3168,
+      "pos_y": 1762,
+      "scale": 4,
+      "width": 1024,
+      "height": 1024,
+      "layers": [
+        {
+          "id": "upper",
+          "name": "上层",
+          "image": "/tactical_maps/de_vertigo.png",
+          "altitude_min": 11700,
+          "image_sha256": "3cfa3f044ed5883098e78ab63939a3c9e39fc2c0c2100e59acf4e2c3fa09df43"
+        },
+        {
+          "id": "lower",
+          "name": "下层",
+          "image": "/tactical_maps/de_vertigo_lower.png",
+          "altitude_max": 11700,
+          "image_sha256": "89ab966da946061906ab0d8876b9b45761291e8080149246611e12de526cd673"
+        }
+      ],
+      "source_overview": "https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/55828fc236d97b99cda0e8cb7561b8dd543bee3d/data/radar_info/de_vertigo.txt",
+      "image_sha256": "3cfa3f044ed5883098e78ab63939a3c9e39fc2c0c2100e59acf4e2c3fa09df43"
+    },
+    "de_cache": {
+      "name": "Cache",
+      "image": "/tactical_maps/de_cache.png",
+      "pos_x": -2000,
+      "pos_y": 3250,
+      "scale": 5.5,
+      "width": 1024,
+      "height": 1024,
+      "layers": [
+        {
+          "id": "upper",
+          "name": "地图",
+          "image": "/tactical_maps/de_cache.png",
+          "image_sha256": "afa47fd3111f007cedfbb580f740780427531e8ce6b9dcc55a13d9104e2ed6a6"
+        }
+      ],
+      "source_overview": "https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/55828fc236d97b99cda0e8cb7561b8dd543bee3d/data/radar_info/de_cache.txt",
+      "image_sha256": "afa47fd3111f007cedfbb580f740780427531e8ce6b9dcc55a13d9104e2ed6a6"
+    }
+  }
+}

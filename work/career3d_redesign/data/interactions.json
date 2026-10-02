@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "coordinate_system": "Godot: x right, y up, z toward front entrance",
+  "items": [
+    {"id":"reception","title":"俱乐部接待台","verb":"查看今日安排","kind":"notice","anchor":[-1.13,0.9,3.85],"look":[-1.13,1.2,2.57],"range":1.5,"seconds":0,"text":"欢迎回家。去训练室练一会儿，或者到厨房拿杯饮料。今天先熟悉我们的俱乐部。","effects":{}},
+    {"id":"computer","title":"训练电脑","verb":"开始短时训练","kind":"train","anchor":[-3.68,0.9,-3.67],"look":[-3.68,1.5,-4.85],"range":1.35,"seconds":3.5,"text":"练习结束。手感热起来了，下一组注意停稳再开枪。","effects":{"focus":12,"energy":-8},"cooldown":12},
+    {"id":"whiteboard","title":"战术白板","verb":"复盘战术","kind":"review","anchor":[1.0,0.9,-7.30],"look":[1.0,2.2,-8.12],"range":1.3,"seconds":2.5,"text":"先确认分工，再决定谁先拉、谁补枪。战术思路整理好了。","effects":{"focus":8},"cooldown":10},
+    {"id":"fridge","title":"厨房冰箱","verb":"开冰箱拿饮料","kind":"drink","anchor":[10.43,0.9,-6.82],"look":[11.36,1.6,-7.18],"range":1.3,"seconds":2.2,"text":"拿到一杯凉饮。歇一口气，再继续训练。","effects":{"energy":8,"mood":4},"cooldown":8},
+    {"id":"meal","title":"食堂餐桌","verb":"坐下吃点东西","kind":"meal","anchor":[5.48,0.9,2.26],"look":[5.48,1.1,4.52],"seat":[5.48,0.52,3.29],"seat_look":[5.48,1.1,4.52],"range":1.2,"seconds":4.0,"text":"简单吃了一顿。训练很重要，好好吃饭也很重要。","effects":{"energy":16,"mood":5},"cooldown":15},
+    {"id":"sofa","title":"休息区沙发","verb":"坐下休息","kind":"rest","anchor":[-8.44,0.9,4.08],"look":[-8.45,1.0,3.29],"seat":[-8.45,0.60,3.25],"seat_look":[-8.45,1,6.0],"range":1.2,"seconds":4.0,"text":"在沙发上放空了一会儿。今天不用每一分钟都绷着。","effects":{"energy":12,"mood":8},"cooldown":12},
+    {"id":"coffee","title":"咖啡机","verb":"冲一杯咖啡","kind":"coffee","anchor":[6.13,0.9,6.53],"look":[6.13,1.7,7.51],"range":1.2,"seconds":2.8,"text":"咖啡好了。香味从杯子里冒出来。","effects":{"energy":5,"focus":5},"cooldown":10},
+    {"id":"trophy","title":"奖杯陈列柜","verb":"看看俱乐部荣誉","kind":"notice","anchor":[1.93,0.9,5.07],"look":[1.93,1.4,4.15],"range":1.2,"seconds":0,"text":"奖杯旁还留着空位。以后的故事，可以从这里开始。","effects":{}},
+    {"id":"teammate","title":"休息区的队友","verb":"打个招呼","kind":"notice","anchor":[-5.62,0.9,6.48],"look":[-5.67,1.2,5.58],"range":1.25,"seconds":0,"text":"队友：来啦？一会儿一起练两张图，练完去吃饭。","effects":{}},
+    {"id":"exit","title":"前往 Major 场馆","verb":"出发 · 进入场馆切换第一人称","kind":"travel","anchor":[-0.75,0.9,8.77],"look":[-0.75,1.1,9.1],"range":1.0,"seconds":0,"text":"准备入场……","effects":{}}
+  ]
+}

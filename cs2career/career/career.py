@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import math
 import random
 import re
 import shutil
@@ -420,7 +421,7 @@ class Career:
         self.story_queue = []
         self.personal_transfers = {}
         self.assist = {}
-        self.incident_state = {}
+        self.incident_state = dict(payload.get('_start_metadata') or {})
         self.inbox = []
         self.mail_seq = 0
         self.attr_points = int(start_cfg.get("attr_points", 0))
@@ -530,6 +531,25 @@ class Career:
             raise ValueError("当前年代的自由选手不足以组成五人阵容，请检查选手数据包。")
         player_ability = float(cfg["player_ability"])
         you_stats = stats_for(self.player_name, self.role, player_ability)
+        if self.origin == 'attribute_draw' and payload.get('_start_attributes') is not None:
+            drawn = payload['_start_attributes']
+            if (not isinstance(drawn, dict) or set(drawn) != set(AXES)
+                    or any(isinstance(drawn[axis], bool) or not isinstance(drawn[axis], (int, float))
+                           or not math.isfinite(drawn[axis]) or not 1 <= drawn[axis] <= 100
+                           for axis in AXES)):
+                raise ValueError('七维抽取属性必须完整且位于 1 至 100。')
+            you_stats = {**drawn, 'command': int(you_stats['command'])}
+            provenance = self.incident_state.get('career3d_attribute_draw') or {}
+            if provenance.get('value_policy') == 'calibrated_world_axes_v1':
+                from ..world.calibrated import model_marker, weighted_score
+                # Drawn axes already use the game skill scale. The old stretch
+                # would turn an ordinary 80-point roster into a 98-point player.
+                player_ability = round(weighted_score(drawn, self.role), 3)
+                you_stats['position_model'] = model_marker(self.role, 'attribute_draw')
+            else:
+                # Durable drafts made before the model switch keep their
+                # original creation formula and receipt, not a silent re-roll.
+                player_ability = ability_of(drawn, self.role)
         calibrate_role(you_stats, self.role, player_ability)
         players = [
             {
@@ -545,8 +565,12 @@ class Career:
                 "you": True,
             }
         ]
+        mate_sources = {row['name']: row for row in agent_rows()}
         for name, ability, role in mates:
-            row = _signed({"name": name, "role": role, "ability": ability})
+            # Preserve the free-agent's calibrated reference axes when their
+            # temporary starter duty differs from their original position.
+            row = _signed({**mate_sources.get(name, {}),
+                           "name": name, "role": role, "ability": ability})
             row["form_delta"] = 0.0
             row["form"] = ability
             row["age"] = age_of(name, season.year)
@@ -1901,6 +1925,42 @@ class Career:
         self.save()
         return msg
 
+    def craft_skin(self, inv_id: str, stickers: list) -> str:
+        """Free cosmetic editing, sharing the existing save/equipment pipeline."""
+        from .skin_crafts import edit_stickers
+        prepared = []
+        sticker_data = skins.sticker_catalog()
+        for row in self.inventory:
+            if row.get('id') == inv_id:
+                # Old market items derive a seed at export. Materialize the same
+                # values before editing, so saved and native hashes agree.
+                applied = skins._item_core(row)
+                row = {**row, **{k: applied[k] for k in ('def', 'paint', 'wear', 'seed')}}
+                sticker_data = skins.sticker_catalog_for_item(row)
+            prepared.append(row)
+        result = edit_stickers(prepared, inv_id, stickers, sticker_data)
+        self.inventory = result['inventory']
+        msg = result['message']
+        self.log.append(msg)
+        self.save()
+        skins.sync_live(self)
+        return msg
+
+    def import_loadout(self, pack_id: str) -> str:
+        from .skin_crafts import import_pack
+        data = skins.pro_bundle()
+        pack = next((r for r in data['packs'] if r['id'] == pack_id), None)
+        if pack is None:
+            raise ValueError('没有这个配装包。')
+        result = import_pack(self.inventory, self.skin_seq + 1, pack,
+                             data['skins'], skins.sticker_catalog())
+        if result['added']:
+            self.inventory = result['inventory']
+            self.skin_seq = result['next_id'] - 1
+            self.log.append(result['message'])
+            self.save()
+        return result['message']
+
     def buy_case(self, case_id: str) -> str:
         skins.ensure_economy(self)
         if self.pending_drop:
@@ -1937,7 +1997,8 @@ class Career:
             return "这件皮肤找不到了。"
         self.skin_seq += 1
         item = skins.make_item(skin, "case", self.skin_seq)
-        item["wear"] = drop.get("wear") or item["wear"]
+        if drop.get('wear') is not None:
+            item['wear'] = drop['wear']
         self.inventory.append(item)
         self.pending_drop = None
         msg = f"{item['name']} 进了库存。"
@@ -1968,6 +2029,8 @@ class Career:
         item = next((row for row in self.inventory if row.get("id") == inv_id), None)
         if not item:
             return "库存里没有这件。"
+        if item.get('bound'):
+            raise ValueError('免费配装是赠送外观，可以装备和编辑贴纸，但不能出售换钱。')
         self.inventory = [row for row in self.inventory if row.get("id") != inv_id]
         self._unequip_id(inv_id)
         pay = skins.sell_proceeds(skins.quote_of(self, item.get("skin_id") or ""))
@@ -2046,6 +2109,7 @@ class Career:
                 return f"{label} 已满，不能再点。"
             nxt = min(100, cur + 1)
             stats[axis] = nxt
+            refresh_player_ability(you)
             refresh_team_command(team)
             note = f"{label} {cur} → {nxt}，队指挥 {team.get('command')}"
         else:
@@ -2157,13 +2221,14 @@ class Career:
             found = next((x for x in self.free if x.get("name") == name), None)
         if not found:
             return None
-        stats = found.get("stats") or stats_for(name, found.get("role") or "rifle", float(found.get("ability") or 70))
+        from ..world.ability import playing_ability, playing_stats, position_views
+        stats = playing_stats(found) or stats_for(name, found.get("role") or "rifle", float(found.get("ability") or 70))
         honours = awards.honours_for(season.records(include_matches=False), season.top20, name)
         return {
             "kind": "player",
             "name": name,
             "role": found.get("role"),
-            "ability": found.get("ability"),
+            "ability": playing_ability(found),
             "command": found.get("command") or stats.get("command"),
             "age": found.get("age"),
             "birthday": birth_label(name),
@@ -2172,6 +2237,7 @@ class Career:
             "team": team["name"] if team else None,
             "team_id": team["id"] if team else None,
             "stats": {k: stats.get(k) for k in ALL_AXES},
+            "position_views": position_views(found),
             "honours": honours,
         }
 

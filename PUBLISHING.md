@@ -1,4 +1,27 @@
-# 1.6.0 构建与 GitHub 发布
+# 构建与 GitHub 发布
+
+## 1.7.0-preview.1 · 3D 版
+
+本版发布普通 Windows 包与对应源码，GitHub 标记为 pre-release。
+主分支保存当前源码；既有 1.6.0-hotfix.1 标签和正式 Release 不修改。
+
+3D 后台入口是 `tools/career3d_backend_main.py`，Godot 项目在
+`work/career3d_redesign`。源码运行见 `SOURCE_BUILD.md`。
+本地候选构建见 `tools/package_career3d.py`；公开归档使用
+`tools/package_career3d_public.py` 从已核对的源码/普通运行 ZIP 重封装。
+公开树、有限文档覆盖和最终哈希由该工具生成，不直接上传工作目录。
+
+发布普通 Windows ZIP、源码 ZIP、`BUILD_MANIFEST.json` 和 `SHA256SUMS.txt`。
+普通包的 `source/` 必须附带同一份公开源码 ZIP，必要的许可证和素材出处保留。
+整合候选的外部 SDK 附件不在本次公开分发中；依赖获取信息见
+`docs/external-runtime-pins.json`，更详细的构建记录见
+`docs/3d-preview-packaging.zh-CN.txt`。
+
+Git 推送使用已有仓库的历史，不强推、不改旧标签，也不上传用户存档、
+账号、私人扩展、原始 Demo、日志和缓存。GitHub Release 的所有附件上传
+并核对完毕后才从 draft 发布，以免玩家下载到缺少源码或文件的版本。
+
+## 1.6.0 · 桌面版构建记录
 
 使用 Windows、Python 3.12+、.NET 10 SDK（CS2插件）、Node（前端测试）。
 桌面依赖安装：`py -3 -m pip install -r requirements-desktop.txt pyinstaller==6.22.2`。

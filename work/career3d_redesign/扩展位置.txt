@@ -1,0 +1,82 @@
+这个样板的结构
+
+可选饰品工具：3D 版仅预留单件外观读取和贴纸保存接口，不内置检视器或贴纸编辑器。
+手机／电脑设置中的“启用饰品扩展接口”默认关闭，玩家自行安装工具与对应适配器。
+服务代码为 tools/career3d_skin_tools.py，完整协议见主源码 docs/skin-tools-interface.zh-CN.txt。
+运行版附带“饰品工具接口说明.txt”。接口不会自动下载扩展，不执行包里的脚本，不覆盖外部库存。
+
+scripts/career_phone.gd：手机外壳、应用主屏及各应用页面。
+scripts/phone_ui.gd：手机专用的奶油色、浅绿样式和字体。
+scripts/phone_visuals.gd：手机线条图标、状态栏和山丘壁纸，均为矢量绘制。
+scripts/career_computer.gd：电脑桌面、应用页、天梯选人禁图/实战、训练赛及战绩。
+scripts/computer_ui.gd、computer_visuals.gd：电脑的奶油浅绿样式、图标与壁纸。
+scripts/computer_business.gd：经营、市场引援和个人转会的显示与命令入口。
+scripts/computer_news.gd：赛事新闻分类、归档列表和完整稿件。
+scripts/computer_career_match.gd：职业比赛 BP、逐回合比分演示、战绩、真实 CS2 回传和快速赛季。
+scripts/computer_tactics.gd、tactics_canvas.gd：战术画板、节点编辑和五个槽位设置。
+画布 zoom_factor/pan_offset 仅用于显示；世界坐标与路点不随缩放重写。各地图/层级保留自己的视图。
+scripts/computer_controls.gd：按需读取的阵容/合同、训练、自动安排、职业榜单和扩展工坊。
+scripts/computer_start.gd、career_start_gate.gd：开局选项、年代阵容选择及进入游戏后的欢迎页。
+scripts/appearance_customization.gd：外观纯数据规范、玩家预览、六种颜色与队服；不是生涯数值系统。
+data/ui_style.json：字体来源、版本、哈希和资源路径；fonts/OFL.txt 是字体原许可全文。
+scripts/phone_news.gd：手机赛事新闻列表与全文；保持原六应用主屏。
+scripts/phone_social.gd、data/phone_social.json：联系人、生日后的叙事与回复，以及纯文本聊天文案。
+scripts/team_visuals.gd：队伍/选手资料的真实队标淡色背景。
+scripts/computer_rts.gd：自定义和职业 RTS 的设备入口、未结算地图确认、完整报告提交与重试。
+rts/scripts、rts/data、rts/assets：共享二维比赛与多地图资源；由主源码 work/career_rts 生成，不在这份副本手改。
+scripts/career_ui.gd：设备的打开/关闭、世界暂停和输入归属，及基础控件。
+scripts/career_bridge.gd：启动 Python 后台、请求数据、展示时钟、退出保存。
+scripts/chicken_player.gd：人物移动、步态与持物动作。
+scripts/club_npc.gd：人物当前工作、聊天与工作动作。
+scripts/club_life.gd、data：日程、活动和聊天等纯数据。
+scripts/club_interactions.gd：附近物品、E 使用、F 交流、坐下和使用物品。
+scripts/bedroom.gd、club_play.gd：房间与俱乐部的场景组织。
+scripts/travel.gd、travel_menu.gd：门口目的地菜单、滚轮选择与同进程场景切换。
+门口选择是自动靠近出现的非模态提示，不暂停行走；离开门口收起。
+scripts/major_walk.gd、arena_atmosphere.gd：场馆第一人称、观众、舞美和音效。
+scripts/small_venue_base.gd、lan_venue.gd：小型封闭赛场、第一人称、入座电脑与起身。
+scripts/awards_venue.gd：年度颁奖。只消费正式结果，不在场景里评选 Top20。
+data/lan_venue.json、awards_venue.json：场地文案、机位与典礼流程设置。
+data/media.json：地图展示图和饰品图片的本地缓存目录。图片只读，网络 URL 不作为本地路径执行。
+source：原创音乐与资源生成源码。
+
+Python 后台在主源码 tools/career3d_service.py。
+设备活动适配在 tools/career3d_activities.py。
+经营/转会/新闻适配在 tools/career3d_business.py；只包装原公开业务，不另造设施升级规则。
+职业比赛/快速赛季/设置/战术/年度榜单适配在 tools/career3d_matches.py。
+原阵容/合同/训练/自动安排/榜单/工坊适配在 tools/career3d_controls.py，页面数据只在进入时读取，不放入每次世界刷新。
+开局及外观适配在 tools/career3d_start.py，调用原 ApplicationState.create_career；形象保存在 incident_state.career3d_avatar。
+本地媒体查找在 tools/career3d_resources.py；原始地图图像与缓存准备在 tools/prepare_career3d_media.py。
+聊天适配在 tools/career3d_social.py；生日来源和稳定联系人由原事件判定，不按标题猜人物。
+项目扩展目录中可增加 phone_social.json，使用 data/phone_social.json 同格式覆盖文案，不执行扩展脚本。
+逐回合战报投影在 cs2career/career/quick_report.py；缺原始统计的旧回合不会补造 Rating。
+职业 RTS 冻结与录入在 tools/career3d_rts.py，只接受本图 nonce、固定十人名单和完整原始回合数据。
+它们只使用一个 ApplicationState，读取原生涯的数据和规则。
+模拟天梯不经过真实 CS2 的战绩录入接口；训练赛也不发职业赛事奖励。
+/api/3d/ladder/launch 使用原 Arena；/api/3d/match/launch 使用原 Season 启动职业比赛。
+对应 status/collect 使用原结果导入，不用 Godot 自行猜测身份或补齐缺人。
+自定义真实开赛使用 /api/3d/custom/launch；训练使用 /api/3d/controls/training/launch、finish、cancel，仍复用原训练核验。
+读取比赛状态不会计分；正式回传通过 collect 复用原导入器并且只结算一次。
+新闻 GET 只读已发表稿件，不在读页面时生成奖项或未来转会，也不删除原邮件。
+经营和转会写命令持有同一状态锁，携带生涯 revision 校验；转会期间复用原事务和费用规则。
+选手详情使用稳定 ID、span=30d/season/all 与 page 查询原 inspect，不直接平均地图 Rating。
+电脑和手机加点使用 CareerBridge 的共享临时草稿，确认交给 Python 的原 spend_point。
+纯界面不直接保存属性、Elo、库存，也不执行扩展文本中的代码。
+
+未来增加手机应用：主屏登记应用，再增加页面，数据经 CareerBridge 获取。
+增加人物对话：优先修改纯数据，不把赛事、资金和成长规则写入人物脚本。
+增加场景电脑：使用 Computer.present('bedroom'/'club')。
+设备统一调用场景 set_device_open(open, kind)，保证坐姿、暂停与收起行为一致。
+正式规则仍放在 Python 中，Godot 不另造一份生涯或赛事结果。
+
+本地媒体准备：先使用 ValveResourceFormat/Source 2 Viewer 的 Source2Viewer-CLI 提取本机 CS2 地图展示图，再由 prepare_career3d_media.py 按原核验清单预热饰品缓存。
+本样板目前资源在 E:/CS2CareerTools/Career3DMedia。工具在 E:/CS2CareerTools/MediaTools，不在刷新页面时运行。
+地图和饰品美术属于 Valve 等权利人，不归本项目 AGPL 重新授权；来源与哈希记录在媒体清单。
+Source 2 Viewer：https://github.com/ValveResourceFormat/ValveResourceFormat
+队标：tools/prepare_career3d_team_media.py 从固定版本 Juknum/counter-strike-icons 做显式匹配；原 SVG、哈希和许可保留在 E:/CS2CareerTools/Career3DMedia/teams。
+未知队伍不会随机配标；新增映射需核对真实标识。SVG 不允许外部资源和脚本。
+本样板没有捆绑上游工具的完整源码或二进制发行包；若重新发布工具，另行遵守其许可证。
+
+批量更新 E 盘样板：在主源码目录运行 tools/deploy_career3d_redesign.ps1。
+它只同步源码和配置，旧改动备份到 source-snapshots，不删除 runtime、assets 或存档。
+同时将 E 盘媒体缓存中已校验的寒蝉全圆体与原 OFL 许可复制到项目 fonts；不会下载任天堂字体。

@@ -1,0 +1,10 @@
+寒蝉全圆体 / ChillRound
+
+来源：https://github.com/Warren2060/ChillRound
+固定版本：46dda1602729b58de96e3fdee9f918d7aaa64727
+文件：fonts/ChillRoundF.ttf（保留上游原文件，没有修改字体）
+SHA256：ebeb471ae9778a26012a18136f8a9ae99450832cd8bb259265684720d60839f0
+授权：SIL Open Font License 1.1。原许可全文随 fonts/OFL.txt 提供，分发字体时请保留。
+
+本样板选择圆润、柔和的字体以适应生活场景界面。这不是《集合啦！动物森友会》的原版字体，也不使用任天堂专有字体资源。
+设置可切换至系统黑体；系统字体只从玩家本机使用，不随项目重新分发。

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "human_id": "spirit_donk",
+  "team_names": {"t": "Team Spirit", "ct": "Vitality"},
+  "source": {
+    "kind": "static_repository_roster",
+    "file": "cs2career/data/eras/2024.json",
+    "observed_at": "2024-01-08",
+    "note": "Existing project's historical roster snapshot, not current 2026 lineups. Names/roles/ability copied; game-specific skills estimated for this isolated simulation. No career saves read."
+  },
+  "t": [
+    {"id": "spirit_chopper", "name": "chopper", "role": "igl", "ability": 76, "skills": {"aim": 74, "reaction": 78, "recoil": 78, "awareness": 93, "utility": 91}},
+    {"id": "spirit_sh1ro", "name": "sh1ro", "role": "awp", "ability": 90, "skills": {"aim": 95, "reaction": 89, "recoil": 83, "awareness": 92, "utility": 79}},
+    {"id": "spirit_magixx", "name": "magixx", "role": "lurk", "ability": 81, "skills": {"aim": 81, "reaction": 80, "recoil": 84, "awareness": 90, "utility": 82}},
+    {"id": "spirit_zont1x", "name": "zont1x", "role": "rifle", "ability": 83, "skills": {"aim": 85, "reaction": 82, "recoil": 88, "awareness": 85, "utility": 85}},
+    {"id": "spirit_donk", "name": "donk", "role": "entry", "ability": 94, "skills": {"aim": 97, "reaction": 97, "recoil": 96, "awareness": 84, "utility": 80}}
+  ],
+  "ct": [
+    {"id": "vitality_apex", "name": "apEX", "role": "igl", "ability": 75, "skills": {"aim": 73, "reaction": 75, "recoil": 77, "awareness": 92, "utility": 93}},
+    {"id": "vitality_zywoo", "name": "ZywOo", "role": "awp", "ability": 95, "skills": {"aim": 98, "reaction": 96, "recoil": 90, "awareness": 94, "utility": 87}},
+    {"id": "vitality_flamez", "name": "flameZ", "role": "entry", "ability": 83, "skills": {"aim": 86, "reaction": 90, "recoil": 85, "awareness": 79, "utility": 81}},
+    {"id": "vitality_spinx", "name": "Spinx", "role": "lurk", "ability": 86, "skills": {"aim": 90, "reaction": 85, "recoil": 89, "awareness": 93, "utility": 82}},
+    {"id": "vitality_mezii", "name": "mezii", "role": "rifle", "ability": 82, "skills": {"aim": 84, "reaction": 80, "recoil": 85, "awareness": 89, "utility": 87}}
+  ]
+}

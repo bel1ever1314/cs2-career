@@ -166,6 +166,16 @@ def open_offer(career, season, row):
     if row.get('expires', '') and row['expires'] < season.date:
         row['status'] = 'expired'
         raise ValueError('这份邀约已过期。')
+    pending = state(career)['pending']
+    if pending and pending.get('mail_id') == row.get('id'):
+        # Accepting a contract opens a choice; it does not sign immediately.
+        # The same still-open mail must resume that choice on a retry, not be
+        # mistaken for applying to a second employer or queue it twice.
+        decision_id = 'transfer-decision:' + pending['id']
+        if any(item.get('id') == decision_id and item.get('when') == 'transfer_decision'
+               for item in career.story_queue):
+            return '这份邀约已打开，请在当前加盟决定中选择签字或留下。'
+        raise ValueError('当前加盟决定记录不完整，请刷新后处理；不会重新申请或自动签约。')
     team = next((t for t in season.teams if t['id'] == row.get('team_id')), None)
     if not team: raise ValueError('目标战队不存在。')
     reason = blocked(career, season, team)

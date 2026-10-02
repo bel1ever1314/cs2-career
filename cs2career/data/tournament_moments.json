@@ -11,12 +11,12 @@
   },
   "choices_en": {
     "manual": "Play myself · Open the match",
-    "simulate": "Trust the team · Simulate this final",
+    "simulate": "Continue simulation",
     "later": "Pause here · Decide later"
   },
   "choices": {
     "manual": "这场我亲自打 · 打开比赛页",
-    "simulate": "相信队伍 · 仅模拟当前这一场",
+    "simulate": "继续模拟",
     "later": "先停下来 · 稍后决定"
   }
 }

@@ -112,5 +112,67 @@ class RuntimeRepairTests(unittest.TestCase):
         repair.rollback(receipt)
         self.assertEqual(b'old recovery', parked.read_bytes())
 
+    def test_external_apply_preserves_plugin_inventory_signatures_and_duplicate_backup(self):
+        data = json.loads(self.settings.read_text())
+        data['skins_inventory_mode'] = 'external'
+        self.settings.write_text(json.dumps(data))
+        external_paths = (
+            'addons/counterstrikesharp/plugins/InventorySimulator/InventorySimulator.dll',
+            'addons/counterstrikesharp/plugins/InventorySimulator/lang/en.json',
+            'addons/counterstrikesharp/plugins/InvsimCareer/InvsimCareer.dll',
+            'addons/counterstrikesharp/gamedata/inventory-simulator.json',
+            'addons/counterstrikesharp/gamedata/inventory-simulator.previous.json',
+            'addons/counterstrikesharp/configs/plugins/InventorySimulator/inventories.json',
+        )
+        for rel in external_paths:
+            self.item(rel, b'template', b'user owned')
+        absent = 'addons/counterstrikesharp/configs/plugins/InventorySimulator/missing-owner.txt'
+        self.item(absent, b'must not create')
+        dll = self.item('addons/BotController/bin/win64/BotController.dll', b'new safe', b'old safe')
+        receipt = self.deploy()
+        self.assertEqual(b'new safe', dll.read_bytes())
+        for rel in external_paths:
+            self.assertEqual(b'user owned', (self.game / rel).read_bytes())
+        self.assertFalse((self.game / absent).exists())
+        changes = json.loads(receipt.read_text())['changes']
+        self.assertFalse(any(repair.external_inventory_file(row['relative']) for row in changes))
+        repair.rollback(receipt)
+        self.assertEqual(b'old safe', dll.read_bytes())
+        self.assertEqual('external', json.loads(self.settings.read_text())['skins_inventory_mode'])
+
+    def test_old_career_receipt_cannot_rollback_current_external_inventory_or_mode(self):
+        skin = self.item('addons/counterstrikesharp/plugins/InventorySimulator/InventorySimulator.dll',
+                         b'career template', b'old career plugin')
+        gamedata = self.item('addons/counterstrikesharp/gamedata/inventory-simulator.json',
+                            b'career signatures', b'old career signatures')
+        safe = self.item('addons/safe.dll', b'new safe', b'old safe')
+        receipt = self.deploy()
+        data = json.loads(self.settings.read_text())
+        data.update(skins_inventory_mode='external', skin_inspect_enabled=True, custom_preference='keep')
+        self.settings.write_text(json.dumps(data))
+        skin.write_bytes(b'new user plugin')
+        gamedata.write_bytes(b'new user signatures')
+        repair.rollback(receipt)
+        self.assertEqual(b'new user plugin', skin.read_bytes())
+        self.assertEqual(b'new user signatures', gamedata.read_bytes())
+        self.assertEqual(b'old safe', safe.read_bytes())
+        restored = json.loads(self.settings.read_text())
+        self.assertEqual('external', restored['skins_inventory_mode'])
+        self.assertTrue(restored['skin_inspect_enabled'])
+        self.assertEqual('keep', restored['custom_preference'])
+        self.assertEqual('old', restored['mod_source_path'])
+
+    def test_launcher_and_standalone_repair_use_the_same_external_file_boundaries(self):
+        from cs2career.cs2 import launch
+        for rel in (
+            'addons/counterstrikesharp/plugins/InventorySimulator/InventorySimulator.dll',
+            'ADDONS/COUNTERSTRIKESHARP/PLUGINS/InvsimCareer/InvsimCareer.dll',
+            'addons/counterstrikesharp/gamedata/inventory-simulator.previous.json',
+            'cfg/invsim_career.cfg', 'inventories.json', 'inventories.career.json',
+            'addons/BotRandomizer/BotRandomizer.dll', 'cfg/server.cfg', 'addons/safe.dll',
+        ):
+            with self.subTest(relative=rel):
+                self.assertEqual(launch.external_inventory_file(rel), repair.external_inventory_file(rel))
+
 
 if __name__ == '__main__': unittest.main()

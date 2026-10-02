@@ -337,6 +337,7 @@ def top20(rating_rows: list[dict], records: list[dict]) -> list[dict]:
         rows.append(
             {
                 "player": name,
+                "player_id": rec.get("player_id", ""),
                 "team": rec["team"],
                 "rating": rec.get("rating_top30", rec.get("rating")),
                 "rating_top10": rec.get("rating_top10"),

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "version": "1.7.0-preview.1",
+  "distribution": "external-runtime-not-bundled",
+  "components": [
+    {"name": "CS2 Bot Improver", "source_commit": "5aabff41be0f727f3e0ab59e03a94076c1338c3e", "url": "https://github.com/ed0ard/CS2-Bot-Improver/releases", "license": "AGPL-3.0; management panel has separate terms"},
+    {"name": "BotController", "version": "0.7.0", "source_commit": "451c7ba8ddb007eeb4d72edf291f6e0cbb051e56", "url": "https://github.com/XBribo/CS2-Bot-Controller", "license": "AGPL-3.0-only"},
+    {"name": "BotHider", "version": "0.5.0", "source_commit": "1c8fc7dea8111a598084f925b7653bb32378b988", "url": "https://github.com/XBribo/CS2-Bot-Hider", "license": "AGPL-3.0-only"},
+    {"name": "BotVision", "version": "0.3.0", "source_commit": "33ab01fc5ec4e27b6f07aff653d54638ad84ebcb", "url": "https://github.com/XBribo/CS2-Bot-Vision", "license": "AGPL-3.0-only"},
+    {"name": "CounterStrikeSharp", "version": "1.0.376", "source_commit": "653d651f1ac09ac1ddb423d588f871b891038860", "url": "https://github.com/roflmuffin/CounterStrikeSharp", "license": "GPL-3.0 with plugin MIT exception"},
+    {"name": "CounterStrikeSharp managed API used by RayTrace", "version": "1.0.371", "source_commit": "3923c5d7b9aafe971884a3bd9287500da34bfa6d", "url": "https://www.nuget.org/packages/CounterStrikeSharp.API/1.0.371", "license": "GPL-3.0 with plugin MIT exception"},
+    {"name": "Metamod", "version": "2.0.0-dev+1472", "source_commit": "05c5c63a9d595cb84021c3a51fe38366ba4a12a5", "url": "https://github.com/alliedmodders/metamod-source", "license": "zlib/libpng"},
+    {"name": "RayTrace", "source_commit": "b6c81b3b53839628ed58085b6f57237d7868ab55", "url": "https://github.com/FUNPLAY-pro-CS2/Ray-Trace", "license": "GPL-3.0"}
+  ],
+  "developer_notes": "Compatibility provenance pins only. Public packages do not include the complete bot runtime or HL2SDK mirror, or re-license their source or assets."
+}

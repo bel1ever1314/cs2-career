@@ -117,3 +117,13 @@ class ImproverPresetTests(unittest.TestCase):
         source = presets.preset('Medium')['text']
         rifle = re.search(r'(?ms)^Template RiflePro\s*\n(.*?)^End', source)[1]
         self.assertLess(rifle.index('ak47'), rifle.index('p90'))
+
+    def test_generated_preferences_exclude_aug_and_autosnipers_not_awp(self):
+        archived = presets.data_file('botprofile_presets/Medium.db').read_text(encoding='utf-8')
+        self.assertRegex(archived, r'(?m)WeaponPreference\s*=\s*aug\b')
+        for level in presets.LEVELS:
+            source = presets.preset(level)
+            self.assertNotRegex(source['text'], r'(?mi)WeaponPreference\s*=\s*(aug|scar20|g3sg1)\b')
+            sniper = re.search(r'(?ms)^Template SniperPro\s*\n(.*?)^End', source['text'])[1]
+            self.assertRegex(sniper, r'WeaponPreference\s*=\s*awp\b')
+            self.assertEqual(source['template_hash'], hashlib.sha256(source['text'].encode()).hexdigest())

@@ -17,7 +17,7 @@ from urllib.parse import parse_qs, urlparse
 
 from .. import cs2
 from ..application import ApplicationState
-from .. import presentation
+from .. import presentation, tactics
 from ..career import skins
 from ..paths import logo_dir, static_dir
 from ..world import ERA_META, apply_roles, build_teams
@@ -66,6 +66,7 @@ class Handler(SimpleHTTPRequestHandler):
         except ValueError:
             self._json({'ok': False, 'msg': '无效请求长度'}, 400)
             return
+        upload_limit = tactics.MAX_BYTES if urlparse(self.path).path.startswith('/api/tactics/') else MAX_UPLOAD
         if size < 0 or size > MAX_UPLOAD or self.headers.get('Transfer-Encoding'):
             self._json({'ok': False, 'msg': '请求体过大或传输格式不支持'}, 413)
             return
@@ -75,6 +76,11 @@ class Handler(SimpleHTTPRequestHandler):
         except OSError:
             self.close_connection = True
             return
+        if size > upload_limit:
+            # Drain only the globally bounded body before the narrower editor
+            # rejection; unread bytes can erase the JSON error on Windows.
+            self._json({'ok': False, 'msg': '战术数据超过 256 KiB 大小限制'}, 413)
+            return
         if not self._allowed():
             self._json({"ok": False, "msg": "无效会话"}, 403)
             return
@@ -82,7 +88,9 @@ class Handler(SimpleHTTPRequestHandler):
             self._json({'ok':False,'msg':'隔离流程测试不连接或修改 CS2，请使用模拟比赛。'},403)
             return
         if getattr(self.server, 'preview', False) and urlparse(self.path).path not in {
-            '/api/skins/buy', '/api/skins/case', '/api/skins/keep', '/api/skins/cash', '/api/skins/sell', '/api/skins/equip'
+            '/api/skins/buy', '/api/skins/case', '/api/skins/keep', '/api/skins/cash', '/api/skins/sell', '/api/skins/equip',
+            '/api/skins/craft', '/api/skins/loadout',
+            '/api/tactics/save', '/api/tactics/delete', '/api/tactics/import'
         }:
             self._json({'ok': False, 'msg': '这是隔离设计预览：比赛、经营和游戏文件操作未启用。'}, 403)
             return
@@ -135,6 +143,15 @@ class Handler(SimpleHTTPRequestHandler):
     def _get(self):
         url = urlparse(self.path)
         path = url.path
+        if path == '/api/tactics':
+            try:
+                query = parse_qs(url.query, keep_blank_values=True)
+                if set(query) - {'map'} or len(query.get('map', [])) > 1:
+                    raise ValueError('战术查询仅允许一个 map 参数')
+                self._json(tactics.public_library((query.get('map') or [tactics.MAP])[0]))
+            except (ValueError, OSError) as exc:
+                self._json({'ok': False, 'msg': str(exc)}, 400)
+            return
         if path in ('/api/arena', '/api/arena/recommend'):
             try:
                 query = parse_qs(url.query)
@@ -157,6 +174,9 @@ class Handler(SimpleHTTPRequestHandler):
             self._json({'ready': False, 'status': 'none', 'msg': '隔离预览不连接 CS2。'})
             return
 
+        if _EQUIPPED_V5.match(path) and cs2.skins_inventory_mode() == 'external':
+            self._json({'ok': False, 'msg': '外部插件配装模式不提供生涯配装，请使用原插件的数据源。'}, 409)
+            return
         equipped = _equipped_v5_response(path, self.state)
         if equipped is not None:
             self._json(equipped)
@@ -253,7 +273,11 @@ class Handler(SimpleHTTPRequestHandler):
             self._json(cs2.read_result())
             return
         if path == "/api/cs2/status":
-            self._json(cs2.status())
+            try:
+                self._json(cs2.status())
+            except (OSError, ValueError) as exc:
+                self._json({'ok': False, 'ready': False, 'msg': str(exc),
+                            'skin_integration': cs2.skin_integration()}, 400)
             return
         if path == "/api/cs2/history":
             self._json(cs2.history())
@@ -271,6 +295,32 @@ class Handler(SimpleHTTPRequestHandler):
 
     def _post(self):
         path = urlparse(self.path).path
+        if path.startswith('/api/tactics/'):
+            # This independent editor must never persist/payload career state,
+            # deploy game files, or accept arbitrary file/script paths.
+            try:
+                body = tactics.decode_json(self._request_body)
+                if path == '/api/tactics/save':
+                    if not isinstance(body, dict) or set(body) not in ({'tactic'}, {'map', 'tactic'}):
+                        raise ValueError('保存请求只允许 tactic 和可选的 map')
+                    result = tactics.save_tactic(body['tactic'], body.get('map', tactics.MAP))
+                elif path == '/api/tactics/delete':
+                    if not isinstance(body, dict) or set(body) not in ({'id'}, {'map', 'id'}):
+                        raise ValueError('删除请求只允许 id 和可选的 map')
+                    result = tactics.delete_tactic(body['id'], body.get('map', tactics.MAP))
+                elif path == '/api/tactics/import':
+                    query = parse_qs(urlparse(self.path).query, keep_blank_values=True)
+                    if set(query) - {'map'} or len(query.get('map', [])) > 1:
+                        raise ValueError('战术导入仅允许一个 map 参数')
+                    selected_map = (query.get('map') or [None])[0]
+                    result = tactics.import_tactics(body, selected_map)
+                else:
+                    self._json({'ok': False, 'msg': 'unknown endpoint'}, 404)
+                    return
+                self._json(result)
+            except (ValueError, OSError) as exc:
+                self._json({'ok': False, 'msg': str(exc)}, 400)
+            return
         if path.startswith('/api/arena/'):
             action = path.rsplit('/', 1)[-1]
             if action not in ('matchmake', 'create', 'pick', 'advance', 'ban', 'choose_side', 'configure', 'launch', 'ingest', 'cancel'):
@@ -632,6 +682,19 @@ class Handler(SimpleHTTPRequestHandler):
         self.state.persist()
         self._json(self.state.payload(msg))
 
+    def post_api_skins_craft(self):
+        body = self._body()
+        if set(body) - {'id', 'stickers'} or 'stickers' not in body:
+            raise ValueError('贴纸编辑需要饰品 ID 和 stickers 数组。')
+        msg = self.state.career.craft_skin(str(body.get('id') or ''), body['stickers'])
+        self.state.persist()
+        self._json(self.state.payload(msg))
+
+    def post_api_skins_loadout(self):
+        msg = self.state.career.import_loadout(str(self._body().get('id') or ''))
+        self.state.persist()
+        self._json(self.state.payload(msg))
+
     def post_api_skins_case(self):
         msg = self.state.career.buy_case(str(self._body().get("id") or ""))
         self.state.persist()
@@ -666,9 +729,11 @@ class Handler(SimpleHTTPRequestHandler):
         try:
             cfg = cs2.save_settings(self._body())
         except ValueError as exc:
-            self._json({"ok": False, "msg": str(exc), "cs2": cs2.status()}, 400)
+            self._json({"ok": False, "msg": str(exc)}, 400)
             return
-        self._json({"ok": True, "msg": "路径已保存。", "cs2": cfg})
+        # Settings never advance the career or opportunistically ingest a match.
+        self._json({"ok": True, "msg": "设置已保存。", "cs2": cfg,
+                    "skin_integration": cs2.skin_integration(cfg)})
 
     def post_api_cs2_install(self):
         try:
@@ -710,6 +775,8 @@ def _equipped_v5_response(path: str, state) -> dict | None:
     match = _EQUIPPED_V5.match(path)
     if not match:
         return None
+    if cs2.skins_inventory_mode() == 'external':
+        return None
     career = state.career
     if not getattr(career, "real_skins", False):
         return None
@@ -729,9 +796,10 @@ class SkinApiHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         path = urlparse(self.path).path
-        body = _equipped_v5_response(path, self.server.state)
-        data = json.dumps(body if body is not None else {}, ensure_ascii=False).encode("utf-8")
-        self.send_response(200 if body is not None else 404)
+        external = bool(_EQUIPPED_V5.match(path)) and cs2.skins_inventory_mode() == 'external'
+        body = None if external else _equipped_v5_response(path, self.server.state)
+        data = json.dumps({'ok': False, 'msg': 'external_inventory_provider'} if external else body if body is not None else {}, ensure_ascii=False).encode("utf-8")
+        self.send_response(409 if external else 200 if body is not None else 404)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Cache-Control", "no-store")
         self.send_header("Content-Length", str(len(data)))

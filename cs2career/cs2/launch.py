@@ -18,6 +18,7 @@ import subprocess
 import sys
 import time
 import tempfile
+import threading
 import urllib.error
 import urllib.request
 import uuid
@@ -26,13 +27,21 @@ from pathlib import Path
 from ..paths import frozen, logo_dir, save_file, save_root, static_dir, vendor_root
 from .profiles import active_manifest, generate_match_vpk, stable_player_id
 from .result import pick_better_result, result_quality
+from .gameinfo import ensure_gameinfo_mounts
 
 SETTINGS_PATH = save_file("cs2.json")
+_SETTINGS_LOCK = threading.RLock()
 
 SKINS_GAMEDATA_URLS = (
     "https://raw.githubusercontent.com/ianlucas/cs2-css-inventory-simulator/main/gamedata/inventory-simulator.json",
     "https://raw.githubusercontent.com/ianlucas/cs2-inventory-simulator-plugin/main/gamedata/inventory-simulator.json",
 )
+
+SKINS_INVENTORY_MODES = ("career", "external")
+SKINS_UPSTREAM_URLS = {
+    "inventory": "https://github.com/ianlucas/cs2-inventory-simulator",
+    "plugin": "https://github.com/ianlucas/cs2-css-inventory-simulator",
+}
 
 DEFAULTS = {
     "steam_exe": "",
@@ -48,6 +57,12 @@ DEFAULTS = {
     # "player" drops the BOT tag: managed bots publish a name, SteamID and ping.
     "bot_identity": "player",
     "skins_source_path": "",
+    # One inventory provider owns the game plugin; the career store stays local.
+    "skins_inventory_mode": "career",
+    # Hosted 3D is an optional external service, not a bundled renderer.
+    "skin_inspect_enabled": False,
+    # Neutral local data bridge for user-installed cosmetic tools. No renderer.
+    "skin_tools_enabled": False,
 }
 
 DIFFICULTIES = ("Low", "Medium", "High")
@@ -237,6 +252,11 @@ def _autofill(cfg: dict) -> dict:
 
 
 def _clean(cfg: dict) -> dict:
+    if cfg.get("skins_inventory_mode") not in ("career", "external"):
+        cfg["skins_inventory_mode"] = DEFAULTS["skins_inventory_mode"]
+    for key in ("skin_inspect_enabled", "skin_tools_enabled"):
+        if type(cfg.get(key)) is not bool:
+            cfg[key] = DEFAULTS[key]
     if cfg.get('match_chat') not in ('on', 'custom', 'off'):
         cfg['match_chat'] = 'on'
     if cfg.get("difficulty") not in DIFFICULTIES:
@@ -253,29 +273,67 @@ def _clean(cfg: dict) -> dict:
 
 
 def settings() -> dict:
+    # Reads must not rewrite an older snapshot while the skin HTTP thread is
+    # reading and the application thread switches inventory providers.
+    with _SETTINGS_LOCK:
+        return _read_settings()
+
+
+def _read_settings() -> dict:
     cfg = dict(DEFAULTS)
     if SETTINGS_PATH.exists():
         try:
             saved = json.loads(SETTINGS_PATH.read_text(encoding="utf-8-sig"))
             if isinstance(saved, dict):
                 cfg.update({k: v for k, v in saved.items() if v})
-        except ValueError:
-            pass
+        except ValueError as exc:
+            raise ValueError("CS2 设置文件不是有效 JSON；请修复 cs2.json，原文件未改动。") from exc
     _autofill(_clean(cfg))
-    SETTINGS_PATH.write_text(json.dumps(cfg, indent=2, ensure_ascii=False), encoding="utf-8")
     return cfg
 
 
 def save_settings(patch: dict) -> dict:
+    with _SETTINGS_LOCK:
+        return _save_settings(patch)
+
+
+def _write_settings(cfg: dict) -> None:
+    SETTINGS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    blob = json.dumps(cfg, indent=2, ensure_ascii=False).encode('utf-8')
+    handle, raw = tempfile.mkstemp(prefix='.cs2-settings-', suffix='.tmp', dir=SETTINGS_PATH.parent)
+    try:
+        with os.fdopen(handle, 'wb') as stream:
+            stream.write(blob)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(raw, SETTINGS_PATH)
+    finally:
+        if Path(raw).exists():
+            os.unlink(raw)
+
+
+def _save_settings(patch: dict) -> dict:
     cfg = settings()
     old_difficulty = cfg.get("difficulty")
     old_movement = cfg.get("bot_movement")
+    old_inventory_mode = cfg.get("skins_inventory_mode")
+    if "skins_inventory_mode" in patch and patch["skins_inventory_mode"] not in ("career", "external"):
+        raise ValueError("配装来源请选择生涯配装或外部插件配装。")
+    if "skin_inspect_enabled" in patch and type(patch["skin_inspect_enabled"]) is not bool:
+        raise ValueError("在线 3D 开关必须是布尔值。")
+    if "skin_tools_enabled" in patch and type(patch["skin_tools_enabled"]) is not bool:
+        raise ValueError("饰品扩展接口开关必须是布尔值。")
     if cs2_is_live():
+        if patch.get("skins_inventory_mode", cfg["skins_inventory_mode"]) != cfg["skins_inventory_mode"]:
+            raise ValueError("请完全退出 CS2 后再切换配装来源。")
         if patch.get("difficulty") and patch.get("difficulty") != cfg.get("difficulty"):
             raise ValueError("CS2 运行时不能修改难度。请完全退出游戏后再选择。")
         if patch.get("bot_movement") and patch.get("bot_movement") != cfg.get("bot_movement"):
             raise ValueError("CS2 运行时不能修改行为风格。请完全退出游戏后再选择。")
     for key, val in patch.items():
+        if key in ("skin_inspect_enabled", "skin_tools_enabled"):
+            cfg[key] = val
+            continue
         if key not in DEFAULTS or not val:
             continue
         if key == "csgo_path":
@@ -283,7 +341,16 @@ def save_settings(patch: dict) -> dict:
         else:
             cfg[key] = val
     _clean(cfg)
-    SETTINGS_PATH.write_text(json.dumps(cfg, indent=2, ensure_ascii=False), encoding="utf-8")
+    _write_settings(cfg)
+    if old_inventory_mode != cfg.get("skins_inventory_mode") and cfg.get("skins_inventory_mode") == "external":
+        csgo = resolve_csgo_path(cfg.get("csgo_path") or "")
+        if is_csgo_dir(csgo):
+            try:
+                # Apply the ownership switch now as well as during preparation:
+                # a player may next start CS2 directly from Steam.
+                _prepare_external_skins(csgo)
+            except (OSError, ValueError) as exc:
+                raise ValueError(f"外部配装设置已保存，但生涯桥停用失败：{exc}。请暂勿启动 CS2，关闭后重新准备比赛以重试。") from exc
     # A staged match is a generated artifact of the chosen difficulty. Rebuild
     # it immediately while CS2 is closed so UI selection and active VPK agree.
     if old_difficulty != cfg.get("difficulty") or old_movement != cfg.get("bot_movement"):
@@ -307,10 +374,35 @@ def save_settings(patch: dict) -> dict:
     return settings()
 
 
+def skin_integration(cfg: dict | None = None) -> dict:
+    """Public, non-account integration metadata for settings and item panels."""
+    error = ""
+    if cfg is None:
+        try:
+            cfg = settings()
+        except (OSError, ValueError) as exc:
+            # A broken optional game configuration must not hide the career
+            # shop. Game writes still use settings() directly and fail closed.
+            cfg = {"skins_inventory_mode": "unavailable", "skin_inspect_enabled": False}
+            error = str(exc)
+    result = {
+        "inventory_mode": cfg.get("skins_inventory_mode", "career"),
+        "inspect_enabled": cfg.get("skin_inspect_enabled") is True,
+        "plugin_url": "https://github.com/ianlucas/cs2-css-inventory-simulator/releases",
+        "web_url": "https://github.com/ianlucas/cs2-inventory-simulator",
+        "web_app_url": "https://inventory.cstrike.app",
+        "viewer_url": "https://3d.cstrike.app/view",
+    }
+    if error:
+        result['configuration_error'] = error
+    return result
+
+
 def persist_settings(cfg: dict) -> dict:
-    _clean(cfg)
-    SETTINGS_PATH.write_text(json.dumps(cfg, indent=2, ensure_ascii=False), encoding="utf-8")
-    return cfg
+    with _SETTINGS_LOCK:
+        _clean(cfg)
+        _write_settings(cfg)
+        return cfg
 
 
 def cs2_is_live() -> bool:
@@ -357,6 +449,27 @@ def _skins_pack(path: Path) -> bool:
     return bool(_skins_plugin_dir(path))
 
 
+def skins_inventory_mode(cfg: dict | None = None) -> str:
+    """Old settings keep the career loadout; external inventories stay user-owned."""
+    cfg = settings() if cfg is None else cfg
+    mode = cfg.get("skins_inventory_mode", "career")
+    return mode if mode in SKINS_INVENTORY_MODES else "career"
+
+
+def external_inventory_file(relative: str) -> bool:
+    """Files no career installer may copy over a user-managed skin integration."""
+    key = relative.replace("\\", "/").casefold()
+    parts = key.split("/")
+    return (
+        "inventorysimulator" in parts
+        or "invsimcareer" in parts
+        or parts[-1].startswith("inventory-simulator")
+        or parts[-1] == "invsim_career.cfg"
+        or parts[-1] in ("inventories.json", "inventorysimulator.dll", "inventorysimulator.deps.json", "invsimcareer.dll", "invsimcareer.deps.json")
+        or parts[-1].startswith("inventories.career")
+    )
+
+
 def _skins_plugin_dir(root: Path) -> Path | None:
     for cand in (
         root / "plugins" / "InventorySimulator",
@@ -368,9 +481,10 @@ def _skins_plugin_dir(root: Path) -> Path | None:
     return None
 
 
-def skins_gamedata_override() -> Path:
+def skins_gamedata_override(*, create: bool = True) -> Path:
     path = save_root() / "skins_gamedata" / "inventory-simulator.json"
-    path.parent.mkdir(parents=True, exist_ok=True)
+    if create:
+        path.parent.mkdir(parents=True, exist_ok=True)
     return path
 
 
@@ -460,7 +574,7 @@ def _gamedata_info(path: Path, source: str) -> dict:
 def gamedata_status(csgo: Path | None = None) -> dict:
     csgo = csgo or resolve_csgo_path(settings().get("csgo_path") or "")
     built = vendor_root() / "InventorySimulator" / "gamedata" / "inventory-simulator.json"
-    cache = skins_gamedata_override()
+    cache = skins_gamedata_override(create=False)
     game = csgo / "addons" / "counterstrikesharp" / "gamedata" / "inventory-simulator.json"
     return {"bundled": _gamedata_info(built, "bundled"), "cached": _gamedata_info(cache, "official-cache"),
             "installed": _gamedata_info(game, "game"), "pending_install": cache.is_file() and _sha256(cache) != _sha256(game)}
@@ -468,6 +582,12 @@ def gamedata_status(csgo: Path | None = None) -> dict:
 
 def update_skins_gamedata() -> dict:
     """Pull the author's latest function signatures. Does not replace the DLL."""
+    if skins_inventory_mode() == "external":
+        return {
+            "ok": False, "status": "external", "skins_inventory_mode": "external",
+            "msg": "外部配装由玩家自己的 Inventory Simulator 管理；本程序不会下载或替换其签名。",
+            "upstream_urls": dict(SKINS_UPSTREAM_URLS),
+        }
     dest = skins_gamedata_override()
     last_err: Exception | None = None
     blob = b""
@@ -520,7 +640,9 @@ def update_skins_gamedata() -> dict:
             "versions": gamedata_status()}
 
 
-def skins_wanted(career=None) -> bool:
+def skins_wanted(career=None, cfg: dict | None = None) -> bool:
+    if skins_inventory_mode(cfg) == "external":
+        return False
     if career is not None:
         return bool(getattr(career, "real_skins", False))
     path = save_file("career.json")
@@ -592,7 +714,10 @@ def restore_bot_randomizer(csgo: Path) -> int:
 
 def install_skins_plugin(csgo: Path, career=None) -> int:
     """Player skins are optional. Bot cosmetics must stay loaded either way."""
-    if skins_wanted(career):
+    cfg = settings()
+    if skins_inventory_mode(cfg) == "external":
+        copied = _prepare_external_skins(csgo)
+    elif skins_wanted(career, cfg):
         copied = _copy_skins_into(csgo)
     else:
         _remove_plugin(csgo, "InventorySimulator")
@@ -604,6 +729,8 @@ def install_skins_plugin(csgo: Path, career=None) -> int:
 
 
 def _copy_skins_into(csgo: Path) -> int:
+    if skins_inventory_mode() == "external":
+        return 0
     src = skins_plugin_src()
     plugin_src = _skins_plugin_dir(src)
     if plugin_src is None:
@@ -623,6 +750,47 @@ def _copy_skins_into(csgo: Path) -> int:
     return copied
 
 
+def _prepare_external_skins(csgo: Path) -> int:
+    """Retire only our bridge/exec hooks, preserving every external inventory file."""
+    require_cs2_closed("停用生涯换肤桥并切换外部配装")
+    changed = 0
+    bridge = _plugin_live(csgo, "InvsimCareer")
+    if bridge.is_dir():
+        parked = _plugin_parked(csgo, "InvsimCareer")
+        if parked.exists():
+            parked = parked.with_name(f"InvsimCareer.career-external-{time.time_ns()}")
+        parked.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(bridge), str(parked))
+        changed += 1
+    # These exact standalone lines were inserted by write_invsim_cfg. Do not
+    # remove a player's invsim commands, custom exec files, or exported data.
+    pattern = rb"(?mi)^[\t ]*exec[\t ]+invsim_career\.cfg[\t ]*(?:\r?\n|$)"
+    for name in ("listenserver.cfg", "server.cfg"):
+        path = csgo / "cfg" / name
+        if not path.is_file():
+            continue
+        original = path.read_bytes()
+        cleaned = re.sub(pattern, b"", original)
+        if cleaned == original:
+            continue
+        backup = path.with_name(path.name + ".career-external-backup")
+        if backup.exists() and backup.read_bytes() != original:
+            backup = backup.with_name(backup.name + f"-{time.time_ns()}")
+        if not backup.exists():
+            shutil.copy2(path, backup)
+        handle, pending = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+        try:
+            with os.fdopen(handle, "wb") as stream:
+                stream.write(cleaned)
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(pending, path)
+        finally:
+            Path(pending).unlink(missing_ok=True)
+        changed += 1
+    return changed
+
+
 def install_skins_mod(csgo: Path | None = None) -> dict:
     """Install the optional skin plugin. Needs Bot Improver / CSS already in game."""
     require_cs2_closed("把换肤插件装进游戏")
@@ -633,6 +801,16 @@ def install_skins_mod(csgo: Path | None = None) -> dict:
             f"csgo 目录对不上：{csgo}。请指到 ...\\Counter-Strike Global Offensive\\game\\csgo，"
             "或填 Steam 里那层游戏根目录，保存时会自动补上 game\\csgo。"
         )
+    if skins_inventory_mode(cfg) == "external":
+        files = _prepare_external_skins(csgo)
+        installed = (_plugin_live(csgo, "InventorySimulator") / "InventorySimulator.dll").is_file()
+        return {
+            "ok": True, "files": files, "skins_inventory_mode": "external",
+            "skins_installed": installed, "upstream_urls": dict(SKINS_UPSTREAM_URLS),
+            "msg": "已停用生涯换肤桥及其启动配置。外部 Inventory Simulator 由玩家自行安装配置；"
+                   "本程序未替换插件、签名或库存，也不保证任意版本兼容。"
+                   "此前被覆盖的外部配装不能自动恢复，请按上游说明重新配置。",
+        }
     if not css_installed(csgo):
         raise FileNotFoundError("请先把人机增强装进游戏，换肤插件挂在同一套 CounterStrikeSharp 上。")
     src = skins_plugin_src(cfg)
@@ -678,6 +856,8 @@ def mod_installed(csgo: Path) -> bool:
 def install_mod(csgo: Path | None = None, mod: Path | None = None) -> dict:
     """Copy only Bot Improver's runtime; career matches provide their own nine identities."""
     require_cs2_closed("把人机增强装进游戏")
+    from .. import tactics
+    tactical_playbook = tactics.load_library()  # Preflight before touching game files.
     cfg = settings()
     csgo = resolve_csgo_path(csgo or cfg["csgo_path"])
     mod = Path(mod or cfg["mod_source_path"])
@@ -692,9 +872,9 @@ def install_mod(csgo: Path | None = None, mod: Path | None = None) -> dict:
             "addons\\counterstrikesharp 和 overrides。"
         )
 
-    saved = csgo / "gameinfo.gi.career-backup"
-    if (csgo / "gameinfo.gi").is_file() and not saved.exists():
-        shutil.copy2(csgo / "gameinfo.gi", saved)
+    # Preserve the currently installed Valve layout; old complete mod templates
+    # can reference directories removed by a subsequent CS2 update.
+    ensure_gameinfo_mounts(csgo)
 
     files = 0
     for src in mod.rglob("*"):
@@ -702,6 +882,17 @@ def install_mod(csgo: Path | None = None, mod: Path | None = None) -> dict:
             continue
         rel = src.relative_to(mod)
         rel_key = "/".join(part.lower() for part in rel.parts)
+        if skins_inventory_mode(cfg) == "external" and external_inventory_file(rel_key):
+            continue
+        if skins_inventory_mode(cfg) == "external" and rel_key.startswith("cfg/"):
+            # Shared game cfgs can contain a player's invsim_url/file settings.
+            # Keep them rather than restoring the mod template over their edits.
+            if (csgo / rel).is_file() or re.search(rb"(?mi)^\s*invsim_", src.read_bytes()):
+                continue
+        if rel_key in ("gameinfo.gi", "gameinfo_branchspecific.gi") or (
+            rel_key.startswith("backup/") and src.name.lower().startswith("gameinfo")
+        ):
+            continue
         # The enhancement plugins are reused; neither its BotProfile roster nor
         # BotHider's thousands-of-players identity list belongs to career mode.
         if "overrides" in [part.lower() for part in rel.parts] and src.name.lower() in (
@@ -710,12 +901,17 @@ def install_mod(csgo: Path | None = None, mod: Path | None = None) -> dict:
             continue
         if rel_key == "addons/bothider/bot_info.json":
             continue
+        if rel_key == "addons/counterstrikesharp/plugins/careermatch/tactical_playbook.json":
+            continue  # Deploy only our separately validated local library.
         dst = csgo / rel
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dst)
         files += 1
     files += _copy_career_match(csgo, mod)
+    files += _deploy_tactical_playbook(csgo, tactical_playbook)
     files += _copy_botbuy_patch(csgo)
+    if skins_inventory_mode(cfg) == "external":
+        files += _prepare_external_skins(csgo)
     hook_competitive_cfg(csgo)
     apply_bothider_config(csgo, cfg["bot_identity"])
     return {
@@ -735,6 +931,8 @@ def status() -> dict:
     manifest = active_manifest(csgo) if csgo.is_dir() else {}
     applied = manifest.get("difficulty", "") if manifest.get("valid") else ""
     pending = bool(applied and cfg.get("difficulty") != applied)
+    inventory_mode = skins_inventory_mode(cfg)
+    skins_installed = csgo.is_dir() and (_plugin_live(csgo, "InventorySimulator") / "InventorySimulator.dll").is_file()
     process_difficulty = ""
     movement_style: dict = {}
     natural_runtime: dict = {}
@@ -793,9 +991,16 @@ def status() -> dict:
         "active_vpk_valid": bool(manifest.get("valid")),
         "active_vpk_error": manifest.get("error", ""),
         "skins_source_path": cfg.get("skins_source_path") or "",
-        "skins_ok": _skins_pack(skins_plugin_src(cfg)),
-        "skins_installed": csgo.is_dir()
-        and (_plugin_live(csgo, "InventorySimulator") / "InventorySimulator.dll").is_file(),
+        "skins_inventory_mode": inventory_mode,
+        "skins_inventory_mode_note": (
+            "外部配装由玩家自行安装配置；生涯库存保留，但不导出或覆盖外部配装。"
+            if inventory_mode == "external" else "使用生涯已装备饰品，由本程序同步游戏内换肤。"
+        ),
+        "skins_upstream_urls": dict(SKINS_UPSTREAM_URLS),
+        "skin_integration": skin_integration(cfg),
+        "skins_ok": skins_installed if inventory_mode == "external" else _skins_pack(skins_plugin_src(cfg)),
+        "skins_installed": skins_installed,
+        "skins_bridge_installed": csgo.is_dir() and (_plugin_live(csgo, "InvsimCareer") / "InvsimCareer.dll").is_file(),
         "gamedata": gamedata_status(csgo),
     }
 
@@ -869,7 +1074,8 @@ def steam_running() -> bool:
 
 def _pick_bots(roster: list[dict], want: int, used: set[str]) -> list[dict]:
     """Keep full career identity; the VPK generator assigns safe ASCII names."""
-    from ..world.ability import playing_ability
+    from ..world.ability import playing_ability, playing_stats
+    from ..arena_roles import tactical_abilities
     out: list[dict] = []
     for player in roster:
         if len(out) >= want:
@@ -887,12 +1093,15 @@ def _pick_bots(roster: list[dict], want: int, used: set[str]) -> list[dict]:
             "overall": ability,
             "form_delta": max(-10.0, min(10.0, float(form_delta))),
             "role": player.get("role") or "rifle",
-            "stats": dict(player.get("stats") or {}),
+            "stats": playing_stats(player),
+            "tactical_abilities": tactical_abilities(player),
         })
     return out
 
 
 def build_request(my_team: dict, opp: dict, player_name: str, map_code: str, side: str) -> dict:
+    from ..arena_roles import tactical_abilities
+    human = next((p for p in my_team['players'] if p['name'] == player_name), None)
     used = {player_name.lower()}
     mates = _pick_bots(my_team["players"], 4, used)
     enemies = _pick_bots(opp["players"], 5, used)
@@ -909,6 +1118,7 @@ def build_request(my_team: dict, opp: dict, player_name: str, map_code: str, sid
         "t": t,
         "player": player_name,
         "human_player_id": next((p.get('player_id') for p in my_team['players'] if p['name']==player_name),None) or stable_player_id(player_name),
+        "human_tactical_abilities": tactical_abilities(human or {"ability": 70}),
         # Always ask for a full 5v5 so the game backfills any name we dropped.
         "quota": 9,
         "nonce": uuid.uuid4().hex,
@@ -924,9 +1134,11 @@ def build_lobby_request(ct: dict, t: dict, human_id: str, map_code: str, nonce: 
     if human_id and human_id not in ids:
         raise ValueError('控制的选手必须在本场十人中')
     human = next((p for p in roster if p['player_id']==human_id),None)
+    from ..arena_roles import tactical_abilities
     request = dict(schema_version=2,active=True,map=map_code,nonce=nonce,observer=not bool(human_id),
         human_team=('ct' if human_id in [p['player_id'] for p in ct['players']] else 't') if human_id else 'spectator',
-        human_player_id=human_id,player=human['name'] if human else '',quota=9 if human else 10)
+        human_player_id=human_id,player=human['name'] if human else '',quota=9 if human else 10,
+        human_tactical_abilities=tactical_abilities(human) if human else {})
     for side,team in (('ct',ct),('t',t)):
         request[side]=dict(team_id=team['id'],name=team['name'],logo='',
             players=[_pick_bots([p],1,set())[0] for p in team['players'] if p['player_id']!=human_id])
@@ -990,6 +1202,8 @@ def invsim_lines(steam_id: str = "") -> list[str]:
 
 def write_invsim_cfg(csgo: Path | None = None, steam_id: str = "") -> None:
     """Point Inventory Simulator at the career file. Never write http:// here."""
+    if skins_inventory_mode() == "external":
+        return
     if csgo is None:
         csgo = Path(settings()["csgo_path"])
     if not csgo.is_dir():
@@ -1074,6 +1288,19 @@ def _copy_career_match(csgo: Path, mod_source: Path | None = None) -> int:
     src = career_match_src(mod_source)
     dst = plugin_dir(csgo)
     return _copy_verified_plugin(src, dst, "CareerMatch")
+
+
+def _deploy_tactical_playbook(csgo: Path, playbook: dict | None = None) -> int:
+    """Closed-game snapshot only; editor API writes never call this function."""
+    require_cs2_closed("部署地图战术库")
+    from .. import tactics
+    clean = tactics.load_library() if playbook is None else tactics.validate_library(playbook)
+    blob = tactics.encode_library(clean)
+    target = plugin_dir(csgo) / "tactical_playbook.json"
+    if target.is_file() and target.stat().st_size == len(blob) and target.read_bytes() == blob:
+        return 0
+    tactics.write_library(target, clean)
+    return 1
 
 
 def _copy_botbuy_patch(csgo: Path) -> int:
@@ -1276,9 +1503,13 @@ def prepare_game(
     from .profiles import expected_bot_count
     count = expected_bot_count(match)
     require_cs2_closed(f"生成并安装本场 {count} 人 BotProfile")
+    from .. import tactics
+    tactical_playbook = tactics.load_library(tactics.canonical_map(match["map"]))  # Validate the selected map before game writes.
     if not mod_installed(csgo):
         raise ValueError("游戏中缺少人机增强运行组件，请先在游戏设置安装人机增强。")
+    ensure_gameinfo_mounts(csgo)  # Preflight before generating/replacing match files.
     _copy_career_match(csgo, mod_source)
+    _deploy_tactical_playbook(csgo, tactical_playbook)
     _copy_botbuy_patch(csgo)
     match["bot_identity"] = opts["bot_identity"]
     from .natural_behavior import configure_match
@@ -1289,14 +1520,19 @@ def prepare_game(
     if not manifest.get("manifest_hash") or manifest.get("count") != count:
         raise ValueError("本场 BotProfile 清单校验失败，已阻止开赛")
     install_match_identities(csgo, match)
-    try:
-        n = install_skins_plugin(csgo, career)
-        if skins_wanted(career) and n:
-            from ..career import skins as skinmod
+    if skins_inventory_mode() == "external":
+        # Do not swallow a failed bridge/config retirement and let the career
+        # bridge seize the external user's configuration at the next boot.
+        install_skins_plugin(csgo, career)
+    else:
+        try:
+            n = install_skins_plugin(csgo, career)
+            if skins_wanted(career) and n:
+                from ..career import skins as skinmod
 
-            skinmod.sync_live(career)
-    except OSError:
-        pass
+                skinmod.sync_live(career)
+        except OSError:
+            pass
 
     dst = plugin_dir(csgo)
     dst.mkdir(parents=True, exist_ok=True)
@@ -1310,11 +1546,6 @@ def prepare_game(
     write_career_cfg(csgo, match, opts)
     hook_competitive_cfg(csgo)
     apply_bothider_config(csgo, opts["bot_identity"])
-
-    withbots = mod_source / "backup" / "WithBots" / "gameinfo.gi"
-    if withbots.exists():
-        shutil.copy2(withbots, csgo / "gameinfo.gi")
-
 
 def launch_cs2(steam_exe: str) -> None:
     exe = Path(steam_exe)

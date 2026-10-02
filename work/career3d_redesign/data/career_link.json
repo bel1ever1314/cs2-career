@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "repo_root": "../..",
+  "python": "python",
+  "data_dir": "runtime/career",
+  "real_seconds_per_game_minute": 1.0,
+  "start_hour": 8
+}

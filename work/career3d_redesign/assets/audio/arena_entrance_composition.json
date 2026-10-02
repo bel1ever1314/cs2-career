@@ -1,0 +1,40 @@
+{
+  "title": "Threshold / Original arena entrance",
+  "composer": "Original code-authored arrangement",
+  "bpm": 112,
+  "bars": 8,
+  "beat_seconds": 0.5357142857142857,
+  "cadence_seconds": 17.142857142857142,
+  "parts": {
+    "double_bass": 8,
+    "timpani": 16,
+    "bass_drum": 16,
+    "low_tom": 16,
+    "snare": 16,
+    "clap_layer": 16,
+    "cymbal": 3,
+    "string_ostinato": 64,
+    "horn_theme": 24,
+    "trombone_downbeat": 14,
+    "cello_ostinato": 48,
+    "high_string_pad": 18,
+    "drum_fill": 8,
+    "ride": 32,
+    "final_cadence": 6,
+    "final_bass": 1,
+    "final_timpani": 1,
+    "final_drum": 1,
+    "final_cymbal": 1
+  },
+  "external_recordings": false,
+  "license": "Original composition; GeneralUser GS soundfont instrument rendering",
+  "render": {
+    "sample_rate": 44100,
+    "channels": 2,
+    "duration_seconds": 20.442857142857143,
+    "pre_encode_peak": 0.87,
+    "rms_dbfs": -17.580619089616395,
+    "ogg": "arena_entrance.ogg",
+    "wav": "arena_entrance.wav"
+  }
+}

@@ -78,6 +78,7 @@
     '本场位置':'Match role',
     '选人完成后，按五位置能力自动分工；不改变生涯位置。':'After the draft, positions are assigned by role ability without changing career positions.',
     '双方已按位置适性分配五个不同位置。':'Both teams have five distinct positions assigned by role ability.',
+    '建立房间后按能力分配五个位置；不改变选手的生涯位置。':'Five positions are assigned by role ability when the lobby is created, without changing career positions.',
     '分配位置需要五名不同的选手':'Role assignment requires five distinct players.'
   });
   CareerI18n.register('en',{phrases:words});
@@ -116,7 +117,7 @@
       '<article class="arena-match-intro"><div class="arena-eyebrow">RANK / FPL <span>5 VS 5</span></div><h2>'+txt('本地天梯')+'</h2><p>'+txt('按分段匹配九名选手，队长选人后进入地图 BP。')+'</p><div class="arena-flow">'+['匹配完成','队长选人','地图 BP'].map((t,i)=>'<span>0'+(i+1)+' <b>'+txt(t)+'</b></span>').join('')+'</div>'+button('matchmake','开始匹配','',!p,'arena-find')+'<small>'+txt('选人完成后，按五位置能力自动分工；不改变生涯位置。')+'</small><small>'+txt('本地单机匹配，不连接线上服务；不影响生涯 VRS、资金或属性。')+'</small></article></div>';
   }
   function customHome() {
-    return '<article class="card"><h3>'+txt('挑选十人')+' · '+chosen.filter(Boolean).length+'/10</h3><p class="hint">'+txt('前五人是 A 队，后五人是 B 队。可以亲自参赛，也可以旁观十名 Bot。')+'</p><div class="arena-custom-slots">'+Array.from({length:10},(_,i)=>'<span>'+(i<5?'A':'B')+(i%5+1)+' '+(chosen[i]?person(chosen[i])+button('remove','×','data-id="'+esc(chosen[i])+'" aria-label="'+txt('移除')+'"'):'—')+'</span>').join('')+'</div><div class="arena-toolbar">'+button('recommend','推荐十人')+button('clear','清空名单')+button('create','建立房间','',chosen.filter(Boolean).length!==10,'primary')+'</div></article>'+playerPool();
+    return '<article class="card"><h3>'+txt('挑选十人')+' · '+chosen.filter(Boolean).length+'/10</h3><p class="hint">'+txt('前五人是 A 队，后五人是 B 队。可以亲自参赛，也可以旁观十名 Bot。')+'</p><p class="hint">'+txt('建立房间后按能力分配五个位置；不改变选手的生涯位置。')+'</p><div class="arena-custom-slots">'+Array.from({length:10},(_,i)=>'<span>'+(i<5?'A':'B')+(i%5+1)+' '+(chosen[i]?person(chosen[i])+button('remove','×','data-id="'+esc(chosen[i])+'" aria-label="'+txt('移除')+'"'):'—')+'</span>').join('')+'</div><div class="arena-toolbar">'+button('recommend','推荐十人')+button('clear','清空名单')+button('create','建立房间','',chosen.filter(Boolean).length!==10,'primary')+'</div></article>'+playerPool();
   }
   function phasePanel(l) {
     const turn=l.turn,humanTurn=turn?.human;

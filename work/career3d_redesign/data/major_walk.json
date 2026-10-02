@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "spawn": [0, 0.56, 56.8],
+  "eye_height": 1.34,
+  "walk_speed": 4.0,
+  "run_speed": 6.0,
+  "intro_seconds": 1.7,
+  "atmosphere": {
+    "master_volume": 0.7,
+    "muted": false,
+    "audio_source": "Original local synthesis; not venue recordings"
+  },
+  "points": [
+    {"id":"exit","position":[0,0.54,56.8],"range":2.0,"prompt":"E 返回俱乐部"},
+    {"id":"trophy","position":[0,0.5,1.7],"range":2.2,"prompt":"E 查看比赛与战报","text":"从入场通道走到这里，奖杯就在眼前。"},
+    {"id":"desk","position":[-5.96,1.66,-14.8],"range":2.1,"prompt":"E 坐进选手席 / 打开比赛","text":"通过手机查看本场比赛。"}
+  ]
+}

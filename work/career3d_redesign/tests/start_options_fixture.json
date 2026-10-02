@@ -1,0 +1,611 @@
+{
+  "2024": {
+    "ok": true,
+    "era": "2024",
+    "eras": [
+      {
+        "id": "2024",
+        "year": 2024,
+        "title": "魔童降世",
+        "blurb": "donk 横空出世，Copenhagen / Shanghai 双 Major 周期。",
+        "start": "2024-01-08"
+      },
+      {
+        "id": "2025",
+        "year": 2025,
+        "title": "新秩序",
+        "blurb": "上海 Major 落幕，转会窗口仍在继续。新赛季的王座，等待你来争夺。",
+        "start": "2025-01-08"
+      },
+      {
+        "id": "2026",
+        "year": 2026,
+        "title": "现代",
+        "blurb": "FURIA / Vitality / Falcons 开年领跑。",
+        "start": "2026-01-08"
+      }
+    ],
+    "origins": [
+      {
+        "id": "street",
+        "name": "路人开局",
+        "tagline": "钱多、人弱、成长空间最大",
+        "description": "你从天梯和小比赛里组队。个人能力最低，但资金最宽裕，并有 3 点自由属性点。",
+        "player_ability": 60,
+        "mate_min": 54,
+        "mate_max": 64,
+        "preferred_notes": [
+          "rank",
+          "vet"
+        ],
+        "club_money": 120000,
+        "pocket_money": 30000,
+        "attr_points": 3,
+        "command": 54,
+        "mentality": 58
+      },
+      {
+        "id": "academy",
+        "name": "青训开局",
+        "tagline": "阵容年轻、能力均衡",
+        "description": "一支有体系的年轻队。即战力和经营压力居中，并有 1 点自由属性点。",
+        "player_ability": 68,
+        "mate_min": 60,
+        "mate_max": 70,
+        "preferred_notes": [
+          "academy"
+        ],
+        "club_money": 90000,
+        "pocket_money": 35000,
+        "attr_points": 1,
+        "command": 62,
+        "mentality": 64
+      },
+      {
+        "id": "prodigy",
+        "name": "天才开局",
+        "tagline": "个人最强、队伍最难带",
+        "description": "你已经是被关注的天才，但队友和预算有限。开局能扛比赛，经营容错最低。",
+        "player_ability": 78,
+        "mate_min": 54,
+        "mate_max": 64,
+        "preferred_notes": [
+          "rank",
+          "academy"
+        ],
+        "club_money": 70000,
+        "pocket_money": 40000,
+        "attr_points": 0,
+        "command": 56,
+        "mentality": 66
+      }
+    ],
+    "regions": [
+      {
+        "id": "AS",
+        "name": "亚洲"
+      },
+      {
+        "id": "EU",
+        "name": "欧洲"
+      },
+      {
+        "id": "AM",
+        "name": "美洲"
+      }
+    ],
+    "roles": [
+      {
+        "id": "rifle",
+        "name": "步枪手"
+      },
+      {
+        "id": "awp",
+        "name": "主狙"
+      },
+      {
+        "id": "entry",
+        "name": "突破手"
+      },
+      {
+        "id": "lurk",
+        "name": "自由人"
+      },
+      {
+        "id": "igl",
+        "name": "指挥"
+      }
+    ],
+    "teams": [
+      {
+        "id": "vitality",
+        "name": "Vitality",
+        "region": "EU",
+        "players": [
+          {
+            "player_id": "p_apex_846be5fc54",
+            "name": "apEX",
+            "role": "igl",
+            "ability": 75
+          },
+          {
+            "player_id": "p_zywoo_fa09729072",
+            "name": "ZywOo",
+            "role": "awp",
+            "ability": 95
+          },
+          {
+            "player_id": "p_flamez_275850cf1e",
+            "name": "flameZ",
+            "role": "entry",
+            "ability": 83
+          },
+          {
+            "player_id": "p_spinx_38bb929782",
+            "name": "Spinx",
+            "role": "lurk",
+            "ability": 86
+          },
+          {
+            "player_id": "p_mezii_8a03ca669c",
+            "name": "mezii",
+            "role": "rifle",
+            "ability": 82
+          }
+        ]
+      },
+      {
+        "id": "faze",
+        "name": "FaZe",
+        "region": "EU",
+        "players": [
+          {
+            "player_id": "p_karrigan_5cd773ef49",
+            "name": "karrigan",
+            "role": "igl",
+            "ability": 74
+          },
+          {
+            "player_id": "p_rain_319b44c570",
+            "name": "rain",
+            "role": "entry",
+            "ability": 82
+          },
+          {
+            "player_id": "p_frozen_ffb304816a",
+            "name": "frozen",
+            "role": "rifle",
+            "ability": 86
+          },
+          {
+            "player_id": "p_ropz_020d68be71",
+            "name": "ropz",
+            "role": "lurk",
+            "ability": 89
+          },
+          {
+            "player_id": "p_broky_aab4928f16",
+            "name": "broky",
+            "role": "awp",
+            "ability": 84
+          }
+        ]
+      }
+    ],
+    "default_appearance": {
+      "body_color": "fff1d2",
+      "belly_color": "ffe3a3",
+      "beak_color": "efa147",
+      "comb_color": "d65a48",
+      "jersey_color": "2c4556",
+      "trim_color": "70b5a5",
+      "outfit": "jersey"
+    }
+  },
+  "2025": {
+    "ok": true,
+    "era": "2025",
+    "eras": [
+      {
+        "id": "2024",
+        "year": 2024,
+        "title": "魔童降世",
+        "blurb": "donk 横空出世，Copenhagen / Shanghai 双 Major 周期。",
+        "start": "2024-01-08"
+      },
+      {
+        "id": "2025",
+        "year": 2025,
+        "title": "新秩序",
+        "blurb": "上海 Major 落幕，转会窗口仍在继续。新赛季的王座，等待你来争夺。",
+        "start": "2025-01-08"
+      },
+      {
+        "id": "2026",
+        "year": 2026,
+        "title": "现代",
+        "blurb": "FURIA / Vitality / Falcons 开年领跑。",
+        "start": "2026-01-08"
+      }
+    ],
+    "origins": [
+      {
+        "id": "street",
+        "name": "路人开局",
+        "tagline": "钱多、人弱、成长空间最大",
+        "description": "你从天梯和小比赛里组队。个人能力最低，但资金最宽裕，并有 3 点自由属性点。",
+        "player_ability": 60,
+        "mate_min": 54,
+        "mate_max": 64,
+        "preferred_notes": [
+          "rank",
+          "vet"
+        ],
+        "club_money": 120000,
+        "pocket_money": 30000,
+        "attr_points": 3,
+        "command": 54,
+        "mentality": 58
+      },
+      {
+        "id": "academy",
+        "name": "青训开局",
+        "tagline": "阵容年轻、能力均衡",
+        "description": "一支有体系的年轻队。即战力和经营压力居中，并有 1 点自由属性点。",
+        "player_ability": 68,
+        "mate_min": 60,
+        "mate_max": 70,
+        "preferred_notes": [
+          "academy"
+        ],
+        "club_money": 90000,
+        "pocket_money": 35000,
+        "attr_points": 1,
+        "command": 62,
+        "mentality": 64
+      },
+      {
+        "id": "prodigy",
+        "name": "天才开局",
+        "tagline": "个人最强、队伍最难带",
+        "description": "你已经是被关注的天才，但队友和预算有限。开局能扛比赛，经营容错最低。",
+        "player_ability": 78,
+        "mate_min": 54,
+        "mate_max": 64,
+        "preferred_notes": [
+          "rank",
+          "academy"
+        ],
+        "club_money": 70000,
+        "pocket_money": 40000,
+        "attr_points": 0,
+        "command": 56,
+        "mentality": 66
+      }
+    ],
+    "regions": [
+      {
+        "id": "AS",
+        "name": "亚洲"
+      },
+      {
+        "id": "EU",
+        "name": "欧洲"
+      },
+      {
+        "id": "AM",
+        "name": "美洲"
+      }
+    ],
+    "roles": [
+      {
+        "id": "rifle",
+        "name": "步枪手"
+      },
+      {
+        "id": "awp",
+        "name": "主狙"
+      },
+      {
+        "id": "entry",
+        "name": "突破手"
+      },
+      {
+        "id": "lurk",
+        "name": "自由人"
+      },
+      {
+        "id": "igl",
+        "name": "指挥"
+      }
+    ],
+    "teams": [
+      {
+        "id": "spirit",
+        "name": "Spirit",
+        "region": "EU",
+        "players": [
+          {
+            "player_id": "p_chopper_5f0365c978",
+            "name": "chopper",
+            "role": "igl",
+            "ability": 76
+          },
+          {
+            "player_id": "p_sh1ro_f53da391ae",
+            "name": "sh1ro",
+            "role": "awp",
+            "ability": 91
+          },
+          {
+            "player_id": "p_donk_7b1c7d570e",
+            "name": "donk",
+            "role": "entry",
+            "ability": 95
+          },
+          {
+            "player_id": "p_magixx_078d26aba2",
+            "name": "magixx",
+            "role": "lurk",
+            "ability": 80
+          },
+          {
+            "player_id": "p_zont1x_cb059073b7",
+            "name": "zont1x",
+            "role": "rifle",
+            "ability": 84
+          }
+        ]
+      },
+      {
+        "id": "g2",
+        "name": "G2",
+        "region": "EU",
+        "players": [
+          {
+            "player_id": "p_snax_c478b53ff1",
+            "name": "Snax",
+            "role": "igl",
+            "ability": 74
+          },
+          {
+            "player_id": "p_m0nesy_9b4ba542ca",
+            "name": "m0NESY",
+            "role": "awp",
+            "ability": 93
+          },
+          {
+            "player_id": "p_malbsmd_05fa8c3faf",
+            "name": "malbsMd",
+            "role": "entry",
+            "ability": 81
+          },
+          {
+            "player_id": "p_hunter_e2fc1e5454",
+            "name": "huNter-",
+            "role": "lurk",
+            "ability": 82
+          },
+          {
+            "player_id": "p_g2_2025_slot5_fe8f091ad3",
+            "name": "G2 2025 slot5",
+            "role": "rifle",
+            "ability": 82
+          }
+        ]
+      }
+    ],
+    "default_appearance": {
+      "body_color": "fff1d2",
+      "belly_color": "ffe3a3",
+      "beak_color": "efa147",
+      "comb_color": "d65a48",
+      "jersey_color": "2c4556",
+      "trim_color": "70b5a5",
+      "outfit": "jersey"
+    }
+  },
+  "2026": {
+    "ok": true,
+    "era": "2026",
+    "eras": [
+      {
+        "id": "2024",
+        "year": 2024,
+        "title": "魔童降世",
+        "blurb": "donk 横空出世，Copenhagen / Shanghai 双 Major 周期。",
+        "start": "2024-01-08"
+      },
+      {
+        "id": "2025",
+        "year": 2025,
+        "title": "新秩序",
+        "blurb": "上海 Major 落幕，转会窗口仍在继续。新赛季的王座，等待你来争夺。",
+        "start": "2025-01-08"
+      },
+      {
+        "id": "2026",
+        "year": 2026,
+        "title": "现代",
+        "blurb": "FURIA / Vitality / Falcons 开年领跑。",
+        "start": "2026-01-08"
+      }
+    ],
+    "origins": [
+      {
+        "id": "street",
+        "name": "路人开局",
+        "tagline": "钱多、人弱、成长空间最大",
+        "description": "你从天梯和小比赛里组队。个人能力最低，但资金最宽裕，并有 3 点自由属性点。",
+        "player_ability": 60,
+        "mate_min": 54,
+        "mate_max": 64,
+        "preferred_notes": [
+          "rank",
+          "vet"
+        ],
+        "club_money": 120000,
+        "pocket_money": 30000,
+        "attr_points": 3,
+        "command": 54,
+        "mentality": 58
+      },
+      {
+        "id": "academy",
+        "name": "青训开局",
+        "tagline": "阵容年轻、能力均衡",
+        "description": "一支有体系的年轻队。即战力和经营压力居中，并有 1 点自由属性点。",
+        "player_ability": 68,
+        "mate_min": 60,
+        "mate_max": 70,
+        "preferred_notes": [
+          "academy"
+        ],
+        "club_money": 90000,
+        "pocket_money": 35000,
+        "attr_points": 1,
+        "command": 62,
+        "mentality": 64
+      },
+      {
+        "id": "prodigy",
+        "name": "天才开局",
+        "tagline": "个人最强、队伍最难带",
+        "description": "你已经是被关注的天才，但队友和预算有限。开局能扛比赛，经营容错最低。",
+        "player_ability": 78,
+        "mate_min": 54,
+        "mate_max": 64,
+        "preferred_notes": [
+          "rank",
+          "academy"
+        ],
+        "club_money": 70000,
+        "pocket_money": 40000,
+        "attr_points": 0,
+        "command": 56,
+        "mentality": 66
+      }
+    ],
+    "regions": [
+      {
+        "id": "AS",
+        "name": "亚洲"
+      },
+      {
+        "id": "EU",
+        "name": "欧洲"
+      },
+      {
+        "id": "AM",
+        "name": "美洲"
+      }
+    ],
+    "roles": [
+      {
+        "id": "rifle",
+        "name": "步枪手"
+      },
+      {
+        "id": "awp",
+        "name": "主狙"
+      },
+      {
+        "id": "entry",
+        "name": "突破手"
+      },
+      {
+        "id": "lurk",
+        "name": "自由人"
+      },
+      {
+        "id": "igl",
+        "name": "指挥"
+      }
+    ],
+    "teams": [
+      {
+        "id": "falcons",
+        "name": "Falcons",
+        "region": "EU",
+        "players": [
+          {
+            "player_id": "p_m0nesy_9b4ba542ca",
+            "name": "m0NESY",
+            "role": "awp",
+            "ability": 94
+          },
+          {
+            "player_id": "p_niko_3e2d7ad3c4",
+            "name": "NiKo",
+            "role": "entry",
+            "ability": 86
+          },
+          {
+            "player_id": "p_kyousuke_90ae3096fd",
+            "name": "kyousuke",
+            "role": "entry",
+            "ability": 94
+          },
+          {
+            "player_id": "p_teses_ca16bea091",
+            "name": "TeSeS",
+            "role": "entry",
+            "ability": 81
+          },
+          {
+            "player_id": "p_karrigan_5cd773ef49",
+            "name": "karrigan",
+            "role": "igl",
+            "ability": 76
+          }
+        ]
+      },
+      {
+        "id": "vitality",
+        "name": "Vitality",
+        "region": "EU",
+        "players": [
+          {
+            "player_id": "p_zywoo_fa09729072",
+            "name": "ZywOo",
+            "role": "awp",
+            "ability": 98
+          },
+          {
+            "player_id": "p_ropz_020d68be71",
+            "name": "ropz",
+            "role": "lurk",
+            "ability": 89.8
+          },
+          {
+            "player_id": "p_flamez_275850cf1e",
+            "name": "flameZ",
+            "role": "entry",
+            "ability": 85
+          },
+          {
+            "player_id": "p_mezii_8a03ca669c",
+            "name": "mezii",
+            "role": "rifle",
+            "ability": 78
+          },
+          {
+            "player_id": "p_apex_846be5fc54",
+            "name": "apEX",
+            "role": "igl",
+            "ability": 80
+          }
+        ]
+      }
+    ],
+    "default_appearance": {
+      "body_color": "fff1d2",
+      "belly_color": "ffe3a3",
+      "beak_color": "efa147",
+      "comb_color": "d65a48",
+      "jersey_color": "2c4556",
+      "trim_color": "70b5a5",
+      "outfit": "jersey"
+    }
+  }
+}

@@ -1,10 +1,10 @@
 /* Render real page modules with inert DOM/commands; no save or game IO. */
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
 const root=path.join(__dirname,'../cs2career/web/static');
-const ui={pages:{},head:t=>`<h2>${t}</h2>`,link:(_k,_id,t)=>t,empty:t=>t};
+const ui={pages:{},head:t=>`<h2>${t}</h2>`,link:(_k,_id,t)=>t,empty:t=>t,paint:(host,html)=>host.innerHTML=html};
 const S={design_preview:true,career:{ops:{wages:[]},skins:{inventory:[],market:[],weapons:[],cases:[],pending:{name:'Saved drop',rarity:'covert',wear:.1,spot:100,sell:90,weapon:'AK'}},loan:{},pocket:1000}};
 const host=()=>({innerHTML:'',querySelectorAll:()=>[]});
-const sandbox={CareerUI:ui,S,get:async()=>({}),$:()=>null,PLAY:{},document:{addEventListener:()=>{}},
+const sandbox={CareerUI:ui,S,get:async()=>({}),$:id=>id==='match-chat'?{value:'custom'}:null,PLAY:{},document:{addEventListener:()=>{}},
   esc:String,money:String,financeCard:t=>`<div>${t}</div>`,bindBotSettings:()=>{},bindSkinPref:()=>{},botSettingsCard:()=>'<div>Bot配置</div>',
   rarityRank:()=>0,localStorage:{getItem:()=>null}};
 for(const name of ['economy','settings','collection'])vm.runInNewContext(fs.readFileSync(path.join(root,`desk/${name}.js`),'utf8'),sandbox);

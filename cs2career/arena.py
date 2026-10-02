@@ -71,7 +71,7 @@ class Arena:
 
     @property
     def pending(self):
-        return (self.data['lobby'] or {}).get('phase') in ('starting', 'launched')
+        return (self.data['lobby'] or {}).get('phase') in ('starting', 'launched', 'rts')
 
     def save(self):
         self.path.parent.mkdir(parents=True,exist_ok=True)
@@ -221,9 +221,11 @@ class Arena:
         if human and human not in ids:raise ValueError('控制角色必须在十人名单里')
         scores={p['player_id']:p for p in self.catalog(state,mode)}
         ordered=sorted(ids,key=lambda p:captain_key(scores[p]))
-        self.data['lobby']=dict(id=uuid.uuid4().hex,mode=mode,phase='ready',
+        lobby=dict(id=uuid.uuid4().hex,mode=mode,phase='ready',
             roster={pid:pool[pid] for pid in ids},selection=ids,human_id=human,map='dust2',ct='a',
             captains=ordered[:2],a=ids[:5],b=ids[5:],picks=[],ratings={pid:scores[pid]['elo'] for pid in ids})
+        assign_lobby_positions(lobby)
+        self.data['lobby']=lobby
         self._commit()
 
     @staticmethod
@@ -327,9 +329,9 @@ class Arena:
         if self._career_pending(state):raise ValueError('请先完成或处理生涯中待回传的 CS2 比赛')
         from .cs2 import launch
         launch.require_cs2_closed('启动本地天梯或观察者比赛')
-        # Upgrade only unlaunched ranked rooms. Existing nonce/requests/results
+        # Upgrade only unlaunched rooms. Existing nonce/requests/results
         # must retain their original role and identity snapshots for ingestion.
-        if l['phase']=='ready' and l['mode'] in ('rank','fpl') and l.get('role_assignment_version') != ASSIGNMENT_VERSION:
+        if l['phase']=='ready' and l['mode'] in ('rank','fpl','custom') and l.get('role_assignment_version') != ASSIGNMENT_VERSION:
             assign_lobby_positions(l)
         teams={side:dict(id='arena-'+side,name='Team '+side.upper(),players=[l['roster'][p] for p in l[side]]) for side in ('a','b')}
         ct=teams[l['ct']];t=teams['b' if l['ct']=='a' else 'a']
@@ -364,6 +366,26 @@ class Arena:
         session.update(side='ct' if l['ct']=='a' else 't',my_team='Team A',opp='Team B',
             role_by_id={pid:p.get('role','rifle') for pid,p in l['roster'].items()})
         mp=cs2_to_map(result,session,teams['a'],teams['b'],'')
+        return self._settle_map(mp, result.get('ended_at'), 'cs2')
+
+    def ingest_rts(self, body, mp, ended_at):
+        """Settle a validated RTS ledger without pretending it came from CS2."""
+        self._guard(body.get('revision'))
+        lobby = self.data.get('lobby') or {}
+        if lobby.get('phase') != 'rts' or not lobby.get('rts_session'):
+            raise ValueError('没有等待结算的 RTS 天梯。')
+        if body.get('nonce') != lobby['rts_session']['nonce'] or mp.get('source') != 'rts':
+            raise ValueError('RTS 对局身份不一致，未计分。')
+        expected = {side: set(lobby[side]) for side in ('a', 'b')}
+        for side in ('a', 'b'):
+            rows = mp.get('players', {}).get('Team ' + side.upper(), [])
+            if len(rows) != 5 or {p.get('player_id') for p in rows} != expected[side]:
+                raise ValueError('RTS 天梯名单与开局不一致。')
+        return self._settle_map(mp, ended_at, 'rts')
+
+    def _settle_map(self, mp, ended_at, source):
+        l = self.data['lobby']
+        teams = {side: dict(name='Team ' + side.upper()) for side in ('a', 'b')}
         won='a' if mp['winner']=='Team A' else 'b'
         updated=deepcopy(self.data)
         l=updated['lobby']
@@ -381,10 +403,11 @@ class Arena:
                     stats=next(p for p in mp['players'][teams[side]['name']] if p['player_id']==pid)
                     row['recent']=(row['recent']+[{**stats,'rounds':mp['rounds']}])[-10:]
                     row['name']=l['roster'][pid]['name'];changes[pid]=change
-        record=dict(id=l['id'],nonce=l['nonce'],date=result.get('ended_at'),mode=l['mode'],map=mp,
+        record=dict(id=l['id'],nonce=l['nonce'],date=ended_at,mode=l['mode'],map=mp,source=source,
             human_id=l['human_id'],winner=won,changes=changes)
         updated['matches'].append(record)
         l.update(phase='finished',result=record)
+        l.pop('rts_session', None)
         self.data=updated
         self._commit()
         return '本场战绩已保存' if l['mode']=='custom' else '本场战绩与本地天梯积分已保存'

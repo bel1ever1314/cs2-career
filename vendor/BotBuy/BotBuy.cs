@@ -11,23 +11,129 @@ using System.Linq;
 
 namespace BotBuyPatch;
 
-public sealed class BotBuyPatch : BasePlugin
+public sealed partial class BotBuyPatch : BasePlugin
 {
     public override string ModuleName        => "BotBuyPatch";
-    public override string ModuleVersion => "1.0.12-career.1";
+    public override string ModuleVersion => "1.0.12-career.3";
     public override string ModuleAuthor      => "ed0ard";
     public override string ModuleDescription => "Enable bots to take more buy options";
 
-    private bool IsCareerMatch()
+    private bool _careerActive, _purchasePhase;
+    private int _roundGeneration;
+    private string _roundMap = "";
+    private readonly Dictionary<ulong, string> _careerRoles = new();
+    private readonly Dictionary<int, uint> _roundPawns = new();
+    private readonly Dictionary<int, HashSet<uint>> _roundStartWeapons = new();
+    private readonly Dictionary<int, Dictionary<string, uint>> _purchasedWeapons = new();
+
+    // Read once per round, not once per item. Synthetic Steam IDs from the
+    // generated match request survive BotHider renaming; nicknames never bind jobs.
+    private void RefreshCareerContext()
     {
+        _careerActive = false; _careerRoles.Clear(); _careerSides.Clear(); _careerNonce = "";
         try
         {
             var path = System.IO.Path.Combine(ModuleDirectory, "..", "CareerMatch", "match_request.json");
-            if (!System.IO.File.Exists(path)) return false;
+            if (!System.IO.File.Exists(path)) return;
             using var doc = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(path));
-            return doc.RootElement.TryGetProperty("active", out var active) && active.GetBoolean();
+            var root = doc.RootElement;
+            _careerActive = root.TryGetProperty("active", out var active) && active.GetBoolean();
+            if (!_careerActive) return;
+            if (!root.TryGetProperty("map", out var map) || map.GetString() != Server.MapName)
+            { _careerActive = false; return; } // A leftover request is not a match on another map.
+            _careerNonce = root.TryGetProperty("nonce", out var nonce) ? nonce.GetString() ?? "" : "";
+            foreach (var side in new[] { "ct", "t" })
+            {
+                if (!root.TryGetProperty(side, out var team) || !team.TryGetProperty("players", out var players)) continue;
+                foreach (var bot in players.EnumerateArray())
+                {
+                    if (!bot.TryGetProperty("steam_id", out var steam) || !steam.TryGetUInt64(out var id) || id == 0) continue;
+                    var role = bot.TryGetProperty("role", out var job) ? job.GetString() ?? "" : "";
+                    if (!_careerRoles.TryAdd(id, role))
+                    { _careerRoles.Clear(); _careerSides.Clear(); _careerActive = false; return; }
+                    _careerSides.Add(id, side);
+                }
+            }
+        }
+        catch { _careerRoles.Clear(); _careerSides.Clear(); _careerActive = false; }
+    }
+
+    private bool IsCareerMatch() => _careerActive;
+
+    private string CareerRole(CCSPlayerController player) => _careerRoles.GetValueOrDefault(player.SteamID, "");
+
+    private bool IsKnownBot(CCSPlayerController player) => player.IsValid
+        && (player.IsBot || _careerRoles.ContainsKey(player.SteamID));
+
+    private bool CanModify(CCSPlayerController player)
+    {
+        try
+        {
+            if (!player.IsValid) return false;
+            var pawn = player.PlayerPawn.Value;
+            if (pawn is null || !pawn.IsValid) return false;
+            var original = player.OriginalControllerOfCurrentPawn.Value;
+            bool requestBot = _careerRoles.ContainsKey(player.SteamID) && pawn.Bot is not null;
+            if (_careerActive && (!_purchasePhase || !requestBot
+                || !_roundPawns.TryGetValue(player.Slot, out var expected) || expected != pawn.EntityHandle.Raw)) return false;
+            return CareerWeaponPolicy.CanModify(true, player.IsBot, requestBot, player.ControllingBot,
+                player.HasBeenControlledByPlayerThisRound, original is null || original.Handle == player.Handle,
+                pawn.Health > 0);
         }
         catch { return false; }
+    }
+
+    private void AddRoundTimer(float seconds, Action callback)
+    {
+        var round = _roundGeneration; var map = _roundMap;
+        AddTimer(seconds, () =>
+        {
+            if (round != _roundGeneration || map != Server.MapName || (_careerActive && !_purchasePhase)) return;
+            callback();
+        }, TimerFlags.STOP_ON_MAPCHANGE);
+    }
+
+    [GameEventHandler]
+    public HookResult OnItemPurchase(EventItemPurchase ev, GameEventInfo info)
+    {
+        var player = ev.Userid;
+        var weapon = ev.Weapon.StartsWith("weapon_") ? ev.Weapon : "weapon_" + ev.Weapon;
+        if (!_careerActive || player is null || !CanModify(player)
+            || CareerTactics.TacticalBuyPolicy.PrimaryPrice(weapon) == 0) return HookResult.Continue;
+        var generation = _roundGeneration; var pawn = player.PlayerPawn.Value!.EntityHandle.Raw;
+        Server.NextFrame(() =>
+        {
+            if (generation != _roundGeneration || !CanModify(player)
+                || player.PlayerPawn.Value?.EntityHandle.Raw != pawn) return;
+            var weapons = player.PlayerPawn.Value!.WeaponServices?.MyWeapons
+                .Select(h => h.Value).Where(w => w is { IsValid: true } && w.DesignerName == weapon).ToArray();
+            if (weapons is not { Length: 1 }) return;
+            var entity = weapons[0]!.EntityHandle.Raw;
+            if (!_roundStartWeapons.TryGetValue(player.Slot, out var old) || old.Contains(entity)) return;
+            if (!_purchasedWeapons.TryGetValue(player.Slot, out var bought))
+                _purchasedWeapons[player.Slot] = bought = new();
+            bought[weapon] = entity;
+            NormalizePurchasedWeapons(player);
+            ApplyTacticalPurchase(player);
+        });
+        return HookResult.Continue;
+    }
+
+    private void NormalizePurchasedWeapons(CCSPlayerController player)
+    {
+        if (!CanModify(player) || !_purchasedWeapons.TryGetValue(player.Slot, out var purchases)
+            || !_roundStartWeapons.TryGetValue(player.Slot, out var old)) return;
+        foreach (var purchase in purchases.ToArray())
+        {
+            var weapons = player.PlayerPawn.Value!.WeaponServices?.MyWeapons.Select(h => h.Value)
+                .Where(w => w is { IsValid: true } && w.DesignerName == purchase.Key).ToArray();
+            if (weapons is not { Length: 1 }) continue;
+            var entity = weapons[0]!.EntityHandle.Raw;
+            if (!CareerWeaponPolicy.ShouldReplacePurchase(_careerActive, CanModify(player), _purchasePhase,
+                purchase.Key, entity, purchase.Value, old.Contains(entity), weapons.Length, CanRefund(player, purchase.Key))) continue;
+            Swap(player, purchase.Key, CareerWeaponPolicy.Rifle(player.Team == CsTeam.CounterTerrorist,
+                player.SteamID % 2 == 0 ? .25f : .75f));
+        }
     }
 
     private Dictionary<int, int> _botUserIdToIndex = new();
@@ -59,7 +165,7 @@ public sealed class BotBuyPatch : BasePlugin
     public HookResult OnPlayerDeath(EventPlayerDeath @event, GameEventInfo info)
     {
         var player = @event.Userid;
-        if (player != null && player.IsValid && player.IsBot)
+        if (player != null && IsKnownBot(player))
         {
             ClearPreviousInventory(player);
         }
@@ -70,6 +176,9 @@ public sealed class BotBuyPatch : BasePlugin
     public HookResult OnRoundEnd(EventRoundEnd @event, GameEventInfo info)
     {
         SavePreviousInventory();
+        _purchasePhase = false;
+        _tacticalDuties.Clear();
+        _roundGeneration++;
 
         return HookResult.Continue;
     }
@@ -77,6 +186,8 @@ public sealed class BotBuyPatch : BasePlugin
     [GameEventHandler]
     public HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)
     {
+        _roundGeneration++; _roundMap = Server.MapName; _purchasePhase = true; _tacticalDuties.Clear();
+        RefreshCareerContext(); _roundPawns.Clear(); _roundStartWeapons.Clear(); _purchasedWeapons.Clear();
         // Don't Buy on Aim_Rush
         if (Server.MapName == "aim_rush") return HookResult.Continue;
 
@@ -91,6 +202,15 @@ public sealed class BotBuyPatch : BasePlugin
             if (!player.IsValid) continue;  
             allPlayers.Add(player);
 
+            var roundPawn = player.PlayerPawn.Value;
+            if (roundPawn is { IsValid: true })
+            {
+                _roundPawns[player.Slot] = roundPawn.EntityHandle.Raw;
+                _roundStartWeapons[player.Slot] = roundPawn.WeaponServices?.MyWeapons
+                    .Select(h => h.Value).Where(w => w is { IsValid: true })
+                    .Select(w => w!.EntityHandle.Raw).ToHashSet() ?? new();
+            }
+
             if (player.Team == CsTeam.CounterTerrorist)
             {
                 allCT.Add(player);
@@ -101,6 +221,12 @@ public sealed class BotBuyPatch : BasePlugin
                 allT.Add(player);
                 if (player.IsBot) tBots.Add(player);
             }
+        }
+        if (_careerActive)
+        {
+            allPlayers = allPlayers.Where(CanModify).ToList();
+            allCT = allCT.Where(CanModify).ToList(); allT = allT.Where(CanModify).ToList();
+            ctBots = allCT.ToList(); tBots = allT.ToList();
         }
         // Drop Weapons
         _poorPlayersByTeam.Clear();
@@ -115,7 +241,7 @@ public sealed class BotBuyPatch : BasePlugin
             return HookResult.Continue;
         }
         // Swap HKP2000
-        foreach (var player in allPlayers.Where(p => p.IsValid && p.IsBot))
+        foreach (var player in allPlayers.Where(CanModify))
         {
             // Swap HKP2000
             if (Random.Shared.NextSingle() < 0.8f)
@@ -129,7 +255,7 @@ public sealed class BotBuyPatch : BasePlugin
 
         bool allTInRange = tBots.Count > 0 && tBots.All(p =>
             p.InGameMoneyServices != null && p.InGameMoneyServices.Account > 1000 && p.InGameMoneyServices.Account < 2800);
-        AddTimer(0.4f, () =>
+        AddRoundTimer(0.4f, () =>
         {
             if (allCtInRange)
             {
@@ -165,7 +291,7 @@ public sealed class BotBuyPatch : BasePlugin
             }
         });
         // Don't buy if we have scar20/g3sg1
-        foreach (var player in allPlayers.Where(p => p.IsValid && p.IsBot))
+        foreach (var player in allPlayers.Where(CanModify))
         {
             var pawn = player.PlayerPawn.Value;
             if (pawn == null || !pawn.IsValid || pawn.WeaponServices == null) continue;
@@ -177,9 +303,9 @@ public sealed class BotBuyPatch : BasePlugin
             if (initialGun != "weapon_scar20" && initialGun != "weapon_g3sg1") continue;
 
             var copyPlayer = player;
-            AddTimer(0.5f, () =>
+            AddRoundTimer(0.5f, () =>
             {
-                if (!copyPlayer.IsValid) return;
+                if (!CanModify(copyPlayer)) return;
                 var p2 = copyPlayer.PlayerPawn.Value;
                 if (p2 == null || !p2.IsValid || p2.WeaponServices == null) return;
 
@@ -194,8 +320,11 @@ public sealed class BotBuyPatch : BasePlugin
             });
         }
         // Swap AUG
-        foreach (var player in allPlayers.Where(p => p.IsValid && p.IsBot))
+        foreach (var player in allPlayers.Where(CanModify))
         {
+            // Career normalization requires evidence of this round's purchase.
+            // A picked-up or carried AUG must not be stripped/refunded by name.
+            if (_careerActive) continue;
             var copyPlayer = player;
             float rand = Random.Shared.NextSingle();
 
@@ -204,27 +333,27 @@ public sealed class BotBuyPatch : BasePlugin
             }
             else if (rand < 0.53f)
             {
-                AddTimer(0.4f, () =>
+                AddRoundTimer(0.4f, () =>
                 {
-                    if (!copyPlayer.IsValid) return;
+                    if (!CanModify(copyPlayer)) return;
                     Swap(copyPlayer, "weapon_aug", "weapon_m4a1");
                 });
             }
             else
             {
-                AddTimer(0.4f, () =>
+                AddRoundTimer(0.4f, () =>
                 {
-                    if (!copyPlayer.IsValid) return;
+                    if (!CanModify(copyPlayer)) return;
                     Swap(copyPlayer, "weapon_aug", "weapon_m4a1_silencer");
                 });
             }
         }
         // Swap P90
-        AddTimer(0.4f, () =>
+        AddRoundTimer(0.4f, () =>
         {
             foreach (var p in allPlayers)
             {
-                if (!p.IsValid) continue;
+                if (!CanModify(p)) continue;
                 var pawn = p.PlayerPawn.Value;
                 if (pawn == null || !pawn.IsValid || pawn.WeaponServices == null) continue;
 
@@ -239,11 +368,11 @@ public sealed class BotBuyPatch : BasePlugin
             }
         });
         // Swap XM1014
-        AddTimer(0.4f, () =>
+        AddRoundTimer(0.4f, () =>
         {
             foreach (var p in allPlayers)
             {
-                if (!p.IsValid) continue;
+                if (!CanModify(p)) continue;
                 var pawn = p.PlayerPawn.Value;
                 if (pawn == null || !pawn.IsValid || pawn.WeaponServices == null) continue;
 
@@ -266,12 +395,12 @@ public sealed class BotBuyPatch : BasePlugin
             }
         });
         // Swap SSG08 (disabled only for active career requests: preserve the AWP role)
-        AddTimer(0.4f, () =>
+        AddRoundTimer(0.4f, () =>
         {
             if (IsCareerMatch() || ConVar.Find("sv_gravity")?.GetPrimitiveValue<float>() == 230f) return;
             foreach (var p in allPlayers)
             {
-                if (!p.IsValid) continue;
+                if (!CanModify(p)) continue;
                 var pawn = p.PlayerPawn.Value;
                 if (pawn == null || !pawn.IsValid || pawn.WeaponServices == null) continue;
 
@@ -303,13 +432,14 @@ public sealed class BotBuyPatch : BasePlugin
             }
         });
         // Big Advantage
-        AddTimer(0.6f, () =>
+        AddRoundTimer(0.6f, () =>
         {
+            if (_careerActive) return; // Preserve career jobs and ordinary full buys.
             if (!IsFirstRoundOfHalf())  
             {
                 foreach (var p in allPlayers)
             {
-                if (!p.IsValid) continue;
+                if (!CanModify(p)) continue;
                     if (p.InGameMoneyServices == null || p.InGameMoneyServices.Account < 5200)
                         continue;
 
@@ -344,11 +474,11 @@ public sealed class BotBuyPatch : BasePlugin
             }
         });
         // Buy Defuser
-        AddTimer(3.0f, () =>
+        AddRoundTimer(3.0f, () =>
         {
             foreach (var p in allCT)
             {
-                if (!p.IsValid) continue;
+                if (!CanModify(p)) continue;
                 if (p.InGameMoneyServices == null) continue;
 
                 bool isPoor = _poorPlayersByTeam[CsTeam.CounterTerrorist].Contains(p);
@@ -371,13 +501,13 @@ public sealed class BotBuyPatch : BasePlugin
             }
         });
         // Don't buy Armor if it's above 40
-        AddTimer(1.0f, () =>
+        AddRoundTimer(1.0f, () =>
         {
             if (!IsFirstRoundOfHalf())  
             {
                 foreach (var p in allPlayers)
             {
-                if (!p.IsValid) continue;
+                if (!CanModify(p)) continue;
                     if (!p.IsValid || p.PlayerPawn.Value == null) continue;
 
                     var pawn = p.PlayerPawn.Value;
@@ -401,13 +531,13 @@ public sealed class BotBuyPatch : BasePlugin
             }
         });
         // Special Rounds Buy Assistant
-        AddTimer(0.4f, () =>
+        AddRoundTimer(0.4f, () =>
         {
             if (IsFirstRoundOfHalf())
             {
                 foreach (var p in allPlayers)
             {
-                if (!p.IsValid) continue;
+                if (!CanModify(p)) continue;
                     if (!p.IsValid || p.InGameMoneyServices == null) continue;
                     int money = p.InGameMoneyServices.Account;
                     float r = Random.Shared.NextSingle();
@@ -461,26 +591,14 @@ public sealed class BotBuyPatch : BasePlugin
                     else if (money == 10000)
                     {
                         Buy(p, "item_assaultsuit");
-
-                        if (p.Team == CsTeam.CounterTerrorist)
-                        {
-                            if (r < 0.35f)  Buy(p, "weapon_m4a1");
-                            else if (r < 0.70f) Buy(p, "weapon_m4a1_silencer");
-                            else if (r < 0.90f) Buy(p, "weapon_awp");
-                            else if (r < 1.00f) Buy(p, "weapon_scar20");
-                        }
-                        else
-                        {
-                            if (r < 0.70f)  Buy(p, "weapon_ak47");
-                            else if (r < 0.90f) Buy(p, "weapon_awp");
-                            else if (r < 1.00f) Buy(p, "weapon_g3sg1");
-                        }
+                        Buy(p, CareerWeaponPolicy.OvertimeWeapon(_careerActive, PurchaseRole(p),
+                            p.Team == CsTeam.CounterTerrorist, r));
                     }
                 }
             }
         });
         // Drop Weapons
-        AddTimer(2.0f, () =>
+        AddRoundTimer(2.0f, () =>
         {
             if (!IsFirstRoundOfHalf())  
             {
@@ -488,9 +606,10 @@ public sealed class BotBuyPatch : BasePlugin
                 {
                     if (!_poorPlayersByTeam.TryGetValue(team, out var poor))
                         poor = new List<CCSPlayerController>();
-                    poor = poor.Where(p => p.IsValid && p.InGameMoneyServices != null).ToList();
+                    poor = poor.Where(p => p.IsValid && p.InGameMoneyServices != null
+                        && (!_careerActive || CanModify(p))).ToList();
 
-                    var richBots = allPlayers.Where(p => p.IsValid && p.Team == team && p.IsBot && p.InGameMoneyServices?.Account >= 2900).ToList();
+                    var richBots = allPlayers.Where(p => CanModify(p) && p.Team == team && p.InGameMoneyServices?.Account >= 2900).ToList();
 
                     if (poor.Count == 0 || richBots.Count == 0) continue;
 
@@ -502,7 +621,7 @@ public sealed class BotBuyPatch : BasePlugin
                     foreach (var rich in richBots)
                     {
                         if (poorIndex >= shuffledPoor.Count) break;
-                        if (rich.InGameMoneyServices == null) continue;
+                        if (!CanModify(rich) || rich.InGameMoneyServices == null) continue;
 
                         int richMoney = rich.InGameMoneyServices.Account;
                         int price = team == CsTeam.CounterTerrorist ? 2900 : 2700;
@@ -517,7 +636,8 @@ public sealed class BotBuyPatch : BasePlugin
                             var poorPlayer = shuffledPoor[poorIndex];
                             poorIndex++;
 
-                            if (!poorPlayer.IsValid || giftedPoor.Contains(poorPlayer)) continue;
+                            if (!poorPlayer.IsValid || giftedPoor.Contains(poorPlayer)
+                                || (_careerActive && !CanModify(poorPlayer))) continue;
 
                             string gun = team == CsTeam.CounterTerrorist
                                 ? (Random.Shared.Next(2) == 0 ? "weapon_m4a1_silencer" : "weapon_m4a1")
@@ -538,7 +658,7 @@ public sealed class BotBuyPatch : BasePlugin
             }
         });
         // Armor Gift Cycle: richest non-poor bot buys armor for a random unarmored teammate
-        AddTimer(2.5f, () =>
+        AddRoundTimer(2.5f, () =>
         {
             foreach (var team in new[] { CsTeam.CounterTerrorist, CsTeam.Terrorist })
             {
@@ -548,7 +668,7 @@ public sealed class BotBuyPatch : BasePlugin
                 while (true)
                 {
                     var needArmor = allPlayers
-                        .Where(p => p.IsValid && p.IsBot && p.Team == team
+                        .Where(p => CanModify(p) && p.Team == team
                             && HasPrimaryWeapon(p)
                             && (p.PlayerPawn.Value?.ArmorValue ?? 1) == 0)
                         .ToList();
@@ -556,7 +676,7 @@ public sealed class BotBuyPatch : BasePlugin
                     if (needArmor.Count == 0) break;
 
                     var buyer = allPlayers
-                        .Where(p => p.IsValid && p.IsBot && p.Team == team
+                        .Where(p => CanModify(p) && p.Team == team
                             && !poorSet.Contains(p)
                             && p.InGameMoneyServices?.Account >= 650)
                         .OrderByDescending(p => p.InGameMoneyServices!.Account)
@@ -565,7 +685,7 @@ public sealed class BotBuyPatch : BasePlugin
                     if (buyer == null) break;
 
                     var target = needArmor[Random.Shared.Next(needArmor.Count)];
-                    if (!target.IsValid) continue;
+                    if (!CanModify(target) || !CanModify(buyer)) continue;
 
                     int buyerMoney = buyer.InGameMoneyServices!.Account;
                     // Terrorist bots only buy full armor
@@ -585,6 +705,12 @@ public sealed class BotBuyPatch : BasePlugin
     [GameEventHandler]
     public HookResult OnRoundFreezeEnd(EventRoundFreezeEnd @event, GameEventInfo info)
     {
+        if (_careerActive)
+        {
+            foreach (var player in Utilities.FindAllEntitiesByDesignerName<CCSPlayerController>("cs_player_controller"))
+                NormalizePurchasedWeapons(player);
+            _purchasePhase = false;
+        }
         ConVar? botLoadout = ConVar.Find("bot_loadout");
         if (botLoadout != null && !string.IsNullOrEmpty(botLoadout.StringValue))
         {
@@ -657,7 +783,8 @@ public sealed class BotBuyPatch : BasePlugin
 //----------------------------------------------------------------------------------------------
     private bool Buy(CCSPlayerController player, string itemName)
     {
-        if (!player.IsValid || !player.IsBot || player.InGameMoneyServices == null)
+        if (!CanModify(player) || player.InGameMoneyServices == null
+            || !CareerWeaponPolicy.CanBuy(_careerActive, itemName, PurchaseRole(player)))
             return false;
 
         var pawn = player.PlayerPawn.Value;
@@ -728,17 +855,27 @@ public sealed class BotBuyPatch : BasePlugin
         if (money < price)
             return false;
 
-        player.GiveNamedItem(itemName);
+        var givenHandle = player.GiveNamedItem(itemName);
+        if (givenHandle == IntPtr.Zero) return false;
+        var given = new CEntityInstance(givenHandle);
+        if (!given.IsValid) return false;
 
         player.InGameMoneyServices.Account -= price;
         Utilities.SetStateChanged(player, "CCSPlayerController", "m_pInGameMoneyServices");
+
+        if (_careerActive && CareerTactics.TacticalBuyPolicy.PrimaryPrice(itemName) > 0)
+        {
+            if (!_purchasedWeapons.TryGetValue(player.Slot, out var bought))
+                _purchasedWeapons[player.Slot] = bought = new();
+            bought[itemName] = given.EntityHandle.Raw;
+        }
 
         return true;
     }
 
     private bool Refund(CCSPlayerController player, string itemName)
     {
-        if (!player.IsValid || !player.IsBot || player.InGameMoneyServices == null)
+        if (!CanModify(player) || player.InGameMoneyServices == null)
         return false;
 
         var pawn = player.PlayerPawn.Value;
@@ -843,11 +980,11 @@ public sealed class BotBuyPatch : BasePlugin
 
     private bool CanRefund(CCSPlayerController player, string itemName)
     {
+        if (!CanModify(player))
+            return false;
+
         if (IsFirstRoundOfHalf()) 
             return true;
-
-        if (!player.IsValid || !player.IsBot)
-            return false;
 
         // Check refund restrictions
         var (prevWeapons, _, _) = PreviousInventory(player);
@@ -856,7 +993,8 @@ public sealed class BotBuyPatch : BasePlugin
 
     private bool Swap(CCSPlayerController player, string oldItem, string newItem)
     {
-        if (!player.IsValid || !player.IsBot || player.InGameMoneyServices == null)
+        if (!CanModify(player) || player.InGameMoneyServices == null
+            || !CareerWeaponPolicy.CanBuy(_careerActive, newItem, PurchaseRole(player)))
             return false;
 
         var pawn = player.PlayerPawn.Value;
@@ -929,7 +1067,7 @@ public sealed class BotBuyPatch : BasePlugin
 
     private int GetBotIndex(CCSPlayerController player)
     {
-        if (!player.IsValid || !player.IsBot) return -1;
+        if (!IsKnownBot(player)) return -1;
         int userId = player.UserId ?? -1;
         if (userId == -1) return -1;
 
@@ -965,7 +1103,7 @@ public sealed class BotBuyPatch : BasePlugin
 
         foreach (var player in Utilities.FindAllEntitiesByDesignerName<CCSPlayerController>("cs_player_controller"))
         {
-            if (!player.IsValid || !player.IsBot) continue;
+            if (!IsKnownBot(player) || player.ControllingBot || player.HasBeenControlledByPlayerThisRound) continue;
             int idx = GetBotIndex(player);
             if (idx == -1) continue;
 
@@ -996,7 +1134,7 @@ public sealed class BotBuyPatch : BasePlugin
 
     private void ClearPreviousInventory(CCSPlayerController player)
     {
-        if (!player.IsValid || !player.IsBot)
+        if (!IsKnownBot(player))
             return;
 
         int idx = GetBotIndex(player);
@@ -1012,7 +1150,7 @@ public sealed class BotBuyPatch : BasePlugin
         int money = 0;
         int armor = 0;
 
-        if (!player.IsValid || !player.IsBot) return (weapons, money, armor);
+        if (!IsKnownBot(player)) return (weapons, money, armor);
         int idx = GetBotIndex(player);
         if (idx == -1) return (weapons, money, armor);
 
@@ -1043,7 +1181,7 @@ public sealed class BotBuyPatch : BasePlugin
         int money = 0;
         int armor = 0;
 
-        if (!player.IsValid || !player.IsBot) return (weapons, money, armor);
+        if (!IsKnownBot(player)) return (weapons, money, armor);
         int idx = GetBotIndex(player);
         if (idx == -1) return (weapons, money, armor);
 

@@ -47,6 +47,7 @@ public sealed partial class CareerMatchPlugin
         BeginOfficialRound("freeze_end");
         CaptureRoundPawns();
         StartNaturalRound();
+        StartTacticalCommands();
         return HookResult.Continue;
     }
 

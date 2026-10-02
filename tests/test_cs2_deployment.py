@@ -16,6 +16,9 @@ class DeploymentTests(unittest.TestCase):
         (self.src/'CareerMatch.deps.json').write_text('{}',encoding='utf-8')
         self.csgo = self.root/'game'/'csgo'
         self.dst = launch.plugin_dir(self.csgo); self.dst.mkdir(parents=True)
+        (self.csgo/'gameinfo.gi').write_text(
+            '"GameInfo"\n{\n\t"FileSystem"\n\t{\n\t\t"SearchPaths"\n\t\t{\n'
+            '\t\t\tGame csgo\n\t\t}\n\t}\n}\n', encoding='utf-8')
         for target, value in [('career_match_src',self.src),('cs2_is_live',False)]:
             mock = patch.object(launch,target,return_value=value); mock.start(); self.addCleanup(mock.stop)
 
@@ -41,6 +44,28 @@ class DeploymentTests(unittest.TestCase):
                 launch._copy_career_match(self.csgo)
         self.assertFalse(list(self.dst.iterdir()))
 
+    def test_install_preserves_current_configs_instead_of_legacy_mod_templates(self):
+        from cs2career.cs2.gameinfo import patched_gameinfo
+        mod = self.root/'mod'
+        for name in ('addons/metamod', 'addons/counterstrikesharp', 'overrides', 'backup/WithBots'):
+            (mod/name).mkdir(parents=True)
+        for name in ('gameinfo.gi', 'gameinfo_branchspecific.gi', 'backup/WithBots/gameinfo.gi'):
+            (mod/name).write_text('GameInfo { LayeredOnMod removed_csgo_core }', encoding='utf-8')
+        (mod/'addons/metamod/mock-plugin.dat').write_bytes(b'mock plugin')
+        before = (self.csgo/'gameinfo.gi').read_text('utf-8')
+        branch = self.csgo/'gameinfo_branchspecific.gi'
+        branch.write_bytes(b'official branch-specific config')
+        with patch.object(launch, 'settings', return_value=dict(launch.DEFAULTS)), \
+             patch.object(launch, '_copy_career_match', return_value=0), \
+             patch.object(launch, '_deploy_tactical_playbook', return_value=0), \
+             patch.object(launch, '_copy_botbuy_patch', return_value=0), \
+             patch.object(launch, 'hook_competitive_cfg'), patch.object(launch, 'apply_bothider_config'):
+            self.assertTrue(launch.install_mod(self.csgo, mod)['ok'])
+        self.assertEqual(patched_gameinfo(before), (self.csgo/'gameinfo.gi').read_text('utf-8'))
+        self.assertEqual(b'official branch-specific config', branch.read_bytes())
+        self.assertFalse((self.csgo/'backup/WithBots/gameinfo.gi').exists())
+        self.assertEqual(b'mock plugin', (self.csgo/'addons/metamod/mock-plugin.dat').read_bytes())
+
     def test_process_detection_keeps_low_memory_startup_but_excludes_zero_handle_residue(self):
         with patch.object(launch,'_powershell',return_value='7,19') as shell:
             self.assertEqual([7,19],launch.live_cs2_pids())
@@ -52,10 +77,15 @@ class DeploymentTests(unittest.TestCase):
 
     def test_full_prepare_three_difficulties_never_launches_game(self):
         from cs2career.cs2.profiles import active_manifest, read_db, PROFILE_RE
+        from cs2career.cs2.gameinfo import patched_gameinfo
         from test_v15_core import fake_team
         for path in ('addons/metamod','addons/counterstrikesharp','addons/BotHider'):
             (self.csgo/path).mkdir(parents=True,exist_ok=True)
         mod=self.root/'mod'; mod.mkdir()
+        legacy_template = mod/'backup'/'WithBots'/'gameinfo.gi'
+        legacy_template.parent.mkdir(parents=True)
+        legacy_template.write_text('GameInfo { LayeredOnMod csgo_core }', encoding='utf-8')
+        current_gameinfo = (self.csgo/'gameinfo.gi').read_text(encoding='utf-8')
         a,b=fake_team('A',90),fake_team('B',86)
         a['name']='测试战队'
         for level in ('Low','Medium','High'):
@@ -74,6 +104,9 @@ class DeploymentTests(unittest.TestCase):
             self.assertEqual(9,len(PROFILE_RE.findall(read_db(self.csgo/'overrides/botprofile.vpk'))))
             self.assertEqual(9,len(json.loads((self.csgo/'addons/BotHider/bot_info.json').read_text())['players']))
             self.assertIn('测试战队',(self.csgo/'cfg/career_rules.cfg').read_text(encoding='utf-8'))
+            self.assertEqual(patched_gameinfo(current_gameinfo),
+                             (self.csgo/'gameinfo.gi').read_text(encoding='utf-8'))
+            self.assertNotIn('LayeredOnMod', (self.csgo/'gameinfo.gi').read_text(encoding='utf-8'))
 
     def test_failed_launch_does_not_create_phantom_result_session(self):
         from cs2career.career import Career

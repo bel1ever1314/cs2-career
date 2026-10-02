@@ -81,6 +81,7 @@ class Season:
         self.player_event: dict[str, dict] = {}
         self.history: list[dict] = []
         self.top20: dict[str, list[dict]] = {}
+        self.top20_dates: dict[str, str] = {}
         self.log: list[str] = [f"{year} 赛季开始。"]
 
     # ---------------------------------------------------------------- tables
@@ -328,7 +329,7 @@ class Season:
             news.event_done(self.career, self, ev)
             arcs.event_done(self.career, self, ev)
             if not any(e.get("status") in ("upcoming", "live") for e in self.events):
-                self.career.on_top20_eve(self)
+                self.finalize_top20()
 
     def _collect_qualifiers(self, ev: dict) -> None:
         feeds = ev.get("feeds")
@@ -931,18 +932,53 @@ class Season:
 
     # ---------------------------------------------------------------- rollover
 
-    def roll_year(self) -> str:
-        finished = [awards.make_record(ev) for ev in self.events if ev.get("status") == "done"]
+    def finalize_top20(self) -> list[dict]:
+        """Freeze the ordinary final board only at the completed-year boundary.
+
+        Called by a completed event/rollover command, never by context reads.
+        A later rollover reuses this exact board and its saved feature text.
+        """
+        key = str(self.year)
+        if key in self.top20:
+            return self.top20[key]
+        if not self.events or any(event.get('status') != 'done' for event in self.events):
+            raise ValueError('全年赛事尚未全部结束，不能提前归档年度 Top20。')
+        finished = [awards.make_record(ev) for ev in self.events]
         table = awards.top20(self.ratings_vs_field(), finished)
         from ..career.verse import feature_report
         for row in table[:3]:
             row['feature'] = feature_report(row, self.year)
-        self.top20[str(self.year)] = table
+        self.top20[key] = table
+        if not hasattr(self, 'top20_dates'):
+            self.top20_dates = {}
+        self.top20_dates[key] = self.date
+        if self.career:
+            self.career.on_year_end(self, self.year, table)
+        return table
+
+    def roll_year(self) -> str:
+        finished = [awards.make_record(ev) for ev in self.events if ev.get("status") == "done"]
+        notify_on_roll = False
+        table = self.top20.get(str(self.year))
+        if table is None and self.events and all(ev.get('status') == 'done' for ev in self.events):
+            table = self.finalize_top20()
+        if table is None:
+            # Preserve the legacy explicit rollover of a partial season. It
+            # does not grant a completed-year presentation or early final list.
+            table = awards.top20(self.ratings_vs_field(), finished)
+            from ..career.verse import feature_report
+            for row in table[:3]:
+                row['feature'] = feature_report(row, self.year)
+            self.top20[str(self.year)] = table
+            if not hasattr(self, 'top20_dates'):
+                self.top20_dates = {}
+            self.top20_dates[str(self.year)] = self.date
+            notify_on_roll = True
         self.history += finished
 
         best = table[0]["player"] if table else "—"
         old = self.year
-        if self.career:
+        if self.career and notify_on_roll:
             self.career.on_year_end(self, old, table)
         self.year += 1
         cal = calendar_for(self.year)
@@ -1033,6 +1069,7 @@ class Season:
             rec = {
                 "team": row["team"],
                 "player": row["player"],
+                "player_id": row.get("player_id", ""),
                 "k": box["k"],
                 "d": box["d"],
                 "a": box["a"],
@@ -1230,6 +1267,7 @@ class Season:
             "player_event": self.player_event,
             "history": self.history,
             "top20": self.top20,
+            "top20_dates": getattr(self, 'top20_dates', {}),
             "log": self.log,
         }
         pending = STATE_PATH.with_suffix('.pending')
@@ -1263,6 +1301,7 @@ class Season:
             s.player_event = blob.get("player_event", {})
             s.history = blob.get("history", [])
             s.top20 = blob.get("top20", {})
+            s.top20_dates = blob.get("top20_dates", {})
             s.log = blob.get("log", [])
             s._role_calibration_changed = apply_roles(s.teams, s.era, current_year=s.year)
             s._calendar_changed = s.align_calendar()

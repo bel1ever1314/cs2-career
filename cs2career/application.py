@@ -208,11 +208,20 @@ class ApplicationState:
                 restore(folder.parent.parent,folder,require_pair=False)
             raise
 
-    def create_career(self, payload: dict) -> str:
+    def create_career(self, payload: dict, *, start_attributes=None, start_metadata=None) -> str:
         from .world import ERA_META, slug, roster_names
         from .career.origins import ORIGINS, DEFAULT_ORIGIN
 
         payload = dict(payload)
+        # HTTP/client bodies cannot supply the internal creation attributes or
+        # receipts. The 3D adapter resolves its durable draft and passes these
+        # separate arguments only after server validation.
+        payload.pop('_start_attributes', None)
+        payload.pop('_start_metadata', None)
+        if start_attributes is not None:
+            payload['_start_attributes'] = deepcopy(start_attributes)
+        if start_metadata is not None:
+            payload['_start_metadata'] = deepcopy(start_metadata)
         era = str(payload.get('era') or '2026')
         mode = payload.get('mode') or 'join'
         if era not in ERA_META or mode not in ('join', 'create'):
@@ -228,7 +237,9 @@ class ApplicationState:
             if not name or not org or len(name) > 32 or len(org) > 40:
                 raise ValueError('请填写选手 ID（最多32字）和俱乐部名称（最多40字）。')
             if payload.get('origin', DEFAULT_ORIGIN) not in ORIGINS:
-                raise ValueError('请选择路人、青训或天才开局。')
+                raise ValueError('请选择有效的开局方式。')
+            if payload.get('origin') == 'attribute_draw' and start_attributes is None:
+                raise ValueError('七维抽取开局必须使用服务器已保存的属性草稿。')
             if name.casefold() in {n.casefold() for n in roster_names(season.teams)} or not slug(org) or slug(org) in {t['id'] for t in season.teams}:
                 raise ValueError('选手或俱乐部已存在，请换一个名称。')
             payload.update(name=name, org=org)

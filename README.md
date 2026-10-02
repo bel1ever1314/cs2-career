@@ -4,222 +4,146 @@
 
 ## 简体中文
 
-一个非官方的 CS2 选手生涯模拟器。你可以从无名选手开始，也可以接管职业选手，在训练、转会、比赛与人生选择中，走出自己的职业生涯。
+一个非官方的 CS2 选手生涯游戏。想让每场比赛多一点属于自己的故事：从新人到职业选手，训练、转会、和队友相处，再带着自己的角色走进赛场。
 
-以“选手生涯＋适度经营”为核心：既能在桌面里模拟赛季，也能进入 CS2 本地人机比赛，亲自打出属于自己的战绩。
+现在，生涯也有了一个可以走进去的 3D 世界。你是一只小鸡，有自己的宿舍、俱乐部、手机和电脑。平时培养选手、安排赛季；到了比赛日，可以模拟比赛、用 RTS 指挥队伍，也可以进入 CS2，亲自打出这场比赛。
 
-[下载发行版](https://github.com/bel1ever1314/cs2-career/releases) · [玩家 FAQ](开始游玩-FAQ.txt) · [更新日志](RELEASE_NOTES.md) · [反馈问题](https://github.com/bel1ever1314/cs2-career/issues)
+[下载 1.7.0 3D 预览版](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.7.0-preview.1) · [下载 1.6.0 正式版](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.6.0-hotfix.1) · [更新日志](RELEASE_NOTES.md) · [交流与反馈](https://github.com/bel1ever1314/cs2-career/issues)
 
-> 当前源码面向 **1.6.0 公开测试版**，提供 Windows 64 位桌面程序。下载时请以 Release 标签和说明为准，仓库中的新改动不一定已发布。独立 Bot Lab 的沙二视角／团队 AI 实验**不包含在本版中**。
+当前版本是 **1.7.0-preview.1，首次 3D 预览版**。原来的桌面正式版仍是 **1.6.0-hotfix.1**，两个版本分别提供下载。
 
 ### 开始游玩
 
-1. 前往 [Releases](https://github.com/bel1ever1314/cs2-career/releases)，下载名称带 `windows-x64.zip` 的玩家包，而不是 `Source code`。
-2. 完整解压到可写入的文件夹，不要直接在压缩包里运行。
-3. 双击 `Launch-CS2Career.cmd`（便携启动器），或运行 `CS2Career.exe`。无需安装 Python，也不会默认打开浏览器。
-4. 选择年代与角色，开始生涯；界面语言可在侧栏或设置中切换为中文／English。
+1. 打开 [3D 预览版发布页](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.7.0-preview.1)，下载 `CS2Career-1.7.0-preview.1-windows.zip`。
+2. 完整解压到可写入的文件夹，双击 `开始游戏.cmd` 或 `Launch-CS2Career.cmd`。
+3. 按开局引导创建角色、抽取能力并调整小鸡形象，也可以选择年代接管职业选手。
+4. 进入宿舍后，去电脑前按 `E` 看看今天能做什么，或按 `P` 拿出手机。
 
-桌面窗口需要微软 [WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/)。若提示缺失，请从微软官方安装。不要为了运行程序关闭安全软件。
+运行包已经带上 Godot 和 Python 后台，无需安装开发工具。如果遇到显卡兼容问题，可以试试包里的 `兼容显卡启动.cmd`。生涯模拟和 RTS 都可以直接在程序里游玩；亲自进入 CS2 的准备见下文。
 
-**只玩生涯模拟，不需要启动 CS2 或安装游戏插件。** 亲自上场和自定义观战的配置见下文。
+基本操作：`WASD` 走动，鼠标右键拖动转动俱乐部视角，`E` 使用物品，`F` 和附近人物交流，`P` 打开手机，`Esc` 返回。走到门口后，用滚轮选择目的地，按 `E` 或 `Enter` 出发。
 
-### 你可以做什么
+### 在这个世界里做什么
 
-- **成为职业选手：** 选择 2024／2025／2026 年代，接管职业选手，或以路人、青训、天才三种起点创建角色。调整位置、培养属性、管理状态，争取转会与荣誉。
-- **经历完整赛季：** 报名比赛、查看晋级过程，点击战队与选手浏览阵容、近期表现和历史战报；查看年度 Top20、MVP、EVP 与五位置最佳阵容。
-- **作出自己的选择：** 恋爱、转会、队内关系、伤病与退役等剧情影响生涯。经营提供取舍，工资和奖金自动结算，不必去邮箱逐封领钱。
-- **收藏虚拟饰品：** 市场、库存、装备与开箱动画。全部使用游戏内虚拟资金，饰品不进入 Steam 库存，也不能兑现。
-- **扩展自己的世界：** 使用纯数据内容包添加剧情、事件、赛事、饰品图片与局内聊天，不必把所有内容写进程序代码。
+- **从自己的角色开始。** 选择 2024／2025／2026 年代，抽取队伍与选手能力，搭配羽毛、鸡冠、喙和队服颜色；也可以接管职业选手开始生涯。
+- **过选手的日常。** 在宿舍和俱乐部走动，与队友、教练和工作人员交流。手机里收邮件、回聊天、看日历、查看个人数据和分配属性点；睡觉时有过场，醒来继续下一天。
+- **在电脑前安排赛季。** 报名赛事、浏览选手和战队、看战报与新闻、管理阵容和合同、处理经营与转会，也可以预约训练赛或开启快速赛季。
+- **选择自己的比赛方式。** 职业比赛可以逐图模拟、进入 CS2 实打，或使用 RTS 指挥。RTS 里可以切换指挥、本人操作与观战。本地天梯和自定义对局也有各自的选人与地图 BP。
+- **把战术画出来。** 在会议室白板为五个槽位设计路线、停留、观察方向和跑动／静步方式，保存后供比赛使用；支持缩放、平移和战术导入导出。
+- **经历赛场与荣誉。** 走进小型 LAN 或大型场馆，在自己的机位继续比赛。查看冠军、MVP、EVP、最佳阵容和年度 Top20；入围年度前三时，可以亲自走上领奖台。
+- **收集与配装。** 浏览饰品市场、管理库存、装备和开箱。全部使用游戏内虚拟资金，饰品不进入 Steam 库存。
+- **按自己的节奏继续。** 使用手动存档与读档，保存生涯进度；快速赛季在比赛、剧情选择和休赛期之间推进。
 
-### 1.6.0 的主要变化
-
-#### 更轻松地体验赛季
-
-快速模式按队伍层次、档期与积分收益处理赛事邀请，减少重复参加低收益比赛。在一屏观赛台连续模拟本季，无需滚动长赛程：逐图揭晓比分，胜负改变背景颜色，整场结束突出玩家战绩，停留后自动继续。
-
-决赛、需要选择的剧情、合同与 Major 休赛期仍会暂停，不会替玩家作决定。模式在季初／季末选择；普通模式的赛事自动模拟也不再逐场询问非决赛。快速模式不推送月报，其他纯通知尽量归档。
-
-#### Major 后的生涯故事
-
-主线集中在 Major 正式结束后的休赛窗口；普通生涯的恋爱线从首个 Major 结束后开始，假赛等比赛事件仍可在赛中触发。新增 **18 套 Major 出局故事**，覆盖六种出局阶段与不同实力预期。参加的 Major 仍展示 MVP、EVP 和最佳阵容。
-
-生日等日历事件不等休赛期：队友生日当天出现选择，回应当天记录。快速模拟与跳过赛程遇到生日时暂停，处理后继续。
-
-快速模式的属性点先积累，Major 后再集中分配；普通模式仍可随时加点。
-
-#### 本地天梯与自定义对战
-
-**Rank／FPL 是同一个本地 Bot 天梯，不是联网匹配，也不连接 FACEIT。** 固定使用当前生涯角色，按积分匹配另外九人；本局积分最高的两位担任队长，选人、禁图，再进入 CS2。选人完成后，按五位置能力为每队分配一名主狙、突破手、自由人、步枪手和指挥，不改变生涯位置。天梯积分与记录独立，不改变生涯 VRS、奖金或属性点。
-
-自定义模式可安排双方各五名选手：控制其中一人，或作为观察者观看十名 Bot 比赛。自定义不计天梯分。
-
-#### 评分、日历与英文
-
-- 调整游戏内简化 VRS，减少重复低价值比赛的收益；修正切换位置造成不合理高评分的问题。
-- 2024—2026 使用有来源的真实赛事选集；2027 起允许生成标明虚构的未来日历。不是现实赛程、阵容与规则的完整复刻，比赛结果由游戏产生。
-- 核心界面及内置剧情提供英文；未翻译的第三方扩展、玩家改写文本和部分旧记录保留原文。
-
-详细规则与可修改文件见 [1.6.0 指南](V1.6.0_GUIDE.md)。
+本地天梯使用当前生涯角色，由本场积分最高的两人担任队长，选人、禁图后开赛。天梯积分与职业生涯的 VRS、奖金和属性点分开记录。自定义可以安排双方各五名选手，亲自控制其中一人或观看十名 Bot 比赛。
 
 ### 亲自进入 CS2
 
-需要 Steam、CS2，以及 [CS2 Bot Improver 的 Windows 运行包](https://github.com/ed0ard/CS2-Bot-Improver/releases)。换肤为可选功能；相关桥接插件随玩家 EXE 提供，完整人机增强运行包需另外获取。
+需要自行安装并登录 Steam 和 CS2，以及获取兼容的 [CS2 Bot Improver Windows 运行包](https://github.com/ed0ard/CS2-Bot-Improver/releases)。公开的 3D 运行包提供生涯程序和桥接组件，完整人机增强另行获取。
 
-1. 完全退出 CS2，在生涯的“游戏设置”保存游戏与增强包路径，按提示安装。
-2. 从生涯比赛或对战大厅准备并启动比赛，再按提示进入指定地图。
-3. 等待正式终场与完整十人战绩回传，再确认录入；不要仅因一方到 13 分就立即退出。
+1. 完全退出 CS2，在手机或电脑的“设置”中填写 CS2 与人机增强目录，按提示配置插件。
+2. 从职业比赛、本地天梯或自定义对局准备比赛，完成选人与地图 BP 后启动 CS2。
+3. 打完正式比赛，回到生涯电脑查看回传战绩并录入结果。
 
-真人参赛时按本场阵容生成九名 Bot；自定义观察者模式生成十名。使用增强的 Low／Medium／High 基础预设，再结合生涯能力、位置与状态生成个人档案，不同步原增强的完整选手数据库。
+这套插件用于 **`-insecure` 本地人机对局**。恢复官方匹配前，按组件说明停用或移除插件，并检查 Steam 启动项。
 
-局内教练与队友对白是**聊天框文字，不是真人语音或合成音频**。
+换肤可以选择生涯配装，或自行配置 [Inventory Simulator](https://github.com/ianlucas/cs2-css-inventory-simulator/releases) 等外部插件。饰品的 3D 检视和直接贴纸编辑是默认关闭的可选接口，需要另装对应工具与适配器；运行包不内置外部检视器。
 
-仅用于 **`-insecure` 本地人机对局**，不要将这个插件环境用于官方匹配或联网服务器。安装会修改游戏插件及本场 Bot 资料；CS2 更新可能使插件失效，请核对对应版本的兼容说明，不要混装实验 DLL。完整配置与排错见 [玩家 FAQ](开始游玩-FAQ.txt)。
+### 存档和反馈
 
-### 存档与已知限制
+3D 运行包的存档位于 `game/runtime/career/save/`，手动存档在其中的 `manual/` 目录。更新前备份自己的存档，移动整个解压目录也可以带走进度。1.6 桌面版的存档仍保存在它原来的目录中。
 
-- 存档在 EXE 旁的 `save/`，个人扩展在 `extensions/`。更新前关闭生涯程序与 CS2，备份这两个文件夹；不同解压目录各用自己的存档，不要同时运行两个版本写同一份数据。
-- 支持读取 1.5 的新版存档；更旧格式以程序提示为准，不要改格式强行载入。确认新版正常前保留旧目录与备份。
-- 历史资料仍有简化和缺项，Career Rating 与 VRS 是游戏模型，不是 HLTV 或 Valve 官方完整算法。
-- 战绩回传、接管归属、插件兼容性和长期平衡仍需持续实测。校验失败时保留现场与提示，不要立即开启下一场；缺失战绩不会用零填充，也不会根据比分猜测个人数据。
-- 独立 Bot Lab 仍在研发，不是本版的安装前置，也不代表全图 Bot 行为已完成。
+欢迎在 [Issues](https://github.com/bel1ever1314/cs2-career/issues) 分享体验和建议。遇到问题时，带上版本、当时的操作和截图，会更容易定位；日志在 `game/runtime/game.log`。公开日志前请检查个人信息。
 
-反馈请提交 [Issue](https://github.com/bel1ever1314/cs2-career/issues)，附版本、重现步骤、错误提示及截图。发送日志前检查个人信息；不要公开整个存档、Steam 配置、登录信息或私人路径。自动测试通过不等于全部实际 CS2 场景已验证。
+### 源码与内容扩展
 
-### 开发与内容扩展
+3D 客户端在 `work/career3d_redesign/`，生涯内核在 `cs2career/`，打包入口是 `tools/package_career3d.py`。源码开发使用 Godot 与 Python，具体入口和资源准备见 [3D 打包说明](docs/3d-preview-packaging.zh-CN.txt)。
 
-在 Windows 上使用 Python 3.12+，从源码根目录运行：
+- [开发者指南](DEVELOPER_GUIDE.zh-CN.md)：模块、状态与数据流。
+- [扩展架构](EXTENSION_ARCHITECTURE.zh-CN.md)与[内容包模板](extensions/_templates)：剧情、事件、赛事、饰品和局内聊天扩展。
+- [构建与发布](PUBLISHING.md)：源码、运行包与发布流程。
+- [英文翻译指南](ENGLISH_LOCALIZATION.md)：界面与内容的本地化。
+- [1.6.0 指南](V1.6.0_GUIDE.md)与[玩家 FAQ](开始游玩-FAQ.txt)：原桌面版的规则与 CS2 配置。
 
-```powershell
-py -3 -m pip install -r requirements-desktop.txt
-py -3 main.py
-```
-
-源码默认同样打开独立桌面窗口，需要 WebView2。修改源码或内置资源后，已有 EXE 不会自动更新，需要重新打包；放在 EXE 旁 `extensions/` 的内容包可重启后在工坊启用，无需重编译。
-
-- [开发者指南](DEVELOPER_GUIDE.zh-CN.md)：模块、状态与数据流；历史记录以其后修正为准。
-- [扩展架构](EXTENSION_ARCHITECTURE.zh-CN.md)与[内容包模板](extensions/_templates)：剧情、事件、比赛阶段、赛事及饰品扩展。
-- [英文翻译指南](ENGLISH_LOCALIZATION.md)：界面、故事和扩展文本的本地化。
-- [构建与发布](PUBLISHING.md)：EXE、对应源码及不包含私人数据的发行包。
-- [CS2 联调记录](CS2_INTEGRATION.zh-CN.md)：游戏接入与验证边界。
-
-Python 测试入口是 `py -3 tools/run_tests.py`，会先隔离存档与扩展。纯 C# 回归位于 `tools/identity-tests`，不能代替实机测试。大部分开发文档目前为中文。
+Python 测试入口是 `py -3 tools/run_tests.py`，C# 检查位于 `tools/identity-tests`。
 
 ### 授权与致谢
 
-本项目新增与维护的生涯代码采用 **AGPL-3.0-only**，见 [LICENSE](LICENSE)。原有 MIT 权利及第三方许可保留，详见 [第三方声明](THIRD_PARTY_NOTICES.md)。
+新增与维护的生涯代码采用 **AGPL-3.0-only**，见 [LICENSE](LICENSE)。原有 MIT 权利和第三方许可保留，见 [第三方声明](THIRD_PARTY_NOTICES.md)与 [licenses](licenses)。分发程序时请保留许可并提供对应源码。
 
-感谢 ed0ard 与 CS2 Bot Improver 贡献者提供的模板及 BotBuy，Ian Lucas 的 Inventory Simulator，以及 Metamod、CounterStrikeSharp 和相关插件作者。历史换肤组件的源码恢复与重编译限制见 [恢复源码说明](RECOVERED_SOURCE.md)。
+感谢 ed0ard 与 CS2 Bot Improver 贡献者、Ian Lucas 的 Inventory Simulator，以及 Metamod、CounterStrikeSharp、字体和相关插件的作者。历史组件的源码说明见 [RECOVERED_SOURCE.md](RECOVERED_SOURCE.md)。
 
-本项目与 Valve、FACEIT、相关赛事、战队及选手无官方关联。相关名字、商标和美术归各自权利人。发布玩家程序时请同时提供对应源码并保留许可说明；不要把个人存档、私人扩展、日志或缓存打进公开包。
+这是一个非官方项目，与 Valve、FACEIT、赛事、战队和选手无官方关联。相关名称、商标与素材归各自权利人所有。
 
 ---
 
 ## English
 
-An unofficial CS2 player-career simulator. Start as an unknown prospect or take over a professional player, then build your career through training, transfers, matches, and choices off the server.
+An unofficial CS2 player-career game. The idea is to give each match a story of your own: grow from a newcomer into a pro, train, transfer, get to know your teammates, and take your player onto the stage.
 
-The focus is **a player's career with light club management**: simulate seasons in a standalone desktop app, or enter local CS2 bot matches and play for yourself.
+The career now has a 3D world to walk around in. You're a chicken with a dorm room, a club, a phone, and a computer. Develop your player and plan the season between matches; on match day, simulate the series, command your team in RTS, or enter CS2 and play it yourself.
 
-[Download](https://github.com/bel1ever1314/cs2-career/releases) · [Player FAQ — Chinese](开始游玩-FAQ.txt) · [Changelog — Chinese](RELEASE_NOTES.md) · [Report an issue](https://github.com/bel1ever1314/cs2-career/issues)
+[Download the 1.7.0 3D preview](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.7.0-preview.1) · [Download the 1.6.0 desktop release](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.6.0-hotfix.1) · [Changelog — Chinese](RELEASE_NOTES.md) · [Feedback](https://github.com/bel1ever1314/cs2-career/issues)
 
-> This source tree targets the **1.6.0 public beta**, with a Windows x64 desktop build. Check each Release's tag and notes: repository changes may not have been published yet. The separate Bot Lab experiments for Dust2 movement, crosshair placement, and team AI are **not included in this release**.
+The current version is **1.7.0-preview.1, the first 3D preview**. The existing desktop release remains **1.6.0-hotfix.1** and is available separately.
 
 ### Getting started
 
-1. Open [Releases](https://github.com/bel1ever1314/cs2-career/releases) and download the player archive ending in `windows-x64.zip`, not `Source code`.
-2. Extract the entire archive into a writable folder. Do not run it from inside the ZIP.
-3. Launch `Launch-CS2Career.cmd` (the portable launcher), or run `CS2Career.exe`. Python is not required, and the app does not open a browser by default.
-4. Choose an era and a player to begin. Switch to **English** using the sidebar language control or Settings (`设置` → `界面语言`).
+1. Open the [3D preview release](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.7.0-preview.1) and download `CS2Career-1.7.0-preview.1-windows.zip`.
+2. Extract the entire archive into a writable folder. Run `Launch-CS2Career.cmd` or `开始游戏.cmd`.
+3. Follow the opening flow to create a player, draft abilities, and customize your chicken, or choose an era and take over a professional player.
+4. In your dorm, walk to the computer and press `E`, or press `P` to take out your phone.
 
-The desktop window requires Microsoft's [WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/). If it is missing, install it from Microsoft. Do not disable security software to run the app.
+Godot and the Python backend are bundled; you don't need development tools. If you run into graphics compatibility issues, try `兼容显卡启动.cmd`. Career simulation and RTS run inside the app. For actual CS2 matches, see the setup below.
 
-**Career simulation does not require launching CS2 or installing game plugins.** Playing or spectating actual CS2 matches requires the setup described below.
+Controls: `WASD` to walk, right-mouse drag to rotate the club view, `E` to use objects, `F` to talk to nearby characters, `P` for your phone, and `Esc` to go back. At a doorway, use the mouse wheel to choose a destination, then press `E` or `Enter` to travel.
 
-### What you can do
+### Life in the career
 
-- **Build a player's career.** Choose the 2024, 2025, or 2026 era. Take over a pro, or create a player with an amateur, academy, or prodigy start. Develop attributes, try different roles, manage form, and pursue transfers and honors.
-- **Follow a living season.** Enter tournaments and follow their progress. Open team and player profiles to inspect rosters, recent performances, and saved match reports. Follow the annual Top 20, MVPs, EVPs, and positional best teams.
-- **Make choices off the server.** Experience romance, transfers, team relationships, injuries, and retirement stories. Management supports the career: wages and prize money settle automatically, without collecting payments from individual emails.
-- **Collect virtual skins.** Browse the market, manage your inventory, equip items, and open cases. All funds and items are fictional; nothing enters your Steam inventory or can be cashed out.
-- **Create content packs.** Extend stories, incidents, tournaments, skin images, and in-game chat through data-only packs rather than embedding all content in code.
+- **Start with your own player.** Choose the 2024, 2025, or 2026 era, draw teams and player abilities, and customize feathers, comb, beak, and jersey colors. You can also start by taking over a pro.
+- **Spend time around the club.** Walk through the dorm and club and talk to teammates, coaches, and staff. Read email and chats on your phone, check the calendar and your stats, and allocate attribute points. A sleep transition takes you into the next day.
+- **Plan the season at your computer.** Enter tournaments, browse teams and players, read reports and news, manage rosters and contracts, handle club finances and transfers, schedule practice, or start a fast season.
+- **Choose how to play a match.** Simulate career series map by map, play them in CS2, or command your team in RTS. RTS lets you switch between command, player control, and spectating. The local ladder and custom rooms have their own player drafts and map vetoes.
+- **Draw your tactics.** Use the meeting-room board to set routes, pauses, observation directions, and running or walking for five slots, then save them for matches. Zoom, pan, and import or export tactics.
+- **Visit the stage and collect honors.** Enter a small LAN room or a large venue and continue the match from your seat. Follow championships, MVPs, EVPs, positional best teams, and the annual Top 20. If your player makes the annual top three, walk up to collect the award.
+- **Collect and equip skins.** Browse the market, manage inventory, equip items, and open cases using fictional in-game funds. These items do not enter your Steam inventory.
+- **Continue at your own pace.** Use manual saves and loads, or follow a fast season through matches, story choices, and off-season windows.
 
-### What's new in 1.6.0
-
-#### A faster way to experience a season
-
-Fast mode handles invitations according to team level, scheduling, and ranking value, reducing repetitive low-value tournaments. Its single-screen match viewer progresses through the season without a scrolling event list: map scores are revealed gradually, the background reflects wins and losses, and each series ends with a report highlighting your player before automatically continuing.
-
-Finals, consequential story choices, contracts, and Major off-season windows still pause for your input. Choose the mode at the start or end of a season. Normal mode's tournament auto-simulation also stops asking about every non-final match. Fast mode suppresses monthly reports, while routine notifications are generally archived.
-
-#### Stories around the Major off-season
-
-Main stories arrive after a Major officially concludes. In a standard career, the romance storyline begins after the first Major; match-specific incidents, such as match-fixing approaches, can still occur during competition. **18 Major elimination stories** cover six exit stages and different expectations of your team's strength. Majors you participate in retain MVP, EVP, and positional best-team presentations.
-
-Calendar occasions do not wait for an off-season: teammate birthdays and their responses occur on the day. Fast simulation and schedule jumps pause at a birthday for your choice, then continue.
-
-In fast mode, attribute points accumulate during the season and can be spent after Majors. Normal mode still allows allocation at any time.
-
-#### Local ladder and custom matches
-
-**Rank/FPL is one local bot ladder, not online matchmaking or a FACEIT connection.** Ranked matches use your current career player and match you with nine others based on ladder points. The two highest-rated players become captains, draft teams, and veto maps before entering CS2. Each drafted team is assigned one AWPer, entry, lurker, rifler, and IGL based on role-specific ability, without changing career positions. Ladder results are independent of career VRS, rewards, and attribute points.
-
-Custom matches let you select both five-player rosters. Control one participant or spectate all ten bots. Custom matches do not award ladder points.
-
-#### Ratings, calendars, and English support
-
-- Revised the simplified in-game VRS model to limit repetitive low-value wins, and corrected inflated ratings caused by switching roles.
-- The 2024–2026 calendars use a sourced selection of real events. From 2027 onward, generated future events are labeled fictional. Calendars, rosters, and rules are not an exhaustive historical recreation; match outcomes are simulated.
-- Core UI and built-in story content have English text. Untranslated third-party packs, player-edited text, and some older records retain their original language.
-
-See the [1.6.0 guide — Chinese](V1.6.0_GUIDE.md) for detailed rules and editable files.
+The local ladder uses your current career player. The two highest-rated participants captain the teams, draft players, and veto maps. Ladder points are separate from career VRS, prize money, and attribute points. Custom rooms let you arrange both five-player rosters, control one participant, or watch ten bots.
 
 ### Playing in CS2
 
-You need Steam, CS2, and a compatible [CS2 Bot Improver Windows runtime package](https://github.com/ed0ard/CS2-Bot-Improver/releases). Skin changing is optional. Related bridge plugins ship with the player executable; the complete Bot Improver runtime must be obtained separately.
+Install and sign into Steam and CS2, and obtain a compatible [CS2 Bot Improver Windows runtime](https://github.com/ed0ard/CS2-Bot-Improver/releases). The public 3D package includes Career and its bridge components; the complete bot enhancement is obtained separately.
 
-1. Fully exit CS2. In Game Settings, configure the game and Bot Improver package paths, then follow the installation prompts.
-2. Prepare and launch a match from your career or the match lobby, then follow the instructions to enter the specified map.
-3. Wait for the official match end and complete ten-player statistics before confirming the result. Do not quit merely because one team reaches 13 rounds.
+1. Fully exit CS2. Open Settings on the phone or computer, set the CS2 and bot-enhancement directories, and follow the plugin setup instructions.
+2. Prepare a career, ladder, or custom match, complete the player draft and map veto, then launch CS2.
+3. Finish the official match and return to the career computer to review and import the result.
 
-A player-controlled match generates nine bots from its roster; custom spectator matches generate ten. Low/Medium/High use the enhancement's base presets, with individual profiles informed by career ability, role, and form. The original enhancement's full player database is not synchronized.
+Use these plugins for **local bot matches with `-insecure`**. Before returning to official matchmaking, disable or remove the plugins following their instructions and check your Steam launch options.
 
-Coach and teammate dialogue appears as **chat-box text, not recorded or synthesized voice audio**.
+Skin loadouts can come from Career or a separately configured plugin such as [Inventory Simulator](https://github.com/ianlucas/cs2-css-inventory-simulator/releases). 3D skin inspection and direct sticker editing are optional interfaces, disabled by default, and require a separate tool and adapter. An external inspector is not bundled.
 
-Use this setup only for **local bot matches with `-insecure`**, not official matchmaking or online servers. Installation changes game plugins and match-specific bot data. CS2 updates can break compatibility: consult the relevant release notes and avoid mixing experimental DLLs. The [player FAQ](开始游玩-FAQ.txt) contains the full setup and troubleshooting instructions in Chinese.
+### Saves and feedback
 
-### Saves and known limitations
+The 3D package stores saves in `game/runtime/career/save/`, with manual saves in its `manual/` folder. Back up your saves before updating; moving the whole extracted folder also keeps your progress with it. The 1.6 desktop version keeps its saves in its original directory.
 
-- Saves live in `save/` beside the EXE; personal packs live in `extensions/`. Before updating, close Career and CS2 and back up both folders. Different extraction directories have separate saves. Do not run two versions against the same save simultaneously.
-- New-format 1.5 saves remain readable. For older formats, follow the app's compatibility message rather than forcing a load by editing the schema. Keep your old folder and backups until the new version works.
-- Historical data has gaps and simplifications. Career Rating and VRS are game models, not the complete official HLTV or Valve algorithms.
-- Result import, bot takeover attribution, plugin compatibility, and long-term balance still need ongoing real-game testing. If validation fails, preserve the message and files before starting another match. Missing statistics are not filled with zeroes or guessed from the score.
-- The separate Bot Lab remains experimental. It is not required to install this release and does not represent completed full-map bot behavior.
+Share experiences and suggestions in [Issues](https://github.com/bel1ever1314/cs2-career/issues). For a problem, include the version, what you were doing, and a screenshot. Logs are in `game/runtime/game.log`; check them for personal information before posting.
 
-To report a problem, open an [Issue](https://github.com/bel1ever1314/cs2-career/issues) with the version, reproduction steps, exact error, and screenshots. Review logs for personal information first; do not upload entire saves, Steam configuration, credentials, or private paths. Passing automated tests does not establish that every live CS2 scenario works.
+### Source and content packs
 
-### Development and content packs
+The 3D client is in `work/career3d_redesign/`, the career backend in `cs2career/`, and the packaging entry point is `tools/package_career3d.py`. Source development uses Godot and Python; see the [3D packaging notes — Chinese](docs/3d-preview-packaging.zh-CN.txt) for entry points and asset preparation.
 
-On Windows with Python 3.12+, run from the source root:
+- [Developer guide — Chinese](DEVELOPER_GUIDE.zh-CN.md): modules, state, and data flow.
+- [Extension architecture — Chinese](EXTENSION_ARCHITECTURE.zh-CN.md) and [pack templates](extensions/_templates): stories, incidents, tournaments, skins, and in-game chat.
+- [Build and publishing guide — Chinese](PUBLISHING.md): source, runtime packages, and publishing.
+- [English localization guide](ENGLISH_LOCALIZATION.md): UI and content translations.
+- [1.6.0 guide](V1.6.0_GUIDE.md) and [player FAQ](开始游玩-FAQ.txt), both in Chinese: desktop-version rules and CS2 setup.
 
-```powershell
-py -3 -m pip install -r requirements-desktop.txt
-py -3 main.py
-```
-
-Source launches use the same standalone desktop window and require WebView2. Editing source or bundled resources does not update an existing EXE; rebuild it to include those changes. Data packs in `extensions/` beside the EXE can be enabled in the workshop after restarting, without rebuilding.
-
-- [Developer guide — Chinese](DEVELOPER_GUIDE.zh-CN.md): modules, state, and data flow; later corrections take precedence over historical notes.
-- [Extension architecture — Chinese](EXTENSION_ARCHITECTURE.zh-CN.md) and [pack templates](extensions/_templates): stories, incidents, match phases, tournaments, and skin content.
-- [English localization guide](ENGLISH_LOCALIZATION.md): UI, narrative, and extension translations.
-- [Build and publishing guide — Chinese](PUBLISHING.md): executables, corresponding source, and privacy-safe release archives.
-- [CS2 integration notes — Chinese](CS2_INTEGRATION.zh-CN.md): integration history and validation boundaries.
-
-Run Python tests through `py -3 tools/run_tests.py`, which first isolates saves and extensions. Pure C# regression checks are in `tools/identity-tests`; they do not replace live game testing. Most developer documentation is currently in Chinese.
+Run Python tests with `py -3 tools/run_tests.py`. C# checks are in `tools/identity-tests`.
 
 ### License and credits
 
-New and maintained career code is licensed under **AGPL-3.0-only**; see [LICENSE](LICENSE). Existing MIT rights and third-party licenses are retained in [Third-party notices — Chinese](THIRD_PARTY_NOTICES.md).
+New and maintained career code uses **AGPL-3.0-only**; see [LICENSE](LICENSE). Existing MIT rights and third-party licenses are retained in [Third-party notices — Chinese](THIRD_PARTY_NOTICES.md) and [licenses](licenses). Keep license notices and provide corresponding source when distributing builds.
 
-Thanks to ed0ard and the CS2 Bot Improver contributors for the templates and BotBuy, Ian Lucas for Inventory Simulator, and the authors of Metamod, CounterStrikeSharp, and the related plugins. See [Recovered source notes — Chinese](RECOVERED_SOURCE.md) for the historical skin components and their rebuild limitations.
+Thanks to ed0ard and the CS2 Bot Improver contributors, Ian Lucas for Inventory Simulator, and the authors of Metamod, CounterStrikeSharp, the fonts, and related plugins. Historical component source notes are in [RECOVERED_SOURCE.md](RECOVERED_SOURCE.md).
 
-This project is not affiliated with Valve, FACEIT, tournaments, teams, or players. Names, trademarks, and artwork belong to their respective rights holders. Distribute corresponding source with player builds and retain license notices. Keep personal saves, private packs, logs, and caches out of public archives.
+This is an unofficial project, unaffiliated with Valve, FACEIT, tournaments, teams, or players. Names, trademarks, and artwork belong to their respective rights holders.

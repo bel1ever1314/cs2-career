@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "map": "de_dust2",
+  "tactics": [
+    {
+      "id": "split_test",
+      "name": "示例 · 分路与等待",
+      "side": "t",
+      "slots": [
+        {"slot": 1, "steps": [
+          {"position": [773, 816], "level": "auto", "wait": 3, "look_at": null},
+          {"position": [1362, 2461], "level": "auto", "wait": 0, "look_at": null}
+        ]},
+        {"slot": 2, "steps": [
+          {"position": [810, 830], "level": "auto", "wait": 3, "look_at": null},
+          {"position": [1400, 2470], "level": "auto", "wait": 0, "look_at": null}
+        ]},
+        {"slot": 3, "steps": [
+          {"position": [-306, 1024], "level": "auto", "wait": 3, "look_at": null},
+          {"position": [317, 1787], "level": "upper", "wait": 2, "look_at": null},
+          {"position": [544, 2479], "level": "upper", "wait": 0, "look_at": null}
+        ]},
+        {"slot": 4, "steps": [
+          {"position": [-1667, 1098], "level": "upper", "wait": 5, "look_at": null},
+          {"position": [-1555, 2492], "level": "auto", "wait": 0, "look_at": null}
+        ]},
+        {"slot": 5, "steps": [
+          {"position": [-1253, 1049], "level": "lower", "wait": 5, "look_at": null},
+          {"position": [-306, 1024], "level": "auto", "wait": 0, "look_at": null}
+        ]}
+      ]
+    },
+    {
+      "id": "defend_test",
+      "name": "示例 · CT 开局分站",
+      "side": "ct",
+      "slots": [
+        {"slot": 1, "steps": [{"position": [1362, 2461], "level": "auto", "wait": 15, "look_at": null}]},
+        {"slot": 2, "steps": [{"position": [544, 2479], "level": "upper", "wait": 15, "look_at": null}]},
+        {"slot": 3, "steps": [{"position": [-306, 1024], "level": "auto", "wait": 15, "look_at": null}]},
+        {"slot": 4, "steps": [{"position": [-1555, 2492], "level": "auto", "wait": 15, "look_at": null}]},
+        {"slot": 5, "steps": [{"position": [-1667, 1098], "level": "upper", "wait": 15, "look_at": null}]}
+      ]
+    }
+  ]
+}

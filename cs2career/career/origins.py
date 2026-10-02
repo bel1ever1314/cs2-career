@@ -56,6 +56,14 @@ ORIGINS: dict[str, dict] = {
     },
 }
 
+# The 3D seven-axis start shares the academy's budget and teammates. Its own
+# server-verified attributes replace only the newly created player's axes.
+ORIGINS['attribute_draw'] = {
+    **ORIGINS['academy'], 'id': 'attribute_draw', 'name': '七维抽取开局',
+    'tagline': '从同年代选手中组合七项属性',
+    'description': '每项最多抽取三次，可以选择已经抽到的任意一次。',
+}
+
 DEFAULT_ORIGIN = "academy"
 
 
@@ -66,4 +74,5 @@ def origin_config(value: str | None) -> dict:
 
 
 def public_origins() -> list[dict]:
-    return [dict(row) for row in ORIGINS.values()]
+    # The established 2D clients retain their three built-in choices.
+    return [dict(ORIGINS[key]) for key in ('street', 'academy', 'prodigy')]

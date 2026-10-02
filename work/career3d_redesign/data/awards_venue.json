@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "title": "AWARDS / 年度选手颁奖厅",
+  "spawn": [0, 0.04, 9.85],
+  "eye_height": 1.34,
+  "door": [0, 0, 11.25],
+  "door_range": 1.05,
+  "visual_reference": "Annual esports award stage composition, warm gold lighting, dark backdrop, upholstered guest seating. Original career set; no copied HLTV logo or sponsor graphics.",
+  "reference_url": "https://www.hltv.org/gallery/13013/hltv-awards-2025-winners",
+  "preview_top3": [
+    {"rank":1,"player_id":"preview_1","name":"预览选手 A","team":"示例席位"},
+    {"rank":2,"player_id":"preview_2","name":"预览选手 B","team":"示例席位"},
+    {"rank":3,"player_id":"preview_3","name":"预览选手 C","team":"示例席位"}
+  ]
+}

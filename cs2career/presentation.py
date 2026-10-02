@@ -127,6 +127,9 @@ def inspect(state, kind, key, span='season', page=1, page_size=20):
             # Name-based compatibility lookup must not supply another person's
             # attributes when the caller supplied a stable ID.
             row.update({k: player.get(k) for k in ('name', 'role', 'ability', 'command', 'age', 'form', 'stats', 'is_igl', 'roster_status')})
+            from .world.ability import playing_ability, playing_stats, position_views
+            row.update(ability=playing_ability(player), stats=playing_stats(player),
+                       position_views=position_views(player))
             row.update(team=team['name'] if team else None, team_id=team['id'] if team else None,
                        player_id=target_id, form_delta=player.get('form_delta', 0), historical=False)
             row['data_provenance'] = quality_view(player)

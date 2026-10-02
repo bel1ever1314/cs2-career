@@ -13,6 +13,10 @@ from ..paths import data_file
 
 MODEL = 'bot_improver_career_tuned_v2'
 LEVELS = ('Low', 'Medium', 'High')
+# Keep the upstream extracts unchanged. This affects only our generated match
+# database, on all difficulties and roles; BotBuy enforces the same policy for
+# its purchases. It does not restrict a human's inventory or dropped weapons.
+EXCLUDED_PURCHASE_PREFERENCES = frozenset(('aug', 'scar20', 'g3sg1'))
 PARAMETER_KEYS = (
     'Skill', 'ReactionTime', 'AttackDelay', 'AimFocusInitial', 'AimFocusDecay',
     'AimFocusOffsetScale', 'AimfocusInterval', 'LookAngleMaxAccelNormal',
@@ -40,6 +44,11 @@ def preset(level: str) -> dict:
     templates = re.findall(r'(?ms)^Template [^\r\n]+\r?\n.*?^End\s*$', canonical)
     text = ('// Base: ' + level + '; shared career tiers: Medium templates only.\n'
             + default[0].rstrip() + '\n\n' + '\n\n'.join(t.rstrip() for t in templates) + '\n')
+    text = re.sub(
+        r'(?mi)^\s*WeaponPreference\s*=\s*(' + '|'.join(sorted(EXCLUDED_PURCHASE_PREFERENCES))
+        + r')\s*(?://[^\r\n]*)?\r?\n',
+        '', text,
+    )
     blocks = {}
     for block in re.finditer(r'(?ms)^(Default|Template [^\r\n]+)\r?\n(.*?)^End\s*$', text):
         name = block[1].split('//')[0].strip().removeprefix('Template ')

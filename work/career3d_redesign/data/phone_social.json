@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "_help": [
+    "这是手机对话文案。改文字无需改代码，回复 id 保持不变；{name} 是联系人的姓名。",
+    "也可在独立样板 extensions/phone_social.json 覆盖 topics 或 birthday；正式游戏的 extensions 不会被读取。",
+    "birthday.wish 是祝贺，birthday.train 是独自训练。narrative 来自原剧情存档，reply 是联系人说的话，outgoing 为空表示没有发送祝福。",
+    "其他剧情只有显式关联人物才进入聊天；剧情行可加 social: {contact_id: 稳定人物ID, name: 姓名, replies: {选项ID: 回复文字}}。不要把无关事件指派给随机队友。",
+    "这份文案只改变聊天表现，不改变生日奖励、心态、关系数值、剧情触发或时间。"
+  ],
+  "topics": {
+    "coach": {
+      "greeting": "今天按自己的节奏来。赛事邀请我会发到邮件里，报名之前先看一眼赛程。",
+      "replies": [
+        {"id": "schedule", "label": "我去看赛程", "reply": "好，确认日期。该打的比赛我们提前准备。", "page": "calendar"},
+        {"id": "practice", "label": "我想练一会儿", "reply": "俱乐部电脑上可以约训练赛。宿舍电脑也能打一场天梯。"}
+      ]
+    },
+    "teammate": {
+      "greeting": "有空一起练一会儿？先把手感找回来。",
+      "replies": [
+        {"id": "join", "label": "马上过来", "reply": "行，我在俱乐部等你。"},
+        {"id": "next_match", "label": "先看看下一场", "reply": "先把赛程看清楚，练习也有个方向。", "page": "match"}
+      ]
+    },
+    "person": {"greeting": "", "replies": []}
+  },
+  "birthday": {
+    "wish": {"outgoing": "生日快乐，{name}！", "reply": "谢谢，你还记得。今天练完一起坐会儿？"},
+    "train": {"outgoing": "", "reply": "听说你去训练了。等有空再一起坐会儿吧。"}
+  }
+}

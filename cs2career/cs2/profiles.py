@@ -111,6 +111,7 @@ def expected_bot_count(match: dict) -> int:
 
 
 def prepare_bots(match: dict, difficulty: str) -> list[dict]:
+    from ..arena_roles import validate_tactical_abilities
     rows: list[dict] = []
     for side in ("ct", "t"):
         for source in match.get(side, {}).get("players") or []:
@@ -144,6 +145,8 @@ def prepare_bots(match: dict, difficulty: str) -> list[dict]:
                 "avatar_kind": str(source.get("avatar_kind") or "default"),
             }
             row["parameters"] = bot_parameters(strength, overall, difficulty, role, stats)
+            if "tactical_abilities" in source:
+                row["tactical_abilities"] = validate_tactical_abilities(source["tactical_abilities"])
             row["profile_hash"] = hashlib.sha256(_profile_block(row).encode()).hexdigest()
             if not _avatar_valid(row):
                 raise ValueError(f"{pid} 没有通过校验的本地安全头像")
@@ -268,6 +271,14 @@ def generate_match_vpk(csgo: Path, match: dict, difficulty: str, cache_root: Pat
         "bots": [{k: b[k] for k in ("player_id", "profile_name", "display_name", "side", "overall", "form_delta", "effective_strength", "role", "tier", "stats", "aim_preset", "parameters", "profile_hash", "avatar_path", "avatar_hash", "avatar_kind")} for b in bots],
         "vpk_sha256": vpk_sha,
     }
+    for bot, prepared in zip(manifest["bots"], bots):
+        if "tactical_abilities" in prepared:
+            bot["tactical_abilities"] = dict(prepared["tactical_abilities"])
+    if "human_tactical_abilities" in match:
+        from ..arena_roles import validate_tactical_abilities
+        human_scores = match["human_tactical_abilities"]
+        manifest["human_tactical_abilities"] = ({} if match.get("observer") is True and human_scores == {}
+            else validate_tactical_abilities(human_scores))
     manifest["manifest_hash"] = _manifest_hash(manifest)
     # Validate all JSON numbers before replacing any active game artifact.
     manifest_payload = json.dumps(manifest, indent=2, ensure_ascii=False, allow_nan=False).encode()

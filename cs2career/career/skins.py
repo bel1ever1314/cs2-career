@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import random
+from functools import lru_cache
 from pathlib import Path
 
 from ..paths import data_file
@@ -87,7 +88,80 @@ def catalog() -> dict:
 def reload_catalog() -> dict:
     global _CATALOG
     _CATALOG = None
+    sticker_catalog.cache_clear()
+    inspect_catalog.cache_clear()
+    pro_bundle.cache_clear()
     return catalog()
+
+
+@lru_cache(maxsize=1)
+def sticker_catalog() -> dict:
+    from .skin_crafts import load_sticker_catalog
+    return load_sticker_catalog()
+
+
+@lru_cache(maxsize=1)
+def inspect_catalog() -> dict:
+    """Pinned ID mapping, never fetch a renderer or Steam inventory on startup."""
+    try:
+        raw = json.loads(data_file('inspect_catalog.json').read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return {}
+    if raw.get('schema_version') != 1 or raw.get('embed_url') != 'https://3d.cstrike.app/view':
+        return {}
+    return raw
+
+
+def sticker_model_for_item(row: dict) -> dict | None:
+    """Finish-specific HD/legacy bounds; stack slot is not a model anchor."""
+    applied = _item_core(row)
+    manifest = inspect_catalog()
+    viewer_id = manifest.get('items', {}).get(f"{applied['def']}:{applied['paint']}")
+    return manifest.get('models', {}).get(str(viewer_id))
+
+
+def sticker_catalog_for_item(row: dict) -> dict:
+    model = sticker_model_for_item(row)
+    known = sticker_catalog()
+    if not model:
+        return known
+    applied = _item_core(row)
+    return {**known, 'models': {**known['models'], str(applied['def']): model}}
+
+
+@lru_cache(maxsize=1)
+def pro_bundle() -> dict:
+    """Pinned public recipes, separate from the market and its money economy."""
+    from .skin_crafts import validate_pack
+    raw = json.loads(data_file('public_pro_loadouts.json').read_text(encoding='utf-8'))
+    source_skins = [{**s, 'min_float': s['float_min'], 'max_float': s['float_max']}
+                    for s in raw['skin_catalog']]
+    combined = {**skin_map(), **{s['id']: s for s in source_skins}}
+    packs = []
+    for pack in raw['packs']:
+        # Unknown pro floats/seeds use explicit game-template defaults only.
+        items = []
+        for item in pack['items']:
+            skin = combined[item['skin_id']]
+            wear = max(float(skin.get('float_min', 0)), min(.15, float(skin.get('float_max', 1))))
+            items.append({**item, 'defaults': {'wear': wear, 'seed': 1},
+                          'source_parameters': {'wear': None, 'seed': None}})
+        prepared = {**pack, 'items': items}
+        packs.append(validate_pack(prepared, combined, sticker_catalog()))
+    return {'skins': combined, 'packs': packs}
+
+
+def public_loadouts(career) -> list[dict]:
+    owned = {(r.get('source_pack_id'), r.get('source_pack_item_id')) for r in career.inventory}
+    result = []
+    data = pro_bundle()
+    for pack in data['packs']:
+        items = [{**data['skins'][item['skin_id']], **item} for item in pack['items']]
+        result.append({**pack, 'items': items, 'count': len(items),
+                       'imported': all((pack['id'], item['id']) in owned for item in items),
+                       'description': '公开配装模板；磨损和图案使用模拟默认值，不代表选手真实参数。',
+                       'description_en': 'Public loadout template. Wear and seed use simulator defaults, not the player’s actual item parameters.'})
+    return result
 
 
 def skin_map() -> dict[str, dict]:
@@ -306,22 +380,23 @@ def migrate_equipped(career) -> None:
 
 def _seed_of(row: dict) -> int:
     raw = row.get("seed")
-    if isinstance(raw, int) and 1 <= raw <= 1000:
+    if type(raw) is int and 0 <= raw <= 1000:
         return raw
     text = str(row.get("id") or row.get("skin_id") or "1")
     return (sum(ord(ch) for ch in text) * 1103515245 + 12345) % 1000 + 1
 
 
-def _item_payload(row: dict) -> dict:
+def _item_core(row: dict) -> dict:
+    """Resolve old item identifiers without validating optional decorations."""
     cat = skin_map().get(row.get("skin_id") or "") or {}
     slot = row.get("slot") or cat.get("slot") or ""
-    if cat:
+    if cat and not row.get('source_pack_id'):
         paint = int(cat.get("paint") or 0)
         defn = _def_of(cat)
     else:
         paint = int(row.get("paint") or 0)
         defn = _def_of({**row, "slot": slot})
-    wear = float(row.get("wear") or 0.15)
+    wear = float(0.15 if row.get('wear') is None else row['wear'])
     if slot == "gloves":
         wear = max(0.06, wear)
     return {
@@ -329,9 +404,23 @@ def _item_payload(row: dict) -> dict:
         "paint": paint,
         "wear": wear,
         "seed": _seed_of(row),
-        "stickers": [],
         "slot": slot,
     }
+
+
+def _item_payload(row: dict) -> dict:
+    from .skin_crafts import appearance_hash, normalize_attachments
+    payload = _item_core(row)
+    slot = payload.pop('slot')
+    known = sticker_catalog_for_item(row)
+    payload['stickers'] = normalize_attachments(row.get('stickers') or [], payload['def'], known)
+    for field in ('nametag', 'stattrak'):
+        if row.get(field) is not None:
+            payload[field] = row[field]
+    # InventorySimulator compares Hash; unchanged full appearance keeps the hash,
+    # changing a sticker invalidates its cached item instead of reusing old art.
+    payload['hash'] = appearance_hash(payload, known)
+    return {**payload, 'slot': slot}
 
 
 SKIN_API_PORT = 18768
@@ -394,7 +483,7 @@ def repair_items(items: list[dict]) -> bool:
     for row in items:
         if not isinstance(row, dict):
             continue
-        payload = _item_payload(row)
+        payload = _item_core(row)
         if row.get("def") != payload["def"] or row.get("paint") != payload["paint"]:
             row["def"] = payload["def"]
             row["paint"] = payload["paint"]
@@ -460,9 +549,12 @@ def sync_live(career) -> None:
     if not getattr(career, "real_skins", False):
         return
     try:
-        from ..cs2.launch import settings, write_invsim_cfg
+        from ..cs2.launch import settings, skins_inventory_mode, write_invsim_cfg
 
-        csgo = Path(settings()["csgo_path"])
+        cfg = settings()
+        if skins_inventory_mode(cfg) == "external":
+            return
+        csgo = Path(cfg["csgo_path"])
         if not csgo.is_dir() or not plugin_installed(csgo):
             return
         write_inventories(
@@ -496,15 +588,23 @@ def _decorate_skin(career, row: dict) -> dict:
 def _decorate_item(career, row: dict) -> dict:
     sid = row.get("skin_id") or ""
     spot = quote_of(career, sid) if sid else int(row.get("sell") or 0)
+    applied = _item_core(row)
     return {
         **row,
-        "spot": spot,
-        "sell": sell_proceeds(spot),
+        **{key: applied[key] for key in ('def', 'paint', 'wear', 'seed')},
+        "spot": 0 if row.get('bound') else spot,
+        "sell": 0 if row.get('bound') else sell_proceeds(spot),
+        "sellable": not row.get('bound', False),
+        "seed": _seed_of(row),
+        "sticker_capable": str(_def_of(row)) in sticker_catalog()['models'],
+        "inspect_model": sticker_model_for_item(row),
         "sides": list(sides_for(row.get("slot") or "")),
     }
 
 
 def shop_public(career) -> dict:
+    from ..cs2.launch import skin_integration
+
     ensure_economy(career)
     migrate_equipped(career)
     pending = career.pending_drop
@@ -533,6 +633,11 @@ def shop_public(career) -> dict:
             seen.add(w)
             weapons.append(w)
     return {
+        "skin_integration": skin_integration(),
+        "inspect_catalog": inspect_catalog(),
+        "stickers": sticker_catalog()['stickers'],
+        "sticker_models": sticker_catalog()['models'],
+        "loadout_packs": public_loadouts(career),
         "cases": cases,
         "market": [_decorate_skin(career, row) for row in catalog()["skins"]],
         "inventory": [_decorate_item(career, row) for row in (career.inventory or [])],

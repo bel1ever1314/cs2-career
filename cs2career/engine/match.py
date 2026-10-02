@@ -152,15 +152,17 @@ def play_round_event_stream(rows_a: list[dict], rows_b: list[dict], p_a: float) 
             stats[victim["name"]]["d"] += 1
             flags[killer["name"]]["kill"] = True
             flags[victim["name"]]["dead"] = True
+            assist_damage = 0
             if assister:
                 stats[assister["name"]]["a"] += 1
-                stats[assister["name"]]["damage"] += RNG.randint(15, 45)
+                assist_damage = RNG.randint(15, 45)
+                stats[assister["name"]]["damage"] += assist_damage
                 flags[assister["name"]]["assist"] = True
             if order == 0:
                 stats[killer["name"]]["opening_kills"] += 1
                 stats[victim["name"]]["opening_deaths"] += 1
             pending.append((victim["name"], killer["name"], victim_side, order))
-            events.append({"round": number, "type": "kill", "killer": killer["name"], "victim": victim["name"], "assister": assister["name"] if assister else "", "damage": damage})
+            events.append({"round": number, "type": "kill", "killer": killer["name"], "victim": victim["name"], "assister": assister["name"] if assister else "", "damage": damage, "assist_damage": assist_damage})
         # Non-lethal damage is part of the same ledger, not reverse-engineered ADR.
         for _ in range(RNG.randint(3, 8)):
             side = RNG.choice(("a", "b"))

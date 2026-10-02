@@ -185,6 +185,17 @@ def build_teams(era: str = "2026", year: int | None = None) -> list[dict]:
             age = age_of(pname, year)
             if year != 2026 and not correction:
                 gun, stats = shift_from_2026(stats, gun, age_of(pname, 2026), age, role)
+            # The new pack is scoped by opening era AND team. It is never a
+            # global name-based overwrite and never runs when loading saves.
+            from .calibrated import stats_for_candidate
+            candidate = stats_for_candidate(pname, role, str(era), name)
+            if candidate is not None:
+                stats = {**stats, **candidate}
+                calibrate_role(stats, stats['position_model']['reference_role'], stats['ability'])
+                if year != int(era):
+                    _, stats = shift_from_2026(stats, stats['ability'],
+                                              age_of(pname, int(era)), age, role)
+                gun = ability_of(stats, role)
             players.append(
                 {
                     "player_id": player_id(pname),
@@ -193,7 +204,7 @@ def build_teams(era: str = "2026", year: int | None = None) -> list[dict]:
                     "is_igl": bool(authored.get(pname, {}).get('is_igl', False)),
                     "roster_status": authored.get(pname, {}).get('roster_status', 'active'),
                     "ability": gun,
-                    "long_term_ability": gun,
+                    "long_term_ability": ability_of(stats, stats.get('role_reference', role)),
                     "command": int(stats.get("command") or 0),
                     "stats": stats,
                     "form_delta": float(stats.get("form_delta") or 0),

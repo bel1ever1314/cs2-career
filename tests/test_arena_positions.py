@@ -1,4 +1,4 @@
-"""Ranked identity, temporary five-role optimisation and hand-off regression."""
+"""Ranked identity, local five-role optimisation and hand-off regression."""
 from copy import deepcopy
 from itertools import permutations
 from pathlib import Path
@@ -79,7 +79,10 @@ class RankedPositionsTests(unittest.TestCase):
         self.assertEqual(self.ids[1],self.arena.data['lobby']['human_id'])
         self.arena.configure(self.body(map='dust2',ct='b',human_id=''))
         self.assertEqual('',self.arena.data['lobby']['human_id'])
-        self.assertNotIn('role_assignment_version',self.arena.data['lobby'])
+        self.assertEqual(1,self.arena.data['lobby']['role_assignment_version'])
+        for side in ('a','b'):
+            self.assertEqual(set(PLAYABLE_ROLES),{self.arena.data['lobby']['roster'][pid]['role']
+                             for pid in self.arena.data['lobby'][side]})
 
     def test_missing_stable_id_does_not_guess_by_name(self):
         self.state.career.you_card.pop('player_id')
@@ -140,6 +143,57 @@ class RankedPositionsTests(unittest.TestCase):
         with patch.object(launch,'require_cs2_closed'),patch.object(launch,'start_match',return_value={'msg':'test'}):self.arena.launch(self.state,self.body())
         self.assertEqual(old,l['roster']);self.assertEqual(nonce,l['nonce'])
         self.assertNotIn('role_assignment_version',l)
+
+    def test_custom_multiple_snipers_get_one_of_each_role_on_copies(self):
+        for team in self.state.season.teams:
+            for p in team['players']:p['role']='awp'
+        before=deepcopy(self.state)
+        self.arena.create(self.state,self.body(mode='custom',players=self.ids,human_id=self.ids[1]))
+        l=self.arena.data['lobby']
+        self.assertEqual(1,l['role_assignment_version'])
+        self.assertEqual(self.ids[:5],l['a']);self.assertEqual(self.ids[5:],l['b'])
+        self.assertEqual(self.ids[1],l['human_id'])
+        for side in ('a','b'):
+            roles=[l['roster'][pid]['role'] for pid in l[side]]
+            self.assertEqual(set(PLAYABLE_ROLES),set(roles));self.assertEqual(1,roles.count('awp'))
+        self.assertEqual(before,self.state)
+        self.assertEqual(l,Arena(self.arena.path).data['lobby'])
+        self.arena.configure(self.body(map='dust2',ct='b',human_id=''))
+        assigned=deepcopy(l['roster'])
+        with patch.object(launch,'require_cs2_closed'),patch.object(launch,'start_match',return_value={'msg':'test'}):
+            self.arena.launch(self.state,self.body())
+        self.assertTrue(l['request']['observer'])
+        for side in ('ct','t'):
+            bots=l['request'][side]['players']
+            self.assertEqual(5,len(bots));self.assertEqual(set(PLAYABLE_ROLES),{p['role'] for p in bots})
+            for bot in bots:self.assertEqual(assigned[bot['player_id']]['role'],bot['role'])
+        self.assertEqual(before,self.state)
+
+    def test_old_custom_ready_upgrades_but_starting_and_launched_snapshots_do_not(self):
+        self.arena.create(self.state,self.body(mode='custom',players=self.ids,human_id=''))
+        l=self.arena.data['lobby'];l.pop('role_assignment_version')
+        for p in l['roster'].values():p['role']='awp'
+        with patch.object(launch,'require_cs2_closed'),patch.object(launch,'start_match',return_value={'msg':'test'}):
+            self.arena.launch(self.state,self.body())
+        self.assertEqual(1,l['role_assignment_version'])
+        for side in ('a','b'):
+            self.assertEqual(set(PLAYABLE_ROLES),{l['roster'][pid]['role'] for pid in l[side]})
+        # Legacy pending rooms may legitimately contain duplicate jobs. Their
+        # original role/ability and nonce must survive a retry, not be upgraded.
+        l['phase']='starting';l.pop('role_assignment_version')
+        for p in l['roster'].values():p['role']='awp'
+        old=deepcopy(l['roster']);nonce=l['nonce']
+        with patch.object(launch,'require_cs2_closed'),patch.object(launch,'start_match',return_value={'msg':'test'}),\
+             patch('cs2career.arena.assign_lobby_positions') as assign:
+            self.arena.launch(self.state,self.body());assign.assert_not_called()
+        self.assertEqual(old,l['roster']);self.assertEqual(nonce,l['nonce'])
+        self.assertNotIn('role_assignment_version',l)
+        self.assertTrue(all(p['role']=='awp' for side in ('ct','t') for p in l['request'][side]['players']))
+        saved=deepcopy(self.arena.data)
+        with patch('cs2career.arena.assign_lobby_positions') as assign:
+            with self.assertRaisesRegex(ValueError,'待开赛'):self.arena.launch(self.state,self.body())
+            assign.assert_not_called()
+        self.assertEqual(saved,self.arena.data)
 
     def test_http_rejects_forged_identity_and_mismatched_room(self):
         self.state.arena=self.arena;server=create_server(self.state);server.game_disabled=True

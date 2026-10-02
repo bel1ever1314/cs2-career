@@ -247,13 +247,18 @@ def starter_mates(
 
 
 def agent_rows() -> list[dict]:
-    from .ability import ability_of, stats_for
+    from .ability import ability_of, calibrate_role, stats_for
+    from .calibrated import stats_for_candidate
     from .eras import player_id
 
     rows = []
     for name, role, ability, born, region, note in FREE_AGENTS:
         AGES.setdefault(name, born)
         stats = stats_for(name, role, float(ability))
+        candidate = stats_for_candidate(name, role, '2026', kind='free_agent')
+        if candidate is not None:
+            stats.update(candidate)
+            calibrate_role(stats, stats['position_model']['reference_role'], stats['ability'])
         gun = float(stats["ability"]) if "ability" in stats else ability_of(stats, role)
         from .aging import starting_igl_years
 
