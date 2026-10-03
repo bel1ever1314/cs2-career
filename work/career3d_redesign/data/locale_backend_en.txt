@@ -1,0 +1,390 @@
+# Authored backend adapter statuses. Complete messages only; runtime values stay unchanged.
+# career3d_activities.py
+自定义房间已关闭；没有计算积分或生涯奖励。	Custom lobby closed; no rating points or career rewards awarded.
+比赛已结束。	Match finished.
+人机增强	Bot Improver
+比赛回传组件	Match feedback component
+买枪组件	Buy management component
+%s尚未安装到所选 CS2 目录。	%s is not installed in the selected CS2 directory.
+路径和比赛组件已就绪。	Paths and match components are ready.
+游戏路径、难度和可选换肤已保存在独立生涯。	Game paths, difficulty and optional skins saved to the separate career.
+训练对局尚未完成，请先录入或取消训练再加点。	Training is unfinished. Import or cancel it before allocating points.
+属性分配已按现有成长规则保存。	Attribute allocation saved using the existing progression rules.
+尚未开始匹配。	Matchmaking has not started.
+训练赛已结束。	Scrim finished.
+页码必须为正整数，每页应为 1 至 50 人。	Page must be a positive integer, with 1 to 50 players per page.
+选手搜索应为 80 字以内的文字。	Player search must be text of at most 80 characters.
+当前自定义房间身份已变化，请刷新；不能操作天梯房间。	The custom lobby identity changed. Refresh; ladder lobbies cannot be modified here.
+控制的选手必须在本场十人中；空值表示十 Bot 观察者。	The controlled player must be one of the ten participants; leave empty to spectate ten bots.
+请选择原有地图和开场 CT 队伍 A 或 B。	Select an existing map and team A or B to start as CT.
+没有这个自定义对局操作。	Unknown custom match action.
+自定义十人房间已创建，不计算天梯积分或生涯奖励。	Custom ten-player lobby created; no ladder points or career rewards apply.
+自定义模拟战报已保存，不计积分或生涯奖励。	Custom simulation report saved; no rating points or career rewards awarded.
+自定义地图、开场阵营与控制身份已保存。	Custom map, starting side and controlled player saved.
+请完全退出 CS2，核验进程后再放弃本场自定义对局。	Fully exit CS2 and verify the process before abandoning this custom match.
+当前天梯房间身份已变化，请刷新。	The ladder lobby identity changed. Refresh.
+请先完成房间；正在启动或等待真实回传的比赛不能模拟。	Finish the current lobby first; launching matches or matches awaiting real results cannot be simulated.
+共享房间属于自定义对局，不能从天梯入口修改或关闭。	The shared lobby belongs to a custom match and cannot be changed or closed from the ladder page.
+训练对局尚未完成，请先录入或取消训练。	Training is unfinished. Import or cancel it first.
+职业比赛正在等待 CS2 回传，请先录入后再进入天梯。	A career match is awaiting CS2 results. Import them before entering the ladder.
+没有这个天梯操作	Unknown ladder action
+匹配成功。	Match found.
+房间已更新。	Lobby updated.
+Steam 程序未找到，请选择 steam.exe。	Steam was not found. Select steam.exe.
+CS2 目录未找到或缺少 gameinfo.gi，请选择游戏根目录或 game/csgo。	CS2 directory not found or gameinfo.gi missing. Select the game root or game/csgo.
+人机增强发行包目录不完整，请选择包含 addons/metamod、addons/counterstrikesharp 和 overrides 的目录。	The Bot Improver release directory is incomplete. Select a directory containing addons/metamod, addons/counterstrikesharp and overrides.
+ 请在设置中点击“安装填写目录的人机增强”。	 Click Install Bot Improver from selected directory in Settings.
+请选择现有 CS2 设置字段。	Select an existing CS2 settings field.
+真实比赛正在启动或等待回传，请先完成比赛再修改设置。	A real match is launching or awaiting results. Finish it before changing settings.
+请完全退出 CS2 后再修改开赛设置。	Fully exit CS2 before changing match launch settings.
+游戏内换肤设置格式不正确，请重新选择。	Invalid in-game skin settings. Select them again.
+启用游戏内换肤时，请填写 17 位数字 SteamID64；暂不使用可先关闭游戏内换肤。	Enter a 17-digit SteamID64 to enable in-game skins, or disable in-game skins for now.
+天梯比赛正在启动或等待真实回传，请先录入或关闭房间后再加点。	A ladder match is launching or awaiting real results. Import them or close the lobby before allocating points.
+个人资料已变化，请刷新后再确认加点。	Your profile changed. Refresh before confirming attribute allocation.
+请选择原有属性维度。	Select an existing attribute.
+属性分配必须是非负整数，且至少投入一点。	Attribute allocations must be non-negative integers with at least one point allocated.
+分配点数超过当前可用属性点。	The allocation exceeds your available attribute points.
+库存或资金已变化，请刷新后再操作。	Inventory or funds changed. Refresh before continuing.
+没有这个饰品操作。	Unknown skin action.
+无法核验 CS2 进程状态；请检查系统权限后重试，不会生成或覆盖开赛配置。	Cannot verify the CS2 process. Check system permissions and retry; match configurations will not be generated or overwritten.
+现有 %s 组件缺失；3D 样板不安装或替换插件。	The existing %s component is missing; the 3D prototype does not install or replace plugins.
+当前对局房间身份已变化，请刷新。	The match lobby identity changed. Refresh.
+房间尚未准备好，或已有比赛等待回传。	The lobby is not ready, or another match is awaiting results.
+CS2 正在运行；请完全退出后再开新对局，当前配置不会覆盖。	CS2 is running. Fully exit before starting a new match; the current configuration will not be overwritten.
+启动新的 3D 自定义对局	Start a new 3D custom match
+启动新的 3D 天梯比赛	Start a new 3D ladder match
+请选择原有难度 Low、Medium 或 High。	Select an existing difficulty: Low, Medium or High.
+有完整阵容后才能约训练赛	A full roster is required to schedule a scrim
+训练赛约好了。	Scrim scheduled.
+没有这个训练赛操作	Unknown scrim action
+这场训练赛不存在	This scrim does not exist
+还没到约定日期	The scheduled date has not arrived
+对手阵容已变化，请重新约赛	The opponent roster changed. Schedule the scrim again
+请选择资料库中的稳定选手身份，或空值观察者。	Select a stable player identity from the database, or leave empty to spectate.
+原有推荐名单已生成；尚未创建或修改房间。	Recommended players generated; no lobby has been created or changed.
+职业比赛正在等待 CS2 回传，请先录入后再进入自定义对局。	A career match is awaiting CS2 results. Import them before entering a custom match.
+请选择十名不同的稳定选手身份，前五名 A 队、后五名 B 队。	Select ten distinct stable player identities: the first five for team A and the last five for team B.
+自定义对局已结束。	Custom match finished.
+自定义房间尚未准备好；待回传的真实比赛不能模拟。	The custom lobby is not ready; real matches awaiting results cannot be simulated.
+蓝队	Blue team
+橙队	Orange team
+这场真实 CS2 战绩已录入，不能用模拟覆盖。	The real CS2 results have been imported and cannot be overwritten by a simulation.
+未知 CS2 设置选项：%s	Unknown CS2 setting: %s
+已装备饰品会在进入 CS2 本局时同步。	Equipped skins will sync when you enter this CS2 match.
+个人饰品仅保存在独立库存；游戏内换肤需要现有换肤组件与 17 位 SteamID。	Personal skins are stored in a separate inventory; in-game skins require the existing skin component and a 17-digit SteamID.
+职业比赛正在等待真实回传，请先录入后再加点。	A career match is awaiting real results. Import them before allocating points.
+属性分配超过 100 上限。	The attribute allocation exceeds the cap of 100.
+另一个模式占用了共享对战房间，请先完成或关闭原房间。	Another mode is using the shared match lobby. Finish or close it first.
+这场已录入，不重复保存或计分。	This match is already imported; it will not be saved or scored again.
+重试必须沿用这场已冻结的难度。	Retries must use this match's locked difficulty.
+现有换肤组件缺失；3D 样板不会安装插件。	The existing skin component is missing; the 3D prototype does not install plugins.
+请选择另一支完整队伍	Select another team with a full roster
+这个日期已经过去了	This date has already passed
+当天已经约了一场训练赛	A scrim is already scheduled for that day
+请选择地图	Select a map
+饰品接口开关必须是布尔值。	The skin API switch must be a boolean.
+CS2 设置必须是有效的单行文本。	CS2 settings must be valid single-line text.
+这段生涯已经结束。	This career has ended.
+饰品不存在或个人资金不足。	The skin does not exist or personal funds are insufficient.
+请选择训练赛日期	Select a scrim date
+快速模式的属性点已保留，请在 Major 结束后的休赛期统一分配。	Quick mode attribute points are retained. Allocate them during the off-season after the Major.
+箱子不存在、个人资金不足，或上个掉落还未处理。	The case does not exist, personal funds are insufficient, or the previous drop is unresolved.
+换肤偏好已保存在独立生涯，进入 CS2 比赛时应用。	Skin preferences saved to the separate career; they apply when entering a CS2 match.
+本场真实战绩已录入。	This match's real results have been imported.
+这是以前保存的模拟报告。	This is a previously saved simulation report.
+没有可用属性点。	No attribute points available.
+没有待处理的掉落。	No pending drops.
+本地装备已保存，进入 CS2 比赛时使用这份装备。	Local loadout saved; it will be used when entering a CS2 match.
+真实十人战绩已回传，请录入。	Real ten-player results received. Import them.
+CS2 正在运行；请完全退出后再开新天梯，当前配置不会覆盖。	CS2 is running. Fully exit before starting a new ladder match; the current configuration will not be overwritten.
+找不到你的选手数据。	Your player data could not be found.
+库存中没有这件饰品。	This skin is not in your inventory.
+real 必须是布尔值。	real must be a boolean.
+游戏内换肤需要 17 位数字 SteamID。	In-game skins require a 17-digit SteamID.
+等待当前天梯比赛回传。	Awaiting results from the current ladder match.
+全部属性已满。	All attributes are at their maximum.
+请选择这件饰品支持的 CT 或 T 阵营。	Select CT or T as supported by this skin.
+off 必须是布尔值。	off must be a boolean.
+尚未核验 CS2 进程状态，请刷新天梯连接状态。	The CS2 process has not been verified. Refresh the ladder connection status.
+请先完成选人、地图 BP 与选边。	Finish player selection, map veto and side selection first.
+阵容与地图已锁定，可以进入 CS2。	Roster and map locked; ready to enter CS2.
+# career3d_attribute_draw.py
+传奇	Legendary
+史诗	Epic
+稀有	Rare
+优秀	Superior
+普通	Common
+按所选年代开局的游戏 VRS 分档；不是官方真实积分，也不用于换算个人能力。	In-game VRS tiers for the selected starting era; not official rating points and not used to calculate individual ability.
+请选择 2024、2025 或 2026 年代。	Select the 2024, 2025 or 2026 era.
+队伍抽取只允许在已隔离的 3D 演示目录中使用。	Team draws are only available in an isolated 3D demo directory.
+队伍抽取不能读取或写入正式存档目录。	Team draws cannot read or write the production save directory.
+队伍抽取目录缺少 3D 演示隔离标记。	The team draw directory is missing the 3D demo isolation marker.
+队伍抽取目录的隔离标记无效。	The team draw directory has an invalid isolation marker.
+旧属性草稿已损坏，原记录没有删除。	The old attribute draft is corrupted; the original record was not deleted.
+队伍抽取草稿已损坏，次数没有重置。	The team draw draft is corrupted; attempts were not reset.
+队伍抽取进度记录无效，次数没有重置。	Invalid team draw progress record; attempts were not reset.
+开局草稿格式不兼容，请保留目录供检查。	The start draft format is incompatible. Keep the directory for inspection.
+队伍抽取活动草稿记录无效。	Invalid active team draw draft record.
+这个年代没有完整的真实五人战队可供抽取。	No complete real five-player teams are available for this era.
+请提供本次队伍抽取操作的唯一编号。	Provide a unique ID for this team draw action.
+这个队伍草稿已结束或不属于所选年代，请重新读取开局。	This team draft has ended or belongs to another era. Reload the start page.
+没有这个队伍抽取操作。	Unknown team draw action.
+可抽取十次队伍，每次从五人中选取一项能力；七项选齐即可开始。	Draw up to ten teams and select one ability from the five players each time. Start once all seven abilities are selected.
+旧属性次数记录无效，原记录没有删除。	Invalid old attribute attempt record; the original record was not deleted.
+旧属性选择记录无效，原记录没有删除。	Invalid old attribute selection record; the original record was not deleted.
+抽到的队伍与冻结名单不一致，请保留草稿。	The drawn team does not match the locked roster. Keep the draft.
+开局草稿已损坏。	The start draft is corrupted.
+这个编号已经用于创建生涯。	This ID has already been used to create a career.
+队伍已保存，请从这五人中选取一项能力。	Team saved. Select one ability from these five players.
+能力已保存，可继续抽队伍，或在七项选齐后开始生涯。	Ability saved. Continue drawing teams, or start your career after selecting all seven abilities.
+队伍抽取开局已经取消难度选项，请刷新开局界面。	Difficulty selection is no longer part of team draw starts. Refresh the start page.
+请先为七项能力各选择一个结果，并完成当前队伍的选择。	Select one result for each of the seven abilities and finish the current team's selection first.
+这个编号已经用于抽取操作。	This ID has already been used for a draw.
+这个开局编号已经用于另一套选择。	This start ID has already been used for another selection.
+属性选择与真实五人名单不一致，请保留草稿。	Attribute selections do not match the real five-player roster. Keep the draft.
+这个操作编号已经用于另一套选择。	This action ID has already been used for another selection.
+草稿已变化，请读取最新选择后再操作。	The draft changed. Load the latest selections before continuing.
+新生涯的属性来源草稿缺失，请保留目录供检查。	The new career's attribute source draft is missing. Keep the directory for inspection.
+请先从本次抽到的队伍中选取一项能力。	Select one ability from the current drawn team first.
+十次队伍抽取机会已经用完。	All ten team draws have been used.
+现在每次抽取整支队伍，不再单独抽取属性。	Each draw now selects an entire team, not an individual attribute.
+每次抽到的队伍只能选取一项能力，不能重新改选历史抽取。	Select only one ability per drawn team; past draws cannot be reselected.
+请选择七项能力中的一项。	Select one of the seven abilities.
+剩余次数只够补齐空缺，请选择尚未获得的能力。	Remaining draws are only enough to fill the gaps. Select an ability you do not yet have.
+只能选择本次队伍真实五人名单中的选手。	Select only a player from the current team's real five-player roster.
+属性草稿已用于另一份新生涯。	The attribute draft has been used for another new career.
+# career3d_business.py
+真实比赛正在启动或等待回传，暂时不能改变阵容。	A real match is launching or awaiting results; roster changes are temporarily disabled.
+生涯状态已变化，请刷新后再操作。	The career state changed. Refresh before continuing.
+训练对局正在等待真实回传，请先录入训练战绩。	Training is awaiting real results. Import the training results first.
+天梯比赛正在启动或等待真实回传，暂时不能改变选手身份、阵容或能力。	A ladder match is launching or awaiting real results; player identity, roster and ability changes are temporarily disabled.
+职业比赛正在等待真实回传，暂时不能改变选手身份、阵容或能力。	A career match is awaiting real results; player identity, roster and ability changes are temporarily disabled.
+没有这个邮件操作。	Unknown mail action.
+这封邮件没有可接受或婉拒的邀请。	This message has no invitation to accept or decline.
+这封邀请已经处理或失效，请刷新。	This invitation was handled or expired. Refresh.
+你是签约选手，俱乐部引援由管理层负责。	You are a contracted player; club recruitment is managed by the board.
+设施升级使用俱乐部账户。	Facility upgrades use the club account.
+原经营业务没有这个操作。	Unknown business operation.
+金额必须是正整数。	The amount must be a positive integer.
+你现在没有俱乐部，不能办理这项经营操作。	You have no club and cannot perform this business operation.
+没有这个转会操作。	Unknown transfer action.
+当前生涯不能签约。	Signing is unavailable in the current career.
+请先选择一名要替换的队友。	Select a teammate to replace first.
+选手或卖方身份已变化，请刷新报价。	The player or seller identity changed. Refresh the offer.
+普通谈判仅支持自由球员；现役选手请使用保签买断。	Regular negotiations support free agents only; use a guaranteed buyout for contracted players.
+报价已变化，请刷新后确认。	The offer changed. Refresh before confirming.
+当前球队条件不足，选手不接受普通谈判。	Current team conditions are insufficient; the player will not enter regular negotiations.
+新闻页码必须是正整数。	The news page must be a positive integer.
+没有这个新闻分类。	Unknown news category.
+榜单本轮仅支持 season 范围，页码必须是正整数；单人资料支持其他范围。	This leaderboard supports the season range only, with a positive integer page; individual profiles support other ranges.
+请先处理禁赛或贷款最后通牒。	Resolve the suspension or loan ultimatum first.
+先还清这一笔，才能再借。	Repay this loan before borrowing again.
+当前最多能借 $%s。	You can currently borrow up to $%s.
+个人口袋资金不足。	Insufficient personal funds.
+没有可偿还的贷款，或必须先处理最后通牒。	No loan is available to repay, or an ultimatum must be resolved first.
+战队不存在，请刷新。	The team does not exist. Refresh.
+目标队伍没有这个有效位置，请重新选择。	The target team does not have this valid position. Select again.
+%s · 赛事荣誉记录	%s · Tournament honours record
+%s 年度 Top20	%s Annual Top 20
+月份必须是 YYYY-MM。	The month must use YYYY-MM format.
+这封邀请已经按你的选择处理。	The invitation has been handled according to your choice.
+赛事进行中，结束后再转会。	An event is in progress. Transfer after it ends.
+# career3d_controls.py
+真实比赛正在启动或等待回传，请先完成当前比赛。	A real match is launching or awaiting results. Finish it first.
+CS2 训练赛正在等待核验，请先完成本次训练。	A CS2 training match is awaiting verification. Finish this training session first.
+启动 3D 训练赛	Start a 3D training match
+当前没有所属战队。	You are not currently on a team.
+合同沿用原生涯邀约规则；接受后进入原加盟选择，再由你决定签字或留下。	Contracts use the existing career invitation rules. Accepting opens the joining decision; you choose whether to sign or stay.
+今天的训练奖励已经结算，请在下一游戏日再启动真实训练；模拟训练赛仍可安排。	Today's training rewards have already been settled. Start real training next game day; simulated scrims remain available.
+完成真实 CS2 训练赛后核验；每个游戏日最多一次全队心态收益，收益沿用原边际递减规则，不增加个人能力。	Verify after completing a real CS2 training match. Team mentality can improve once per game day using the existing diminishing returns; individual ability does not increase.
+保存后，现有邀请与可用点数按原规则处理；转会合同与剧情仍由你决定。快速模式在 Major 后休赛期分配属性点。	After saving, invitations and available points follow existing rules; transfer contracts and stories remain your decision. Quick mode allocates attribute points in the off-season after the Major.
+榜单只支持 top20 或 players。	Leaderboards support top20 or players only.
+请提供有效页码与不超过 100 字符的搜索文字。	Provide a valid page and search text of at most 100 characters.
+请提供有效年份。	Provide a valid year.
+没有这个年份的已存 Top20。	No saved Top 20 is available for this year.
+request_id 必须是 8 至 100 字符的唯一编号。	request_id must be a unique ID of 8 to 100 characters.
+需要有效生涯和完整五人阵容。	A valid career and a full five-player roster are required.
+请选择另一支完整队伍作为训练对手。	Select another complete team as your training opponent.
+请选择 CT 或 T 开局。	Select CT or T as the starting side.
+请完全退出 CS2 后再启动训练赛。	Fully exit CS2 before starting a training match.
+没有这个电脑控制操作。	Unknown computer control action.
+选手数据榜沿用原本赛季对 VRS Top30 对手的口径。	Player statistics use the existing season criteria against VRS Top 30 opponents.
+年度最终榜单	Final annual rankings
+本赛季暂定 Top20 · 原业务荣誉与 Top10 / Top20 对手评分，样本不足不列入。	Provisional season Top 20 · Existing honours and ratings against Top 10 / Top 20 opponents; insufficient samples are excluded.
+这个 request_id 已用于另一项操作。	This request_id has been used for another action.
+现有换肤组件缺失，请先关闭可选换肤。	The existing skin component is missing. Disable optional skins first.
+战术导入只接受 value 和可选 map。	Tactic import accepts value and optional map only.
+名单对不上，请刷新后再试。	The roster does not match. Refresh and retry.
+请选择原有位置。	Select an existing position.
+请选择邀请规则或自动加点方向。	Select an invitation rule or automatic attribute allocation focus.
+这封合同已经处理或失效，请刷新。	This contract was handled or expired. Refresh.
+今天的训练奖励已经结算。	Today's training rewards have been settled.
+没有待核验的真实 CS2 训练赛。	No real CS2 training match awaits verification.
+请明确确认取消当前这场待核验训练。	Explicitly confirm cancellation of this training match awaiting verification.
+请先完全退出 CS2，再取消待核验训练。	Fully exit CS2 before cancelling training awaiting verification.
+本次训练核验已取消，未发放奖励；现有战绩记录保留。	Training verification cancelled, no rewards awarded; existing match records are retained.
+扩展已重载。生涯事件下次触发、聊天下次准备比赛生效；赛事及年代用于新生涯。	Extensions reloaded. Career events apply at their next trigger and chat at the next match preparation; events and eras apply to new careers.
+没有这个电脑控制页面。	Unknown computer control page.
+# environment / feedback
+家居摆放	Home decoration
+请先结束当前比赛，再装修或升级设施。	Finish the current match before decorating or upgrading facilities.
+当前生涯不能购买设施或家具。	Facilities or furniture cannot be purchased in the current career.
+请提供 1 至 24 个明确的反馈 id。	Provide 1 to 24 explicit feedback IDs.
+反馈不存在或不属于当前可确认的赛事/年度，请刷新。	The feedback does not exist or does not belong to the current event/year. Refresh.
+荣誉反馈已确认；已结算奖金与属性点没有重复发放。	Honours feedback acknowledged; settled prize money and attribute points were not awarded again.
+年度正式归档榜单。	Official archived annual rankings.
+年度已归档，本年度没有符合样本要求的选手。	The year is archived; no players met the sample requirements this year.
+这份荣誉反馈已经确认。	This honours feedback has already been acknowledged.
+%s · 赛事荣誉	%s · Tournament honours
+# career3d_matches.py
+已读取保存的战绩。	Saved match results loaded.
+天梯比赛正在启动或等待真实回传，请先完成该场比赛。	A ladder match is launching or awaiting real results. Finish that match first.
+请先处理待决定的生涯事务。	Resolve pending career decisions first.
+有新事件，请先由你作出选择。	A new event requires your decision first.
+当前暂停参赛，请先处理赛程。	Participation is suspended. Resolve the schedule first.
+这不是你当前队伍的比赛。	This is not a match for your current team.
+启动 3D 职业比赛	Start a 3D career match
+目前没有到期的职业比赛。	No career match is currently due.
+还没到比赛日。	Match day has not arrived.
+地图或 BP 轮次已变化，请刷新。	The map or veto turn changed. Refresh.
+这张图已连接 CS2，等待原场回传。	This map is connected to CS2 and awaiting the original match results.
+CS2 正在运行，请完全退出后再开下一张地图。	CS2 is running. Fully exit before starting the next map.
+请提供明确的职业比赛 match_id。	Provide an explicit career match_id.
+没有这个职业比赛操作。	Unknown career match action.
+这场比赛已经结束，可以查看战报。	This match has ended. View the report.
+天梯比赛尚未完成，暂时不能推进赛季。	The ladder match is unfinished; season progression is temporarily disabled.
+已读取年度正式归档榜单。	Official archived annual rankings loaded.
+没有找到当前赛季的这场比赛。	This match was not found in the current season.
+有职业 RTS 对局尚未录入，请先完成或取消该地图。	A career RTS match has not been imported. Finish or cancel that map first.
+有职业比赛等待真实 CS2 回传，请先录入。	A career match is awaiting real CS2 results. Import them first.
+请刷新连接状态以核验 CS2 进程。	Refresh the connection status to verify the CS2 process.
+重试必须沿用这张图冻结的难度与选边。	Retries must use this map's locked difficulty and starting side.
+冻结比赛阵容的十人身份已变化，请刷新比赛准备；不会启动错误阵容。	The ten-player locked roster identities changed. Refresh match preparation; an incorrect roster will not be launched.
+现有换肤组件缺失；请关闭可选换肤后再开赛。	The existing skin component is missing. Disable optional skins before starting the match.
+这个 request_id 已用于另一个比赛操作。	This request_id has been used for another match action.
+这场比赛还没有排进当前赛程。	This match is not yet on the current schedule.
+先完成正在进行的对局，再安排下一场。	Finish the active match before scheduling the next one.
+这个请求编号已用于另一个赛季操作。	This request ID has been used for another season action.
+休赛期准备已确认，可以继续快速模拟。	Off-season preparation confirmed; quick simulation can continue.
+年度已归档，但本年度没有达到评选样本要求的选手。	The year is archived, but no players met the selection sample requirements.
+尚无年度正式归档榜单；完成赛季并确认下一赛季后揭晓。	No official annual rankings are archived yet; finish the season and confirm the next season to reveal them.
+没有这个战术操作。	Unknown tactic action.
+还没有进入这场真实比赛。	This real match has not been entered yet.
+result 必须是原始战绩对象。	result must be the original match results object.
+还没到比赛日，先睡到 %s。	Match day has not arrived. Sleep until %s first.
+比赛准备已保存。	Match preparation saved.
+休赛窗口已变化，请刷新后继续。	The off-season window changed. Refresh before continuing.
+没有这个赛季操作。	Unknown season action.
+请先处理生涯事件。	Resolve career events first.
+本场地图已冻结，不能重新 BP。	The match map is locked; veto cannot be repeated.
+max_steps 只允许 1 至 24。	max_steps must be between 1 and 24.
+还没轮到你的队伍选择地图。	It is not your team's turn to choose a map yet.
+请先完成地图 BP，或选择自动 BP。	Finish the map veto or select automatic veto first.
+# career3d_rts.py
+RTS 地图战绩已保存。	RTS map results saved.
+该图职业 RTS 尚待验证。	Career RTS for this map is awaiting verification.
+当前天梯房间已变化。	The current ladder lobby changed.
+这场 RTS 天梯已保存，不重复计分。	This RTS ladder match is saved; rating will not be applied again.
+天梯 RTS 名单与地图已冻结，胜负只影响本地天梯。	Ladder RTS roster and map locked; the outcome affects only the local ladder.
+RTS 天梯身份已变化。	RTS ladder identity changed.
+未完赛 RTS 已取消，原名单与 BP 保留，未计算天梯分。	Unfinished RTS cancelled; the original roster and veto are retained, with no ladder points awarded.
+RTS 阵容已变化，不能覆盖战绩。	The RTS roster changed; results cannot be overwritten.
+RTS 战绩计数无效：%s	Invalid RTS results count: %s
+RTS 地图尚未正式结束，不能录入。	The RTS map has not officially ended; results cannot be imported.
+RTS 地图或本场种子不一致。	RTS map or match seed mismatch.
+RTS 正式回合记录不完整。	Official RTS round records are incomplete.
+RTS 终场比分不一致或仍是平局。	RTS final score is inconsistent or still tied.
+RTS 未到达正式终场条件。	RTS has not reached the official match end condition.
+RTS 终场十人统计不完整。	RTS final ten-player statistics are incomplete.
+没有这个 RTS 操作。	Unknown RTS action.
+RTS 阵容与地图已冻结。	RTS roster and map locked.
+RTS 对局身份已变化，请重新打开当前比赛。	RTS match identity changed. Reopen the current match.
+已退出未录入的 RTS 地图；此前已保存的地图战绩不变。	Exited the unimported RTS map; previously saved map results are unchanged.
+比赛进度或阵容已变化，不能覆盖战绩。	Match progress or roster changed; results cannot be overwritten.
+这不是当前已结算的 RTS 对局。	This is not the current settled RTS match.
+继续这场未结算的 RTS 天梯。	Continue this unsettled RTS ladder match.
+先完成选人、地图 BP 与选边，再开始 RTS。	Finish player selection, map veto and side selection before starting RTS.
+请先完成另一场等待结算的比赛。	Finish the other match awaiting settlement first.
+RTS 比赛需要双方各五名选手。	RTS matches require five players on each side.
+RTS 回合顺序或胜方不完整。	RTS round order or winner is incomplete.
+RTS 回合比分与累积比分不符。	RTS round score does not match the cumulative score.
+RTS 正式回合缺少唯一十人名单。	The official RTS round lacks ten unique player identities.
+RTS 在终场后仍有额外回合。	RTS has extra rounds after the match ended.
+RTS 逐回合与终场个人统计不符。	RTS round-by-round and final player statistics do not match.
+该图已在等待 RTS 战绩；可以重新开始未结算的对局。	This map is awaiting RTS results; the unsettled match can be restarted.
+请先处理比赛阶段事件。	Resolve match-stage events first.
+本系列赛没有待打地图。	No maps remain to be played in this series.
+该图尚未接入职业 RTS：%s。BP 已保留，可使用常规模拟或进入 CS2。	This map is not connected to career RTS yet: %s. The veto is retained; use regular simulation or enter CS2.
+%s BP 已保留。	%s Veto retained.
+RTS 阵容身份重复，请检查双方名单。	Duplicate RTS player identities. Check both rosters.
+RTS 选手队伍身份不一致。	RTS player team identity mismatch.
+RTS 生存/KAST 回合字段不完整。	RTS survival/KAST round fields are incomplete.
+RTS 死亡和生存记录不符。	RTS death and survival records do not match.
+这张 RTS 地图已保存。	This RTS map is saved.
+# calendar, social, start, trophy and venue projections
+本次有界推进已完成；可以继续请求同一目标日期。	This bounded advance is complete; you can request the same target date again.
+天梯比赛正在启动或等待真实回传；日期与阵容已暂停，请先录入战绩或关闭房间。	A ladder match is launching or awaiting real results; date and roster changes are paused. Import results or close the lobby first.
+CS2 训练赛正在等待核验；日期与阵容已暂停，请先在训练页完成本次训练。	A CS2 training match is awaiting verification; date and roster changes are paused. Finish it on the Training page first.
+target_date 必须是 YYYY-MM-DD 日期	target_date must be a YYYY-MM-DD date
+request_id 必须是 8 至 100 字符的唯一编号	request_id must be a unique ID of 8 to 100 characters
+请提供 context.calendar.revision	Provide context.calendar.revision
+目标日期必须在当前赛季内，且不能早于当前日期	The target date must be in the current season and not before the current date
+生涯状态已变化，请刷新手机后继续	The career state changed. Refresh the phone before continuing
+这个 request_id 已用于另一个目标日期	This request_id has been used for another target date
+已到达目标日期。	Target date reached.
+本赛季已结束，请明确选择下一赛季模式。	The season has ended. Explicitly choose the next season's mode.
+快速模式已暂停。	Quick mode paused.
+存档恢复事务尚未完成，请重新启动完成恢复后再操作。	The save recovery transaction is unfinished. Restart to complete recovery before continuing.
+display_hour 只允许 0 至 23 的展示小时	display_hour must be a display hour between 0 and 23
+相信队伍 · 仅模拟当前这一场	Trust the team · Simulate this match only
+继续模拟	Continue simulation
+请提供一个库存饰品 ID。	Provide an inventory skin ID.
+年度必须是有效的年份。	The year must be valid.
+职业比赛等待真实回传，请先录入后再改变生涯事务。	A career match is awaiting real results. Import them before changing career transactions.
+剧情选择已保存。	Story choice saved.
+没有找到这封邮件。	This message was not found.
+没有找到这篇已发布报道。	This published article was not found.
+职业比赛等待真实回传，请先录入后再作生涯选择。	A career match is awaiting real results. Import them before making career choices.
+剧情已处理或不存在，请刷新手机	The story was handled or does not exist. Refresh the phone
+请选择这段剧情提供的有效选项	Select a valid choice offered by this story
+没有找到这场比赛	This match was not found
+天梯比赛正在启动或等待真实回传，暂时不能改变选手身份或阵容。	A ladder match is launching or awaiting real results; player identity and roster changes are temporarily disabled.
+资料范围应为 season、all 或 30d，页码必须是正整数。	Profile range must be season, all or 30d, with a positive integer page.
+暂时没有这份资料	This profile is not available yet
+联系人不存在，请刷新手机。	The contact does not exist. Refresh the phone.
+请选择当前对话提供的有效回复。	Select a valid reply offered by the current conversation.
+生日	Birthday
+这个 request_id 已用于另一条消息。	This request_id has been used for another message.
+队友	Teammate
+新生涯已开始。	New career started.
+请选择有效的形象颜色与服装。	Select a valid appearance colour and outfit.
+形象已保存。	Appearance saved.
+没有这个开局操作。	Unknown start action.
+请先选择开局。	Choose a start first.
+请提供本次开局的唯一编号。	Provide a unique ID for this start.
+开始新生涯前，请确认备份当前生涯。	Confirm backing up the current career before starting a new one.
+请选择有效的生涯方式和位置。	Select a valid career mode and position.
+请选择有效的赛区。	Select a valid region.
+抽队伍开局	Team draw start
+最多抽十次队伍，每次从五人中取一项能力；七项选齐即可开始。	Draw up to ten teams, selecting one ability from five players each time; start once all seven abilities are selected.
+3D 自建生涯请使用七维抽取开局。	Use the seven-attribute draw start for a custom 3D career.
+所选战队或选手不属于这个年代，请重新选择。	The selected team or player does not belong to this era. Select again.
+请选择队服或自然羽毛。	Select a team jersey or natural feathers.
+形象颜色须为六位 RGB 颜色。	Appearance colours must be six-digit RGB values.
+%s · 冠军陈列	%s · Champions display
+冠军陈列	Champions display
+每一座奖杯都属于夺冠时的俱乐部。	Every trophy belongs to the club that won it.
+下一座奖杯，从这里开始。	The next trophy starts here.
+俱乐部训练室	Club training room
+浦发银行东方体育中心	SPD Bank Oriental Sports Center
+上海世博中心	Shanghai Expo Center
+上海	Shanghai
+中国	China
+比赛场景按赛制分阶段呈现；对阵及赛程来自生涯模拟。	Match scenes reflect event stages; fixtures and schedules come from the career simulation.
+小型赛场	Small arena
+这场比赛正在进行，回到比赛电脑接续。	This match is in progress. Resume it at the match computer.
+大型场馆	Large venue
+先睡到 %s，早上前往「%s」。	Sleep until %s, then head to %s in the morning.
+比赛日到了，到俱乐部训练室的比赛电脑准备。	Match day has arrived. Prepare at the match computer in the club training room.
+比赛日到了，到门口选择「%s」，前往选手席入座。	Match day has arrived. Select %s at the door, then take your player seat.
+CS2 地图与饰品图片版权归 Valve；仅使用本地游戏资源和核验缓存。	CS2 map and skin images are copyrighted by Valve; only local game resources and verified caches are used.

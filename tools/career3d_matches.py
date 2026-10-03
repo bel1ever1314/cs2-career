@@ -29,8 +29,8 @@ def _guard(state, body, optional=False):
 
 
 def _pair(state, ident='', require=False):
-    from tools.career3d_service import _due_player_match
-    pair = state.season.find_match(ident) if ident else _due_player_match(state)
+    from tools.career3d_service import _player_matches
+    pair = state.season.find_match(ident) if ident else next(iter(_player_matches(state)), None)
     if not pair or not pair[0]:
         if require:
             raise ValueError('没有找到当前赛季的这场比赛。')
@@ -99,22 +99,22 @@ def match_preflight(state, ident='', check_running=False):
             'block_reason': '目前没有到期的职业比赛。', 'config': config_status()}
     s = state.season
     yours, played = s.is_yours(match), bool(match.get('played'))
-    due = bool(yours and s.yours_ready(match))
+    due = bool(yours and match['date'] <= s.date and s.yours_ready(match))
     veto = _veto_public(state, match)
     reason = _reason(state, match)
     if not yours:
         reason = '这不是你当前队伍的比赛。'
     elif not due and not played:
         reason = '还没到比赛日。'
-    phase = 'finished' if played else 'launched' if match.get('cs2_session') else \
+    phase = 'finished' if played else 'launched' if match.get('cs2_session') else 'scheduled' if match['date'] > s.date else \
         'ready' if veto['complete'] else 'veto' if veto['initialized'] else 'preflight'
     config = config_status()
-    from tools.career3d_venues import venue_for
+    from tools.career3d_venues import venue_for, attendance_for
     venue = venue_for(state, ev, match)
     return {'match_id': match['id'], 'event': {'id': ev['id'], 'name': ev['name']},
         'identity': {'year': s.year, 'event_id': f'{s.year}:{ev["id"]}', 'match_id': match['id'],
                      'key': f'{s.year}:{ev["id"]}:{match["id"]}', 'human_id': venue['human_id']},
-        'venue': venue,
+        'venue': venue, 'attendance': attendance_for(state, ev, match, venue),
         'team_a': match['team_a'], 'team_b': match['team_b'], 'date': match['date'],
         'best_of': match.get('best_of', 3), 'stage': match.get('stage', ''), 'series': s._live_series(match),
         'yours': yours, 'due': due, 'played': played, 'phase': phase, 'veto': veto,
@@ -122,8 +122,58 @@ def match_preflight(state, ident='', check_running=False):
         'side': (match.get('cs2_session') or match.get('career3d_launch') or {}).get('side', 'ct'),
         'session_pending': career_cs2_pending(state),
         'revision': _revision(state), 'can_simulate': due and not reason and not played,
-        'can_launch': due and not reason and phase == 'ready' and config['ready'],
+        'can_launch': due and not played and not reason and phase == 'ready' and config['ready'],
         'block_reason': reason, 'config': config}
+
+
+def _session_return_preflight(state, event, match):
+    """Read the original match seat, never prepare or restart its CS2 map."""
+    session = match.get('cs2_session')
+    if (not isinstance(session, dict) or not session or match.get('played')
+            or match['date'] != state.season.date or not state.season.is_yours(match)
+            or session.get('match_id') != match['id']
+            or not isinstance(session.get('nonce'), str) or not session['nonce']
+            or type(session.get('map_index')) is not int
+            or session['map_index'] != len(match.get('maps') or [])):
+        return None
+    frozen = match.get('career3d_venue')
+    if not isinstance(frozen, dict) or not frozen:
+        return None
+    view = match_preflight(state, match['id'])
+    venue, attendance = view['venue'], view['attendance']
+    key = f'{state.season.year}:{event["id"]}:{match["id"]}'
+    if (not attendance['can_return'] or venue.get('identity_source') != 'frozen_match_rosters'
+            or venue.get('match_id') != match['id'] or venue.get('match_identity') != key
+            or venue.get('team_a') != match['team_a'] or venue.get('team_b') != match['team_b']
+            or venue.get('own_team') != state.season.your_team_name()
+            or venue.get('human_id') != state.arena.career_player_id(state)):
+        return None
+    a, b = venue.get('players_a'), venue.get('players_b')
+    if not isinstance(a, list) or not isinstance(b, list) or len(a) != 5 or len(b) != 5:
+        return None
+    if not all(isinstance(row, dict) for row in a + b):
+        return None
+    ids = [row.get('id') for row in a + b]
+    expected = session.get('expected_player_ids')
+    if (not all(isinstance(ident, str) and ident for ident in ids) or len(set(ids)) != 10
+            or any(row.get('player_id', row['id']) != row['id'] for row in a + b)
+            or venue['human_id'] not in ids or not isinstance(expected, list) or len(expected) != 10
+            or not all(isinstance(ident, str) and ident for ident in expected)
+            or set(expected) != set(ids)):
+        return None
+    # Original core sessions can predate the 3D provenance fields. When those
+    # fields exist, they must still identify this exact frozen fixture/roster.
+    identity = session.get('career_identity')
+    if identity is not None and (not isinstance(identity, dict) or any(
+            identity.get(field) != value for field, value in dict(year=state.season.year,
+            event_id=event['id'], match_id=match['id'], key=key, human_id=venue['human_id']).items())):
+        return None
+    original = session.get('venue')
+    if original is not None and (not isinstance(original, dict) or any(
+            original.get(field) != venue.get(field)
+            for field in ('players_a', 'players_b', 'human_id', 'own_team', 'match_id', 'match_identity'))):
+        return None
+    return view
 
 
 def _report(state, ev, match):
@@ -347,12 +397,15 @@ def _launch(state, match, body):
                 'connection': match_status(state, match['id'])}
     _store(state).pop('match_failure', None)
     if match.get('cs2_session'):
-        event_id = state.season.find_match(match['id'])[0]['id']
+        event = state.season.find_match(match['id'])[0]
+        from tools.career3d_venues import venue_for
+        venue = venue_for(state, event, match)
+        event_id = event['id']
         match['cs2_session']['career_identity'] = dict(year=state.season.year, event_id=event_id,
-            match_id=match['id'], key=match['career3d_venue']['match_identity'],
-            human_id=match['career3d_venue']['human_id'])
+            match_id=match['id'], key=venue['match_identity'],
+            human_id=venue['human_id'])
         match['cs2_session']['event_id'] = event_id
-        match['cs2_session']['venue'] = deepcopy(match['career3d_venue'])
+        match['cs2_session']['venue'] = deepcopy(venue)
     return {'reason': reason, 'status': 'waiting', 'connection': match_status(state, match['id'])}
 
 
@@ -362,16 +415,23 @@ def match_command(state, action, body):
     if not isinstance(body.get('match_id'), str) or not body['match_id']:
         raise ValueError('请提供明确的职业比赛 match_id。')
     ev, match = _pair(state, body['match_id'], True)
-    if action not in ('preflight', 'veto', 'autoveto', 'simulate', 'launch', 'collect'):
+    if action not in ('attend', 'preflight', 'veto', 'autoveto', 'simulate', 'launch', 'collect'):
         raise ValueError('没有这个职业比赛操作。')
     request_id = body.get('request_id')
     if request_id is not None and (not isinstance(request_id, str) or not 8 <= len(request_id) <= 100):
         raise ValueError('request_id 必须是 8 至 100 字符的唯一编号。')
     receipts = match.get('career3d_receipts') or []
     prior = next((r for r in receipts if r['request_id'] == request_id), None) if request_id else None
+    if action == 'attend' and (match.get('played') or ev.get('status') == 'done'):
+        raise ValueError('这场比赛已经结束，可以查看战报。')
     if prior:
         if prior['action'] != action:
             raise ValueError('这个 request_id 已用于另一个比赛操作。')
+        if action == 'attend':
+            from tools.career3d_venues import attendance_for
+            attendance = attendance_for(state, ev, match)
+            return dict(prior['result'], attendance=attendance,
+                        preflight=match_preflight(state, match['id']), replayed=True)
         return {**deepcopy(prior['result']), 'replayed': True}
     if match.get('played') and action in ('simulate', 'collect'):
         return {**_result_response(state, ev, match), 'replayed': True}
@@ -381,7 +441,21 @@ def match_command(state, action, body):
     if action == 'collect' and not match.get('cs2_session') and match.get('maps') and match['maps'][-1].get('source') == 'cs2':
         return {**_result_response(state, ev, match), 'replayed': True}
     _guard(state, body, optional=action == 'simulate')
-    if action == 'collect':
+    if action == 'attend':
+        if not state.season.is_yours(match):
+            raise ValueError('这不是你当前队伍的比赛。')
+        if ev.get('status') not in ('live', 'upcoming'):
+            raise ValueError('这场比赛还没有排进当前赛程。')
+        if career_cs2_pending(state) or state.arena.pending or state.career.training_session:
+            raise ValueError('先完成正在进行的对局，再安排下一场。')
+        from tools.career3d_venues import attendance_for
+        match['career3d_attendance'] = dict(mode='personal',
+            match_identity=f'{state.season.year}:{ev["id"]}:{match["id"]}',
+            player_id=state.arena.career_player_id(state))
+        attendance = attendance_for(state, ev, match)
+        out = dict(reason=attendance['instruction'], status='planned', attendance=attendance,
+                   preflight=match_preflight(state, match['id']))
+    elif action == 'collect':
         if not match.get('cs2_session'):
             raise ValueError('还没有进入这场真实比赛。')
         raw = body.get('result')
@@ -397,10 +471,21 @@ def match_command(state, action, body):
         out = _result_response(state, ev, match, message, start)
         out['status'] = 'finished' if match.get('played') else 'map_collected'
     else:
+        if match.get('played'):
+            raise ValueError('这场比赛已经结束，可以查看战报。')
+        if match['date'] > state.season.date:
+            raise ValueError('还没到比赛日，先睡到 ' + match['date'] + '。')
         state.season._require_yours(match['id'])
-        reason = _reason(state, match)
+        return_view = _session_return_preflight(state, ev, match) if action == 'preflight' else None
+        reason = _reason(state, match, ignore_session=return_view is not None)
         if reason:
             return {'reason': reason, 'status': 'paused', 'preflight': match_preflight(state, match['id']), 'replayed': True}
+        if return_view is not None:
+            # The HTTP owner treats replayed as a no-persist response. Keep the
+            # original session, nonce, BP, receipts and revision untouched;
+            # waiting permits the existing UI's validated venue hand-off only.
+            return {'reason': return_view['attendance']['instruction'], 'status': 'waiting',
+                'preflight': return_view, 'read_only': True, 'resume_only': True, 'replayed': True}
         reason = state.career.gate_match(state.season, match['id'])
         if reason or state.career.story_queue:
             return {'reason': reason or '请先处理生涯事件。', 'status': 'paused', 'preflight': match_preflight(state, match['id'])}
@@ -440,6 +525,11 @@ def quick_context(state):
     current = window(c, s)
     domain = season_mode(c, s)
     reason = _reason(state)
+    from tools.career3d_service import _due_player_match
+    from tools.career3d_venues import attendance_for
+    personal = _due_player_match(state)
+    if not reason and personal and attendance_for(state, *personal)['planned']:
+        reason = attendance_for(state, *personal)['instruction']
     break_ack = bool(current and c.assist.get('quick_break_ack') == current['key'])
     phase = ('story' if c.story_queue else 'blocked') if reason else 'break' if current and not break_ack else \
         'choice' if domain['choice_required'] else domain['phase']
@@ -486,10 +576,18 @@ def season_command(state, action, body):
         count = body.get('max_steps', 1)
         if type(count) is not int or not 1 <= count <= 24:
             raise ValueError('max_steps 只允许 1 至 24。')
-        latest, results = {}, []
+        latest, results, steps = {}, [], 0
         for index in range(count):
+            from tools.career3d_service import _player_matches
+            from tools.career3d_venues import attendance_for
+            pair = next(iter(_player_matches(state)), None)
+            personal = attendance_for(state, *pair) if pair else {}
+            if personal.get('planned') and (personal.get('due') or pair[1].get('human') or pair[1].get('veto')):
+                latest = dict(status='paused', msg=personal['instruction'])
+                break
             token = '3d-run:' + hashlib.sha256(f'{rid}:{index}'.encode()).hexdigest()
             result = step(c, s, token, int(c.assist.get('step_counter') or 0))
+            steps += 1
             latest = result
             if result.get('match'):
                 ev, match = s.find_match(result['match']['id'])
@@ -505,7 +603,7 @@ def season_command(state, action, body):
             if result.get('status') not in ('progress', 'played'):
                 break
         out = {'reason': latest.get('msg', ''), 'status': latest.get('status', 'paused'),
-            'steps': index + 1, 'auto_step': latest, 'results': results}
+            'steps': steps, 'auto_step': latest, 'results': results}
         if results:
             out.update({key: results[-1][key] for key in ('result', 'reveal')})
     else:
@@ -548,7 +646,38 @@ def ceremony_context(state, year=None):
             '年度已归档，但本年度没有达到评选样本要求的选手。' if exists else '尚无年度正式归档榜单；完成赛季并确认下一赛季后揭晓。'}
 
 
-def tactics_context(map_code='de_dust2'):
+def _tactical_sessions(state):
+    """Read current pending identities only; never resurrect an old game request."""
+    if state is None:
+        return []
+    sessions = []
+    training = getattr(state.career, 'training_session', None)
+    if training:
+        sessions.append(training)
+    for event in getattr(state.season, 'events', []):
+        for match in event.get('matches', []):
+            if not match.get('played') and match.get('cs2_session'):
+                sessions.append(match['cs2_session'])
+    lobby = getattr(state.arena, 'data', {}).get('lobby') or {}
+    if lobby.get('phase') in ('starting', 'launched') and lobby.get('nonce'):
+        sessions.append(dict(nonce=lobby['nonce'], map=lobby.get('map'),
+                             expected_player_ids=list(lobby.get('roster') or {})))
+    return sessions
+
+
+def _tactics_publication(state, code, sync=False):
+    from cs2career.cs2 import launch
+    from tools.career3d_activities import read_cs2_config
+    try:
+        cfg = read_cs2_config() if state is not None else {}
+        csgo = launch.resolve_csgo_path(cfg['csgo_path']) if cfg.get('csgo_path') else None
+        return launch.tactical_publication(csgo, code, _tactical_sessions(state), sync=sync)
+    except (OSError, ValueError, RuntimeError) as exc:
+        return dict(status='unavailable', can_sync=False, synced=False, pending=True, published_ids=[],
+                    reason='战术已保存；同步状态不可用：' + str(exc))
+
+
+def tactics_context(map_code='de_dust2', state=None, publication=None):
     from cs2career import tactics
     from cs2career.paths import static_dir
     value = tactics.public_library(tactics.canonical_map(map_code))
@@ -557,18 +686,28 @@ def tactics_context(map_code='de_dust2'):
         resource = str(row.get('image') or '')
         candidate = (static_dir() / resource.lstrip('/')).resolve()
         row['image_path'] = str(candidate) if candidate.is_file() else ''
-    return {'ok': True, **value}
+    return {'ok': True, **value, 'publication': publication if publication is not None else _tactics_publication(state, value['map'])}
 
 
 def tactics_command(state, action, body):
     from cs2career import tactics
     _guard(state, body)
     code = tactics.canonical_map(body.get('map', tactics.MAP))
+    allowed = {'revision', 'request_id', 'map'} | ({'tactic'} if action == 'save' else {'id'} if action == 'delete' else set())
+    if set(body) - allowed:
+        raise ValueError('战术操作包含不允许的字段。')
     if action == 'save':
         result = tactics.save_tactic(body.get('tactic'), code)
     elif action == 'delete':
         result = tactics.delete_tactic(body.get('id'), code)
+    elif action == 'sync':
+        result = {'msg': ''}
     else:
         raise ValueError('没有这个战术操作。')
-    return {**tactics_context(code), 'reason': result['msg'], 'status': 'saved',
+    publication = _tactics_publication(state, code, sync=True)
+    prefix = {'save': '战术已保存到独立库。', 'delete': '战术已从独立库删除。'}.get(action, '')
+    message = publication['reason']
+    return {**tactics_context(code, state, publication), 'reason': message, 'msg': message, 'library_message': prefix,
+        'status': 'synced' if publication.get('synced') else 'saved' if action != 'sync' else 'deferred',
+        **({'replayed': True} if action == 'sync' else {}),  # service: no career revision/persist for publication-only.
         **{key: result[key] for key in ('tactic', 'deleted_id', 'overwritten_ids') if key in result}}

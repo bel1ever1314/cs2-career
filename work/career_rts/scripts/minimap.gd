@@ -27,11 +27,15 @@ func _draw() -> void:
 	origin = (size - Vector2.ONE * 1024 * map_scale) / 2
 	draw_rect(Rect2(Vector2.ZERO, size), Color("10191e"))
 	if texture == null: return
-	draw_texture_rect(texture, Rect2(origin, Vector2.ONE * 1024 * map_scale), false, Color(.85, .88, .89))
+	var current: Texture2D=map_view.texture if map_view!=null else texture
+	draw_texture_rect(current, Rect2(origin, Vector2.ONE * 1024 * map_scale), false, Color(.85, .88, .89))
 	for p in state.get("players", []):
 		if not p.get("alive", false): continue
 		if not spectator and p.get("team", "") != team and team not in p.get("spotted_by", []): continue
 		var at: Vector2 = p.get("pos", Vector2.ZERO)
+		if map_view!=null:
+			if map_view.layer_of(at)!=map_view.view_layer:continue
+			at=map_view.local_point(at)
 		var tint := Style.GOLD if p.get("side", "t") == "t" else Style.BLUE
 		draw_circle(origin + at * map_scale, 2.6, tint)
 	if map_view != null:
@@ -41,5 +45,6 @@ func _draw() -> void:
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		camera_requested.emit((get_local_mouse_position() - origin) / maxf(.001, map_scale))
+		var point := (get_local_mouse_position() - origin) / maxf(.001, map_scale)
+		camera_requested.emit(point)
 		accept_event()

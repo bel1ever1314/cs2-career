@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "revision": "windows-20261003.1",
+  "checked_date": "2026-10-03",
+  "platform": "windows-x64",
+  "game_build": "2000922",
+  "components": [
+    {
+      "name": "Metamod",
+      "version": "2.0.0.1472",
+      "url": "https://github.com/alliedmodders/metamod-source/releases/download/2.0.0.1472/mmsource-2.0.0-git1472-windows.zip",
+      "sha256": "2bb55926a05cb156ee72d2e67497e3b3d15df561f19a20b2173bafa5fd721a30",
+      "replace_paths": ["addons/metamod/bin"],
+      "allow_paths": ["addons/metamod/bin/win64/metamod.2.cs2.dll", "addons/metamod/bin/win64/server.dll", "addons/metamod/metaplugins.ini", "addons/metamod/README.txt", "addons/metamod.vdf", "addons/metamod_x64.vdf"],
+      "required_paths": ["addons/metamod/bin/win64/metamod.2.cs2.dll", "addons/metamod/bin/win64/server.dll", "addons/metamod_x64.vdf"]
+    },
+    {
+      "name": "CounterStrikeSharp",
+      "version": "1.0.376",
+      "url": "https://github.com/roflmuffin/CounterStrikeSharp/releases/download/v1.0.376/counterstrikesharp-with-runtime-windows-1.0.376.zip",
+      "sha256": "4f2777545a0940351450440288e7487509d539f770e66cf1c30cc2419084c5f8",
+      "replace_paths": ["addons/counterstrikesharp/bin", "addons/counterstrikesharp/api", "addons/counterstrikesharp/dotnet", "addons/counterstrikesharp/gamedata/gamedata.json"],
+      "allow_paths": ["addons/counterstrikesharp/bin", "addons/counterstrikesharp/api", "addons/counterstrikesharp/dotnet", "addons/counterstrikesharp/gamedata/gamedata.json", "addons/counterstrikesharp/lang", "addons/counterstrikesharp/configs", "addons/metamod/counterstrikesharp.vdf"],
+      "required_paths": ["addons/counterstrikesharp/bin/win64/counterstrikesharp.dll", "addons/counterstrikesharp/api/CounterStrikeSharp.API.dll", "addons/counterstrikesharp/gamedata/gamedata.json", "addons/counterstrikesharp/dotnet/host/fxr/10.0.3/hostfxr.dll", "addons/counterstrikesharp/dotnet/shared/Microsoft.NETCore.App/10.0.3/coreclr.dll", "addons/counterstrikesharp/dotnet/dotnet.exe", "addons/metamod/counterstrikesharp.vdf"]
+    },
+    {
+      "name": "BotController",
+      "version": "0.7.0",
+      "url": "https://github.com/XBribo/CS2-Bot-Controller/releases/download/v0.7.0/BotController-MM-windows-0.7.0.zip",
+      "sha256": "75d5885fe8dbbf55773bc044740b08ce269afdd57007175c71f28204579ec743",
+      "replace_paths": ["addons/BotController/bin", "addons/BotController/gamedata.json"],
+      "allow_paths": ["addons/BotController", "addons/metamod/BotController.vdf"],
+      "required_paths": ["addons/BotController/bin/win64/BotController.dll", "addons/BotController/gamedata.json", "addons/metamod/BotController.vdf"]
+    },
+    {
+      "name": "BotController API",
+      "version": "0.7.0",
+      "url": "https://github.com/XBribo/CS2-Bot-Controller/releases/download/v0.7.0/BotController-CSS-API-0.7.0.zip",
+      "sha256": "5aa0ad73afa617e5c6b61f124d4af0719a972acf642c9dbe34ddaae2ae21ea35",
+      "replace_paths": ["addons/counterstrikesharp/shared/BotControllerApi", "addons/counterstrikesharp/plugins/BotControllerImpl"],
+      "allow_paths": ["addons/counterstrikesharp/shared/BotControllerApi", "addons/counterstrikesharp/plugins/BotControllerImpl"],
+      "required_paths": ["addons/counterstrikesharp/shared/BotControllerApi/BotControllerApi.dll", "addons/counterstrikesharp/plugins/BotControllerImpl/BotControllerImpl.dll"]
+    },
+    {
+      "name": "BotHider",
+      "version": "0.5.1",
+      "preserve_paths": ["addons/BotHider/config.json"],
+      "url": "https://github.com/XBribo/CS2-Bot-Hider/releases/download/v0.5.1/BotHider-Windows-0.5.1.zip",
+      "sha256": "9988286b9c6c849b2a75b5b252ee40734ff430c2a82ab56bc852866448cc507b",
+      "replace_paths": ["addons/BotHider/bin", "addons/BotHider/gamedata.json", "addons/counterstrikesharp/shared/BotHiderApi", "addons/counterstrikesharp/shared/0Harmony", "addons/counterstrikesharp/plugins/BotHiderImpl"],
+      "allow_paths": ["addons/BotHider", "addons/counterstrikesharp/shared/BotHiderApi", "addons/counterstrikesharp/shared/0Harmony", "addons/counterstrikesharp/plugins/BotHiderImpl", "addons/metamod/BotHider.vdf"],
+      "required_paths": ["addons/BotHider/bin/win64/BotHider.dll", "addons/BotHider/gamedata.json", "addons/counterstrikesharp/shared/BotHiderApi/BotHiderApi.dll", "addons/counterstrikesharp/plugins/BotHiderImpl/BotHiderImpl.dll", "addons/metamod/BotHider.vdf"]
+    },
+    {
+      "name": "BotVision",
+      "version": "0.3.0",
+      "preserve_paths": ["addons/BotVision/config.json"],
+      "url": "https://github.com/XBribo/CS2-Bot-Vision/releases/download/v0.3.0/BotVision-Windows-0.3.0.zip",
+      "sha256": "04fb6ebc8c1554a96fbdea1029e276785cda015e72ed4e9c489e2c08d8516618",
+      "replace_paths": ["addons/BotVision/bin", "addons/BotVision/gamedata.json"],
+      "allow_paths": ["addons/BotVision", "addons/metamod/BotVision.vdf"],
+      "required_paths": ["addons/BotVision/bin/win64/BotVision.dll", "addons/BotVision/gamedata.json", "addons/metamod/BotVision.vdf"]
+    },
+    {
+      "name": "BotRandomizer",
+      "version": "1.3.2",
+      "url": "https://github.com/ed0ard/CS2-Bot-Randomizer/releases/download/v1.3.2/BotRandomizer.zip",
+      "sha256": "1355fc025b7bde74bd24a66cf868ecb515cc59766600d8cf083d3c1c22a2176f",
+      "target_prefix": "addons/counterstrikesharp/plugins/BotRandomizer",
+      "replace_paths": ["addons/counterstrikesharp/plugins/BotRandomizer"],
+      "allow_paths": ["addons/counterstrikesharp/plugins/BotRandomizer"],
+      "required_paths": ["addons/counterstrikesharp/plugins/BotRandomizer/BotRandomizer.dll", "addons/counterstrikesharp/plugins/BotRandomizer/BotRandomizer.deps.json", "addons/counterstrikesharp/plugins/BotRandomizer/cosmetic_catalog.json", "addons/counterstrikesharp/plugins/BotRandomizer/charm_placements.json"]
+    }
+  ]
+}

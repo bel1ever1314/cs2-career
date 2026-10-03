@@ -1,10 +1,14 @@
-"""Identity-bound venue metadata; physical venue facts are phase/year scoped.
+"""Identity-bound venue facts and stage-based career presentation.
 
-Names are from organizer announcements, not inferred from tournament prestige.
-Unverified venues do not become huge arenas. The game's compressed fixtures are
-still simulation fixtures, never relabelled as historical real-world matches.
+The playable scene follows the career's policy: qualifiers/CCT-level events
+are online, other early stages use ten-player LAN rooms, and their playoffs use
+arenas. Physical venue facts remain edition/phase scoped independently of that
+presentation, and reading a legacy fixture never replaces its frozen roster.
 """
 from copy import deepcopy
+
+VENUE_POLICY_VERSION = '20261003.1'
+PLAYOFF_STAGES = frozenset(('R16', 'QF', 'SF', 'GF'))
 
 # Exact edition names protect recurring event IDs and future fictional seasons.
 KNOWN = {
@@ -36,15 +40,111 @@ KNOWN = {
 }
 
 
+def _venue_details(year, event, match):
+    """Separate the game's venue scene from sourced, real-world venue facts."""
+    # A group elimination match is still a group-stage fixture. Do not use the
+    # event's current phase: it may already have advanced beyond an older match.
+    playoff = (str(match.get('stage', '')).upper() in PLAYOFF_STAGES
+               or str(match.get('phase', '')).lower() == 'playoff')
+    kind = str(event.get('type', '')).lower()
+    online = kind in ('qual', 'cct') or 'challenger league' in event.get('name', '').lower()
+    scale = 'online' if online else 'arena' if playoff else 'studio'
+    known = KNOWN.get((year, event['id'])) or {}
+    if known.get('event_name') != event['name']:
+        known = {}
+
+    real_scale, name = 'unknown', ''
+    city, country = known.get('city', ''), known.get('country', '')
+    if known:
+        if known.get('online_groups') and not playoff:
+            real_scale = 'online'
+        elif playoff and known.get('arena'):
+            real_scale, name = 'arena', known['arena']
+        else:
+            real_scale, name = 'studio', known.get('studio', '')
+            city = known.get('studio_city', city)
+            country = known.get('studio_country', country)
+    capacity = (0 if scale != 'arena' else 10000 if kind in ('major','premier') else
+                1000 if kind in ('t1',) else 100)
+    return dict(destination='club' if online else 'major' if playoff else 'lan', capacity=capacity,
+        scale=scale, is_lan=not online, name=name, verified=bool(name),
+        city=city, country=country, source_url=known.get('source_url', ''),
+        real_venue_phase='playoffs' if playoff else 'early_stages',
+        real_venue_scale=real_scale, real_venue_name=name,
+        venue_policy_version=VENUE_POLICY_VERSION,
+        venue_policy='online_qualifier_or_cct' if online else
+                     'playoff_arena' if playoff else 'early_stage_ten_player_lan',
+        note='比赛场景按赛制分阶段呈现；对阵及赛程来自生涯模拟。')
+
+
+def _arrival_details(state, match, venue):
+    """Refresh visit timing without changing a frozen roster or fixture."""
+    today = state.season.date
+    due = bool(not match.get('played') and match['date'] <= today
+               and state.season.yours_ready(match))
+    destination = 'major' if venue.get('scale') == 'arena' else 'lan' if venue.get('is_lan') else 'club'
+    label = venue.get('name') or ('小型赛场' if destination == 'lan' else
+                                '大型场馆' if destination == 'major' else '俱乐部训练室')
+    venue.update(display_name=label, visit_destination=destination, due=due,
+                 match_date=match['date'], should_walk=bool(venue['travel_allowed'] and due))
+    return venue
+
+
+def attendance_for(state, event, match, venue=None):
+    """Player-facing match-day plan. Reading it never opens a series."""
+    venue = venue if venue is not None else venue_for(state, event, match)
+    s = state.season
+    yours = s.is_yours(match)
+    done = bool(match.get('played'))
+    due = bool(yours and not done and match['date'] <= s.date and s.yours_ready(match))
+    progress = bool(match.get('cs2_session') or match.get('career3d_rts') or match.get('maps'))
+    phase = ('finished' if done else 'in_progress' if progress else
+             'scheduled' if match['date'] > s.date else 'today' if match['date'] == s.date else 'overdue')
+    plan = match.get('career3d_attendance') or {}
+    key = f'{s.year}:{event["id"]}:{match["id"]}'
+    planned = bool(yours and not done and plan.get('mode') == 'personal'
+                   and plan.get('match_identity') == key
+                   and plan.get('player_id') == state.arena.career_player_id(state))
+    destination = venue.get('visit_destination', 'club')
+    label = venue.get('display_name', '俱乐部训练室')
+    if done:
+        instruction = '这场比赛已经结束，可以查看战报。'
+    elif progress:
+        instruction = '这场比赛正在进行，回到比赛电脑接续。'
+    elif match['date'] > s.date:
+        instruction = f'先睡到 {match["date"]}，早上前往「{label}」。'
+    elif destination == 'club':
+        instruction = '比赛日到了，到俱乐部训练室的比赛电脑准备。'
+    else:
+        instruction = f'比赛日到了，到门口选择「{label}」，前往选手席入座。'
+    own = s.your_team_name()
+    opponent = match['team_b'] if match['team_a'] == own else match['team_a']
+    place_ready = bool(destination == 'club' or venue.get('travel_allowed'))
+    can_resume = bool(due and progress and place_ready)
+    can_return = bool(can_resume and match['date'] == s.date)
+    return dict(planned=planned, mode='personal' if planned else '', match_id=match['id'],
+        match_identity=key, event_id=event['id'], event_name=event['name'],
+        date=match['date'], opponent=opponent, phase=phase,
+        destination=destination, display_name=label, venue_name=label,
+        instruction=instruction, is_today=match['date'] == s.date, due=due,
+        can_travel=bool(due and not progress and place_ready),
+        can_resume=can_resume, can_return=can_return,
+        return_destination=destination if can_return else '',
+        sleep_target=match['date'] if yours and not done and match['date'] > s.date else '')
+
+
 def venue_for(state, event, match):
     frozen = match.get('career3d_venue')
     if frozen:
         result = deepcopy(frozen)
+        # Legacy saves froze the old unknown/online fallback. Refresh only
+        # presentation facts in the returned view; fixture IDs, team identity,
+        # ten player IDs and the original saved record are not modified.
+        result.update(_venue_details(state.season.year, event, match))
         result['travel_allowed'] = bool(result.get('is_lan') and result.get('roster_complete')
             and state.season.is_yours(match) and not match.get('played'))
-        result['should_walk'] = bool(result['travel_allowed'] and state.season.yours_ready(match))
         result['identity_source'] = 'frozen_match_rosters'
-        return result
+        return _arrival_details(state, match, result)
     s, c = state.season, state.career
     human = state.arena.career_player_id(state)
     current = c.my_team(s.teams) or {}
@@ -59,34 +159,12 @@ def venue_for(state, event, match):
     a, b = roster(match['team_a']), roster(match['team_b'])
     ids = [player['id'] for player in a + b]
     complete = len(a) == len(b) == 5 and all(ids) and len(set(ids)) == 10 and human in ids
-    known = KNOWN.get((s.year, event['id'])) or {}
-    if known.get('event_name') != event['name']:
-        known = {}
-    playoff = match.get('stage') in ('QF', 'SF', 'GF') or match.get('phase') == 'playoff'
-    scale, name, verified, is_lan = 'unknown', '', False, False
-    city, country = known.get('city', ''), known.get('country', '')
-    if known:
-        if known.get('online_groups') and not playoff:
-            scale, is_lan = 'online', False
-        elif playoff and known.get('arena'):
-            scale, name, verified, is_lan = 'arena', known['arena'], True, True
-        else:
-            # Never assign a playoffs' 20k-seat arena to its early stages.
-            scale, name, is_lan = 'studio', known.get('studio', ''), True
-            verified = bool(name)
-            city = known.get('studio_city', city)
-            country = known.get('studio_country', country)
-    elif event.get('type') in ('qual', 'cct') or 'Challenger League' in event.get('name', ''):
-        scale = 'online'
-    travel = bool(is_lan and complete and s.is_yours(match) and not match.get('played'))
-    return dict(destination='major' if scale == 'arena' else 'lan', scale=scale,
-        is_lan=is_lan, travel_allowed=travel, should_walk=bool(travel and s.yours_ready(match)),
-        verified=verified, name=name, city=city, country=country,
-        source_url=known.get('source_url', ''), real_venue_phase='playoffs' if playoff else 'early_stages',
+    details = _venue_details(s.year, event, match)
+    travel = bool(details['is_lan'] and complete and s.is_yours(match) and not match.get('played'))
+    return _arrival_details(state, match, dict(**details,
+        travel_allowed=travel, should_walk=bool(travel and s.yours_ready(match)),
         event_id=f'{s.year}:{event["id"]}', event_engine_id=event['id'], event_name=event['name'],
         match_id=match['id'], match_identity=f'{s.year}:{event["id"]}:{match["id"]}',
         team_a=match['team_a'], team_b=match['team_b'], own_team=own_team, human_id=human,
         players_a=a, players_b=b, roster_complete=bool(complete), identity_source='current_fixture_rosters',
-        simulation_fixture=True, simulation_schedule=True,
-        note='游戏对阵及压缩赛程来自生涯模拟；实体场馆只标注已核验赛事阶段。' if name else
-             '具体实体场馆尚未核验，不显示虚构馆名或大型观众场景。')
+        simulation_fixture=True, simulation_schedule=True))

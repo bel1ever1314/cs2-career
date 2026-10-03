@@ -15,7 +15,7 @@ static func render(phone) -> void:
 		if not CareerBridge.context.get("stories", []).is_empty():
 			phone._list_row(phone.content, "队内事件", "有件事想和你商量", phone._route.bind("stories"), "", "chat", true)
 		for contact in rows:
-			phone._list_row(phone.content, str(contact.get("name", "联系人")), str(contact.get("preview", "")), phone._open_chat.bind(str(contact["id"])), str(contact.get("name", "")).left(1))
+			phone._list_row(phone.content, str(contact.get("name", "联系人")), Locale.field(contact, "preview"), phone._open_chat.bind(str(contact["id"])), str(contact.get("name", "")).left(1))
 		if rows.is_empty():
 			UI.label(phone.content, "联系人正在同步。", 14, UI.MUTED)
 		return
@@ -34,7 +34,7 @@ static func render(phone) -> void:
 	var messages: Array = contact.get("messages", [])
 	if messages.is_empty() and not str(contact.get("greeting", "")).is_empty():
 		var greeting := UI.card(phone.content)
-		UI.label(greeting, str(contact.get("greeting", "")), 14)
+		UI.label(greeting, Locale.field(contact, "greeting"), 14)
 	for line in messages:
 		UI.space(phone.content, 10)
 		var bubble := UI.card(phone.content)
@@ -46,7 +46,7 @@ static func render(phone) -> void:
 			shell.add_theme_stylebox_override("panel", UI.style(UI.CREAM, 16, 18, UI.LINE))
 		UI.label(bubble, str(line.get("name", "")) + " · " + str(line.get("date", "")), 12, UI.MUTED)
 		# A full-height, wrapped body remains readable in the phone's outer scroll.
-		var body := UI.label(bubble, str(line.get("text", "")), 14)
+		var body := UI.label(bubble, Locale.field(line, "text"), 14)
 		body.name = "SocialMessageBody"
 		body.max_lines_visible = -1
 		body.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
@@ -58,7 +58,7 @@ static func render(phone) -> void:
 		UI.label(phone.content, "快捷回复", 12, UI.MUTED)
 		for reply in contact.get("replies", []):
 			UI.space(phone.content, 8)
-			phone._button(phone.content, str(reply.get("label", "继续")), phone._reply.bind(contact, reply))
+			phone._button(phone.content, Locale.field(reply, "label", "继续"), phone._reply.bind(contact, reply))
 
 static func _find_message(node: Node, id: String) -> Control:
 	if node is Control and str(node.get_meta("social_message_id", "")) == id:

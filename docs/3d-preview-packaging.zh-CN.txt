@@ -1,14 +1,14 @@
-1.7.0-preview.1 构建与发布
+1.7.0-preview.2 构建与发布
 
 GitHub 发布源码包和普通 3D Windows 包，标记为 pre-release，保留 1.6.0 正式版。
 源码包包括当前生涯内核、Godot 客户端、RTS、资源生成源码、测试及许可。
 运行包附带 Python 冻结后台和官方 Godot 运行器，不要求玩家安装开发工具。
 Steam、CS2 和完整人机增强由玩家单独安装。组件获取信息见
-docs/external-runtime-pins.json。下述整合包仅是原本地候选，不上传 GitHub。
+docs/external-runtime-pins.json。本次使用全新源码冻结后台，仅构建普通 Windows 包与源码包。
 
 公开归档：
-CS2Career-1.7.0-preview.1-source.zip
-CS2Career-1.7.0-preview.1-windows.zip
+CS2Career-1.7.0-preview.2-source.zip
+CS2Career-1.7.0-preview.2-windows.zip
 BUILD_MANIFEST.json
 SHA256SUMS.txt
 
@@ -29,7 +29,11 @@ tools/career3d_install.py：明确确认安装、关闭游戏检查和覆盖前�
 重建需要 Python 3.12、PyInstaller、orjson，以及 Godot 4.7.2 Windows 版。
 公开重封装使用 package_career3d_public.py 的 --source-zip、--windows-zip、
 --project-root 和 --output 参数；--output 是全新公开暂存目录。
-以下是原本地完整构建步骤，不能把其整合输出直接作为公开包上传：
+当前普通公开构建使用 --ordinary-only --version 1.7.0-preview.2，不需要 --bot-stage。
+每次公开更新重新冻结后台，不复用旧版 EXE。源码、包内 CareerMatch.dll 和客户端
+需与本次发布对应。
+
+以下是历史本地整合候选步骤，不能把其整合输出直接作为公开包上传：
 先暂存经核验的完整人机增强；打包器的 --bot-stage 指向该暂存结果，
 不是 CS2 安装目录。--assets、--fonts、--media-config 明确指定资源输入。
 --output 需为全新目录。第一次源码重建可使用源码包中的模型/字体/media。

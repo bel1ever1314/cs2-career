@@ -1,3 +1,32 @@
+# 1.7.0-preview.2（3D 预览修正版，2026-10-03）
+
+谢谢大家这两天的试玩。这次主要把进入比赛、返回场馆和使用自定义战术的流程接顺了一些。
+
+- 中途退出 CS2 后，可以回到原来的比赛场馆，保留之前的名单、地图 BP 和比赛状态。
+- 战术保存后，在 CS2 关闭时会同步到当前已经准备的对局；战术室显示本场快照，并提供手动同步按钮。不用重新画路线或重置比赛。
+- 更新导航与朝向兼容检查：不再只因版本或整个文件变化就拒绝启动，会核对实际需要的接口与相关依赖。
+- 补充战术保存、复制指令和同步状态的反馈及英文显示。
+- RTS 补上 Nuke、Vertigo 的分层地图与楼层通路。
+- 增加青训、普通、豪门俱乐部及不同规模场馆，俱乐部可以购买设施升级，自己的房间可以购买和摆放家具、调整墙面与地板。
+- 补充 3D 英文界面，调整对话框、按钮反馈、赛事到场提示和俱乐部冠军陈列。
+
+下载 Windows 包后完整解压，运行 `开始游戏.cmd`。继续旧生涯时，将原包的 `game/runtime/career/save/` 复制到新包的同一位置；手动存档也保留在这个目录里。旧包和旧存档可以先留着。
+
+[下载本次更新](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.7.0-preview.2)
+
+## English
+
+This update smooths out returning to an arena and using custom match tactics.
+
+- Return to the original arena after leaving CS2, keeping the roster, map veto and match state.
+- Saved tactics sync to the prepared match while CS2 is closed. The tactics editor shows the match snapshot and includes a manual sync button.
+- Navigation and look compatibility checks now inspect the required interfaces and dependencies instead of relying only on a whole-file version match.
+- Added clearer save, copy and synchronization feedback, including English text.
+
+Extract the Windows archive and run `Launch-CS2Career.cmd`. To continue your career, copy `game/runtime/career/save/` from the old package to the same location in the new one. Keep your old copy as a backup.
+
+---
+
 # 1.7.0-preview.1（第一次走进 3D 生涯，2026-10-02）
 
 这一版把生涯搬进了小鸡的宿舍、俱乐部和赛场。拿起手机看看队友的消息，坐到电脑前安排比赛，到了比赛日再走向自己的机位。想先让这些日常和比赛连起来，慢慢长成一个可以住进去的职业生涯。

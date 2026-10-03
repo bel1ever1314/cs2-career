@@ -31,7 +31,7 @@ Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'godot_source_snapshots.gdignore
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss-fff'
 $snapshot = Join-Path $targetRoot ('source-snapshots\desktop-ladder-' + $stamp)
 $files = [Collections.Generic.List[IO.FileInfo]]::new()
-foreach ($folder in @('scripts', 'tests', 'data', 'source')) {
+foreach ($folder in @('scripts', 'tests', 'data', 'source', 'scenes')) {
     Get-ChildItem -LiteralPath (Join-Path $sourceRoot $folder) -File -Recurse | Where-Object {
         $_.Extension -in @('.gd', '.uid', '.json', '.py', '.tscn', '.txt')
     } | ForEach-Object { $files.Add($_) }

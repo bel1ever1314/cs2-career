@@ -57,7 +57,7 @@ PRIVATE_DIRS = frozenset({
     "__pycache__", "bin", "obj", "node_modules", "save", "saves", "runtime",
     "runtime-temp", "temp", "tmp", "build", "dist", "release", "publish", "cache",
     "caches", "logs", "reports", "tests-output", "test-output", "source-snapshots",
-    "snapshots", "backups", "captures", "renders", "exports", "demo", "demos",
+    "snapshots", "backups", "runtime-cache", "install-backups", "captures", "renders", "exports", "demo", "demos",
     "demodata", "natural_behavior", "botlab", "cs2botlab", "local-actions-probe",
     "localactionsprobe", "localactionslab", "local_actions", "view_angle_lab",
 })
@@ -214,7 +214,7 @@ def source_files(root: Path) -> list[Path]:
             if path.suffix.casefold() in {".gd", ".uid", ".tscn", ".godot", ".txt", ".md", ".cmd"} or path.name in SPECIAL_TEXT_NAMES:
                 _check_file(path, path.relative_to(root).as_posix(), root)
                 selected.append(path)
-        for folder in ("scripts", "data", "source", "tests"):
+        for folder in ("scripts", "data", "source", "tests", "scenes"):
             selected.extend(_walk(root, project + "/" + folder, godot_types))
         if project == RTS_PROJECT:
             selected.extend(_walk(root, project + "/assets", frozenset({".png", ".txt", ".md", ".json"})))

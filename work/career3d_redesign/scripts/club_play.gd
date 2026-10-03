@@ -4,6 +4,11 @@ const Interactions = preload("res://scripts/club_interactions.gd")
 const CollisionBuilder = preload("res://scripts/club_collision.gd")
 const ClubLife = preload("res://scripts/club_life.gd")
 const Dialogue = preload("res://scripts/npc_dialogue.gd")
+const ClubBoard = preload("res://scripts/club_notice_board.gd")
+const TrophyDisplay = preload("res://scripts/club_trophy_display.gd")
+const SceneTiers = preload("res://scripts/scene_tiers.gd")
+var club_board: ClubBoard
+var trophy_display: TrophyDisplay
 var life: ClubLife
 var dialogue: Dialogue
 var player: Player
@@ -42,6 +47,7 @@ var warm_elapsed := 0.0
 var computer_display: MeshInstance3D
 var overheads: Array[MeshInstance3D] = []
 var device_kind := ""
+var environment_tier := "academy"
 
 func _ready() -> void:
 	testing = "--test" in OS.get_cmdline_user_args()
@@ -74,6 +80,9 @@ func _ready() -> void:
 	interactions.action_cancelled.connect(_action_cancelled)
 	_prepare_props()
 	_hud()
+	club_board = ClubBoard.new(); club_board.name = "ClubNoticeBoard"; add_child(club_board)
+	trophy_display = TrophyDisplay.new(); trophy_display.name = "ClubTrophyDisplay"; add_child(trophy_display)
+	trophy_display.setup(model)
 	life=ClubLife.new();life.name="ClubLife";add_child(life)
 	life.setup(player,collision_builder.audit,Travel.club_session.get("npcs",{}))
 	player.collision_mask=5
@@ -96,6 +105,8 @@ func _ready() -> void:
 		var suite = load("res://tests/club_smoke_test.gd").new()
 		add_child(suite)
 		suite.call_deferred("run",self)
+	elif "--club-honours-world-test" in OS.get_cmdline_user_args():
+		var suite = load("res://tests/club_honours_world_test.gd").new(); add_child(suite); suite.call_deferred("run", self)
 	elif "--club-input-test" in OS.get_cmdline_user_args():
 		var suite=load("res://tests/club_input_test.gd").new();Travel.add_child(suite);suite.call_deferred("run",self)
 	elif "--carry-test" in OS.get_cmdline_user_args():
@@ -337,16 +348,19 @@ func world_target() -> Dictionary:
 	return {"kind":"npc","npc":npc} if npc else {}
 
 func room_at(pos: Vector3) -> String:
+	var annex_room := SceneTiers.club_room(pos,environment_tier)
+	if not annex_room.is_empty(): return annex_room
 	if pos.z < -1.7:
 		return "训练室" if pos.x < -2.1 else ("战术会议室" if pos.x < 4.2 else "厨房")
 	if pos.z < .86:return "公共走廊"
 	return "休息区" if pos.x < -4.4 else ("大厅" if pos.x < 3.1 else "食堂")
 
 func _camera_update(delta: float,instant: bool=false) -> void:
-	var desired:=Vector3(0,.8,0) if overview else player.position+Vector3(0,.70,0)
+	var tier_view := SceneTiers.club_view(environment_tier)
+	var desired: Vector3=tier_view.focus if overview else player.position+Vector3(0,.70,0)
 	var factor:=1.0 if instant else 1-exp(-9*delta)
 	camera_focus=camera_focus.lerp(desired,factor)
-	camera.size=lerpf(camera.size,33.5 if overview else camera_zoom,factor)
+	camera.size=lerpf(camera.size,float(tier_view.size) if overview else camera_zoom,factor)
 	camera.position=camera_focus+Vector3(sin(camera_yaw)*cos(camera_pitch),sin(camera_pitch),cos(camera_yaw)*cos(camera_pitch))*65
 	camera.look_at(camera_focus,Vector3.UP)
 
@@ -356,9 +370,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event is InputEventKey and event.pressed and not event.echo:
 			match event.physical_keycode:
 				KEY_ESCAPE,KEY_4:life.close()
-				KEY_1:life.choose("busy")
-				KEY_2:life.choose("training")
-				KEY_3:life.choose("encourage")
+				KEY_1:dialogue.handle_choice("busy")
+				KEY_2:dialogue.handle_choice("training")
+				KEY_3:dialogue.handle_choice("encourage")
+				KEY_E,KEY_SPACE,KEY_ENTER:dialogue.reveal()
 		return
 	if event is InputEventMouseButton:
 		if event.button_index==MOUSE_BUTTON_RIGHT: dragging=event.pressed
@@ -405,12 +420,18 @@ func _update_stats() -> void:
 
 func _career_changed() -> void:
 	if not CareerBridge.context.is_empty():life.bind_career(CareerBridge.context)
+	var club_environment: Dictionary = CareerBridge.context.get("environment",{}).get("club",{})
+	environment_tier = str(club_environment.get("tier","academy"))
+	SceneTiers.apply_club(self,model,environment_tier,club_environment.get("facilities",{}))
+	if is_instance_valid(trophy_display): trophy_display.refresh(CareerBridge.context)
+	if is_instance_valid(club_board): club_board.refresh()
 	_update_stats()
 
 func save_session() -> void:
 	Travel.club_session={"values":interactions.values.duplicate(),"cooldowns":interactions.cooldowns.duplicate(),"clock":interactions.cooldown_clock,"completed":interactions.completed.duplicate(),"npcs":life.snapshot()}
 
 func before_phone() -> void:
+	if is_instance_valid(club_board): club_board.close_board(false)
 	Travel.close_menu()
 	dragging=false; help_panel.visible=false
 	if life.speaker:life.close()
@@ -418,6 +439,7 @@ func before_phone() -> void:
 	player.upper_body_action=""
 
 func before_computer() -> void:
+	if is_instance_valid(club_board): club_board.close_board(false)
 	Travel.close_menu()
 	dragging=false;help_panel.visible=false
 	if life.speaker:life.close()
@@ -435,6 +457,9 @@ func set_device_open(opened: bool,kind: String) -> void:
 			player.set_item_use(false);player.set_carried_item("");player.upper_body_action="typing"
 			if not interactions.retained_device.is_empty():
 				player.seat_pose=true;player.face_toward(interactions.vec(interactions.retained_device["seat_look"]))
+		elif kind == "club_board":
+			interactions.release_device(); player.seat_pose = false; player.upper_body_action = ""
+			player.set_item_use(false); player.set_carried_item("")
 		else:
 			interactions.release_device();player.seat_pose=false;player.upper_body_action=""
 			player.set_carried_item("phone");player.set_item_use(true)
@@ -445,6 +470,7 @@ func set_device_open(opened: bool,kind: String) -> void:
 		player.set_item_use(false);player.set_carried_item("");player.locked=false;player.velocity=Vector3.ZERO
 
 func _exit_tree() -> void:
+	if is_instance_valid(club_board): club_board.close_board()
 	if is_instance_valid(interactions):interactions.release_device()
 	if is_instance_valid(player):player.clear_presentation();player.locked=false
 
@@ -469,8 +495,12 @@ func _action_completed(_id: String,_effects: Dictionary) -> void:
 		Computer.present("club")
 	elif _id=="whiteboard":
 		Computer.open_app("tactics", "club")
+	elif _id in ["reception", "trophy"]:
+		if not testing:
+			toast_seconds = 0.0
+			club_board.present(_id)
 	elif not testing and CareerBridge.connected:
-		var entrances: Dictionary={"reception":"today","trophy":"match","sofa":"calendar"}
+		var entrances: Dictionary={"sofa":"calendar"}
 		if entrances.has(_id):Phone.present(entrances[_id])
 
 func _action_cancelled(_id: String) -> void:

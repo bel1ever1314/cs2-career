@@ -6,6 +6,7 @@ const UI = preload("res://scripts/phone_ui.gd")
 const DESTINATIONS := ["bedroom", "club", "lan", "major", "awards"]
 const NAMES := {"bedroom":"宿舍", "club":"俱乐部", "major":"Major 场馆", "lan":"线下赛场", "awards":"年度颁奖礼"}
 const DETAILS := {"bedroom":"休息、查看电脑", "club":"训练、和队友碰面", "major":"进入场馆 · 比赛日和队友入场", "lan":"面对面 5v5 · 入座打开比赛电脑", "awards":"已结算年度前三 · 现场领奖"}
+var attendance: Dictionary = {}
 var screen: Control
 var choices: VBoxContainer
 var buttons: Array[Button] = []
@@ -40,8 +41,17 @@ func present(current_destination: String) -> void:
 	UI.clear(choices)
 	buttons.clear()
 	destinations.clear()
+	attendance = Travel.match_guidance()
+	var options: Array[String] = []
+	var match_destination := str(attendance.get("destination", ""))
+	var highlight_match := bool(attendance.get("planned", false)) or (bool(attendance.get("is_today", false)) and bool(attendance.get("due", false)))
+	var can_arrive := bool(attendance.get("can_travel", false)) or bool(attendance.get("can_return", false))
+	var preparing_here := can_arrive and match_destination in ["major", "lan"] and not Travel.match_visit_current(match_destination)
+	if highlight_match and match_destination in DESTINATIONS and (match_destination != current_destination or preparing_here): options.append(match_destination)
 	for destination in DESTINATIONS:
-		if destination == current_destination: continue
+		if destination == current_destination or destination in options: continue
+		options.append(destination)
+	for destination in options:
 		destinations.append(destination)
 		var index := destinations.size() - 1
 		var button := UI.button(choices, "", func(): select_index(index); confirm())
@@ -66,7 +76,20 @@ func _refresh() -> void:
 	for index in range(buttons.size()):
 		var destination := destinations[index]
 		var button := buttons[index]
-		button.text = ("›  " if index == selected else "    ") + NAMES[destination] + "\n" + DETAILS[destination]
+		var title := str(NAMES[destination])
+		var details := str(DETAILS[destination])
+		if destination == str(attendance.get("destination", "")):
+			title = str(attendance.get("display_name", attendance.get("venue_name", title)))
+			var event_name := str(attendance.get("event_name", attendance.get("event", "")))
+			var date_label := "今日比赛" if bool(attendance.get("is_today", false)) else str(attendance.get("date", "")) + " 比赛"
+			details = "%s · %s\n对阵 %s" % [date_label, event_name, attendance.get("opponent", "")]
+			if bool(attendance.get("is_today", false)):
+				if bool(attendance.get("can_return", false)): details += " · 返回本场席位"
+				else: details += " · 到场准备" if bool(attendance.get("can_travel", false)) else " · 先处理手机中的待办"
+			else:
+				details += " · 比赛日再来"
+			button.custom_minimum_size.y = 78
+		button.text = ("›  " if index == selected else "    ") + title + "\n" + details
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.add_theme_stylebox_override("normal", UI.style(UI.MINT if index == selected else UI.PAPER, 10, 12, UI.GREEN if index == selected else UI.LINE))
 

@@ -122,6 +122,8 @@ class Landscape extends Control:
 	func _draw() -> void:
 		var w := size.x
 		var h := size.y
+		if w <= 0 or h <= 0:
+			return
 		draw_circle(Vector2(w - 64.5, 35.5), 19.5, Color("eacb7f"), true, -1, true)
 		# Match the original rotated hills, including the sun peeking over the ridge.
 		ellipse(Vector2(w * .30, h + 10), Vector2(w * .50, 105), Color("cee1d2"), deg_to_rad(-11))

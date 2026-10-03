@@ -252,7 +252,7 @@ def controls_command(state, action, body):
 
 def tactics_import(state, body):
     from cs2career import tactics
-    from tools.career3d_matches import tactics_context
+    from tools.career3d_matches import tactics_context, _tactics_publication
     def perform():
         if _busy(state):
             raise ValueError(_busy(state))
@@ -263,6 +263,9 @@ def tactics_import(state, body):
         value = tactics.decode_json(encoded)
         code = tactics.canonical_map(body['map']) if 'map' in body else None
         result = tactics.import_tactics(value, code)
-        return dict(tactics_context(result['map']), reason=result['msg'], status='saved',
+        publication = _tactics_publication(state, result['map'], sync=True)
+        message = publication['reason']
+        return dict(tactics_context(result['map'], state, publication), reason=message, msg=message,
+                    library_message='战术已导入独立库。', status='saved',
                     imported_count=result['imported_count'], overwritten_ids=result['overwritten_ids'])
     return _receipt(state, 'import', body, perform, namespace='tactics_import')

@@ -107,6 +107,23 @@ class Career3DSourcePackageTests(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 self.stage(root, output, assets, fonts, hashes)
 
+    def test_tier_scenes_are_public_sources_but_private_nested_state_is_not(self):
+        with tempfile.TemporaryDirectory() as folder:
+            base = Path(folder)
+            root, assets, fonts, hashes = self.fixture(base)
+            scene_name = pkg.PROJECT + '/scenes/tiers/club_elite.tscn'
+            scene = root / scene_name
+            scene.parent.mkdir(parents=True)
+            scene.write_text('[gd_scene format=3]\n[node name="Elite" type="Node3D"]\n', encoding='utf-8')
+            private = scene.parent / 'runtime' / 'save' / 'career.json'
+            private.parent.mkdir(parents=True)
+            private.write_text('private career', encoding='utf-8')
+            output = base / 'stage'
+            report = self.stage(root, output, assets, fonts, hashes)
+            self.assertIn(scene_name, report['files'])
+            self.assertEqual((output / scene_name).read_text('utf-8'), scene.read_text('utf-8'))
+            self.assertFalse((output / pkg.PROJECT / 'scenes/tiers/runtime').exists())
+
     def test_repeated_stages_have_identical_hashes_and_manifest(self):
         with tempfile.TemporaryDirectory() as folder:
             base = Path(folder)

@@ -20,6 +20,7 @@ const MatchReport = preload("res://scripts/career_match_report.gd")
 const EventFlow = preload("res://scripts/career_event_flow.gd")
 const CaseRoom = preload("res://scripts/computer_case.gd")
 const SkinBundles = preload("res://scripts/computer_skin_bundles.gd")
+const ActionFeedback = preload("res://scripts/device_action_feedback.gd")
 const LIGHT := UI.INK
 const MUTED := UI.MUTED
 const PAGES := {"desktop":"桌面", "battle":"对战中心", "career_match":"职业比赛", "quick":"快速赛季", "settings":"设置", "tactics":"战术室", "ladder":"本地天梯", "custom":"自定义对局", "rts":"战术模拟", "scrim":"训练赛", "events":"赛事中心", "team":"战队资料", "player":"选手资料", "event":"赛事资料", "match":"比赛战报", "market":"饰品市场", "profile":"我的生涯", "mail":"邮件", "calendar":"日历", "operations":"经营", "transfers":"转会", "news":"赛事新闻", "management":"阵容与合同", "training":"训练与成长", "assistance":"自动安排", "rankings":"职业榜单", "workshop":"扩展工坊", "start":"开始与继续", "appearance":"我的形象", "saves":"存档管理"}
@@ -48,9 +49,11 @@ var scrim_map := ""
 var pending_detail_path := ""
 var rendered_context := ""
 var notice := ""
+var action_feedback: Control
 var app_toolbar: HBoxContainer
 var taskbar: HBoxContainer
 var desktop_wallpaper: Control
+var desktop_shortcuts: MarginContainer
 var market_tab := "market"
 var selected_skin: Dictionary = {}
 var selected_mail: Dictionary = {}
@@ -96,6 +99,7 @@ var rts_render: Callable
 var repaint_pending := false
 
 func _ready() -> void:
+	Locale.changed.connect(_language_changed)
 	business.attach(self)
 	news.attach(self)
 	match_center.attach(self)
@@ -177,6 +181,23 @@ func _ready() -> void:
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.add_theme_constant_override("separation", 12)
 	scroll.add_child(content)
+	scroll.resized.connect(_layout_desktop)
+	# Desktop shortcuts belong to the monitor chrome, not the scrolling page.
+	# The stage takes spare height; this dock stays just above the taskbar.
+	desktop_shortcuts = MarginContainer.new()
+	desktop_shortcuts.name = "ComputerDesktopDock"
+	desktop_shortcuts.add_theme_constant_override("margin_left", 23)
+	desktop_shortcuts.add_theme_constant_override("margin_right", 23)
+	desktop_shortcuts.add_theme_constant_override("margin_top", 8)
+	desktop_shortcuts.add_theme_constant_override("margin_bottom", 12)
+	layout.add_child(desktop_shortcuts)
+	var utilities := HFlowContainer.new()
+	utilities.name = "ComputerDesktopShortcuts"
+	utilities.add_theme_constant_override("h_separation", 8)
+	utilities.add_theme_constant_override("v_separation", 8)
+	desktop_shortcuts.add_child(utilities)
+	for item in [["management", "阵容与合同"], ["training", "训练与成长"], ["assistance", "自动安排"], ["rankings", "职业榜单"], ["workshop", "扩展工坊"], ["appearance", "我的形象"], ["start", "开局选择"], ["saves", "存档管理"]]:
+		UI.compact(_button(utilities, item[1], _navigate.bind(item[0]), false))
 	status = _label(layout, "", 12, MUTED)
 	status.custom_minimum_size.y = 18
 	status.max_lines_visible = 2
@@ -201,6 +222,9 @@ func _ready() -> void:
 	clock.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	clock.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	clock.autowrap_mode = TextServer.AUTOWRAP_OFF
+	action_feedback = ActionFeedback.new()
+	action_feedback.top_inset = 82.0
+	panel.add_child(action_feedback)
 	CareerBridge.changed.connect(_context_changed)
 	CareerBridge.busy_changed.connect(_busy_changed)
 	CareerBridge.status_changed.connect(_update_status)
@@ -232,6 +256,18 @@ func _resize() -> void:
 	stand.pivot_offset = Vector2(110, 22)
 	stand.scale = Vector2.ONE / stretch
 	case_room.resize()
+	_layout_desktop()
+
+func _layout_desktop() -> void:
+	if not is_instance_valid(content) or not is_instance_valid(scroll): return
+	var desktop := content.get_node_or_null("ComputerDesktop") as BoxContainer
+	if desktop == null: return
+	var compact := scroll.size.x < 720
+	desktop.vertical = compact
+	var greeting := desktop.get_node("ComputerDesktopGreeting") as Control
+	greeting.visible = not compact
+	var agenda := desktop.get_node("ComputerDesktopAgenda") as Control
+	agenda.size_flags_horizontal = Control.SIZE_EXPAND_FILL if compact else Control.SIZE_SHRINK_END
 
 func present(place: String = "bedroom") -> void:
 	if Travel.busy or CareerBridge.sleeping:
@@ -268,6 +304,7 @@ func _fetch_start_options() -> void:
 	career_start.fetch()
 
 func reset_career_views() -> void:
+	_clear_action_feedback()
 	detail_intent_serial += 1
 	pending_detail_path = ""
 	pending_players_path = ""
@@ -311,6 +348,7 @@ func close_computer(release: bool = true) -> void:
 	if screen == null:
 		return
 	if is_instance_valid(rts_room.session) and not rts_room.close_session(): return
+	_clear_action_feedback()
 	page_scroll[active_page] = scroll.scroll_vertical
 	detail_intent_serial += 1
 	screen.visible = false
@@ -318,6 +356,7 @@ func close_computer(release: bool = true) -> void:
 		UI.device_closed(self)
 
 func _navigate(page: String, push: bool = true) -> void:
+	if active_page != page and is_instance_valid(action_feedback): action_feedback.clear_notice()
 	detail_intent_serial += 1
 	page_scroll[active_page] = scroll.scroll_vertical
 	if active_page in ["ladder", "scrim", "custom"]:
@@ -406,9 +445,28 @@ func _device_command(path: String, body: Dictionary) -> void:
 	var payload := body.duplicate(true)
 	payload["revision"] = int(CareerBridge.context.get("calendar", {}).get("revision", 0))
 	notice = ""
-	if not CareerBridge.command(path, payload):
+	if not _command(path, payload):
 		notice = CareerBridge.message
 	_update_status()
+
+func show_action_feedback(message: String, kind: String = "success", duration: float = 4.0, operation: String = "") -> void:
+	if is_instance_valid(action_feedback) and screen.visible:
+		action_feedback.show_message(message, kind, duration, operation)
+
+func _clear_action_feedback() -> void:
+	if is_instance_valid(action_feedback): action_feedback.clear_notice(true)
+
+func _command(path: String, body: Dictionary = {}) -> bool:
+	var accepted := CareerBridge.command(path, body)
+	if is_instance_valid(action_feedback) and screen.visible:
+		action_feedback.track_request(path, accepted, CareerBridge.message)
+	return accepted
+
+func _commit_growth() -> bool:
+	var accepted := CareerBridge.growth_commit()
+	if is_instance_valid(action_feedback) and screen.visible:
+		action_feedback.track_request("/api/3d/attr", accepted, CareerBridge.message)
+	return accepted
 
 func _tabs(parent: Node, choices: Array, selected: String, callback: Callable) -> void:
 	var row := HBoxContainer.new()
@@ -449,12 +507,14 @@ func _rebuild() -> void:
 	var focus_text := str(focused.text) if focused is Button and content.is_ancestor_of(focused) else ""
 	var focus_key := str(focused.get_meta("stable_focus", "")) if focused is Button and content.is_ancestor_of(focused) else ""
 	UI.clear(content)
+	content.size_flags_vertical = Control.SIZE_EXPAND_FILL if active_page == "desktop" else Control.SIZE_FILL
 	content.add_theme_constant_override("separation", 6 if active_page in ["career_match", "quick", "tactics"] or (active_page == "battle" and match_center.is_presenting()) else 12)
 	action_buttons.clear()
 	built_while_busy = CareerBridge.busy
 	title.text = str(PAGES.get(active_page, "桌面"))
 	app_toolbar.visible = active_page != "desktop"
 	desktop_wallpaper.visible = active_page == "desktop"
+	desktop_shortcuts.visible = active_page == "desktop"
 	var location_label := panel.find_child("ComputerLocation", true, false) as Label
 	if location_label:
 		location_label.text = {"club":"俱乐部电脑", "lan":"LAN 选手电脑", "major":"赛事选手电脑", "bedroom":"宿舍电脑"}.get(location, "宿舍电脑")
@@ -496,6 +556,7 @@ func _rebuild() -> void:
 			"transfers": business.render_transfers()
 			"news": news.render()
 	_seal_actions()
+	_layout_desktop()
 	scroll.set_deferred("scroll_vertical", int(page_scroll.get(active_page, 0)))
 	if not focus_key.is_empty():
 		call_deferred("_restore_keyed_focus", focus_key)
@@ -524,15 +585,16 @@ func _font_settings() -> void:
 	_label(card, "字体随样板离线提供；仅改变显示，不影响生涯。", 12, MUTED)
 
 func _render_desktop() -> void:
-	var desktop := HBoxContainer.new()
+	var desktop := BoxContainer.new()
 	desktop.name = "ComputerDesktop"
-	desktop.custom_minimum_size.y = 395
+	desktop.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	desktop.add_theme_constant_override("separation", 28)
 	content.add_child(desktop)
 	var grid := GridContainer.new()
 	grid.name = "ComputerDesktopIcons"
 	grid.columns = 3
 	grid.custom_minimum_size.x = 319
+	grid.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	grid.add_theme_constant_override("h_separation", 20)
 	grid.add_theme_constant_override("v_separation", 22)
 	desktop.add_child(grid)
@@ -550,16 +612,28 @@ func _render_desktop() -> void:
 				_navigate(str(app["page"]))
 		)
 	var greeting := VBoxContainer.new()
+	greeting.name = "ComputerDesktopGreeting"
 	greeting.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	greeting.size_flags_vertical = Control.SIZE_SHRINK_END
 	greeting.add_theme_constant_override("separation", 8)
 	desktop.add_child(greeting)
 	_label(greeting, str(CareerBridge.context.get("player", {}).get("name", "")) + "的" + ("俱乐部电脑" if location == "club" else "宿舍电脑"), 12, MUTED)
 	var agenda := UI.card(desktop)
+	var agenda_panel := agenda.get_parent() as PanelContainer
+	agenda_panel.name = "ComputerDesktopAgenda"
+	agenda_panel.size_flags_horizontal = Control.SIZE_SHRINK_END
+	agenda_panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	agenda.custom_minimum_size.x = 250
 	agenda.size_flags_horizontal = Control.SIZE_SHRINK_END
 	agenda.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_label(agenda, "今日安排", 16)
+	var next_game := match_center.current_game()
+	var attendance := match_center.attendance()
+	if not next_game.is_empty() and (attendance.get("planned", false) or next_game.get("due", false)):
+		_label(agenda, "%s · %s" % [next_game.get("event", "下一场比赛"), attendance.get("display_name", "比赛场馆")], 13)
+		var arrangement := _button(agenda, "查看参赛安排", _navigate.bind("career_match"), false)
+		arrangement.name = "DesktopAttendance"
+		UI.primary(arrangement)
 	_button(agenda, "调整与培养 · %s 点自由属性" % CareerBridge.context.get("attr_points", 0), _navigate.bind("profile"), false)
 	_button(agenda, "训练与对战", _navigate.bind("battle"), false)
 	_button(agenda, "%d 封邮件" % CareerBridge.context.get("inbox", []).size(), _navigate.bind("mail"), false)
@@ -567,12 +641,6 @@ func _render_desktop() -> void:
 	_button(agenda, "快速赛季", _navigate.bind("quick"), false)
 	_button(agenda, "战术室", _navigate.bind("tactics"), false)
 	_button(agenda, "CS2 与换肤设置", _navigate.bind("settings"), false)
-	var utilities := HFlowContainer.new()
-	utilities.add_theme_constant_override("h_separation", 8)
-	utilities.add_theme_constant_override("v_separation", 8)
-	content.add_child(utilities)
-	for item in [["management", "阵容与合同"], ["training", "训练与成长"], ["assistance", "自动安排"], ["rankings", "职业榜单"], ["workshop", "扩展工坊"], ["appearance", "我的形象"], ["start", "开局选择"], ["saves", "存档管理"]]:
-		UI.compact(_button(utilities, item[1], _navigate.bind(item[0]), false))
 
 func _battle() -> void:
 	match_center.render(content)
@@ -711,7 +779,7 @@ func _profile() -> void:
 			plus.disabled = not allowed or not has_value or CareerBridge.growth_remaining() <= 0 or value + pending >= 100
 		var actions := HBoxContainer.new()
 		content.add_child(actions)
-		var confirm := _button(actions, "确认加点", CareerBridge.growth_commit)
+		var confirm := _button(actions, "确认加点", _commit_growth)
 		confirm.name = "ComputerGrowthCommit"
 		UI.primary(confirm)
 		confirm.disabled = not allowed or CareerBridge.growth_draft.is_empty()
@@ -769,7 +837,7 @@ func _skin_command(action: String, data: Dictionary = {}) -> void:
 		return
 	var body := data.duplicate(true)
 	body["revision"] = int(CareerBridge.context.get("calendar", {}).get("revision", 0))
-	CareerBridge.command("/api/3d/skins/" + action, body)
+	_command("/api/3d/skins/" + action, body)
 
 func _rarity_color(value: String) -> Color:
 	return {"consumer":Color("8a98a6"), "industrial":Color("668bb7"), "milspec":Color("668bb7"), "restricted":Color("9278ae"), "classified":Color("b46f91"), "covert":Color("ae5d55"), "rare":Color("a78236"), "extraordinary":Color("a78236")}.get(value, Color("668bb7"))
@@ -927,7 +995,7 @@ func _mail() -> void:
 		if inbox.is_empty():
 			_label(content, "收件箱很安静。新的赛事邀请会出现在这里。", 14, MUTED)
 		for row in inbox:
-			var subject := str(row.get("title", row.get("evname", "邮件")))
+			var subject := Locale.field(row, "title", str(row.get("evname", "邮件")))
 			var button := _button(content, subject + "\n" + str(row.get("date", "")) + " · " + Phone._mail_status(str(row.get("status", ""))), _open_mail.bind(row), false)
 			button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 			button.name = "ComputerMail_" + str(row.get("id", "")).validate_node_name()
@@ -941,9 +1009,10 @@ func _mail() -> void:
 			break
 	_label(content, "教练的邮件" if letter.get("kind") == "invite" else "俱乐部邮件", 22)
 	var paper := UI.card(content)
-	_label(paper, str(letter.get("title", letter.get("evname", "邮件"))), 20)
+	_label(paper, Locale.field(letter, "title", str(letter.get("evname", "邮件"))), 20)
 	_label(paper, str(letter.get("date", "")), 12, MUTED)
-	_label(paper, str(letter.get("body", "")), 15)
+	_label(paper, Locale.field(letter, "body"), 15)
+
 	if not str(letter.get("evname", "")).is_empty():
 		_label(paper, str(letter.get("evname", "")) + " · " + str(letter.get("dates", [])), 14, MUTED)
 	if letter.get("kind") == "invite" and letter.get("status") == "open":
@@ -962,6 +1031,10 @@ func _mail() -> void:
 		_button(content, "处理当前加盟决定", _open_phone.bind("stories"), false)
 	else:
 		_label(content, Phone._mail_status(str(letter.get("status", ""))), 13, MUTED)
+
+func _language_changed() -> void:
+	rendered_context = ""
+	call_deferred("_rebuild")
 
 func _mail_action(action: String, letter: Dictionary) -> void:
 	if action == "accept" and bool(letter.get("decision_pending", false)):
@@ -1035,6 +1108,19 @@ func _calendar() -> void:
 	_label(day_box, "比赛和待处理事件会让时间暂停。", 12, MUTED)
 	if not CareerBridge.pending_target.is_empty() and CareerBridge.pending_target > current:
 		_button(day_box, "继续到 " + CareerBridge.pending_target, CareerBridge.calendar.bind(CareerBridge.pending_target, true))
+	var next_game := match_center.current_game()
+	if not next_game.is_empty():
+		var match_card := UI.card(content)
+		match_card.name = "CalendarCareerMatch"
+		_label(match_card, "今天的比赛" if next_game.get("due", false) else "下一场比赛", 18)
+		_label(match_card, "%s · %s\n对阵 %s" % [next_game.get("date", ""), next_game.get("event", ""), next_game.get("opponent", "")], 15)
+		var attendance := match_center.attendance()
+		if not str(attendance.get("display_name", "")).is_empty():
+			_label(match_card, "比赛地点 · " + str(attendance.display_name), 15)
+			_label(match_card, str(attendance.get("instruction", "")), 13, MUTED)
+		var participate := _button(match_card, "亲自参赛" if next_game.get("due", false) else "亲自参赛 · 睡到比赛日", match_center.prepare_real.bind(str(next_game.get("id", ""))))
+		participate.name = "CalendarAttendMatch"
+		UI.primary(participate)
 	_label(content, "这个月的比赛", 18)
 	for item in CareerBridge.context.get("calendar_events", []):
 		if str(item.get("date", "")).begins_with(calendar_month):
@@ -1178,7 +1264,8 @@ func _ladder_command(action: String, extra: Dictionary) -> bool:
 	var body := extra.duplicate(true)
 	body["revision"] = int(_ladder_state().get("revision", 0))
 	notice = ""
-	var accepted: bool = CareerBridge.command("/api/3d/ladder/" + action, body)
+	# Automatic captain turns and CS2 launch already have their own visible flow.
+	var accepted: bool = CareerBridge.command("/api/3d/ladder/" + action, body) if action in ["advance", "launch", "collect"] else _command("/api/3d/ladder/" + action, body)
 	if not accepted:
 		notice = "操作暂未发出，请等当前操作完成后重试。"
 		_update_status()
@@ -1277,7 +1364,7 @@ func _scrim() -> void:
 		var card := UI.card(content, true)
 		_label(card, "%s · %s · %s" % [item.get("date", ""), item.get("opponent", ""), str(item.get("map", "")).capitalize()], 19)
 		if str(item.get("date", "")) <= str(CareerBridge.context.get("date", "")):
-			_button(card, "开始模拟训练赛", CareerBridge.command.bind("/api/3d/scrim/simulate", {"id":item.get("id", "")}))
+			_button(card, "开始模拟训练赛", _command.bind("/api/3d/scrim/simulate", {"id":item.get("id", "")}))
 		else:
 			_label(card, "到约定日期后可开赛。", 15, MUTED)
 	if scrims.get("scheduled", []).is_empty():
@@ -1293,7 +1380,7 @@ func _set_scrim_date(value: String) -> void:
 	_rebuild()
 
 func _schedule_scrim() -> void:
-	CareerBridge.command("/api/3d/scrim/schedule", {"opponent_id":opponent_id, "date":scrim_date, "map":scrim_map})
+	_command("/api/3d/scrim/schedule", {"opponent_id":opponent_id, "date":scrim_date, "map":scrim_map})
 
 func _report_title(value: Dictionary) -> String:
 	var map_result: Dictionary = value.get("map", {})
@@ -1535,6 +1622,9 @@ func _busy_changed(value: bool) -> void:
 	_update_status()
 
 func _finished(path: String, result: Dictionary) -> void:
+	# Queue our own result before a leaf returns, then show it after that leaf's
+	# navigation/repaint. Background reads and the other device remain silent.
+	if is_instance_valid(action_feedback): action_feedback.call_deferred("finish_request", path, result)
 	if save_manager.received(path, result): return
 	case_room.finished(path, result)
 	ladder_room.received(path, result)

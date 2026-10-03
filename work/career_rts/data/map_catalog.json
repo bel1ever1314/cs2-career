@@ -64,8 +64,16 @@
       "career_validation": {
         "date": "2026-10-02",
         "method": "natural_autonomous_match_after_ray_circle_collision_fix",
-        "seeds": [20261002, 42, 2024],
-        "round_counts": [19, 17, 16],
+        "seeds": [
+          20261002,
+          42,
+          2024
+        ],
+        "round_counts": [
+          19,
+          17,
+          16
+        ],
         "overtime_enabled": true,
         "actual_overtime_in_these_fixtures": false
       },
@@ -89,9 +97,18 @@
     },
     "de_nuke": {
       "name": "Nuke",
-      "status": "awaiting_layered_nav",
-      "career_ready": false,
-      "reason": "Real NAV extracted with XYZ; current 2D runtime cannot preserve overlapping floor identity or traversal physics. Gameplay disabled to prevent false floor connections.",
+      "status": "playable",
+      "career_ready": true,
+      "career_validation": {
+        "date": "2026-10-03",
+        "method": "natural_autonomous_match_and_floor_gate_navigation",
+        "seeds": [20261002],
+        "round_counts": [48],
+        "overtime_enabled": true,
+        "actual_overtime_in_these_fixtures": true
+      },
+      "data_file": "res://data/nuke_game.json",
+      "geometry": "layered_actual_NAV",
       "layers": [
         "upper",
         "lower"
@@ -100,9 +117,18 @@
     },
     "de_vertigo": {
       "name": "Vertigo",
-      "status": "awaiting_layered_nav",
-      "career_ready": false,
-      "reason": "Real NAV extracted with XYZ; current 2D runtime cannot preserve overlapping floor identity or traversal physics. Gameplay disabled to prevent false floor connections.",
+      "status": "playable",
+      "career_ready": true,
+      "career_validation": {
+        "date": "2026-10-03",
+        "method": "natural_autonomous_match_and_floor_gate_navigation",
+        "seeds": [20261002],
+        "round_counts": [23],
+        "overtime_enabled": true,
+        "actual_overtime_in_these_fixtures": false
+      },
+      "data_file": "res://data/vertigo_game.json",
+      "geometry": "layered_actual_NAV",
       "layers": [
         "upper",
         "lower"

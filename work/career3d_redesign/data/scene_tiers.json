@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "club": {
+    "academy": {"scene":"res://scenes/tiers/club_academy.tscn","annex_width":0.0,"annex_depth":0.0,"overview_size":33.5,"overview_focus_x":0.0,"shell_color":"e4d5b9","accent":"799989"},
+    "standard": {"scene":"res://scenes/tiers/club_standard.tscn","annex_width":6.0,"annex_depth":9.0,"overview_size":40.0,"overview_focus_x":3.0,"shell_color":"e8dfc9","accent":"668f85"},
+    "elite": {"scene":"res://scenes/tiers/club_elite.tscn","annex_width":11.0,"annex_depth":14.0,"overview_size":47.0,"overview_focus_x":5.2,"shell_color":"f3e9d5","accent":"365f59"}
+  },
+  "venues": {
+    "0": {"scene":"res://scenes/tiers/venue_studio.tscn","width":13.2,"depth":13.0,"rows":0,"columns":0,"spacing_x":1.0,"spacing_z":1.0,"rise":0.0,"seat_scale":1.0},
+    "100": {"scene":"res://scenes/tiers/venue_small.tscn","width":30.0,"depth":20.0,"rows":5,"columns":10,"spacing_x":0.7,"spacing_z":1.2,"rise":0.16,"seat_scale":0.85},
+    "1000": {"scene":"res://scenes/tiers/venue_thousand.tscn","width":68.0,"depth":67.0,"rows":20,"columns":25,"spacing_x":1.0,"spacing_z":1.12,"rise":0.27,"seat_scale":0.94},
+    "10000": {"scene":"res://scenes/tiers/venue_ten_thousand.tscn","width":180.0,"depth":100.0,"rows":50,"columns":100,"spacing_x":0.77,"spacing_z":0.95,"rise":0.24,"seat_scale":0.85}
+  }
+}

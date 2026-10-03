@@ -167,6 +167,8 @@ func refresh() -> void:
 func _send(path: String,body: Dictionary,post: bool=true) -> bool:
 	if busy or endpoint.is_empty():return false
 	active_path=path; active_body=body.duplicate(true); active_post=post; busy=true; busy_changed.emit(true)
+	# The first explicit install downloads official runtime components.
+	request.timeout = 600 if path == "/api/3d/setup/install" else 90
 	var headers:=PackedStringArray(["X-Career-Token: "+token,"Content-Type: application/json"])
 	var error:=request.request(endpoint+path,headers,HTTPClient.METHOD_POST if post else HTTPClient.METHOD_GET,JSON.stringify(body) if post else "")
 	if error!=OK:
@@ -224,6 +226,7 @@ func _response(result: int,code: int,_headers: PackedStringArray,body: PackedByt
 		if closing:_exit_now()
 		return
 	var loaded: bool = path == "/api/3d/saves/load" and out.get("ok", false) and out.get("loaded", false)
+	Locale.register_projection(out)
 	if loaded: _reset_for_loaded_career()
 	# Even a rejected command can carry a valid, newly queued career story.
 	if out.has("context"): _apply_context(out["context"])
@@ -241,16 +244,29 @@ func _response(result: int,code: int,_headers: PackedStringArray,body: PackedByt
 		call_deferred("quit")
 		return
 	if path=="/api/3d/calendar":
-		var status: String=str(out.get("status","error"))
-		if status=="progress" and calendar_running and out.get("ok",false):
-			call_deferred("_calendar_step"); return
-		calendar_running=false
-		if status=="reached" and sent.get("display_hour",8)==8:
-			clock_minutes=480; clock_held=false; clock_boundary=false
-			if sent.get("wake",false):wake_requested.emit()
-		elif status=="paused":clock_held=true
-		if sleeping: sleep_transition.complete(out)
+		_finish_calendar(out, sent)
 	if closing:call_deferred("quit")
+
+func _finish_calendar(out: Dictionary, sent: Dictionary) -> void:
+	var status := str(out.get("status", "error"))
+	if status == "progress" and calendar_running and out.get("ok", false):
+		call_deferred("_calendar_step")
+		return
+	calendar_running = false
+	# A match gate stops simulation, not waking up on the actual match day.
+	# Earlier stories still pause normally and never claim the target was reached.
+	var match_morning := bool(out.get("ok", false)) and status == "paused" and str(out.get("reason_code", "")) == "player_match" and bool(context.get("nextmatch", {}).get("due", false)) and str(out.get("actualdate", "")) == str(context.get("date", ""))
+	if (status == "reached" or match_morning) and sent.get("display_hour", 8) == 8:
+		clock_minutes = 480
+		clock_held = false
+		clock_boundary = false
+		if sent.get("wake", false): wake_requested.emit()
+	elif status == "paused":
+		clock_held = true
+	if sleeping:
+		var presentation := out.duplicate(true)
+		presentation["wake_at_match"] = match_morning and bool(sent.get("wake", false))
+		sleep_transition.complete(presentation)
 
 func _reset_for_loaded_career() -> void:
 	queued_command.clear()

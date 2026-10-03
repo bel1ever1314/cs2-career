@@ -6,6 +6,7 @@ const ChickenCrowd=preload("res://scripts/arena_chicken_crowd.gd")
 const Roster=preload("res://scripts/venue_match_roster.gd")
 const Competitor=preload("res://scripts/venue_competitor.gd")
 const UI=preload("res://scripts/phone_ui.gd")
+const SceneTiers=preload("res://scripts/scene_tiers.gd")
 var atmosphere: Atmosphere
 var crowd: ChickenCrowd
 var player: Player
@@ -58,6 +59,7 @@ func _ready() -> void:
 	_venue_display_materials()
 	collision_builder=Collisions.new();collision_builder.build(self,model)
 	_batch_crowd()
+	SceneTiers.apply_venue(self,model,int(Travel.match_visit.get("capacity",10000)),"major")
 	_environment()
 	atmosphere=Atmosphere.new();add_child(atmosphere)
 	var atmosphere_options: Dictionary=settings.get("atmosphere",{}).duplicate(true)
@@ -75,6 +77,9 @@ func _ready() -> void:
 	camera.physics_interpolation_mode=Node.PHYSICS_INTERPOLATION_MODE_OFF
 	body_y=player.position.y
 	_hud();_wayfinding();_competition_roster()
+	if roster_plan.is_empty():
+		var guidance := Travel.preview_match_hint("major")
+		if not guidance.is_empty(): _notice(guidance)
 	Travel.arrived.connect(_arrived)
 	booted=true
 	if testing:
@@ -257,7 +262,10 @@ func _hud() -> void:
 	var root:=Control.new();root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);root.mouse_filter=Control.MOUSE_FILTER_IGNORE;canvas.add_child(root)
 	var top:=PanelContainer.new();top.position=Vector2(22,20);top.add_theme_stylebox_override("panel",_panel());top.mouse_filter=Control.MOUSE_FILTER_IGNORE;root.add_child(top)
 	var col:=VBoxContainer.new();top.add_child(col)
-	_label(col,"职业赛事 / 大型场馆" if not roster_plan.is_empty() else "MAJOR / 场馆",24);status=_label(col,"入场大厅",17)
+	var venue_title := "职业赛事 / 大型场馆" if not roster_plan.is_empty() else "MAJOR / 场馆"
+	var attendance := Travel.match_guidance()
+	if str(attendance.get("destination", "")) == "major": venue_title = str(attendance.get("display_name", venue_title))
+	_label(col,venue_title,24);status=_label(col,"入场大厅",17)
 	_label(col,"P 手机 · 选手席查看比赛",13).modulate=Color("a8c2c2")
 	var footer:=PanelContainer.new();root.add_child(footer);footer.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	footer.offset_top=-102;footer.add_theme_stylebox_override("panel",_panel());footer.mouse_filter=Control.MOUSE_FILTER_IGNORE
@@ -328,6 +336,9 @@ func _process(delta: float) -> void:
 	elif not roster_plan.is_empty() and not entry_door_released:hint.text="队伍集合完毕 · 沿中央通道和队友一起入场"
 	elif _at_player_seat():hint.text="E 坐进你的空席 · 打开比赛电脑" if competition_phase=="ready" else "队友正在就位 · 稍候入座"
 	elif not roster_plan.is_empty() and not current_point.is_empty() and current_point["id"]=="desk":hint.text="沿桌侧绕到后方 · 你的空席在左侧中央"
+	elif roster_plan.is_empty() and (current_point.is_empty() or current_point["id"] != "exit"):
+		var guidance := Travel.preview_match_hint("major")
+		if not guidance.is_empty(): hint.text = guidance
 	cursor_dot.visible=intro_finished and not paused and not CareerBridge.phone_open
 	notice_time=maxf(0,notice_time-delta);notice.visible=notice_time>0
 

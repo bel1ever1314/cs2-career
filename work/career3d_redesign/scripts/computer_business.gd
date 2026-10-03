@@ -10,6 +10,7 @@ var replace_id := ""
 var pending_purchase: Dictionary = {}
 var pending_application: Dictionary = {}
 var cash_inputs: Dictionary = {}
+var pending_facility: Dictionary = {}
 
 func attach(value: CanvasLayer) -> void:
 	host = value
@@ -40,11 +41,12 @@ func render_operations() -> void:
 	accounts.add_theme_constant_override("separation", 16)
 	host.content.add_child(accounts)
 	if not bool(ops.get("unsigned", false)):
-		_account(accounts, "俱乐部账户" + (" · 仅查看" if ops.get("player_only", false) else ""), finance.get("club", {}))
+		_account(accounts, "俱乐部账户", finance.get("club", {}))
 	_account(accounts, "个人口袋", finance.get("pocket", {}))
 	_label(host.content, str(finance.get("note", "")), 13, UI.MUTED)
 	if ops.get("player_only", false):
-		_label(host.content, "你是签约选手，俱乐部引援与经营由管理层负责。", 15)
+		_label(host.content, "引援与合同由管理层负责，设施可在下方升级。", 15)
+	_render_facilities()
 	if ops.get("crisis", false):
 		_label(host.content, "经营危机 · 工资缺口 " + money(ops.get("deficit")), 18, Color("a25746"))
 		_label(host.content, "请先处理资金缺口或手机里的经营事件。", 14, UI.MUTED)
@@ -75,8 +77,61 @@ func render_operations() -> void:
 			_label(ledger, str(line), 13, UI.MUTED)
 		if not ops.get("player_only", false):
 			_cash_form(ledger, "donate", "从个人口袋支持俱乐部", maxi(1, int(ops.get("deficit", 5000))), true)
-	if not ops.get("upgrade_supported", false):
-		_label(host.content, str(ops.get("upgrade_reason", "原业务尚无设施升级功能。")), 13, UI.MUTED)
+
+func _render_facilities() -> void:
+	var environment: Dictionary = CareerBridge.context.get("environment", {})
+	var club: Dictionary = environment.get("club", {})
+	if str(club.get("team_id", "")).is_empty(): return
+	var box := UI.card(host.content)
+	box.name = "ClubFacilities"
+	_label(box, "俱乐部设施", 23)
+	_label(box, Locale.field(club, "tier_name") + " · " + money(club.get("balance", 0)), 18)
+	_label(box, "设施升级从俱乐部账户扣款，家具装修使用个人资金。", 14, UI.MUTED)
+	var blocked := str(environment.get("blocked", ""))
+	if not blocked.is_empty(): _label(box, blocked, 14, Color("a25746"))
+	var next_tier: Variant = club.get("next_tier")
+	if next_tier is Dictionary:
+		var tier := _button(box, "扩建为 %s · %s" % [Locale.field(next_tier, "name"), money(next_tier.price)], _ask_facility.bind("club-tier", {"team_id":club.team_id,"tier":next_tier.id,"price":int(next_tier.price)}, Locale.field(next_tier, "name")))
+		tier.name = "ClubTierUpgrade"
+		tier.disabled = not blocked.is_empty() or int(club.balance) < int(next_tier.price)
+	for facility in club.get("upgrades", []):
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 12)
+		box.add_child(row)
+		var detail := VBoxContainer.new()
+		detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(detail)
+		_label(detail, "%s · Lv.%d" % [Locale.field(facility, "name"), int(facility.level)], 17)
+		_label(detail, Locale.field(facility.current, "name"), 13, UI.MUTED)
+		if facility.get("next") is Dictionary:
+			var target: Dictionary = facility.next
+			var button := _button(row, "升级 %s" % money(target.price), _ask_facility.bind("facility", {"team_id":club.team_id,"facility":facility.id,"level":int(facility.level)+1,"price":int(target.price)}, Locale.field(target, "name")))
+			button.name = "FacilityUpgrade_" + str(facility.id)
+			button.tooltip_text = Locale.field(target, "name")
+			button.disabled = not blocked.is_empty() or int(club.balance) < int(target.price)
+		else: _label(row, "已完成", 14, UI.GREEN)
+	if not pending_facility.is_empty():
+		_label(box, "购买 %s？从俱乐部账户支付 %s。" % [pending_facility.label, money(pending_facility.body.price)], 17)
+		var choices := HBoxContainer.new()
+		box.add_child(choices)
+		_button(choices, "确认升级", _confirm_facility).name = "ConfirmFacilityUpgrade"
+		_button(choices, "取消", _cancel_facility, false)
+
+func _ask_facility(action: String, body: Dictionary, caption: String) -> void:
+	pending_facility = {"action":action, "body":body.duplicate(true), "label":caption}
+	host._rebuild()
+
+func _cancel_facility() -> void:
+	pending_facility.clear()
+	host._rebuild()
+
+func _confirm_facility() -> void:
+	if pending_facility.is_empty(): return
+	var payload: Dictionary = pending_facility.body.duplicate(true)
+	payload["request_id"] = "club-%d-%d" % [Time.get_unix_time_from_system(), Time.get_ticks_usec()]
+	var action := str(pending_facility.action)
+	pending_facility.clear()
+	host._device_command("/api/3d/environment/" + action, payload)
 
 func _account(parent: Node, title: String, account: Dictionary) -> void:
 	var box := UI.card(parent)

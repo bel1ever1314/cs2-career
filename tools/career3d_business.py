@@ -121,7 +121,7 @@ def business_context(state):
               if not p.get('you') and p.get('player_id') != state.arena.career_player_id(state)]
     operations = dict(ops, loan=loan, player_only=personal['player_only'], unsigned=c.unsigned,
         banned=c.banned, retired=c.retired, crisis=c.crisis, deficit=c.deficit,
-        upgrade_supported=False, upgrade_reason='原业务尚无设施升级功能；本样板不新增经营数值规则。')
+        upgrade_supported=True, upgrade_reason='设施升级使用俱乐部账户。')
     return dict(finance=finance, operations=operations,
                 transfers=dict(players=candidates, roster=roster, club_money=(team or {}).get('money', 0),
                                club_allowed=not reason, reason=reason),

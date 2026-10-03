@@ -32,7 +32,8 @@ scripts/match_sim.gd
 scripts/map_model.gd
   使用离线导航图与掩码，提供可走性、胶囊移动、路径和视线查询。
   路径按网格入口/出口、半径和阵营缓存；不能用图像颜色替代通路。
-  真实 NAV 的有向连接用于约束二维导航，重叠楼层仍是近似。
+  真实 NAV 的有向连接约束导航。Nuke/Vertigo 上下主楼层保持独立身份。
+  traversal_links 保留有向 source_area/target_area 与动作时间；不能凭重叠 XY 连接。
   NAV_agent_centres 记录的是人物中心通路，默认半径不得再次侵蚀通路。
   更大体积只检查超出标称半径的净空；路径与运动使用相同有向连接。
 
@@ -51,16 +52,18 @@ data/rosters.json
 
 scripts/map_catalog.gd / data/map_catalog.json
   schema 2 目录提供 available_maps、entry、load_map；未通过的地图返回空包。
-  可用：Dust2、Mirage、Inferno、Ancient、Anubis、Overpass、Train、Cache。
-  正式比赛入口还必须检查 entry(map_id).career_ready。当前八张可用地图均开放正式 RTS。
+  可用：Dust2、Mirage、Inferno、Ancient、Anubis、Overpass、Train、Cache、Nuke、Vertigo。
+  正式比赛入口还必须检查 entry(map_id).career_ready。当前十张均开放正式 RTS。
   Overpass 旧版的无限 MR3 缺陷已定位到射线角点：能看见目标中心，却在延长射线时
   被邻接墙像素截断；现按玩家身体的射线交点判断命中，同时保留中心 LOS 防穿墙。
   已恢复 Overpass 正式入口；自然整场、守包和加时仍做回归，不宣称完全平衡。
-  Nuke、Vertigo 已提取真实 XYZ NAV 和实体资料，但未解决重叠楼层身份与跨层动作。
-  明确标为 awaiting_layered_nav 并禁止开局，不会借用沙二或伪造全图连通。
+  Nuke、Vertigo 由 tools/build_layered.py 使用真实 XYZ、NAV连接和梯子数据烘焙。
+  主楼层按官方雷达高度界限分开为独立坐标页；跨层仅使用真实有向 gate。
+  step/jump/drop/ladder/ramp 为有时长的简化动作，降落检查人物占位。
+  不同主楼层之间视线保守阻断；同主楼层小型箱顶/屋顶与完整碰撞仍为近似。
 
 data/*_game.json / *_grid.json
-  雷达坐标（1024x1024）、包点、出生候选、观察锚点、导航边和来源。
+  单层雷达坐标（1024x1024）与多层内部坐标页、包点、出生候选、导航边和来源。
   目标点及出生点必须通过 map_model 的可达性检查。
   每张地图使用独立数据包；游戏、主地图和小地图均读取本场资源路径。
   七张新地图的出生点来自真实实体，包点来自实际 bomb-target 物理 hull。

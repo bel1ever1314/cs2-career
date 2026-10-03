@@ -17,7 +17,7 @@ from cs2career.league import Season, awards
 from cs2career.world import build_teams
 from tools.career3d_business import mail_command, mail_detail
 from tools.career3d_feedback import feedback_context, acknowledge_feedback
-from tools.career3d_matches import _identity, _launch, match_preflight
+from tools.career3d_matches import _identity, _launch, match_preflight, match_status
 from tools.career3d_venues import venue_for
 
 
@@ -214,7 +214,7 @@ class Career3DExperienceTests(unittest.TestCase):
         self.assertEqual(1, feed['total'])
         self.assertEqual(2025, feed['items'][0]['year'])
 
-    def test_venue_phase_and_edition_are_never_faked(self):
+    def test_venue_scenes_follow_phase_without_faking_physical_names(self):
         event = self.completed()
         event.update(id='major-1', name='IEM Cologne Major 2026', type='major')
         match = event['matches'][0]
@@ -229,20 +229,24 @@ class Career3DExperienceTests(unittest.TestCase):
         event['name'] = 'Future Major 2026 (fictional)'
         unknown = venue_for(self.state, event, match)
         self.assertFalse(unknown['verified'])
-        self.assertFalse(unknown['travel_allowed'])
+        self.assertTrue(unknown['travel_allowed'])
+        self.assertEqual('studio', unknown['scale'])
         self.assertEqual('', unknown['name'])
 
-    def test_online_bounty_groups_do_not_travel_to_a_large_arena(self):
+    def test_bounty_presentation_policy_preserves_real_online_and_studio_facts(self):
         event = self.completed()
         event.update(id='blast-bounty', name='BLAST Premier Bounty Season 1 2026')
         match = event['matches'][0]
-        match.update(stage='R16', played=False)
-        self.assertEqual('online', venue_for(self.state, event, match)['scale'])
-        self.assertFalse(venue_for(self.state, event, match)['travel_allowed'])
+        match.update(stage='G1', played=False)
+        group = venue_for(self.state, event, match)
+        self.assertEqual('studio', group['scale'])
+        self.assertEqual('online', group['real_venue_scale'])
+        self.assertTrue(group['travel_allowed'])
         match['stage'] = 'GF'
         final = venue_for(self.state, event, match)
-        self.assertEqual('studio', final['scale'])
-        self.assertEqual('lan', final['destination'])
+        self.assertEqual('arena', final['scale'])
+        self.assertEqual('major', final['destination'])
+        self.assertEqual('studio', final['real_venue_scale'])
         self.assertEqual('BLAST Studio, Malta', final['name'])
 
     def test_preflight_get_is_read_only_and_business_freezes_exact_ten_ids(self):
@@ -275,6 +279,30 @@ class Career3DExperienceTests(unittest.TestCase):
         self.assertFalse(venue['roster_complete'])
         self.assertFalse(venue['travel_allowed'])
 
+    def test_completed_bo1_preflight_and_status_keep_legitimate_null_fields(self):
+        event = self.completed()
+        event.update(name='BLAST Bounty Season 2 2026', status='live')
+        match = event['matches'][0]
+        match.update(played=False, best_of=1, maps=[], pending_map='dust2',
+                     veto={'steps':[{'team':None, 'action':'decider', 'map':'dust2', 'play':1}],
+                           'order':['dust2'], 'best_of':1})
+        before = deepcopy(event)
+        with patch('tools.career3d_activities.config_status', return_value=dict(ready=True, reason='')), \
+             patch('tools.career3d_activities.read_cs2_config', return_value={}), \
+             patch('tools.career3d_activities._running_cs2', return_value=False), \
+             patch('tools.career3d_matches._peek') as peek:
+            prepared = match_preflight(self.state, match['id'])
+            status = json.loads(json.dumps(match_status(self.state, match['id'])))
+        self.assertEqual('ready', prepared['phase'])
+        self.assertIsNone(prepared['veto']['turn'])
+        self.assertIsNone(prepared['veto']['steps'][-1]['team'])
+        self.assertIsNone(status['result'])
+        self.assertIsNone(status['preflight']['veto']['turn'])
+        self.assertTrue(status['can_launch'])
+        self.assertEqual(before, event)
+        peek.assert_not_called()
+        self.state.persist.assert_not_called()
+
     def test_cs2_launch_request_and_session_keep_fixture_identity_without_game(self):
         from cs2career.league import season as season_module
         event = self.completed()
@@ -282,6 +310,9 @@ class Career3DExperienceTests(unittest.TestCase):
         match = event['matches'][0]
         match.update(played=False, pending_map='Dust2', maps=[])
         _identity(self.state, match)
+        match['career3d_venue'].update(scale='unknown', is_lan=False, destination='lan',
+            visit_destination='club', travel_allowed=False, venue_policy_version='old-version')
+        legacy_venue = deepcopy(match['career3d_venue'])
         captured = []
         def start(*args, **kwargs):
             captured.append(deepcopy(kwargs['request_override']))
@@ -307,7 +338,10 @@ class Career3DExperienceTests(unittest.TestCase):
         self.assertEqual('2026:major-1:' + match['id'], captured[0]['career_identity']['key'])
         self.assertEqual('p0_0', captured[0]['career_identity']['human_id'])
         self.assertEqual('LANXESS arena', captured[0]['career_venue']['name'])
+        self.assertEqual('arena', captured[0]['career_venue']['scale'])
         self.assertEqual(captured[0]['career_identity'], match['cs2_session']['career_identity'])
+        self.assertEqual(captured[0]['career_venue'], match['cs2_session']['venue'])
+        self.assertEqual(legacy_venue, match['career3d_venue'])
 
     def test_http_feedback_ack_is_authenticated_persisted_and_replay_safe(self):
         from tools import career3d_service

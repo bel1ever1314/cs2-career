@@ -451,6 +451,8 @@ def _stage_sources(target: Path) -> list[dict]:
         "Metamod 2.0.0-dev+1472: zlib/libpng. RayTrace: GPL-3.0.\n"
         "Bot Improver managed source is AGPL-3.0. Its PolyForm Strict Panel is excluded.\n"
         "Nested dependencies retain their original licenses in the corresponding source ZIPs.\n"
+        "Licensing caveat: the pinned alliedmodders HL2SDK cs2 mirror has Valve copyright headers\n"
+        "but no root SDK license at that pin; unrestricted/commercial SDK redistribution is not certified.\n"
         "Sample admin data, tests/examples with account fixtures and named-player roster data are\n"
         "excluded from source ZIPs; build the production plugin/API projects rather than test solutions.\n"
         "Public upstream strong-name keys and build resources are retained only in pinned source archives.\n"
@@ -635,6 +637,7 @@ def stage_bot_runtime(mod_source: Path, target: Path, game_dir: Path | None = No
         "installed_code_and_signature_proof": proof,
         "source_packages": sources,
         "dependency_notices": dependencies,
+        "licensing_caveats": ["Pinned HL2SDK cs2 mirror has Valve copyright headers but no root SDK license; unrestricted/commercial redistribution is not certified"],
         "skin_gamedata_sha256": REVIEWED_INVENTORY_GAMEDATA,
         "installable_directory": "CS2BotImprover",
         "excluded": ["player saves", "private settings", "owner/account IDs", "inventories",

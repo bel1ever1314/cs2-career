@@ -1,5 +1,8 @@
 extends Node3D
 const Player=preload("res://scripts/chicken_player.gd")
+const Buildings = preload("res://scripts/scene_tiers.gd")
+const Decor = preload("res://scripts/home_decor.gd")
+var decoration: Decor
 var player: Player
 var camera: Camera3D
 var yaw:=.57
@@ -50,6 +53,7 @@ func _ready() -> void:
 	player=Player.new(); player.position=Vector3(-1.45,.12,1.35); player.home=player.position; add_child(player)
 	camera=Camera3D.new(); camera.current=true; camera.projection=Camera3D.PROJECTION_ORTHOGONAL; camera.near=.1; camera.far=100; add_child(camera)
 	_hud(); _camera()
+	decoration=Decor.new(); add_child(decoration); decoration.setup(self)
 	CareerBridge.changed.connect(_career_changed); _career_changed()
 	if "--integration-test" in OS.get_cmdline_user_args() and not CareerBridge.has_meta("integration_started"):
 		CareerBridge.set_meta("integration_started",true)
@@ -91,11 +95,12 @@ func _hud() -> void:
 	prompt=Label.new(); prompt.add_theme_font_size_override("font_size",21); stack.add_child(prompt)
 	prompt.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
 	var shortcuts:=PanelContainer.new();shortcuts.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	shortcuts.offset_left=-260;shortcuts.offset_right=-24;shortcuts.offset_top=-75;shortcuts.offset_bottom=-24
+	shortcuts.offset_left=-390;shortcuts.offset_right=-24;shortcuts.offset_top=-75;shortcuts.offset_bottom=-24
 	shortcuts.add_theme_stylebox_override("panel",style);root.add_child(shortcuts)
 	var row:=HBoxContainer.new();row.add_theme_constant_override("separation",10);shortcuts.add_child(row)
 	var phone:=Button.new();phone.text="P 手机";phone.focus_mode=Control.FOCUS_NONE;phone.pressed.connect(func():Phone.present());row.add_child(phone)
 	var help:=Button.new();help.text="F1 帮助";help.focus_mode=Control.FOCUS_NONE;help.pressed.connect(_toggle_help);row.add_child(help)
+	var decor:=Button.new();decor.text="布置房间";decor.focus_mode=Control.FOCUS_NONE;decor.pressed.connect(func(): if not CareerBridge.phone_open and not Travel.busy: decoration.present());row.add_child(decor)
 	help_panel=PanelContainer.new();help_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	help_panel.offset_left=-275;help_panel.offset_right=275;help_panel.offset_top=-165;help_panel.offset_bottom=165
 	help_panel.add_theme_stylebox_override("panel",style);root.add_child(help_panel)
@@ -106,6 +111,8 @@ func _hud() -> void:
 
 func _career_changed() -> void:
 	if is_instance_valid(time_label):time_label.text=CareerBridge.clock_text()
+	if is_instance_valid(model) and (not is_instance_valid(decoration) or not decoration.visible):
+		Buildings.apply_home(self,model,CareerBridge.context.get("environment",{}).get("home",{}))
 
 func _camera() -> void:
 	var focus:=Vector3(0,.65,0)
@@ -156,10 +163,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.physical_keycode==KEY_ESCAPE and help_panel.visible:_toggle_help()
 
 func before_phone() -> void:
+	if is_instance_valid(decoration) and decoration.visible: decoration.close()
 	Travel.close_menu()
 	dragging=false;help_panel.visible=false;_leave_computer();player.velocity=Vector3.ZERO
 
 func before_computer() -> void:
+	if is_instance_valid(decoration) and decoration.visible: decoration.close()
 	Travel.close_menu()
 	dragging=false;help_panel.visible=false;player.velocity=Vector3.ZERO
 	if not device_seated:
@@ -176,7 +185,7 @@ func set_device_open(opened: bool,kind: String) -> void:
 		device_kind=kind;player.locked=true;player.velocity=Vector3.ZERO
 		if kind=="computer":
 			before_computer();player.set_item_use(false);player.set_carried_item("");player.upper_body_action="typing"
-		elif kind=="sleep":
+		elif kind in ["sleep","decoration"]:
 			_leave_computer();player.upper_body_action="";player.set_carried_item("");player.set_item_use(false)
 		else:
 			_leave_computer();player.upper_body_action="";player.set_carried_item("phone");player.set_item_use(true)

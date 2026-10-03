@@ -55,6 +55,8 @@ func run(club) -> void:
 	check(club.life.speaker == npc and npc.talking, "real F starts nearby NPC conversation separately")
 	check(not Computer.screen.visible and club.interactions.active.is_empty(), "F conversation does not reopen computer")
 	var first_line: String = club.life.line
+	key(KEY_SPACE)
+	check(club.dialogue.text.visible_characters == -1 and club.life.line == first_line, "Space reveals dialogue without changing its topic")
 	key(KEY_2)
 	check(club.life.topic_selected == "聊聊最近的训练" and club.life.line != first_line, "existing numbered conversation choices still work")
 	key(KEY_ESCAPE)

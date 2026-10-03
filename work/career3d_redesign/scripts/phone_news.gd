@@ -9,9 +9,9 @@ static func render(phone: Node) -> void:
 	var article: Dictionary = phone.news_article
 	if not article.is_empty():
 		phone._button(parent, "‹ 新闻列表", phone._news_list, false)
-		UI.label(parent, str(article.get("title", "赛事新闻")), 19)
+		UI.label(parent, Locale.field(article, "title", "赛事新闻"), 19)
 		UI.label(parent, "%s · %s" % [article.get("date", ""), CATEGORY.get(article.get("category", "news"), "赛场")], 12, UI.MUTED)
-		UI.label(parent, str(article.get("text", "")), 14)
+		UI.label(parent, Locale.field(article, "text"), 14)
 		var mvp = article.get("mvp")
 		if mvp != null:
 			if mvp is Dictionary: TeamVisuals.badge(parent, str(mvp.get("team", "")), 34)
@@ -30,11 +30,11 @@ static func render(phone: Node) -> void:
 			UI.label(parent, "#%s · %s" % [feature.get("rank", ""), feature.get("player", feature.get("name", ""))], 16)
 			var report = feature.get("feature", {})
 			if report is Dictionary:
-				UI.label(parent, str(report.get("title", "")), 15)
-				UI.label(parent, str(report.get("text", report.get("body", ""))), 14)
+				UI.label(parent, Locale.field(report, "title"), 15)
+				UI.label(parent, Locale.field(report, "text", Locale.field(report, "body")), 14)
 				for section in report.get("sections", []):
-					UI.label(parent, str(section.get("heading", "")), 15)
-					UI.label(parent, str(section.get("text", "")), 14)
+					UI.label(parent, Locale.field(section, "heading"), 15)
+					UI.label(parent, Locale.field(section, "text"), 14)
 			elif report is String:
 				UI.label(parent, report, 14)
 		return
@@ -55,7 +55,7 @@ static func render(phone: Node) -> void:
 	if rows.is_empty():
 		UI.label(parent, "还没有这个分类的新闻。赛事荣誉、转会报道和年度 Top20 发布后会出现在这里。", 14)
 	for row in rows:
-		phone._list_row(parent, str(row.get("title", "赛事新闻")), "%s · %s" % [row.get("date", ""), CATEGORY.get(row.get("category", "news"), "赛场")], phone._load_news.bind(phone.news_category, phone.news_page, str(row.get("id", ""))), "", "mail", false, true, str(row.get("team", "")))
+		phone._list_row(parent, Locale.field(row, "title", "赛事新闻"), "%s · %s" % [row.get("date", ""), CATEGORY.get(row.get("category", "news"), "赛场")], phone._load_news.bind(phone.news_category, phone.news_page, str(row.get("id", ""))), "", "mail", false, true, str(row.get("team", "")))
 	if phone.news_data.is_empty() and int(data.get("total", 0)) > rows.size():
 		phone._button(parent, "阅读全部新闻", phone._load_news.bind(phone.news_category, 1, ""), false)
 		return

@@ -219,6 +219,29 @@ class BotPackageTests(unittest.TestCase):
         self.assertIn(b"Fixture Copyright", (folder / "PACKAGE_METADATA.nuspec").read_bytes())
         self.assertFalse(any(path.suffix == ".dll" for path in folder.iterdir()))
 
+    def test_declared_gpl_and_lowercase_pinned_bsd_notices_are_preserved(self):
+        legal = self.base / "legal"
+        notices = legal / "nuget"
+        notices.mkdir(parents=True)
+        (legal / "roflmuffin_CounterStrikeSharp-LICENSE.GPL3").write_bytes(b"GPL fixture terms")
+        gpl = io.BytesIO()
+        with zipfile.ZipFile(gpl, "w") as archive:
+            archive.writestr("Fixture.nuspec", '<package><metadata><authors>GPL Author</authors><license type="expression">GPL-3.0-only</license></metadata></package>')
+        with patch.object(package, "_download", return_value=gpl.getvalue()):
+            package._nuget_notice("GplFixture", "1.2.3", notices)
+        self.assertEqual(b"GPL fixture terms", (notices / "GplFixture-1.2.3/DECLARED_LICENSE.txt").read_bytes())
+        bsd, source = io.BytesIO(), io.BytesIO()
+        with zipfile.ZipFile(bsd, "w") as archive:
+            archive.writestr("Fixture.nuspec", '<package><metadata><copyright>BSD Author</copyright><license type="expression">BSD-2-Clause</license><repository url="https://github.com/example/fixture" commit="' + "a" * 40 + '" /></metadata></package>')
+        with zipfile.ZipFile(source, "w") as archive:
+            archive.writestr("fixture-commit/license.txt", "Copyright BSD Author\nBSD fixture terms")
+            archive.writestr("fixture-commit/source.cs", "production source must not be a license notice")
+        with patch.object(package, "_download", side_effect=[bsd.getvalue(), source.getvalue()]):
+            record = package._nuget_notice("BsdFixture", "1.2.3", notices)
+        self.assertEqual(b"Copyright BSD Author\nBSD fixture terms", (notices / "BsdFixture-1.2.3/DECLARED_LICENSE.txt").read_bytes())
+        self.assertEqual(hashlib.sha256(source.getvalue()).hexdigest(), record["attribution"]["license_source"]["attributes"]["download_sha256"])
+        self.assertFalse(any(path.suffix == ".cs" for path in (notices / "BsdFixture-1.2.3").iterdir()))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -23,8 +23,6 @@ def _map_rows():
 
 
 def _map_reason(map_id, row):
-    if map_id in ('de_nuke', 'de_vertigo'):
-        return '这张地图需要多楼层路径，职业 RTS 暂未开放；可以常规模拟或进入 CS2。'
     return row.get('career_reason_zh', row.get('career_reason', '该图职业 RTS 尚待验证。'))
 
 

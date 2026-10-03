@@ -22,7 +22,7 @@ internal interface ITacticalLookApi
 }
 
 // Native observation intent, never EyeAngles/Teleport/aim locks/usercmd view.
-// Audited Windows server 2000922 / 1.41.8.8 / 11064488 / Sep 30 2026.
+// Audited Windows servers 2000922 (Sep 30) and 2000924 (Oct 02 2026).
 // SetLookAt 2dda40..2ddb9a copies Vector, retains char* description, and returns
 // void. RCX=bot, RDX=description, R8=Vector*, R9D=priority; stack args are
 // float duration, byte clearIfClose, float tolerance, byte attack. Existing
@@ -44,7 +44,18 @@ internal interface ITacticalLookApi
 // <=30s wait without fighting native smoothing. Release/handoff ends it now.
 internal sealed class TacticalNativeLook : ITacticalLookApi
 {
-    internal const string AuditedServerSha256 = "3541E46A3193FCF1151E97CE19CD4DAF86C5FDB2889033C2BAB1D4CC7F555B9C";
+    internal const string AuditedServerSha256 = "098D4DDD57E2FBE9A73623A2BF68EBAFF86F7B6342DDB3D5A0F69CD6335B31CC";
+    internal const string PreviousServerSha256 = "3541E46A3193FCF1151E97CE19CD4DAF86C5FDB2889033C2BAB1D4CC7F555B9C";
+    internal static bool IsAuditedServerHash(string hash) =>
+        hash is AuditedServerSha256 or PreviousServerSha256;
+    // The new file was separately disassembled: request fields, argument
+    // widths, priority/near-spot branches, alignment state and drift calls
+    // retain the audited layout. Pin all three complete new bodies too.
+    private static readonly string[] CurrentBodyHashes = [
+        "196BC0346BA71B245A59CF0A0A15B350887F3E8A783BC90AA4BF9C8D860B0935",
+        "AE3C4B176B72ABFD6C1524B58648CF714D0D338F3D3E652EF340777661808917",
+        "C30F6D1B055D250092218AB745BD5A41E249158BFA251C950BB080CC4ECD2956",
+    ];
     internal const int RequestPriority = 1;
     internal const float RequestDuration = 32;
     internal const float AlignmentTimeout = 2;
@@ -67,19 +78,26 @@ internal sealed class TacticalNativeLook : ITacticalLookApi
         float duration, byte clearIfClose, float angleTolerance, byte attack);
 
     internal sealed record Audit(string Sha256, int LookRva, int ClearRva, int ConsumerRva,
-        int LookBytes, int ClearBytes, int ConsumerBytes, int ImageSize);
+        int LookBytes, int ClearBytes, int ConsumerBytes, int ImageSize)
+    {
+        internal TacticalFeatureAudit.Snapshot? Dependencies { get; init; }
+        public string CompatibilityProfile => Dependencies is null ? "reviewed_whole_file" : "current_stable_rva_features";
+    }
     private readonly nint _module;
     private readonly int _gameThread;
     private readonly LookAtFn _look;
+    private readonly TacticalFeatureAudit.LoadedGuard? _dependencyGuard;
     private readonly byte[][] _code;
     private readonly byte[][] _scratch;
     internal Audit Evidence { get; }
     internal string LoadedVariant { get; }
 
-    private TacticalNativeLook(nint module, Audit audit, byte[][] code, string variant)
+    private TacticalNativeLook(nint module, Audit audit, byte[][] code, string variant,
+        TacticalFeatureAudit.LoadedGuard? dependencyGuard)
     {
         _module = module; Evidence = audit; _code = code;
         LoadedVariant = variant;
+        _dependencyGuard = dependencyGuard;
         _scratch = code.Select(c => new byte[c.Length]).ToArray();
         _gameThread = Environment.CurrentManagedThreadId;
         _look = Marshal.GetDelegateForFunctionPointer<LookAtFn>(module + audit.LookRva);
@@ -92,11 +110,17 @@ internal sealed class TacticalNativeLook : ITacticalLookApi
     internal static bool TryAuditCode(string serverPath, out Audit? audit, out byte[][]? code, out string reason)
     {
         audit = null; code = null;
+        try { return TryAuditBytes(File.ReadAllBytes(serverPath), out audit, out code, out reason); }
+        catch (Exception ex) { reason = "look_audit_failed:" + ex.Message; return false; }
+    }
+
+    internal static bool TryAuditBytes(byte[] bytes, out Audit? audit, out byte[][]? code, out string reason)
+    {
+        audit = null; code = null;
         try
         {
-            var bytes = File.ReadAllBytes(serverPath);
             var hash = Convert.ToHexString(SHA256.HashData(bytes));
-            if (hash != AuditedServerSha256) { reason = "look_server_build_not_audited:" + hash; return false; }
+            var dependencies = IsAuditedServerHash(hash) ? null : TacticalFeatureAudit.Audit(bytes, observation: true);
             int nt = Read32(bytes, 0x3c), optional = checked(nt + 24);
             if (Read32(bytes, nt) != 0x4550 || Read16(bytes, nt + 4) != 0x8664 || Read16(bytes, optional) != 0x20b)
                 throw new InvalidDataException("look_server_pe_not_win64");
@@ -123,12 +147,18 @@ internal sealed class TacticalNativeLook : ITacticalLookApi
             // before every read/call/owner-gated clear involving private fields.
             code = [text.Slice(look, LookLength).ToArray(), text.Slice(clear, ClearLength).ToArray(),
                 text.Slice(consumer, ConsumerLength).ToArray()];
+            // The old exact file is still its own immutable complete baseline.
+            // Every other file MUST use all three pinned current complete bodies.
+            if (hash != PreviousServerSha256)
+                for (int i = 0; i < code.Length; i++)
+                    if (Convert.ToHexString(SHA256.HashData(code[i])) != CurrentBodyHashes[i])
+                        throw new InvalidDataException("look_complete_body_mismatch:" + i);
             if (code.Any(c => c[^1] != 0xc3)) throw new InvalidDataException("look_function_end_mismatch");
             if (!code[2].AsSpan(CosOffset, 5).SequenceEqual(CosCall) || !code[2].AsSpan(SinOffset, 5).SequenceEqual(SinCall))
                 throw new InvalidDataException("look_native_drift_calls_not_audited");
             audit = new(hash, textRva + look, textRva + clear, textRva + consumer,
-                LookLength, ClearLength, ConsumerLength, imageSize);
-            reason = "look_file_audited_not_live_observation_verified";
+                LookLength, ClearLength, ConsumerLength, imageSize) { Dependencies = dependencies };
+            reason = "look_file_audited_not_live_observation_verified:profile=" + audit.CompatibilityProfile;
             return true;
         }
         catch (Exception ex) { reason = "look_audit_failed:" + ex.Message; return false; }
@@ -152,8 +182,10 @@ internal sealed class TacticalNativeLook : ITacticalLookApi
             var consumerObserved = new byte[ConsumerLength]; Marshal.Copy(module + audit.ConsumerRva, consumerObserved, 0, consumerObserved.Length);
             if (!TrySelectConsumerSnapshot(code[2], consumerObserved, out var selected, out var variant, out reason)) return false;
             code[2] = selected!;
-            observation = new(module, audit, code, variant);
-            reason = "native_look_bound:" + variant + ":live_observation_not_verified";
+            TacticalFeatureAudit.LoadedGuard? dependencies = null;
+            if (audit.Dependencies is not null && !audit.Dependencies.TryBind(module, observation: true, out dependencies, out reason)) return false;
+            observation = new(module, audit, code, variant, dependencies);
+            reason = "native_look_bound:" + variant + ":live_observation_not_verified:profile=" + audit.CompatibilityProfile;
             return true;
         }
         catch (Exception ex) { reason = "look_bind_failed:" + ex.Message; return false; }
@@ -280,6 +312,7 @@ internal sealed class TacticalNativeLook : ITacticalLookApi
     {
         if (Environment.CurrentManagedThreadId != _gameThread)
         { reason = "look_game_thread_required"; return false; }
+        if (_dependencyGuard is not null && !_dependencyGuard.VerifyIfDue(out reason)) return false;
         if (!MatchMemory(_module + Evidence.LookRva, _code[0], _scratch[0]))
         { reason = Difference("SetLookAt", Evidence.LookRva, _code[0], _scratch[0]); return false; }
         if (!MatchMemory(_module + Evidence.ClearRva, _code[1], _scratch[1]))

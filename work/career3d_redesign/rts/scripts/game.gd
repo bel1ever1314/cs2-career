@@ -49,6 +49,7 @@ var _round_history: Array = []
 var _finished_shown := false
 var _capture_path := ""
 var _capture_mode := ""
+var _capture_layer := 0
 var main_menu: Control
 var match_view: Control
 var scoreboard: Control
@@ -376,6 +377,10 @@ func _build_match() -> void:
 	toolbar.add_child(Style.button("全图", func(): renderer.fit_map(), Vector2(50, 28)))
 	toolbar.add_child(Style.button("跟随", _follow_camera, Vector2(50, 28)))
 	toolbar.add_child(Style.button("路线", func(): renderer.show_routes = not renderer.show_routes, Vector2(50, 28)))
+	var floor_button := Style.button("楼层 / Floor", func(): renderer.cycle_layer(), Vector2(98,28))
+	floor_button.name="RTSFloorSwitch"
+	floor_button.tooltip_text="上下层独立显示；右键路线会沿楼梯或梯子跨层。Space 越过通路，E + 方向键攀梯。"
+	toolbar.add_child(floor_button)
 	renderer = MapView.new()
 	renderer.name = "MapView"
 	renderer.custom_minimum_size = Vector2(420, 280)
@@ -697,7 +702,7 @@ func _human_input() -> Dictionary:
 	return {"move": direction, "aim": aim, "fire": over_map and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT),
 		"reload": _reload_request, "interact": Input.is_physical_key_pressed(KEY_E),
 		"walk": Input.is_physical_key_pressed(KEY_SHIFT), "smoke": _smoke_request,
-		"flash": _flash_request, "weapon": _weapon_request}
+		"flash": _flash_request, "weapon": _weapon_request, "jump": Input.is_physical_key_pressed(KEY_SPACE)}
 
 func _input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo: return
@@ -800,6 +805,8 @@ func _refresh() -> void:
 		row["name"].modulate = Style.TEXT if p["alive"] else Style.MUTED.darkened(.3)
 		var visible: bool = own or mode == "spectate" or viewer_team in p.get("spotted_by", [])
 		row["detail"].text = "%s · %s · %s" % [ROLE_NAMES.get(p.get("role", "rifle"), "步枪手"), str(p.get("weapon_name", p.get("weapon", "步枪"))) if visible else "未发现", "%d HP" % int(p["hp"]) if p["alive"] and visible else "阵亡" if not p["alive"] else "—"]
+		if map_data.get("layers",[]).size()>1 and visible:
+			row["detail"].text+=" · U" if renderer.layer_of(MapView.vec(p["pos"]))==0 else " · L"
 		row["stats"].text = "%d / %d / %d" % [int(p["k"]), int(p["d"]), int(p["a"])]
 		var style_key := "selected" if active else "alive" if p["alive"] else "dead"
 		if row["last_style"] != style_key:
@@ -880,6 +887,11 @@ func _select_actor(id: String) -> void:
 			_refresh()
 	else:
 		_select_units([id], Input.is_physical_key_pressed(KEY_SHIFT))
+		if map_data.get("layers",[]).size()>1:
+			for actor in state.get("players",[]):
+				if actor["id"]==id:
+					renderer.set_layer(renderer.layer_of(MapView.vec(actor["pos"])))
+					renderer.center=renderer.local_point(MapView.vec(actor["pos"]))
 
 func _select_units(ids: Array, additive: bool = false) -> void:
 	if sim == null or mode != "command": return
@@ -1022,6 +1034,7 @@ func _parse_args() -> void:
 		elif arg == "--capture-play": _capture_mode = "play"
 		elif arg == "--capture-stats": _capture_mode = "stats"
 		elif arg.begins_with("--capture-path="): _capture_path = arg.trim_prefix("--capture-path=")
+		elif arg == "--capture-lower": _capture_layer = 1
 		elif arg.begins_with("--seed="): seed_value = int(arg.trim_prefix("--seed="))
 		elif arg.begins_with("--map="): select_map(arg.trim_prefix("--map="))
 		elif arg == "--overtime": initial_overtime = true
@@ -1037,6 +1050,7 @@ func _capture_run() -> void:
 		if _capture_mode == "play":
 			renderer.update_state(state, mode, viewer_team, "spirit_donk")
 		_refresh()
+		renderer.set_layer(_capture_layer)
 		if _capture_mode == "stats": open_scoreboard()
 	await get_tree().process_frame
 	await get_tree().process_frame

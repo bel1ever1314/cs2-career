@@ -6,6 +6,7 @@ run/main_scene="res://bedroom.tscn"
 config/features=PackedStringArray("4.0", "Forward Plus")
 
 [autoload]
+Locale="*res://scripts/career_locale.gd"
 CareerBridge="*res://scripts/career_bridge.gd"
 Travel="*res://scripts/travel.gd"
 Phone="*res://scripts/career_phone.gd"

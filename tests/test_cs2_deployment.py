@@ -1,4 +1,5 @@
 """Deploy into a temporary mock game tree, never the player's CS2 installation."""
+import hashlib
 import json
 from pathlib import Path
 import tempfile
@@ -74,6 +75,64 @@ class DeploymentTests(unittest.TestCase):
         with patch.object(launch,'_powershell',return_value='0') as shell:
             self.assertEqual(0.0, launch.cs2_started_at())
         self.assertIn('HandleCount -ne 0', shell.call_args.args[0])
+
+    def test_installer_copies_dotnet_host_but_not_upstream_desktop_apps(self):
+        mod = self.root / 'mod'
+        for area in ('addons/metamod', 'addons/counterstrikesharp/dotnet', 'overrides'):
+            (mod / area).mkdir(parents=True)
+        host = 'addons/counterstrikesharp/dotnet/dotnet.exe'
+        for name in (host, 'Panel.exe', 'addons/BotController/helper.exe'):
+            target = mod / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(b'fixture executable, never run')
+        with patch.object(launch, 'settings', return_value=dict(launch.DEFAULTS)), \
+             patch.object(launch, '_copy_career_match', return_value=0), \
+             patch.object(launch, '_deploy_tactical_playbook', return_value=0), \
+             patch.object(launch, '_copy_botbuy_patch', return_value=0), \
+             patch.object(launch, 'hook_competitive_cfg'), patch.object(launch, 'apply_bothider_config'):
+            self.assertTrue(launch.install_mod(self.csgo, mod)['ok'])
+        self.assertTrue((self.csgo / host).is_file())
+        self.assertFalse((self.csgo / 'Panel.exe').exists())
+        self.assertFalse((self.csgo / 'addons/BotController/helper.exe').exists())
+
+    def test_compatible_randomizer_cannot_be_downgraded_by_old_parked_copy(self):
+        mod = self.root / 'cache/cohort/runtime'
+        relative = 'addons/counterstrikesharp/plugins/BotRandomizer/'
+        hashes = {}
+        for name in ('BotRandomizer.dll', 'BotRandomizer.deps.json', 'cosmetic_catalog.json', 'charm_placements.json'):
+            target = mod / relative / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            payload = ('new-compatible-' + name).encode()
+            target.write_bytes(payload)
+            hashes[relative + name] = hashlib.sha256(payload).hexdigest()
+        (mod.parent / 'RUNTIME_COMPAT_RECEIPT.json').write_text(json.dumps({
+            'schema_version': 1, 'components': [{'name': 'BotRandomizer', 'version': '1.3.2'}],
+            'files': hashes}), encoding='utf-8')
+        parked = launch._plugin_parked(self.csgo, 'BotRandomizer')
+        parked.mkdir(parents=True)
+        (parked / 'BotRandomizer.dll').write_bytes(b'old-parked')
+        with patch.object(launch, 'settings', return_value={**launch.DEFAULTS, 'mod_source_path': str(mod)}):
+            self.assertEqual(4, launch.restore_bot_randomizer(self.csgo))
+            self.assertEqual(b'new-compatible-BotRandomizer.dll',
+                             (launch._plugin_live(self.csgo, 'BotRandomizer') / 'BotRandomizer.dll').read_bytes())
+            self.assertEqual(b'old-parked', (parked / 'BotRandomizer.dll').read_bytes())
+            (mod / relative / 'BotRandomizer.dll').write_bytes(b'changed')
+            with self.assertRaisesRegex(ValueError, '未恢复旧插件'):
+                launch.restore_bot_randomizer(self.csgo)
+            self.assertEqual(b'new-compatible-BotRandomizer.dll',
+                             (launch._plugin_live(self.csgo, 'BotRandomizer') / 'BotRandomizer.dll').read_bytes())
+
+    def test_missing_compatible_cache_never_autofills_an_old_release(self):
+        mod = self.root / 'runtime-cache/cohort/runtime'
+        cfg = {**launch.DEFAULTS, 'mod_source_path': str(mod)}
+        with patch.object(launch, 'find_steam_exe', return_value=''), \
+             patch.object(launch, 'find_csgo_path', return_value=''), \
+             patch.object(launch, 'find_mod_source', side_effect=AssertionError('do not fall back to old source')):
+            self.assertEqual(str(mod), launch._autofill(cfg)['mod_source_path'])
+        with patch.object(launch, 'settings', return_value=cfg):
+            with self.assertRaisesRegex(ValueError, '重新安装'):
+                launch.restore_bot_randomizer(self.csgo)
+        self.assertFalse(launch._plugin_live(self.csgo, 'BotRandomizer').exists())
 
     def test_full_prepare_three_difficulties_never_launches_game(self):
         from cs2career.cs2.profiles import active_manifest, read_db, PROFILE_RE

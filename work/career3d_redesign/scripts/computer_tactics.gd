@@ -28,6 +28,11 @@ var notice := ""
 var dirty := false
 var textures: Dictionary = {}
 var command_sender: Callable
+var clipboard_writer: Callable
+var clipboard_reader: Callable
+var copied_command := ""
+var copy_feedback_deadline_msec := 0
+var pending_read_feedback := false
 var controls: Dictionary = {}
 var view: Control
 var canvas: Control
@@ -88,7 +93,7 @@ func render(parent: Node) -> void:
 	button(toolbar, "TacticsSave", "保存战术", save_tactic)
 	UI.primary(controls.TacticsSave)
 	button(toolbar, "TacticsNew", "新建", new_tactic)
-	button(toolbar, "TacticsRefresh", "重新读取", fetch)
+	button(toolbar, "TacticsRefresh", "重新读取", fetch.bind(true))
 	button(toolbar, "TacticsImport", "导入 JSON", choose_import)
 	button(toolbar, "TacticsExport", "导出当前", choose_export.bind(false))
 	button(toolbar, "TacticsExportAll", "导出全部", choose_export.bind(true))
@@ -192,6 +197,8 @@ func render(parent: Node) -> void:
 	var command := line(command_row, "TacticsCommand", "", "", func(_value: String): pass)
 	command.editable = false
 	button(command_row, "TacticsCopyCommand", "复制指令", copy_command)
+	button(command_row, "TacticsSync", "同步当前对局", sync_current_match)
+	controls.publication = UI.label(view, "", 11, UI.MUTED)
 	UI.label(view, "旧的 rusha / rushb 指令仍可使用。", 11, UI.MUTED)
 	controls.notice = UI.label(view, notice, 12, UI.MUTED)
 	controls.runtime = UI.label(view, "", 11, UI.MUTED)
@@ -240,7 +247,9 @@ func button(parent: Node, node_name: String, caption: String, callback: Callable
 func compact(node: Button) -> void:
 	node.custom_minimum_size.y = 27
 	node.add_theme_font_size_override("font_size", 12)
-	for state in ["normal", "hover", "pressed"]: node.add_theme_stylebox_override(state, UI.style(UI.PAPER, 4, 7, UI.LINE))
+	node.add_theme_stylebox_override("normal", UI.style(UI.PAPER, 4, 7, UI.LINE))
+	node.add_theme_stylebox_override("hover", UI.style(Color("e5eddf"), 4, 7, Color("9eb19c")))
+	for state in ["pressed", "hover_pressed"]: node.add_theme_stylebox_override(state, UI.style(UI.MINT, 4, 7, UI.GREEN))
 
 func set_options(select: OptionButton, choices: Array, selected: String) -> void:
 	select.clear()
@@ -287,6 +296,7 @@ func refresh_library_controls() -> void:
 	controls.TacticsLayer.visible = layers.size() > 1
 	controls.layer_note.visible = layers.size() > 1
 	controls.runtime.text = str(library().get("runtime_note", ""))
+	refresh_publication()
 	syncing = false
 	refresh_canvas()
 
@@ -313,6 +323,9 @@ func refresh(update_values: bool = false) -> void:
 	for name in ["TacticsEditTool", "TacticsPanTool", "TacticsZoomOut", "TacticsZoomIn", "TacticsZoomFit"]: controls[name].disabled = false
 	# Clipboard is local: a poll or pending save must never lock this control.
 	controls.TacticsCopyCommand.disabled = not valid_id(str(draft.get("id", "")))
+	var published: Dictionary = library().get("publication", {})
+	controls.TacticsSync.disabled = locked or not bool(published.get("can_sync", false)) or not bool(published.get("pending", true))
+	refresh_copy_caption()
 	controls.TacticsHold.editable = not locked
 	controls.TacticsSave.disabled = locked or library().get("map_meta", {}).is_empty()
 	controls.TacticsDelete.disabled = locked or original_id.is_empty()
@@ -420,6 +433,16 @@ func make_draft() -> void:
 func changed() -> void:
 	dirty = JSON.stringify(draft) != base_draft
 	refresh()
+
+func report_notice(message: String, kind: String = "success", operation: String = "") -> void:
+	notice = message
+	if is_instance_valid(host) and host.has_method("show_action_feedback"):
+		host.show_action_feedback(message, kind, 0.0 if kind == "progress" else 6.0 if kind == "error" else 4.5, operation)
+
+func refresh_copy_caption() -> void:
+	if not has_view(): return
+	var current := "play " + str(draft.get("id", ""))
+	controls.TacticsCopyCommand.text = "已复制 ✓" if current == copied_command and Time.get_ticks_msec() < copy_feedback_deadline_msec else "复制指令"
 
 func request_confirmation(message: String, action: Callable) -> void:
 	if is_instance_valid(confirmation): confirmation.hide(); confirmation.queue_free()
@@ -622,7 +645,7 @@ func copy_route(target: String) -> void:
 	var source := steps().duplicate(true)
 	var apply_copy := func():
 		for number in targets: draft.slots[number - 1]["steps"] = source.duplicate(true)
-		notice = "路线已复制，记得保存战术。"
+		report_notice("路线已复制到%s，记得保存战术。" % ("其他四个位置" if target == "all" else "位置 " + target))
 		changed()
 	if targets.any(func(number): return not draft.slots[number - 1].steps.is_empty()): request_confirmation("目标位置已有步骤，复制后将替换，继续？", apply_copy)
 	else: apply_copy.call()
@@ -701,7 +724,7 @@ func tactic_error(value) -> String:
 func save_tactic() -> void:
 	if busy(): return
 	var error := tactic_error(draft)
-	if not error.is_empty(): notice = error; refresh(); return
+	if not error.is_empty(): report_notice(error, "error"); refresh(); return
 	var value := draft.duplicate(true)
 	var send_save := func(): send_command("save", {"tactic":value})
 	if str(value.id) != original_id and library().get("tactics", []).any(func(row): return row.get("id") == value.id): request_confirmation("此 ID 已存在，覆盖已保存战术？", send_save)
@@ -722,8 +745,8 @@ func send_command(action: String, extra: Dictionary) -> void:
 		pending_action = action
 		pending_action_map = map_code
 		pending_tactic = extra.get("tactic", {}).duplicate(true)
-		notice = {"save":"正在保存战术…", "delete":"正在删除…", "import":"正在导入…"}.get(action, "正在处理…")
-	else: notice = "请求未发送，请等待当前操作结束后重试。"
+		report_notice({"save":"正在保存战术…", "delete":"正在删除…", "import":"正在导入…", "sync":"正在同步当前对局战术…"}.get(action, "正在处理…"), "progress", "tactics:%s:%s" % [action, map_code])
+	else: report_notice("请求未发送，请等待当前操作结束后重试。", "error")
 	refresh()
 
 func choose_import() -> void:
@@ -733,7 +756,7 @@ func choose_export(all_saved: bool) -> void:
 	if busy(): return
 	if not all_saved:
 		var error := tactic_error(draft)
-		if not error.is_empty(): notice = error; refresh(); return
+		if not error.is_empty(): report_notice(error, "error"); refresh(); return
 	show_file_dialog(true, all_saved)
 
 func show_file_dialog(saving: bool, all_saved: bool) -> void:
@@ -765,42 +788,45 @@ func export_value(all_saved: bool = false) -> Dictionary:
 
 func export_file(path: String, all_saved: bool = false) -> void:
 	var file := FileAccess.open(path, FileAccess.WRITE)
-	if file == null: notice = "无法写入所选文件。"; refresh(); return
+	if file == null: report_notice("无法写入所选文件。", "error"); refresh(); return
 	file.store_string(JSON.stringify(export_value(all_saved), "  ") + "\n")
+	file.flush()
+	var written := file.get_error() == OK
 	file.close()
-	notice = "已导出全部已保存战术。" if all_saved else "已导出当前草稿。"
+	if not written: report_notice("导出没有完成，请检查所选文件夹。", "error"); refresh(); return
+	report_notice(("已导出全部战术：" if all_saved else "已导出草稿：") + path.get_file())
 	refresh()
 
 func import_file(path: String) -> void:
 	var file := FileAccess.open(path, FileAccess.READ)
-	if file == null: notice = "无法读取所选文件。"; refresh(); return
-	if file.get_length() > MAX_BYTES: notice = "战术数据超过 256 KiB 大小限制。"; refresh(); file.close(); return
+	if file == null: report_notice("无法读取所选文件。", "error"); refresh(); return
+	if file.get_length() > MAX_BYTES: report_notice("战术数据超过 256 KiB 大小限制。", "error"); refresh(); file.close(); return
 	var source := file.get_as_text()
 	file.close()
 	import_json(source)
 
 func import_json(source: String) -> void:
 	if busy(): return
-	if source.to_utf8_buffer().size() > MAX_BYTES: notice = "战术数据超过 256 KiB 大小限制。"; refresh(); return
+	if source.to_utf8_buffer().size() > MAX_BYTES: report_notice("战术数据超过 256 KiB 大小限制。", "error"); refresh(); return
 	var parser := JSON.new()
-	if parser.parse(source.trim_prefix("\ufeff")) != OK: notice = "JSON 无效：" + parser.get_error_message(); refresh(); return
+	if parser.parse(source.trim_prefix("\ufeff")) != OK: report_notice("JSON 无效：" + parser.get_error_message(), "error"); refresh(); return
 	var value = parser.data
-	if not value is Dictionary: notice = "导入内容需为一条战术或战术包。"; refresh(); return
-	if value.has("map") and value.map != map_code: notice = "导入地图与当前地图不同，请先选择对应地图再导入。"; refresh(); return
+	if not value is Dictionary: report_notice("导入内容需为一条战术或战术包。", "error"); refresh(); return
+	if value.has("map") and value.map != map_code: report_notice("导入地图与当前地图不同，请先选择对应地图再导入。", "error"); refresh(); return
 	var rows: Array = []
 	if value.has("tactic"):
 		for key in value:
-			if key not in ["map", "tactic"]: notice = "导入包包含未知字段。"; refresh(); return
+			if key not in ["map", "tactic"]: report_notice("导入包包含未知字段。", "error"); refresh(); return
 		rows.append(value.tactic)
 	elif value.has("tactics"):
-		if value.size() != 3 or value.get("schema_version") != 1 or value.get("map") != map_code or not value.tactics is Array or value.tactics.size() > 20: notice = "战术包版本、地图或数量无效。"; refresh(); return
+		if value.size() != 3 or value.get("schema_version") != 1 or value.get("map") != map_code or not value.tactics is Array or value.tactics.size() > 20: report_notice("战术包版本、地图或数量无效。", "error"); refresh(); return
 		rows = value.tactics
 	else: rows.append(value)
 	var ids: Array = []
 	for row in rows:
 		var error := tactic_error(row)
-		if not error.is_empty(): notice = error; refresh(); return
-		if row.id in ids: notice = "导入包包含重复 ID；未写入任何条目。"; refresh(); return
+		if not error.is_empty(): report_notice(error, "error"); refresh(); return
+		if row.id in ids: report_notice("导入包包含重复 ID；未写入任何条目。", "error"); refresh(); return
 		ids.append(row.id)
 	var payload: Dictionary = value.duplicate(true)
 	if payload.has("schema_version"): payload["schema_version"] = 1
@@ -817,26 +843,66 @@ func import_json(source: String) -> void:
 	discard_then(check_collision)
 
 func copy_command() -> void:
-	if not valid_id(str(draft.get("id", ""))): return
-	DisplayServer.clipboard_set("play " + str(draft.get("id", "")))
-	notice = "已复制 play 指令。" + ("请先保存草稿，再到游戏准备阶段使用。" if dirty or original_id.is_empty() else "在游戏准备阶段粘贴到聊天框。")
-	refresh()
+	if not valid_id(str(draft.get("id", ""))):
+		report_notice("先填写有效的战术 ID，再复制指令。", "error")
+		refresh()
+		return
+	var command := "play " + str(draft.get("id", ""))
+	var written := true
+	if clipboard_writer.is_valid(): written = bool(clipboard_writer.call(command))
+	else: DisplayServer.clipboard_set(command)
+	var copied := str(clipboard_reader.call()) if clipboard_reader.is_valid() else DisplayServer.clipboard_get()
+	if not written or copied != command:
+		copied_command = ""
+		report_notice("没有复制成功，请重试；也可以选中左侧指令手动复制。", "error")
+		refresh_copy_caption()
+		refresh()
+		return
+	copied_command = command
+	copy_feedback_deadline_msec = Time.get_ticks_msec() + 2500
+	var publication: Dictionary = library().get("publication", {})
+	var advice := "草稿还没保存，先保存后再同步当前对局。" if dirty or original_id.is_empty() else str(publication.get("reason", "请确认已同步当前对局，再在准备阶段粘贴。"))
+	report_notice("已复制：" + command + " · " + advice)
+	refresh_copy_caption()
+	if is_instance_valid(host) and host.is_inside_tree():
+		host.get_tree().create_timer(2.6).timeout.connect(refresh_copy_caption)
+	# A local clipboard operation does not rebuild the timeline, steal focus,
+	# change scroll position, send a request, or imply that a draft was saved.
+	if has_view(): controls.notice.text = notice
 
-func fetch() -> void:
+func sync_current_match() -> void:
+	# Synchronise saved data, never publish an unsaved editor draft or reset a match.
+	send_command("sync", {})
+
+func refresh_publication() -> void:
+	if not has_view(): return
+	var published: Dictionary = library().get("publication", {})
+	var ids: Array = published.get("published_ids", [])
+	controls.publication.text = "本场战术快照（%s）：%s\n%s" % [str(published.get("prepared_map", "")), ", ".join(ids) if not ids.is_empty() else "无", str(published.get("reason", "请重新读取战术以确认同步状态。"))]
+
+func fetch(show_feedback: bool = false) -> void:
 	if CareerBridge.busy or not pending_path.is_empty() or not pending_action.is_empty(): return
 	var path := "/api/3d/tactics?map=" + map_code.uri_encode()
 	if CareerBridge._send(path, {}, false):
 		pending_path = path
 		pending_map = map_code
 		notice = "正在读取战术…"
+		pending_read_feedback = show_feedback
+		if show_feedback: report_notice(notice, "progress", "tactics:read:" + map_code)
 		refresh()
 
 func finished(path: String, result: Dictionary) -> bool:
 	if not path.begins_with("/api/3d/tactics"): return false
 	var action := path.trim_prefix("/api/3d/tactics/") if path.begins_with("/api/3d/tactics/") else ""
+	# A duplicate or foreign write result must not undo edits made after a
+	# completed save/import, even when it carries the same map and tactic ID.
+	if not action.is_empty() and action != pending_action: return true
 	var target := str(result.get("map", pending_action_map if not action.is_empty() else pending_map))
 	if target.is_empty(): target = map_code
+	var owned_write := not action.is_empty() and action == pending_action
+	var owned_read := path == pending_path and pending_read_feedback
 	if path == pending_path: pending_path = ""
+	if owned_read: pending_read_feedback = false
 	if action == pending_action: pending_action = ""
 	if result.get("ok", false):
 		# Save/delete responses may omit radar metadata; retain the last valid projection.
@@ -848,14 +914,24 @@ func finished(path: String, result: Dictionary) -> bool:
 			if action == "save":
 				var saved: Dictionary = result.get("tactic", pending_tactic)
 				if not saved.is_empty(): set_draft(saved)
-				notice = str(result.get("msg", "战术已保存。"))
-			elif action == "delete": make_draft(); notice = str(result.get("msg", "战术已删除。"))
+				notice = str(result.get("reason", result.get("msg", "战术已保存。")))
+			elif action == "delete": make_draft(); notice = str(result.get("reason", result.get("msg", "战术已删除。")))
 			elif action == "import":
 				for row in merged.get("tactics", []):
 					if str(row.get("id", "")) == pending_import_id: set_draft(row); break
-				notice = str(result.get("msg", "导入已完成。"))
+				notice = str(result.get("reason", result.get("msg", "导入已完成。")))
+			elif action == "sync": notice = str(result.get("reason", result.get("msg", "同步状态已更新。")))
 			else: notice = ""
 	else: notice = str(result.get("reason", result.get("msg", "操作失败，请重试。")))
+	if owned_write and result.get("ok", false) and not str(result.get("library_message", "")).is_empty():
+		notice = str(result.library_message) + " · " + notice
+	if owned_write or owned_read:
+		var operation := "tactics:%s:%s" % ["read" if owned_read else action, target]
+		if target != map_code:
+			if is_instance_valid(host) and host.has_method("show_action_feedback"):
+				host.show_action_feedback("", "success", 4.0, operation)
+		elif owned_read and result.get("ok", false): report_notice("战术列表已更新。当前草稿保留。", "success", operation)
+		else: report_notice(notice, "success" if result.get("ok", false) and (action != "sync" or bool(result.get("publication", {}).get("synced", false))) else "error", operation)
 	if target == map_code:
 		refresh_library_controls()
 		# Reads never replace draft text or the current selection.

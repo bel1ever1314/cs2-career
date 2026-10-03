@@ -712,6 +712,11 @@ func _begin_round() -> void:
 		p["traffic_yield_path"]=[]
 		p.erase("traffic_active_target")
 		p.erase("guard_watch")
+		p.erase("traversal")
+		p["motion_kind"]="walk"
+		p["motion_progress"]=0.0
+		p["height_offset"]=0.0
+		p.erase("manual_traverse")
 		p["travel_best"]=INF
 		p["traffic_center"]=spawn
 		p["traffic_direction"]=Vector2.ZERO
@@ -783,7 +788,9 @@ func _fixed_tick(input: Dictionary) -> void:
 			_emit("reload_complete", {"id": p["id"]})
 		p["moving"] = false
 		p["interacting"] = false
-		if p["human"] and _human_control:
+		if p.has("traversal"):
+			_advance_traversal(p)
+		elif p["human"] and _human_control:
 			_human_tick(p, input, interactions)
 		else:
 			_ai_tick(p, interactions)
@@ -814,6 +821,17 @@ func _human_tick(p: Dictionary, input: Dictionary, interactions: Array[Dictionar
 	if move.length_squared() > 1.0:
 		move = move.normalized()
 	p["walking"] = bool(input.get("walk", false))
+	if p.get("manual_traverse",false):
+		_follow_path(p)
+		if p["path"].is_empty() and not p.has("traversal"):p.erase("manual_traverse")
+		return
+	if move.length_squared()>.01 and _nav.has_method("traversal_near") and (input.get("jump",false) or input.get("interact",false)):
+		var gate: Dictionary=_nav.traversal_near(p["pos"],move,bool(input.get("interact",false)))
+		if not gate.is_empty():
+			p["path"]=[gate["start"],gate["finish"]]
+			p["manual_traverse"]=true
+			_follow_path(p)
+			return
 	_move_player(p, move * MOVE_SPEED * (WALK_FACTOR if p["walking"] else 1.0) * FIXED_DT)
 	var target: Vector2 = input.get("aim", p["aim"])
 	if target.is_finite() and target.distance_squared_to(p["pos"]) > 0.01:
@@ -1057,6 +1075,9 @@ func _actors_clear(p: Dictionary, start: Vector2, goal: Vector2) -> bool:
 
 
 func _follow_path(p: Dictionary) -> void:
+	if p.has("traversal"):
+		_advance_traversal(p)
+		return
 	# A teammate who has already arrived must still make room for an actor
 	# whose legal route passes its parking spot. A yield is a bounded normal
 	# walk, not a push, teleport, disabled body or changed permanent order.
@@ -1098,6 +1119,14 @@ func _follow_path(p: Dictionary) -> void:
 			p["traffic_direction"]=traffic["direction"]
 		path = p["path"]
 		if path.is_empty(): return
+	if _nav.has_method("traversal_between"):
+		var gate: Dictionary=_nav.traversal_between(p["pos"],path[0])
+		if not gate.is_empty():
+			gate["start"]=p["pos"];gate["finish"]=path[0];gate["elapsed"]=0.0
+			p["traversal"]=gate
+			_emit("traversal_start",{"id":p["id"],"pos":p["pos"],"kind":gate["kind"],"to":path[0],"seconds":gate["seconds"]})
+			_advance_traversal(p)
+			return
 	var progress := _traffic_remaining(p)
 	if progress<float(p.get("travel_best",INF))-.5:
 		p["travel_best"]=progress
@@ -1114,6 +1143,38 @@ func _follow_path(p: Dictionary) -> void:
 	elif difference.length_squared() > 0.01:
 		p["yaw"] = rotate_toward(float(p["yaw"]), difference.angle(), 3.0 * FIXED_DT)
 		p["aim"] = Vector2(p["pos"]) + Vector2.from_angle(float(p["yaw"])) * 80.0
+
+func _advance_traversal(p: Dictionary) -> void:
+	var gate: Dictionary=p["traversal"]
+	gate["elapsed"]=float(gate["elapsed"])+FIXED_DT
+	var progress := minf(1.0,float(gate["elapsed"])/maxf(.1,float(gate["seconds"])))
+	p["moving"]=true
+	p["motion_kind"]=gate["kind"]
+	p["motion_progress"]=progress
+	var lift := 9.0 if gate["kind"]=="jump" else 3.0 if gate["kind"]=="step" else -2.0 if gate["kind"]=="drop" else 0.0
+	p["height_offset"]=sin(progress*PI)*lift
+	# A gate has no intermediate walkable floor: remain attached to the source
+	# page while airborne/climbing, and land only at its verified destination.
+	# This also prevents firing/planting from a nonexistent interpolated floor.
+	if progress<1.0:return
+	var finish: Vector2=gate["finish"]
+	if not _actors_clear(p,finish,finish):
+		_request_traffic_clearance(p,[finish])
+		return
+	p["pos"]=finish
+	if not p["path"].is_empty():
+		if Vector2(p["path"][0]).distance_to(finish)<.06:p["path"].pop_front()
+		else:
+			# Orders can change during a committed jump/climb. Finish the action
+			# safely, then route the new destination from the landing floor.
+			p["path"]=_nav.find_path(finish,p["goal"],PLAYER_RADIUS,p["side"])
+	p.erase("traversal")
+	p["height_offset"]=0.0
+	p["motion_kind"]="walk"
+	p["travel_since"]=_time
+	p["travel_best"]=INF
+	_remember_passage(p)
+	_emit("traversal_end",{"id":p["id"],"pos":finish,"kind":gate["kind"]})
 
 
 func _traffic_remaining(p: Dictionary) -> float:

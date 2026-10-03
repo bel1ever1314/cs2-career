@@ -18,8 +18,7 @@ static func font() -> Font:
 	if body_font == null:
 		if not font_loaded:
 			font_loaded = true
-			var saved = JSON.parse_string(FileAccess.get_file_as_string("res://runtime/ui_preferences.json")) if FileAccess.file_exists("res://runtime/ui_preferences.json") else {}
-			if saved is Dictionary: font_style = str(saved.get("font", "rounded"))
+			font_style = str(Locale.preference("font", "rounded"))
 		var fallback := SystemFont.new()
 		fallback.font_names = PackedStringArray(["Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC"])
 		fallback.font_weight = 400
@@ -45,10 +44,7 @@ static func choose_font(value: String, tree: SceneTree) -> void:
 	var replacement := font()
 	ThemeDB.fallback_font = replacement
 	_replace_font(tree.root, replacement)
-	var folder := ProjectSettings.globalize_path("res://runtime")
-	DirAccess.make_dir_recursive_absolute(folder)
-	var saved := FileAccess.open(folder.path_join("ui_preferences.json"), FileAccess.WRITE)
-	if saved: saved.store_string(JSON.stringify({"font":value}))
+	Locale.set_preference("font", value)
 
 static func _replace_font(node: Node, replacement: Font) -> void:
 	if node is Control:

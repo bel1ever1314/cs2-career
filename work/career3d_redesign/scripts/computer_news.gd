@@ -63,10 +63,10 @@ func render() -> void:
 		for record in shown.get("rows", []):
 			var box := UI.card(host.content)
 			_label(box, str(record.get("date", "")) + " · " + str(CATEGORY.get(record.get("category", "news"), "赛场新闻")), 12, UI.MUTED)
-			var title := _button(box, str(record.get("title", "赛场动态")), _open.bind(str(record.get("id", ""))))
+			var title := _button(box, Locale.field(record, "title", "赛场动态"), _open.bind(str(record.get("id", ""))))
 			TeamVisuals.button_logo(title, str(record.get("team", "")), 26)
 			title.name = "ComputerNewsArticle_" + str(record.get("id", "")).validate_node_name()
-			var intro := str(record.get("summary", record.get("preview", "")))
+			var intro := Locale.field(record, "summary", Locale.field(record, "preview"))
 			if not intro.is_empty():
 				_label(box, intro, 14, UI.MUTED)
 		if shown.get("rows", []).is_empty() and pending_path.is_empty():
@@ -163,9 +163,9 @@ func finished(path: String, result: Dictionary) -> bool:
 
 func _render_article() -> void:
 	_button(host.content, "‹ 返回新闻列表", _back_to_list)
-	_label(host.content, str(article.get("title", "赛场动态")), 25)
+	_label(host.content, Locale.field(article, "title", "赛场动态"), 25)
 	_label(host.content, str(article.get("date", "")) + " · " + str(CATEGORY.get(article.get("category", "news"), "赛场新闻")), 13, UI.MUTED)
-	var body := str(article.get("text", article.get("body", ""))).strip_edges()
+	var body := Locale.field(article, "text", Locale.field(article, "body")).strip_edges()
 	if not body.is_empty():
 		for paragraph in body.split("\n\n", false):
 			_label(host.content, paragraph, 15)
@@ -174,10 +174,10 @@ func _render_article() -> void:
 		for section in sections:
 			if not section is Dictionary:
 				continue
-			_label(host.content, str(section.get("heading", section.get("title", ""))), 19)
-			_label(host.content, str(section.get("text", "")), 15)
+			_label(host.content, Locale.field(section, "heading", Locale.field(section, "title")), 19)
+			_label(host.content, Locale.field(section, "text"), 15)
 			for item in section.get("items", []):
-				_label(host.content, str(item.get("text", "")), 15)
+				_label(host.content, Locale.field(item, "text"), 15)
 	var awards: Dictionary = article.get("awards", article) if article.get("awards", article) is Dictionary else article
 	var mvp = awards.get("mvp")
 	if mvp is Dictionary and not mvp.is_empty():
@@ -198,12 +198,12 @@ func _render_article() -> void:
 			_label(box, "Rating " + _number(record.get("rating")), 14, UI.MUTED)
 			var feature = record.get("feature")
 			if feature is Dictionary:
-				_label(box, str(feature.get("title", "")), 19)
+				_label(box, Locale.field(feature, "title"), 19)
 				if not str(feature.get("subtitle", "")).is_empty():
 					_label(box, str(feature["subtitle"]), 13, UI.MUTED)
 				for section in feature.get("sections", []):
-					_label(box, str(section.get("heading", "")), 17)
-					_label(box, str(section.get("text", "")), 15)
+					_label(box, Locale.field(section, "heading"), 17)
+					_label(box, Locale.field(section, "text"), 15)
 	if not str(article.get("event_id", "")).is_empty():
 		_button(host.content, "打开赛事资料", host._load_detail.bind("event", str(article["event_id"])))
 

@@ -1,0 +1,22 @@
+# Current-session tactic publication. Chinese<TAB>English.
+无法核验 CS2 进程状态，未同步当前对局战术	CS2 process status could not be verified; current match tactics were not synced.
+请先完全退出 CS2，再同步当前对局战术。	Close CS2 completely before syncing current match tactics.
+地图战术：分路、到点等待与箭头观察；交火优先原生 AI，下包后 T 守包、CT 回防。仅正式准备阶段选战术，不控制真人。保存后 CS2 关闭时自动同步当前对局；运行时仅保存，退出后点击同步，不需重新准备或重置比赛。	Map tactics: routes, arrival waits and observation; native AI takes priority in combat, then T hold and CT retake after the plant. Select during freeze time; humans remain manual. Saving auto-syncs the current match when CS2 is closed. While running, only the library is saved; close CS2 and sync without resetting the match.
+战术已保存在独立库；没有当前已准备对局，下次开局自动同步。	Tactics saved to the independent library. No current prepared match; they will publish on the next launch.
+战术已保存；游戏目录不可用，未同步当前对局。	Tactics saved. Game directory unavailable; current match not synced.
+战术已保存；当前对局尚未准备游戏文件，下次开局自动同步。	Tactics saved. Current match game files are not prepared; they will publish on the next launch.
+战术已保存；游戏请求不是有效的当前对局，未同步。	Tactics saved. Game request is not a valid current match; not synced.
+战术已保存；游戏请求与当前会话 nonce、地图或十人身份不一致，未同步。	Tactics saved. Game request nonce, map or ten-player identity differs from the current session; not synced.
+战术已保存；当前对局是 %s，此地图下次开局自动同步。	Tactics saved. Current match is %s; this map will publish on its next launch.
+战术已保存；无法确认 CS2 已关闭，当前对局未同步。	Tactics saved. CS2 could not be confirmed closed; current match not synced.
+战术库已同步当前对局，不需重新准备或重置比赛。准备阶段使用已发布 ID。	Tactics synced to the current match; no preparation or reset needed. Use a published ID during freeze time.
+战术已保存，尚未同步：CS2 正在运行，本场快照未改动。退出后重新读取战术并点击同步当前对局，不需重置比赛。	Tactics saved but not synced: CS2 is running and this match snapshot is unchanged. Close CS2, reload tactics and sync the current match; no reset needed.
+保存库与本场快照不同；点击同步当前对局后生效，不需重置比赛。	The saved library differs from this match snapshot. Sync the current match to publish it; no reset needed.
+当前对局请求已变化，未发布战术；请刷新后再同步。	Current match request changed; tactics were not published. Refresh before syncing.
+无法确认 CS2 已关闭，未同步当前对局战术	CS2 could not be confirmed closed; current match tactics were not synced.
+战术已保存，但当前对局未同步：%s。原比赛和快照保留。	Tactics saved, but current match not synced: %s. Original match and snapshot preserved.
+战术已保存；同步状态不可用：%s	Tactics saved; publication status unavailable: %s
+战术操作包含不允许的字段。	Tactic operation contains unsupported fields.
+战术已保存到独立库。	Tactics saved to the independent library.
+战术已从独立库删除。	Tactics removed from the independent library.
+战术已导入独立库。	Tactics imported to the independent library.

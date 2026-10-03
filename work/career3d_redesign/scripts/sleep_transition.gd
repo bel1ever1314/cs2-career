@@ -78,12 +78,16 @@ func _night(target: String) -> void:
 
 func complete(result: Dictionary) -> void:
 	if not active or not outcome.is_empty(): return
-	outcome = "reached" if result.get("ok", false) and result.get("status", "") == "reached" else "paused" if result.get("ok", false) else "failed"
+	outcome = "reached" if result.get("ok", false) and (result.get("status", "") == "reached" or result.get("wake_at_match", false)) else "paused" if result.get("ok", false) else "failed"
 	# The ordinary wake signal may already be returning from the club to bed.
 	# Keep the night curtain opaque until that scene change is finished.
 	while Travel.busy: await get_tree().process_frame
 	caption.text = "早上好" if outcome == "reached" else "时间暂停" if outcome == "paused" else "暂时没有睡下"
 	subtitle.text = CareerBridge.clock_text() if outcome == "reached" else str(result.get("reason", result.get("msg", "有比赛或事件等待你处理。")))
+	if result.get("wake_at_match", false):
+		var game: Dictionary = CareerBridge.context.get("nextmatch", {})
+		var plan: Dictionary = game.get("attendance", {})
+		subtitle.text += "\n今天对阵 %s · %s" % [game.get("opponent", ""), plan.get("display_name", "比赛场馆")]
 	if subtitle.text.is_empty(): subtitle.text = "有比赛或事件等待你处理。"
 	fade = create_tween()
 	fade.tween_property(shade, "color", Color("514a3e"), morning_seconds).set_trans(Tween.TRANS_SINE)

@@ -53,6 +53,10 @@ def run(folder):
     mod.mkdir()
     for name in ('metamod', 'counterstrikesharp', 'BotHider'):
         (csgo / 'addons' / name).mkdir(parents=True)
+    (csgo / 'gameinfo.gi').write_text('GameInfo {}\n', encoding='utf-8')
+    for name in ('metamod', 'counterstrikesharp'):
+        (mod / 'addons' / name).mkdir(parents=True)
+    (mod / 'overrides').mkdir()
     for name in ('CareerMatch', 'BotBuy'):
         plugin = csgo / 'addons' / 'counterstrikesharp' / 'plugins' / name
         plugin.mkdir(parents=True)
@@ -75,7 +79,7 @@ def run(folder):
                 code, result = response.status, json.loads(response.read())
         except HTTPError as exc:
             code, result = exc.code, json.loads(exc.read())
-        assert code == expected, (path, code, result)
+        assert code == expected, (path, code, result.get('reason') or result.get('msg'))
         return result
     def context():
         return api('/api/3d/context')

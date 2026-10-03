@@ -1,9 +1,10 @@
-"""Bake and inventory locally extracted NAV maps; unsupported floors fail closed."""
+"""Bake and inventory locally extracted NAV maps, including directed floor gates."""
 from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
 import build_map
+import build_layered
 
 
 def main():
@@ -12,7 +13,7 @@ def main():
     parser.add_argument("--output", type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument("--overview", type=Path, default=Path(__file__).resolve().parents[3] / "cs2career/data/tactical_maps.json")
     parser.add_argument("--radars", type=Path, default=Path(__file__).resolve().parents[3] / "cs2career/web/static/tactical_maps")
-    parser.add_argument("--maps", nargs="+", default=["de_mirage", "de_inferno", "de_ancient", "de_anubis", "de_overpass", "de_train", "de_cache"])
+    parser.add_argument("--maps", nargs="+", default=["de_mirage", "de_inferno", "de_ancient", "de_anubis", "de_overpass", "de_train", "de_cache", "de_nuke", "de_vertigo"])
     args = parser.parse_args()
     overview = json.loads(args.overview.read_text(encoding="utf-8"))["maps"]
     catalog_path = args.output / "data/map_catalog.json"
@@ -37,11 +38,15 @@ def main():
             metadata["sites"][key] = {"center": [row["Anchor"][k] for k in ("X", "Y", "Z")], "entity": row}
         (atlas_path.parent / "game_metadata.json").write_text(json.dumps(metadata, ensure_ascii=False), encoding="utf-8")
         try:
-            build_map.build(atlas_path, args.output, overview[map_id], args.radars / (map_id + ".png"), metadata)
+            layered = map_id in ("de_nuke", "de_vertigo")
+            if layered:
+                build_layered.bake(map_id, args.cache, args.output, overview, args.radars)
+            else:
+                build_map.build(atlas_path, args.output, overview[map_id], args.radars / (map_id + ".png"), metadata)
             previous = catalog["maps"].get(map_id, {})
             catalog["maps"][map_id] = {"name": overview[map_id]["name"], "status": "playable", "data_file": "res://data/" + map_id.removeprefix("de_") + "_game.json",
                                        "career_ready": previous.get("career_ready", True),
-                                       "geometry": "actual_NAV_agent_centres", "layers": ["upper"], "nav_sha256": source["nav_sha256"]}
+                                       "geometry": "layered_actual_NAV" if layered else "actual_NAV_agent_centres", "layers": ["upper", "lower"] if layered else ["upper"], "nav_sha256": source["nav_sha256"]}
             if previous.get("career_reason"):
                 catalog["maps"][map_id]["career_reason"] = previous["career_reason"]
             report["maps"][map_id] = {"status": "playable", "source": source}
@@ -51,14 +56,6 @@ def main():
             catalog["maps"][map_id]["reason"] = str(error)
             report["maps"][map_id] = {"status": "unavailable", "reason": str(error), "source": source}
         catalog_path.write_text(json.dumps(catalog, ensure_ascii=False, indent=2), encoding="utf-8")
-    for map_id in ("de_nuke", "de_vertigo"):
-        source_path = args.cache / map_id / "source.json"
-        catalog["maps"][map_id]["career_ready"] = False
-        if source_path.exists():
-            source = json.loads(source_path.read_text(encoding="utf-8"))
-            catalog["maps"][map_id]["nav_sha256"] = source["nav_sha256"]
-            catalog["maps"][map_id]["reason"] = "Real NAV extracted with XYZ; current 2D runtime cannot preserve overlapping floor identity or traversal physics. Gameplay disabled to prevent false floor connections."
-            report["maps"][map_id] = {"status": "awaiting_layered_nav", "source": source, "reason": catalog["maps"][map_id]["reason"]}
     catalog_path.write_text(json.dumps(catalog, ensure_ascii=False, indent=2), encoding="utf-8")
     (args.cache / "bake_report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
 

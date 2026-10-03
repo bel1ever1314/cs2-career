@@ -12,6 +12,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -23,6 +24,17 @@ ROOT = Path(__file__).resolve().parents[1]
 VERSION = '1.7.0-preview.1'
 MODELS = ('cozy_room.glb', 'chicken_club.glb', 'player_chicken.glb', 'major_walk.glb')
 ENGINE_VERSION = '4.7.2-stable'
+RUNTIME_VENDOR_FILES = (
+    'CareerMatch/CareerMatch.dll', 'CareerMatch/CareerMatch.deps.json',
+    'BotBuy/BotBuy.dll', 'BotBuy/BotBuy.deps.json',
+    'InvsimCareer/InvsimCareer.dll', 'InvsimCareer/InvsimCareer.deps.json',
+    'InventorySimulator/gamedata/inventory-simulator.json',
+    'InventorySimulator/plugins/InventorySimulator/InventorySimulator.dll',
+    'InventorySimulator/plugins/InventorySimulator/InventorySimulator.deps.json',
+    'InventorySimulator/plugins/InventorySimulator/lang/zh-Hans.json',
+    'InventorySimulator/plugins/InventorySimulator/lang/pt-BR.json',
+    'InventorySimulator/plugins/InventorySimulator/lang/en.json',
+)
 
 
 def digest(path):
@@ -39,13 +51,17 @@ def write_json(path, value):
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
 
-def seal_source_manifest(source, report):
+def seal_source_manifest(source, report, *, ordinary_only=False):
     """Seal after resource/legal overlays, not before the final public tree exists."""
     files = {p.relative_to(source).as_posix(): digest(p) for p in sorted(source.rglob('*'))
              if p.is_file() and p.name != 'SOURCE_STAGE_MANIFEST.json'}
+    overlays = ['portable-public-media', 'preview-notice'] if ordinary_only else [
+        'reviewed-inventory-gamedata', 'portable-public-media',
+        'dependency-corresponding-source', 'preview-notice']
     report = {**report, 'source_files': len(files), 'files': files,
-              'post_stage_overlays': ['reviewed-inventory-gamedata', 'portable-public-media',
-                                      'dependency-corresponding-source', 'preview-notice']}
+              'post_stage_overlays': overlays}
+    if ordinary_only:
+        report.update(distribution='ordinary-unbundled', bundled_bot_runtime=False)
     write_json(source / 'SOURCE_STAGE_MANIFEST.json', report)
     return report
 
@@ -106,9 +122,36 @@ def download_legal(engine, destination):
         'distribution': 'official Windows editor binary used as portable project runner'})
 
 
+def stage_runtime_vendor(source, destination):
+    """Copy only installable plugin payloads; full vendor sources stay in the source ZIP."""
+    source, destination = Path(source), Path(destination)
+    if destination.exists():
+        raise FileExistsError('Choose a fresh runtime vendor stage')
+    files = []
+    for relative in RUNTIME_VENDOR_FILES:
+        path = source / 'vendor' / relative
+        for candidate in (path, *path.parents):
+            if candidate.is_symlink() or getattr(candidate, 'is_junction', lambda: False)():
+                raise ValueError('Linked vendor runtime input: ' + relative)
+            if candidate == source:
+                break
+        if not path.is_file():
+            raise FileNotFoundError('Missing required vendor runtime: ' + relative)
+        files.append((relative, path, digest(path)))
+    destination.mkdir(parents=True, exist_ok=False)
+    for relative, path, expected in files:
+        target = destination / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(path, target)
+        if digest(target) != expected:
+            raise ValueError('Vendor runtime copy checksum mismatch: ' + relative)
+    return destination
+
+
 def freeze_backend(source, build):
     """Build from sanitized sources, not from the developer's personal path."""
     build.mkdir(parents=True, exist_ok=True)
+    runtime_vendor = stage_runtime_vendor(source, build / 'runtime-vendor')
     sep = ';' if os.name == 'nt' else ':'
     args = [sys.executable, '-m', 'PyInstaller', str(source / 'tools/career3d_backend_main.py'),
             '--name', 'CareerBackend', '--onedir', '--console', '--noconfirm', '--clean',
@@ -116,10 +159,12 @@ def freeze_backend(source, build):
             '--specpath', str(build), '--paths', str(source), '--collect-all', 'orjson']
     for module in source.joinpath('tools').glob('career3d_*.py'):
         args += ['--hidden-import', 'tools.' + module.stem]
+    args += ['--add-data', str(runtime_vendor) + sep + 'vendor']
     for relative, dest in (
         ('cs2career/data', 'data'), ('cs2career/web/static', 'web/static'),
-        ('vendor', 'vendor'), ('licenses', 'licenses'), ('LICENSE', '.'),
+        ('licenses', 'licenses'), ('LICENSE', '.'),
         ('work/career_rts/data', 'work/career_rts/data'),
+        ('work/career3d_redesign/data/locale_en.json', 'work/career3d_redesign/data'),
         ('work/career3d_redesign/data/phone_social.json', 'work/career3d_redesign/data')):
         args += ['--add-data', str(source / relative) + sep + dest]
     for module in ('pytest', 'tkinter', 'PyQt5', 'PyQt6', 'PySide2', 'PySide6',
@@ -134,11 +179,11 @@ def freeze_backend(source, build):
     return build / 'dist/CareerBackend'
 
 
-def stage_game(source, target, engine, media_config):
+def stage_game(source, target, engine, media_config, *, version=VERSION):
     project = source / 'work/career3d_redesign'
     target.mkdir(parents=True, exist_ok=False)
     for item in project.iterdir():
-        if item.is_dir() and item.name in ('scripts', 'data', 'rts', 'fonts'):
+        if item.is_dir() and item.name in ('scripts', 'data', 'rts', 'fonts', 'scenes'):
             shutil.copytree(item, target / item.name)
         elif item.is_file() and item.suffix in ('.godot', '.tscn', '.gd', '.txt', '.uid'):
             shutil.copy2(item, target / item.name)
@@ -157,7 +202,7 @@ def stage_game(source, target, engine, media_config):
     project_file = target / 'project.godot'
     text = project_file.read_text('utf-8').replace(
         'config/name="CS2 Career · 俱乐部生活样板"',
-        f'config/name="CS2 Career {VERSION} · 3D 测试版"')
+        f'config/name="CS2 Career {version} · 3D 测试版"')
     project_file.write_text(text, encoding='utf-8')
     # Import in the distributed location; .godot editor metadata is never shipped.
     result = subprocess.run([str(engine), '--headless', '--path', str(target), '--import'],
@@ -247,52 +292,64 @@ def main(argv=None):
     parser.add_argument('--assets', type=Path, required=True)
     parser.add_argument('--fonts', type=Path, required=True)
     parser.add_argument('--media-config', type=Path, required=True)
-    parser.add_argument('--bot-stage', type=Path, required=True, help='Audited staged capsule, not the live game')
+    parser.add_argument('--version', default=VERSION)
+    parser.add_argument('--ordinary-only', action='store_true', help='Build only fresh ordinary Windows and source archives; do not bundle a bot runtime')
+    parser.add_argument('--bot-stage', type=Path, help='Audited staged capsule, required unless --ordinary-only is used')
     parser.add_argument('--resume-prepared', action='store_true', help='Reuse this build folder after offline backend preparation')
     args = parser.parse_args(argv)
+    if not re.fullmatch(r'[A-Za-z0-9.-]+', args.version):
+        parser.error('--version must contain only letters, digits, periods or hyphens')
+    if args.ordinary_only and args.resume_prepared:
+        parser.error('--ordinary-only requires a fresh backend build and forbids --resume-prepared')
+    if not args.ordinary_only and args.bot_stage is None:
+        parser.error('--bot-stage is required unless --ordinary-only is used')
     output = args.output.resolve()
     if args.resume_prepared:
         proof = json.loads((output / 'PREPARED_BUILD.json').read_text('utf-8'))
-        if proof.get('version') != VERSION or (output / 'packages').exists():
+        if proof.get('version') != args.version or (output / 'packages').exists():
             raise ValueError('Not an unfinished prepared preview build')
     else:
         output.mkdir(parents=True, exist_ok=False)
     from tools.career3d_package_sources import stage_sources
     source = output / 'build/source'
     report = json.loads((source / 'SOURCE_STAGE_MANIFEST.json').read_text('utf-8')) if args.resume_prepared else \
-        stage_sources(ROOT, source, args.assets, args.fonts)
-    bots = args.bot_stage.resolve()
-    for item in (bots / 'vendor').rglob('*'):
-        if item.is_file():
-            target = source / 'vendor' / item.relative_to(bots / 'vendor')
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(item, target)
-    write_json(source / 'SOURCE_STAGE_MANIFEST.json', {**report, 'post_stage_overlay': {
-        'vendor/InventorySimulator/gamedata/inventory-simulator.json': digest(
-            source / 'vendor/InventorySimulator/gamedata/inventory-simulator.json')}})
+        stage_sources(ROOT, source, args.assets, args.fonts, version=args.version)
+    bots = None if args.ordinary_only else args.bot_stage.resolve()
+    if bots is not None:
+        for item in (bots / 'vendor').rglob('*'):
+            if item.is_file():
+                target = source / 'vendor' / item.relative_to(bots / 'vendor')
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(item, target)
+        write_json(source / 'SOURCE_STAGE_MANIFEST.json', {**report, 'post_stage_overlay': {
+            'vendor/InventorySimulator/gamedata/inventory-simulator.json': digest(
+                source / 'vendor/InventorySimulator/gamedata/inventory-simulator.json')}})
     media, skin_count = relative_media(args.media_config, source / 'media')
     source_media = {**media, 'team_manifest': '../../../media/teams/team-media.json',
                     'skin_cache_roots': ['../../../media/skin_art'], 'map_backgrounds': {
                         name: {**row, 'path': row['path'].replace('../../media/', '../../../media/')}
                         for name, row in media['map_backgrounds'].items()}}
     write_json(source / 'work/career3d_redesign/data/media.json', source_media)
-    shutil.copytree(bots / 'legal', source / 'legal/bot-runtime')
-    shutil.copytree(bots / 'third_party', source / 'third_party/bot-runtime')
-    notice = source / 'THIRD_PARTY_NOTICES.md'
-    notice.write_text('# 1.7.0-preview.1 distribution note\n\n'
-        'This preview all-in-one distribution includes the audited Bot Improver runtime and '
-        'its accompanying source archives and licenses in legal/bot-runtime and '
-        'third_party/bot-runtime. Statements below about an unbundled full runtime refer '
-        'to the earlier 1.6.0 release, not this explicitly labeled preview. The third-party '
-        'management panel and external 3D sticker editor are not bundled.\n\n' +
-        notice.read_text('utf-8'), encoding='utf-8')
-    (source / '3D测试版说明.txt').write_text(PREVIEW_README, encoding='utf-8')
-    report = seal_source_manifest(source, report)
+    if bots is not None:
+        shutil.copytree(bots / 'legal', source / 'legal/bot-runtime')
+        shutil.copytree(bots / 'third_party', source / 'third_party/bot-runtime')
+        notice = source / 'THIRD_PARTY_NOTICES.md'
+        notice.write_text(f'# {args.version} distribution note\n\n'
+            'This preview all-in-one distribution includes the audited Bot Improver runtime and '
+            'its accompanying source archives and licenses in legal/bot-runtime and '
+            'third_party/bot-runtime. Statements below about an unbundled full runtime refer '
+            'to the earlier 1.6.0 release, not this explicitly labeled preview. The third-party '
+            'management panel and external 3D sticker editor are not bundled.\n\n' +
+            notice.read_text('utf-8'), encoding='utf-8')
+    preview_readme = (source / 'docs/3d-preview-readme.txt').read_text('utf-8') if args.ordinary_only else \
+        PREVIEW_README.replace(VERSION, args.version)
+    (source / '3D测试版说明.txt').write_text(preview_readme, encoding='utf-8', newline='\n')
+    report = seal_source_manifest(source, report, ordinary_only=args.ordinary_only)
     backend = output / 'build/backend/dist/CareerBackend' if args.resume_prepared else \
         freeze_backend(source, output / 'build/backend')
     if not (backend / 'CareerBackend.exe').is_file():
         raise ValueError('Prepared frozen backend is missing')
-    package = output / 'release' / ('CS2Career-' + VERSION)
+    package = output / 'release' / ('CS2Career-' + args.version)
     package.mkdir(parents=True)
     shutil.copytree(backend, package / 'backend')
     package.joinpath('engine').mkdir()
@@ -309,34 +366,39 @@ def main(argv=None):
     if soundfont_license.is_file():
         shutil.copy2(soundfont_license, package / 'licenses/GeneralUser-GS-LICENSE.txt')
     shutil.copytree(source / 'media', package / 'media')
-    stage_game(source, package / 'game', args.engine, media)
-    shutil.copy2(ROOT / 'LICENSE', package / 'LICENSE')
-    shutil.copy2(ROOT / 'docs/skin-tools-interface.zh-CN.txt', package / '饰品工具接口说明.txt')
-    (package / '测试版说明.txt').write_text(PREVIEW_README, encoding='utf-8')
+    stage_game(source, package / 'game', args.engine, media, version=args.version)
+    shutil.copy2(source / 'LICENSE', package / 'LICENSE')
+    shutil.copy2(source / 'docs/skin-tools-interface.zh-CN.txt', package / '饰品工具接口说明.txt')
+    (package / '测试版说明.txt').write_text(preview_readme, encoding='utf-8', newline='\n')
     for name in ('开始游戏.cmd', 'Launch-CS2Career.cmd'):
         (package / name).write_bytes(launch_cmd().encode('ascii'))
     (package / '兼容显卡启动.cmd').write_bytes(launch_cmd(compatibility=True).encode('ascii'))
     public = output / 'packages'
-    source_zip = public / ('CS2Career-' + VERSION + '-source.zip')
+    source_zip = public / ('CS2Career-' + args.version + '-source.zip')
     archive(source, source_zip, 'CS2Career-source')
     package.joinpath('source').mkdir()
     shutil.copy2(source_zip, package / 'source' / source_zip.name)
-    runtime_zip = public / ('CS2Career-' + VERSION + '-windows.zip')
+    runtime_zip = public / ('CS2Career-' + args.version + '-windows.zip')
     archive(package, runtime_zip, package.name)
-    # Mutate only this clean staging folder after the ordinary archive is sealed.
-    shutil.copytree(bots / 'CS2BotImprover', package / 'mod')
-    shutil.copytree(bots / 'legal', package / 'legal/bot-runtime')
-    shutil.copytree(bots / 'third_party', package / 'third_party/bot-runtime')
-    for name in ('开始游戏.cmd', 'Launch-CS2Career.cmd'):
-        (package / name).write_bytes(launch_cmd(bundled=True).encode('ascii'))
-    (package / '兼容显卡启动.cmd').write_bytes(launch_cmd(bundled=True, compatibility=True).encode('ascii'))
-    full_zip = public / ('CS2Career-' + VERSION + '-all-in-one.zip')
-    archive(package, full_zip, package.name + '-all-in-one')
+    built_archives = [source_zip, runtime_zip]
+    if bots is not None:
+        # Mutate only this clean staging folder after the ordinary archive is sealed.
+        shutil.copytree(bots / 'CS2BotImprover', package / 'mod')
+        shutil.copytree(bots / 'legal', package / 'legal/bot-runtime')
+        shutil.copytree(bots / 'third_party', package / 'third_party/bot-runtime')
+        for name in ('开始游戏.cmd', 'Launch-CS2Career.cmd'):
+            (package / name).write_bytes(launch_cmd(bundled=True).encode('ascii'))
+        (package / '兼容显卡启动.cmd').write_bytes(launch_cmd(bundled=True, compatibility=True).encode('ascii'))
+        full_zip = public / ('CS2Career-' + args.version + '-all-in-one.zip')
+        archive(package, full_zip, package.name + '-all-in-one')
+        built_archives.append(full_zip)
     archives = {p.name: {'sha256': digest(p), 'bytes': p.stat().st_size}
-                for p in (source_zip, runtime_zip, full_zip)}
+                for p in built_archives}
     write_json(public / 'BUILD_MANIFEST.json', {
-        'schema_version': 1, 'version': VERSION, 'base_core_version': '1.6.0',
+        'schema_version': 1, 'version': args.version, 'base_core_version': '1.6.0',
         'built_utc': datetime.now(timezone.utc).isoformat(), 'archives': archives,
+        'distribution': 'ordinary-unbundled' if args.ordinary_only else 'preview-with-all-in-one',
+        'bundled_bot_runtime': not args.ordinary_only,
         'godot_version': ENGINE_VERSION, 'skin_images': skin_count,
         'included_private_saves': False, 'published_to_github': False,
         'live_cs2_test': False, 'install_requires_steam_and_cs2': True})

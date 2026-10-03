@@ -8,6 +8,7 @@ const TeamVisuals = preload("res://scripts/team_visuals.gd")
 const MatchReport = preload("res://scripts/career_match_report.gd")
 const EventFlow = preload("res://scripts/career_event_flow.gd")
 const PageProjection = preload("res://scripts/device_projection.gd")
+const ActionFeedback = preload("res://scripts/device_action_feedback.gd")
 const PAGES := {"home":"主屏", "mail":"邮件", "chat":"聊天", "match":"赛事", "quick":"快速赛季", "calendar":"日历", "profile":"我的", "settings":"设置", "team":"战队", "stories":"队内事件", "player":"选手", "event":"赛事资料", "news":"赛事新闻"}
 const APPS := [
 	{"id":"mail", "name":"邮件"},
@@ -57,8 +58,10 @@ var pending_detail_open := false
 var detail_intent_serial := 0
 var pending_detail_intent := -1
 var _toast_text := ""
+var action_feedback: Control
 
 func reset_career_views() -> void:
+	_clear_action_feedback()
 	detail_intent_serial += 1
 	pending_detail_path = ""
 	pending_detail_open = false
@@ -86,6 +89,7 @@ func reset_career_views() -> void:
 	active_page = "home"
 
 func _ready() -> void:
+	Locale.changed.connect(_language_changed)
 	layer = 30
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	screen = Control.new()
@@ -189,6 +193,9 @@ func _ready() -> void:
 	footer.add_child(navigation)
 	back_button = _navigation_button(navigation, "返回", "chevron_left", _back)
 	_navigation_button(navigation, "主屏", "home", _home)
+	action_feedback = ActionFeedback.new()
+	action_feedback.top_inset = 60.0
+	panel.add_child(action_feedback)
 	CareerBridge.changed.connect(_context_changed)
 	CareerBridge.status_changed.connect(_update_status)
 	CareerBridge.busy_changed.connect(_busy_changed)
@@ -237,6 +244,7 @@ func present(page: String = "today") -> void:
 func close_phone(release: bool = true) -> void:
 	if screen == null:
 		return
+	_clear_action_feedback()
 	detail_intent_serial += 1
 	pending_detail_open = false
 	page_scroll[active_page] = scroll.scroll_vertical
@@ -245,6 +253,7 @@ func close_phone(release: bool = true) -> void:
 		UI.device_closed(self)
 
 func _navigate(page: String, push: bool = true) -> void:
+	if active_page != page and is_instance_valid(action_feedback): action_feedback.clear_notice()
 	page_scroll[active_page] = scroll.scroll_vertical
 	if active_page != page and push:
 		history.append(active_page)
@@ -318,6 +327,25 @@ func _button(parent: Node, text: String, callback: Callable, write: bool = true)
 		action_buttons.append(button)
 		button.set_meta("career_gate_disabled", false)
 	return button
+
+func show_action_feedback(message: String, kind: String = "success", duration: float = 4.0, operation: String = "") -> void:
+	if is_instance_valid(action_feedback) and screen.visible:
+		action_feedback.show_message(message, kind, duration, operation)
+
+func _clear_action_feedback() -> void:
+	if is_instance_valid(action_feedback): action_feedback.clear_notice(true)
+
+func _command(path: String, body: Dictionary = {}) -> bool:
+	var accepted := CareerBridge.command(path, body)
+	if is_instance_valid(action_feedback) and screen.visible:
+		action_feedback.track_request(path, accepted, CareerBridge.message)
+	return accepted
+
+func _commit_growth() -> bool:
+	var accepted := CareerBridge.growth_commit()
+	if is_instance_valid(action_feedback) and screen.visible:
+		action_feedback.track_request("/api/3d/attr", accepted, CareerBridge.message)
+	return accepted
 
 func _route(page: String) -> void:
 	_navigate(page)
@@ -515,7 +543,7 @@ func _mail() -> void:
 			continue
 		var invite: bool = mail.get("kind") == "invite"
 		var contract: bool = mail.get("kind") == "contract"
-		var subject := str(mail.get("title", ""))
+		var subject := Locale.field(mail, "title")
 		if subject.is_empty():
 			subject = (str(mail.get("team", "战队")) + " · 加盟邀请") if contract else str(mail.get("evname", "邮件"))
 		var sender := "教练" if invite else str(mail.get("sender", mail.get("team", "俱乐部")))
@@ -534,7 +562,7 @@ func _mail() -> void:
 		if invite:
 			UI.label(box, "这场赛事的邀请到了。看一下赛程，咱们要不要报名？", 14)
 		if not str(mail.get("body", "")).is_empty():
-			UI.label(box, str(mail.get("body", "")), 14)
+			UI.label(box, Locale.field(mail, "body"), 14)
 		if not str(mail.get("evname", "")).is_empty():
 			UI.label(box, str(mail["evname"]) + "\n" + str(mail.get("dates", "")), 14)
 		UI.space(box, 4)
@@ -567,7 +595,7 @@ func _mail_action(action: String, mail: Dictionary) -> void:
 		return
 	var path := str(mail.get(action + "_action", "/api/3d/mail/" + action))
 	if path not in ["/api/3d/mail/accept", "/api/3d/mail/decline"]: return
-	CareerBridge.command(path, {"id":str(mail.get("id", "")), "revision":int(CareerBridge.context.get("calendar", {}).get("revision", 0))})
+	_command(path, {"id":str(mail.get("id", "")), "revision":int(CareerBridge.context.get("calendar", {}).get("revision", 0))})
 
 func _primary(button: Button) -> Button:
 	for state in ["normal", "hover", "pressed"]:
@@ -598,7 +626,7 @@ func _open_chat(id: String) -> void:
 	_rebuild()
 
 func _reply(contact: Dictionary, reply: Dictionary) -> void:
-	CareerBridge.command("/api/3d/social/send", {"contact_id":str(contact.get("id", "")), "reply_id":str(reply.get("id", "")), "request_id":"phone:%d:%d" % [Time.get_unix_time_from_system() * 1000, Time.get_ticks_usec()], "revision":int(CareerBridge.context.get("calendar", {}).get("revision", 0))})
+	_command("/api/3d/social/send", {"contact_id":str(contact.get("id", "")), "reply_id":str(reply.get("id", "")), "request_id":"phone:%d:%d" % [Time.get_unix_time_from_system() * 1000, Time.get_ticks_usec()], "revision":int(CareerBridge.context.get("calendar", {}).get("revision", 0))})
 
 func _reveal_social_message(id: String) -> void:
 	await get_tree().process_frame
@@ -650,6 +678,13 @@ func _calendar() -> void:
 	if not CareerBridge.pending_target.is_empty() and CareerBridge.pending_target > current:
 		_button(content, "继续到 " + CareerBridge.pending_target, CareerBridge.calendar.bind(CareerBridge.pending_target, true))
 	UI.label(content, "比赛和待处理事件会让日历暂停。", 12, UI.MUTED)
+	var next_game = CareerBridge.context.get("nextmatch")
+	if next_game is Dictionary and not next_game.is_empty():
+		var match_card := UI.card(content)
+		UI.label(match_card, "今天的比赛" if next_game.get("due", false) else "下一场比赛", 15)
+		UI.label(match_card, "%s · %s\n对阵 %s" % [next_game.get("date", ""), next_game.get("event", ""), next_game.get("opponent", "")], 13)
+		_render_match_destination(match_card, next_game)
+		_primary(_button(match_card, "亲自参赛" if next_game.get("due", false) else "亲自参赛 · 睡到比赛日", Computer.match_center.prepare_real.bind(str(next_game.get("id", "")))))
 	for event in CareerBridge.context.get("calendar_events", []):
 		if str(event.get("date", "")).begins_with(month):
 			_list_row(content, str(event.get("name", "")), str(event.get("date", "")) + (" · 已报名" if event.get("registered", false) else ""), _load_event.bind(str(event.get("id", ""))), "", "calendar", false, true)
@@ -840,7 +875,7 @@ func _profile_growth(personal: Dictionary) -> void:
 			adjust.disabled = adjust.disabled or blocked
 		UI.space(content, 5)
 	UI.space(content, 10)
-	var commit := _primary(_button(content, "确认加点", CareerBridge.growth_commit))
+	var commit := _primary(_button(content, "确认加点", _commit_growth))
 	commit.name = "GrowthCommit"
 	commit.set_meta("career_gate_disabled", CareerBridge.growth_draft.is_empty() or not personal.get("growth_allowed", false))
 	commit.disabled = commit.disabled or bool(commit.get_meta("career_gate_disabled"))
@@ -986,13 +1021,18 @@ func _stories() -> void:
 		UI.label(content, "事情都处理好了。继续你的一天吧。")
 		return
 	var story: Dictionary = queue[0]
-	UI.label(content, str(story.get("title", "队内事件")), 20)
-	UI.label(content, str(story.get("text", "")), 14)
+	UI.label(content, Locale.field(story, "title", "队内事件"), 20)
+	UI.label(content, Locale.field(story, "text"), 14)
 	for choice in story.get("choices", []):
-		_button(content, str(choice.get("label", "选择")), CareerBridge.command.bind("/api/3d/story", {"id":story["id"], "choice":choice["id"]}))
+		_button(content, Locale.field(choice, "label", "选择"), _command.bind("/api/3d/story", {"id":story["id"], "choice":choice["id"]}))
+
 	if story.get("choices", []).is_empty():
-		_button(content, "我知道了", CareerBridge.command.bind("/api/3d/story", {"id":story["id"], "choice":""}))
+		_button(content, "我知道了", _command.bind("/api/3d/story", {"id":story["id"], "choice":""}))
 	UI.label(content, "还有 %d 件待处理" % queue.size(), 12, UI.MUTED)
+
+func _language_changed() -> void:
+	rendered_context = ""
+	call_deferred("_rebuild")
 
 func _matches() -> void:
 	if not detail.is_empty():
@@ -1006,10 +1046,13 @@ func _matches() -> void:
 		UI.label(box, "下一场比赛", 12, UI.MUTED)
 		UI.label(box, str(game.get("event", "下一场")), 16)
 		UI.label(box, "%s\n对阵 %s · BO%d" % [game.get("date", ""), game.get("opponent", ""), game.get("best_of", 3)], 14)
+		_render_match_destination(box, game)
 		if game.get("due", false):
 			_primary(_button(box, "打开比赛中心 · 模拟 / 亲自打", _open_computer.bind("career_match"), false))
+			_button(box, "自己去 CS2 打", Computer.match_center.prepare_real.bind(str(game.get("id", ""))))
 		else:
-			_button(box, "睡到比赛日", CareerBridge.calendar.bind(str(game["date"]), true))
+			_primary(_button(box, "亲自参赛 · 睡到比赛日", Computer.match_center.prepare_real.bind(str(game.get("id", "")))))
+			_button(box, "只推进到比赛日", CareerBridge.calendar.bind(str(game["date"]), true))
 	else:
 		UI.label(content, "没有已安排的下一场比赛。")
 		_button(content, "查看赛事邀请", _route.bind("mail"), false)
@@ -1025,6 +1068,12 @@ func _matches() -> void:
 	UI.label(content, "赛事日程", 16)
 	for event in CareerBridge.context.get("calendar_events", []):
 		_list_row(content, str(event.get("name", "")), str(event.get("date", "")), _load_event.bind(str(event.get("id", ""))), "", "calendar", false, true)
+
+func _render_match_destination(parent: Node, game: Dictionary) -> void:
+	var plan: Dictionary = game.get("attendance", {})
+	if str(plan.get("display_name", "")).is_empty(): return
+	UI.label(parent, "比赛地点 · " + str(plan.display_name), 14)
+	UI.label(parent, str(plan.get("instruction", "")), 12, UI.MUTED)
 
 func _news() -> void:
 	News.render(self)
@@ -1145,7 +1194,12 @@ func _busy_changed(value: bool) -> void:
 			button.disabled = (value and CareerBridge.active_post) or not CareerBridge.connected or bool(button.get_meta("career_gate_disabled", false))
 	_update_status()
 
+func _refresh_settings_after_command() -> void:
+	if screen.visible and active_page == "settings":
+		_rebuild()
+
 func _finished(path: String, result: Dictionary) -> void:
+	if is_instance_valid(action_feedback): action_feedback.call_deferred("finish_request", path, result)
 	if path in ["/api/3d/story", "/api/3d/social/send"] and result.get("ok", false) and not str(result.get("social_contact_id", "")).is_empty() and screen.visible:
 		selected_contact = str(result.social_contact_id)
 		page_scroll["chat"] = 0
@@ -1154,10 +1208,12 @@ func _finished(path: String, result: Dictionary) -> void:
 		if not str(result.get("social_page", "")).is_empty():
 			_route(str(result.social_page))
 		return
-	if path == "/api/3d/settings":
-		Computer.device_settings.finished(path, result)
+	if path in ["/api/3d/settings", "/api/3d/setup/install"]:
+		# Computer owns the shared settings controller and handles this signal
+		# even while hidden. Phone is earlier in autoload order, so wait until
+		# the shared controller has consumed the result before drawing it.
 		if screen.visible and active_page == "settings":
-			_rebuild()
+			call_deferred("_refresh_settings_after_command")
 		return
 	if path.begins_with("/api/3d/season/"):
 		if screen.visible and active_page == "quick":

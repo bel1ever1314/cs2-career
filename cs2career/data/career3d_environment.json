@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "tiers": [
+    {"id":"academy","name":"青训俱乐部","name_en":"Academy club","price":0},
+    {"id":"standard","name":"普通俱乐部","name_en":"Established club","price":125000},
+    {"id":"elite","name":"豪门俱乐部","name_en":"Elite club","price":650000}
+  ],
+  "elite_clubs": ["Vitality","NAVI","FaZe","G2","Spirit","Falcons","MOUZ","Liquid","Astralis"],
+  "facilities": [
+    {"id":"training","name":"训练设备","name_en":"Training equipment","levels":[{"level":1,"name":"基础训练机位","name_en":"Practice stations","price":0},{"level":2,"name":"双屏训练机位","name_en":"Dual-monitor stations","price":18000},{"level":3,"name":"专业训练套件","name_en":"Professional practice suite","price":65000}]},
+    {"id":"meeting","name":"复盘室","name_en":"Review room","levels":[{"level":1,"name":"战术白板","name_en":"Tactics whiteboard","price":0},{"level":2,"name":"战术投影屏","name_en":"Tactics projector","price":12000},{"level":3,"name":"录像复盘墙","name_en":"Video review wall","price":40000}]},
+    {"id":"kitchen","name":"厨房设备","name_en":"Kitchen equipment","levels":[{"level":1,"name":"基础厨房","name_en":"Basic kitchen","price":0},{"level":2,"name":"专业料理台","name_en":"Chef's preparation counter","price":8000},{"level":3,"name":"完整厨房设备","name_en":"Fully equipped kitchen","price":28000}]},
+    {"id":"lounge","name":"休息设施","name_en":"Lounge furnishings","levels":[{"level":1,"name":"基础休息区","name_en":"Basic lounge","price":0},{"level":2,"name":"舒适沙发区","name_en":"Comfortable seating","price":10000},{"level":3,"name":"恢复休息区","name_en":"Recovery lounge","price":35000}]}
+  ],
+  "home_catalog": [
+    {"id":"plant","kind":"furniture","name":"圆叶盆栽","name_en":"Round-leaf plant","price":350,"footprint":[0.45,0.45],"color":"7b9d70","solid":true},
+    {"id":"bookshelf","kind":"furniture","name":"小木书架","name_en":"Oak bookshelf","price":900,"footprint":[0.8,0.35],"color":"caa078","solid":true},
+    {"id":"lamp","kind":"furniture","name":"暖光落地灯","name_en":"Warm floor lamp","price":550,"footprint":[0.35,0.35],"color":"e7cda0","solid":true},
+    {"id":"rug","kind":"furniture","name":"柔软圆地毯","name_en":"Soft round rug","price":450,"footprint":[1.25,1.25],"color":"97b8a8","solid":false},
+    {"id":"sofa","kind":"furniture","name":"双人小沙发","name_en":"Compact loveseat","price":1600,"footprint":[1.1,0.55],"color":"bfaa95","solid":true},
+    {"id":"trophy_table","kind":"furniture","name":"纪念品矮桌","name_en":"Keepsake table","price":750,"footprint":[0.65,0.4],"color":"bb916a","solid":true},
+    {"id":"wall_cream","kind":"wallpaper","style":"cream","name":"奶油墙面","name_en":"Cream walls","price":0,"color":"f4ead9"},
+    {"id":"wall_sage","kind":"wallpaper","style":"sage","name":"鼠尾草墙面","name_en":"Sage walls","price":400,"color":"bdcbb4"},
+    {"id":"wall_sky","kind":"wallpaper","style":"sky","name":"晴空蓝墙面","name_en":"Sky-blue walls","price":400,"color":"c1d7df"},
+    {"id":"wall_peach","kind":"wallpaper","style":"peach","name":"蜜桃墙面","name_en":"Peach walls","price":450,"color":"ecc6b2"},
+    {"id":"floor_oak","kind":"floor","style":"oak","name":"浅橡木地板","name_en":"Light oak floor","price":0,"color":"d0af88"},
+    {"id":"floor_walnut","kind":"floor","style":"walnut","name":"胡桃木地板","name_en":"Walnut floor","price":650,"color":"9b7358"},
+    {"id":"floor_stone","kind":"floor","style":"stone","name":"浅色石砖","name_en":"Light stone tiles","price":700,"color":"d2d2c4"}
+  ]
+}

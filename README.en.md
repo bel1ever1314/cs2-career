@@ -6,13 +6,13 @@ An unofficial CS2 player-career game. The idea is to give each match a story of 
 
 The career now has a 3D world to walk around in. You're a chicken with a dorm room, a club, a phone, and a computer. Develop your player and plan the season between matches; on match day, simulate the series, command your team in RTS, or enter CS2 and play it yourself.
 
-[Download the 1.7.0 3D preview](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.7.0-preview.1) · [Download the 1.6.0 desktop release](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.6.0-hotfix.1) · [Changelog — Chinese](RELEASE_NOTES.md) · [Feedback](https://github.com/bel1ever1314/cs2-career/issues)
+[Download the 1.7.0 3D preview](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.7.0-preview.2) · [Download the 1.6.0 desktop release](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.6.0-hotfix.1) · [Changelog — Chinese](RELEASE_NOTES.md) · [Feedback](https://github.com/bel1ever1314/cs2-career/issues)
 
-The current version is **1.7.0-preview.1, the first 3D preview**. The existing desktop release remains **1.6.0-hotfix.1** and is available separately.
+The current version is **1.7.0-preview.2, the updated 3D preview**. The existing desktop release remains **1.6.0-hotfix.1** and is available separately.
 
 ## Getting started
 
-1. Open the [3D preview release](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.7.0-preview.1) and download `CS2Career-1.7.0-preview.1-windows.zip`.
+1. Open the [3D preview release](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.7.0-preview.2) and download `CS2Career-1.7.0-preview.2-windows.zip`.
 2. Extract the entire archive into a writable folder. Run `Launch-CS2Career.cmd` or `开始游戏.cmd`.
 3. Follow the opening flow to create a player, draft abilities, and customize your chicken, or choose an era and take over a professional player.
 4. In your dorm, walk to the computer and press `E`, or press `P` to take out your phone.
@@ -38,7 +38,7 @@ The local ladder uses your current career player. The two highest-rated particip
 
 Install and sign into Steam and CS2, and obtain a compatible [CS2 Bot Improver Windows runtime](https://github.com/ed0ard/CS2-Bot-Improver/releases). The public 3D package includes Career and its bridge components; the complete bot enhancement is obtained separately.
 
-1. Fully exit CS2. Open Settings on the phone or computer, set the CS2 and bot-enhancement directories, and follow the plugin setup instructions.
+1. Fully exit CS2. Open Settings on the phone or computer, set the Steam, CS2 and extracted bot-enhancement paths, then choose “安装填写目录的人机增强” (Install from the configured folder). The installer downloads and verifies our selected upstream components, then installs them with this project's compatibility patches and a backup of existing files. Your original release folder stays unchanged; later matches use the compatible runtime copy, and subsequent installs reuse the downloaded files.
 2. Prepare a career, ladder, or custom match, complete the player draft and map veto, then launch CS2.
 3. Finish the official match and return to the career computer to review and import the result.
 

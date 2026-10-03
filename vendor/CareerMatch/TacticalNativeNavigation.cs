@@ -8,7 +8,7 @@ namespace CareerMatch;
 
 // Current-CS2, fail-closed native navigation adapter. No DLL loading, hooks,
 // teleport, velocity writes, aim locks, button ownership, or old-state restore.
-// Audited game: 2000922 / 1.41.8.8 / revision 11064488 / Sep 30 2026.
+// Audited games: 2000922 (Sep 30) and 2000924 / revision 11076591 (Oct 02).
 // server.dll SHA256 below; addresses are derived from unique .text signatures,
 // never from a CSGO address or from an assumed Source2 object layout.
 //
@@ -37,8 +37,15 @@ namespace CareerMatch;
 // (307c6d/307c89), not a legacy CSGO enum. No timer/task/path memory is written.
 internal sealed class TacticalNativeNavigation
 {
-    internal const string AuditedServerSha256 = "3541E46A3193FCF1151E97CE19CD4DAF86C5FDB2889033C2BAB1D4CC7F555B9C";
-    internal const string AuditedVersion = "2000922 / 1.41.8.8 / 11064488 / 2026-09-30";
+    internal const string AuditedServerSha256 = "098D4DDD57E2FBE9A73623A2BF68EBAFF86F7B6342DDB3D5A0F69CD6335B31CC";
+    internal const string PreviousServerSha256 = "3541E46A3193FCF1151E97CE19CD4DAF86C5FDB2889033C2BAB1D4CC7F555B9C";
+    internal const string AuditedVersion = "2000924 / 1.41.8.8 / 11076591 / 2026-10-02";
+    // Both builds have identical complete bodies for all nine guarded path
+    // functions, the two state wrappers, gait bodies and MoveTo vtable slots.
+    // Reviewed hashes provide a legacy exact-file profile. A different file
+    // may use the bounded complete current feature profile below instead.
+    internal static bool IsAuditedServerHash(string hash) =>
+        hash is AuditedServerSha256 or PreviousServerSha256;
 
     private static readonly byte[] MoveSignature = Convert.FromHexString(
         "F20F1002F20F1181E80200008B4208488D91E00200008981F0020000448981F4020000E928E10000");
@@ -84,7 +91,11 @@ internal sealed class TacticalNativeNavigation
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate byte ComputePathFn(nint bot, nint vector, int route, float costPenalty, nint rateLimited);
 
-    internal sealed record Audit(string Sha256, int MoveRva, int IdleRva, int StateRva, int PathRva, int ImageSize);
+    internal sealed record Audit(string Sha256, int MoveRva, int IdleRva, int StateRva, int PathRva, int ImageSize)
+    {
+        internal TacticalFeatureAudit.Snapshot? Dependencies { get; init; }
+        public string CompatibilityProfile => Dependencies is null ? "reviewed_whole_file" : "current_stable_rva_features";
+    }
     private readonly nint _module;
     private readonly MoveToFn _move;
     private readonly IdleFn _idle;
@@ -92,10 +103,12 @@ internal sealed class TacticalNativeNavigation
     private readonly byte[][] _continuationCode;
     private readonly byte[][] _continuationScratch;
     private readonly int _gameThread;
+    private readonly TacticalFeatureAudit.LoadedGuard? _dependencyGuard;
     internal Audit Evidence { get; }
     internal string LoadedContinuationVariant { get; }
 
-    private TacticalNativeNavigation(nint module, Audit audit, byte[][] continuationCode, string variant)
+    private TacticalNativeNavigation(nint module, Audit audit, byte[][] continuationCode, string variant,
+        TacticalFeatureAudit.LoadedGuard? dependencyGuard)
     {
         _module = module;
         Evidence = audit;
@@ -103,6 +116,7 @@ internal sealed class TacticalNativeNavigation
         _continuationScratch = continuationCode.Select(body => new byte[body.Length]).ToArray();
         _gameThread = Environment.CurrentManagedThreadId;
         LoadedContinuationVariant = variant;
+        _dependencyGuard = dependencyGuard;
         _move = Marshal.GetDelegateForFunctionPointer<MoveToFn>(module + audit.MoveRva);
         _idle = Marshal.GetDelegateForFunctionPointer<IdleFn>(module + audit.IdleRva);
         _path = Marshal.GetDelegateForFunctionPointer<ComputePathFn>(module + audit.PathRva);
@@ -115,11 +129,18 @@ internal sealed class TacticalNativeNavigation
     internal static bool TryAuditCode(string serverPath, out Audit? audit, out byte[][]? code, out string reason)
     {
         audit = null; code = null;
+        try { return TryAuditBytes(File.ReadAllBytes(serverPath), out audit, out code, out reason); }
+        catch (Exception ex) { reason = "navigation_audit_failed:" + ex.Message; return false; }
+    }
+
+    // Pure byte audit for regression fixtures; no temporary game DLL required.
+    internal static bool TryAuditBytes(byte[] bytes, out Audit? audit, out byte[][]? code, out string reason)
+    {
+        audit = null; code = null;
         try
         {
-            var bytes = File.ReadAllBytes(serverPath);
             var hash = Convert.ToHexString(SHA256.HashData(bytes));
-            if (hash != AuditedServerSha256) { reason = "server_build_not_audited:" + hash; return false; }
+            var dependencies = IsAuditedServerHash(hash) ? null : TacticalFeatureAudit.Audit(bytes, observation: false);
             int nt = Read32(bytes, 0x3c);
             if (Read32(bytes, nt) != 0x4550 || Read16(bytes, nt + 4) != 0x8664)
                 throw new InvalidDataException("server_pe_not_win64");
@@ -142,6 +163,8 @@ internal sealed class TacticalNativeNavigation
             int move = UniqueIndex(text, MoveSignature), idle = UniqueIndex(text, IdleSignature), path = UniqueIndex(text, PathSignature);
             if (move < 0 || idle < 0 || path < 0) throw new InvalidDataException("navigation_signature_not_unique");
             int moveRva = checked(textRva + move), idleRva = checked(textRva + idle);
+            if (moveRva != 0x2cfec0 || idleRva != 0x2c8230 || textRva + path != 0x2bafa0)
+                throw new InvalidDataException("navigation_function_identity_mismatch");
             int moveState = TailTarget(moveRva, MoveSignature), idleState = TailTarget(idleRva, IdleSignature);
             if (moveState != idleState || moveState < textRva || moveState + StatePrefix.Length > textRva + textLength)
                 throw new InvalidDataException("navigation_setstate_target_mismatch");
@@ -153,8 +176,8 @@ internal sealed class TacticalNativeNavigation
                     throw new InvalidDataException("navigation_continuation_audit_mismatch:"+body.Name);
             code = ContinuationBodies.Select(body =>
                 bytes.AsSpan(textRaw+body.Rva-textRva, body.Length).ToArray()).ToArray();
-            audit = new(hash, moveRva, idleRva, moveState, textRva + path, imageSize);
-            reason = "file_audited_not_live_navigation_verified";
+            audit = new(hash, moveRva, idleRva, moveState, textRva + path, imageSize) { Dependencies = dependencies };
+            reason = "file_audited_not_live_navigation_verified:profile=" + audit.CompatibilityProfile;
             return true;
         }
         catch (Exception ex) { reason = "navigation_audit_failed:" + ex.Message; return false; }
@@ -182,8 +205,10 @@ internal sealed class TacticalNativeNavigation
             // Reject a foreign code body before publishing the adapter or
             // issuing any movement. Do not discover this only at node one.
             if (!TrySelectContinuationSnapshots(code!, observed, out var selected, out var variant, out reason)) return false;
-            navigation = new(module, audit, selected!, variant);
-            reason = "native_navigation_bound_not_live_navigation_verified:continuation="+variant;
+            TacticalFeatureAudit.LoadedGuard? dependencies = null;
+            if (audit.Dependencies is not null && !audit.Dependencies.TryBind(module, observation: false, out dependencies, out reason)) return false;
+            navigation = new(module, audit, selected!, variant, dependencies);
+            reason = "native_navigation_bound_not_live_navigation_verified:continuation=" + variant + ":profile=" + audit.CompatibilityProfile;
             return true;
         }
         catch (Exception ex) { reason = "navigation_bind_failed:" + ex.Message; return false; }
@@ -316,7 +341,7 @@ internal sealed class TacticalNativeNavigation
 
     // Read-only debounce: never re-enter MoveTo/OnEnter each poll while its
     // current state already owns the same goal. Private offsets are usable
-    // ONLY under the exact audited server hash and current loaded-code gate.
+    // ONLY under a reviewed file/complete feature profile and loaded-code gate.
     internal bool IsMovingTo(CCSPlayerController player, uint expectedPawn, float x, float y, float z)
     {
         if (!float.IsFinite(x) || !float.IsFinite(y) || !float.IsFinite(z) ||
@@ -350,6 +375,7 @@ internal sealed class TacticalNativeNavigation
         { reason = "navigation_wrong_game_thread"; return false; }
         try
         {
+            if (_dependencyGuard is not null && !_dependencyGuard.VerifyIfDue(out reason)) return false;
             if (!MatchMemory(_module + Evidence.MoveRva, MoveSignature) ||
                 !MatchMemory(_module + Evidence.IdleRva, IdleSignature) ||
                 !MatchMemory(_module + Evidence.StateRva, StatePrefix) ||

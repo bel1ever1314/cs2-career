@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "version": "1.7.0-preview.1",
+  "version": "1.7.0-preview.2",
   "distribution": "external-runtime-not-bundled",
   "components": [
     {"name": "CS2 Bot Improver", "source_commit": "5aabff41be0f727f3e0ab59e03a94076c1338c3e", "url": "https://github.com/ed0ard/CS2-Bot-Improver/releases", "license": "AGPL-3.0; management panel has separate terms"},

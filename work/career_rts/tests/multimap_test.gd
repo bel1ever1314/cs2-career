@@ -22,8 +22,8 @@ func _run() -> void:
 	var rosters: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/rosters.json"))
 	rosters["human_id"] = ""
 	check(Catalog.catalog().get("schema_version", 0) == 2, "versioned catalog")
-	check(Catalog.available_maps().size() == 8, "eight maps have verified runtime data")
-	for map_id in ["de_nuke", "de_vertigo", "unknown_map"]:
+	check(Catalog.available_maps().size() == 10, "ten maps have verified runtime data")
+	for map_id in ["unknown_map"]:
 		check(Catalog.load_map(map_id).is_empty(), map_id + " cannot silently alias or use false floor connections")
 	for map_id in Catalog.available_maps():
 		var map_data := Catalog.load_map(map_id)
@@ -44,7 +44,7 @@ func _run() -> void:
 					check(not path.is_empty(), map_id + side + str(index) + " reaches " + site)
 					var previous := spawn
 					for point in path:
-						check(not nav.segment_blocked(previous, point, Sim.PLAYER_RADIUS), map_id + " continuous legal directed NAV segment")
+						check(not nav.segment_blocked(previous, point, Sim.PLAYER_RADIUS) or not nav.traversal_between(previous,point).is_empty(), map_id + " continuous legal directed NAV segment or verified traversal")
 						previous = point
 		for site in ["A", "B"]:
 			var posts: Array = sim.postplant_positions(site)
@@ -86,7 +86,7 @@ func _run() -> void:
 			var previous: Vector2 = runner["pos"]
 			sim._tick += 1; sim._time += Sim.FIXED_DT
 			sim._follow_path(runner)
-			check(not nav.segment_blocked(previous, runner["pos"], Sim.PLAYER_RADIUS), map_id + " actor transit stays legal")
+			check(not nav.segment_blocked(previous, runner["pos"], Sim.PLAYER_RADIUS) or not nav.traversal_between(previous,runner["pos"]).is_empty(), map_id + " actor transit stays legal")
 			if Vector2(runner["pos"]).distance_to(runner["goal"]) < 1: break
 		check(Vector2(runner["pos"]).distance_to(runner["goal"]) < 1, map_id + " actual transit arrives at A")
 		sim._phase = "live"

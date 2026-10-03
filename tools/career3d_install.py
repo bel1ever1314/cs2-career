@@ -1,4 +1,4 @@
-"""Explicit installation of the tester's bundled Bot Improver runtime.
+"""Explicit installation of a bundled or user-selected Bot Improver runtime.
 
 Discovery and startup preparation never modify game files or inspect processes.
 Only install_bundle, under the service lock and an explicit confirmation, calls
@@ -16,6 +16,7 @@ import shutil
 import stat
 import sys
 from uuid import uuid4
+from cs2career.paths import io_path
 
 
 NAME = '随包人机增强 / Bot Improver'
@@ -25,6 +26,7 @@ _HOOKS = ('gamemode_competitive.cfg', 'gamemode_competitive_offline.cfg',
 
 
 def _is_reparse(path: Path) -> bool:
+    path = io_path(path)
     info = path.lstat()
     return path.is_symlink() or bool(getattr(info, 'st_file_attributes', 0) &
                                     getattr(stat, 'FILE_ATTRIBUTE_REPARSE_POINT', 0x400))
@@ -59,7 +61,30 @@ def bundle_root() -> Path | None:
 
 def setup_context() -> dict:
     """Cheap read-only availability. Polling never starts process discovery."""
-    return {'available': bundle_root() is not None, 'name': NAME}
+    return {'available': bundle_root() is not None, 'external_available': True, 'name': NAME}
+
+
+def _external_root(cfg: dict) -> Path:
+    """Use only the saved release directory, never a nearby auto-discovered one."""
+    chosen = str(cfg.get('mod_source_path') or '').strip().strip('"')
+    candidate = Path(chosen)
+    if not chosen or not candidate.is_absolute():
+        raise ValueError('请先保存 Bot Improver 发行包的完整目录。')
+    if not candidate.is_dir():
+        raise FileNotFoundError('找不到设置中的人机增强目录，请确认发行包已解压。')
+    if _is_reparse(candidate):
+        raise ValueError('人机增强来源含目录链接，未安装。')
+    root = candidate.resolve()
+    if root == Path(root.anchor):
+        raise ValueError('请选择 Bot Improver 发行包目录，不能使用磁盘根目录。')
+    for relative in ('addons', 'addons/metamod', 'addons/counterstrikesharp', 'overrides'):
+        folder = root / relative
+        if not folder.is_dir():
+            raise FileNotFoundError('人机增强目录缺少 ' + relative.replace('/', '\\') +
+                                    '。请选择同时包含 addons 和 overrides 的发行包目录。')
+        if _is_reparse(folder):
+            raise ValueError('人机增强来源含目录链接，未安装。')
+    return root
 
 
 def _isolated_root() -> Path:
@@ -113,21 +138,23 @@ def auto_prepare_config() -> dict:
 
 
 def _bundle_files(mod: Path) -> list[Path]:
+    from cs2career.cs2 import launch
     files = []
-    for source in sorted(mod.rglob('*')):
-        if _is_reparse(source) or not source.resolve().is_relative_to(mod):
-            raise ValueError('随包人机增强包含目录链接，未安装。')
-        if source.is_file() and source.suffix.casefold() != '.exe':
+    for source_io in sorted(io_path(mod).rglob('*')):
+        source = mod / source_io.relative_to(io_path(mod))
+        if _is_reparse(source) or not io_path(source).resolve().is_relative_to(io_path(mod).resolve()):
+            raise ValueError('人机增强目录包含目录链接，未安装。')
+        if io_path(source).is_file() and launch.mod_runtime_file(source.relative_to(mod)):
             files.append(source)
     return files
 
 
 def _under_game(game: Path, relative: Path) -> Path:
     target = game / relative
-    if relative.is_absolute() or '..' in relative.parts or not target.resolve().is_relative_to(game):
+    if relative.is_absolute() or '..' in relative.parts or not io_path(target).resolve().is_relative_to(io_path(game).resolve()):
         raise ValueError('安装目标超出所选 CS2 目录，未安装。')
     for candidate in (target, *target.parents):
-        if candidate.exists() and _is_reparse(candidate):
+        if io_path(candidate).exists() and _is_reparse(candidate):
             raise ValueError('CS2 安装目标含目录链接，未安装。')
         if candidate == game:
             break
@@ -176,30 +203,32 @@ def _snapshot_targets(game: Path, mod: Path, cfg: dict, real_skins: bool) -> lis
     return [_under_game(game, relative) for relative in sorted(targets)]
 
 
-def _snapshot(root: Path, game: Path, targets: list[Path]) -> tuple[Path, dict]:
+def _snapshot(root: Path, game: Path, targets: list[Path], runtime: dict | None = None) -> tuple[Path, dict]:
     parent = root / 'install-backups'
     if parent.exists() and _is_reparse(parent):
         raise ValueError('安装备份目录含目录链接，未安装。')
     stamp = datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')
     backup = parent / (stamp + '-' + uuid4().hex[:12])
-    backup.mkdir(parents=True)
+    io_path(backup).mkdir(parents=True)
     records = {}
     for target in targets:
         relative = target.relative_to(game)
-        if target.exists() and not target.is_file():
+        if io_path(target).exists() and not io_path(target).is_file():
             raise ValueError('安装文件目标被目录占用，未安装：' + relative.as_posix())
-        if not target.exists():
+        if not io_path(target).exists():
             records[relative.as_posix()] = {'existed': False}
             continue
-        before = hashlib.sha256(target.read_bytes()).hexdigest()
+        before = hashlib.sha256(io_path(target).read_bytes()).hexdigest()
         saved = backup / 'files' / relative
-        saved.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(target, saved)
-        if hashlib.sha256(saved.read_bytes()).hexdigest() != before or hashlib.sha256(target.read_bytes()).hexdigest() != before:
+        io_path(saved.parent).mkdir(parents=True, exist_ok=True)
+        shutil.copy2(io_path(target), io_path(saved))
+        if hashlib.sha256(io_path(saved).read_bytes()).hexdigest() != before or hashlib.sha256(io_path(target).read_bytes()).hexdigest() != before:
             raise OSError('安装前备份核对失败，未安装：' + relative.as_posix())
-        records[relative.as_posix()] = {'existed': True, 'sha256': before, 'bytes': saved.stat().st_size}
+        records[relative.as_posix()] = {'existed': True, 'sha256': before, 'bytes': io_path(saved).stat().st_size}
     manifest = {'schema_version': 1, 'kind': 'cs2career3d-install-backup',
                 'game_dir': str(game), 'status': 'prepared', 'files': records}
+    if runtime is not None:
+        manifest['runtime'] = deepcopy(runtime)
     (backup / 'BACKUP_MANIFEST.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), 'utf-8')
     return backup, manifest
 
@@ -212,16 +241,22 @@ def install_bundle(state, body: dict) -> dict:
     from tools.career3d_matches import career_cs2_pending
     guard_revision(state, body)
     if body.get('confirm') is not True:
-        raise ValueError('请明确确认安装随包人机增强。')
+        raise ValueError('请明确确认安装人机增强。')
+    source = body.get('source', 'bundle')
+    if source not in ('bundle', 'external'):
+        raise ValueError('请选择随包人机增强或设置中的发行包。')
     root = _isolated_root()
     if state.career.training_session or state.arena.pending or career_cs2_pending(state):
         raise ValueError('CS2、训练或 RTS 对局尚未结束，请完成或取消后再安装。')
     if any((root / 'save' / name).exists() for name in ('manual-load.pending.json', 'personal-transfer.pending.json')):
         raise ValueError('生涯或存档恢复尚未完成，请重启恢复后再安装。')
-    mod = bundle_root()
-    if mod is None:
-        raise FileNotFoundError('此测试包未提供完整的随包人机增强。')
     cfg = read_cs2_config()
+    if source == 'external':
+        mod = _external_root(cfg)
+    else:
+        mod = bundle_root()
+        if mod is None:
+            raise FileNotFoundError('此测试包未提供随包人机增强；可在设置中选择已下载的发行包并安装。')
     chosen = cfg.get('csgo_path') or ''
     if not chosen or not Path(chosen).is_absolute():
         raise ValueError('请先在设置中保存本机 CS2 / game / csgo 完整路径。')
@@ -231,14 +266,25 @@ def install_bundle(state, body: dict) -> dict:
     if game == mod or game.is_relative_to(mod) or mod.is_relative_to(game):
         raise ValueError('人机增强来源不能与 CS2 安装目录重叠。')
 
-    def closed(action='安装随包人机增强'):
+    def closed(action='安装人机增强'):
         if _running_cs2():
             raise ValueError('请完全退出 CS2 后再' + action + '。')
 
     closed()
+    from tools.career3d_runtime_compat import prepare_runtime
+    original_mod = mod
+    # Build a compatible copy inside the independent career's cache. Downloaded
+    # releases and the user's source folder are never rewritten, and preparation
+    # failure happens before any selected-game file or saved path is changed.
+    prepared = prepare_runtime(root, original_mod, game)
+    mod = Path(prepared['mod_dir']).resolve()
+    runtime = {'requested_source': str(original_mod),
+               'origin_source': str(prepared.get('origin_mod_dir') or original_mod),
+               'effective_source': str(mod), 'compatibility_revision': prepared['revision'],
+               'components': deepcopy(prepared['components'])}
     real_skins = bool(state.career.real_skins)
     targets = _snapshot_targets(game, mod, cfg, real_skins)
-    backup, manifest = _snapshot(root, game, targets)
+    backup, manifest = _snapshot(root, game, targets, runtime)
     # Pin settings to this isolated snapshot. The desktop's autofill must not
     # switch sources or inspect a different game's configuration while installing.
     install_cfg = {**cfg, 'csgo_path': str(game), 'mod_source_path': str(mod), 'skins_source_path': ''}
@@ -256,6 +302,11 @@ def install_bundle(state, body: dict) -> dict:
                 if not skins.get('ok', False):
                     raise RuntimeError(str(skins.get('msg', '可选换肤组件安装未完成。')))
                 skin_files = int(skins.get('files', 0))
+        # All later match launches must reuse the compatible cache instead of
+        # restoring the old native DLLs from the originally selected release.
+        with launch._SETTINGS_LOCK:
+            launch._write_settings(launch._clean({**cfg, 'csgo_path': str(game),
+                                                 'mod_source_path': str(mod)}))
         manifest['status'] = 'installed'
     except (OSError, ValueError, RuntimeError) as exc:
         manifest['status'] = 'failed'
@@ -263,6 +314,7 @@ def install_bundle(state, body: dict) -> dict:
         raise RuntimeError(f'安装未完成；安装前备份保留在 {backup}。{exc}') from exc
     (backup / 'BACKUP_MANIFEST.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), 'utf-8')
     total = int(result.get('files', 0)) + skin_files
-    return {'reason': f'已安装随包人机增强（{total} 个文件）。安装前备份：{backup}',
+    installed_name = '设置中的人机增强' if source == 'external' else '随包人机增强'
+    return {'reason': f'已更新并安装{installed_name}（{total} 个文件）。后续开赛使用兼容副本。安装前备份：{backup}',
             'backup_path': str(backup), 'files': total, 'skin_files': skin_files,
-            'setup': setup_context()}
+            'source': source, 'setup': setup_context(), 'runtime': runtime}

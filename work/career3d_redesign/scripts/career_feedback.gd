@@ -3,6 +3,7 @@ extends CanvasLayer
 const UI = preload("res://scripts/computer_ui.gd")
 const TeamVisuals = preload("res://scripts/team_visuals.gd")
 const Trophy = preload("res://scripts/career_trophy.gd")
+const ChampionCeremony = preload("res://scripts/venue_champion_ceremony.gd")
 const ACK_PATH := "/api/3d/feedback/ack"
 var queue: Array[Dictionary] = []
 var seen: Dictionary = {}
@@ -22,11 +23,17 @@ var last_sound := ""
 var sound_count := 0
 var active_career := ""
 var flight: Tween
+var venue_results: Dictionary = {}
+var champion_seen: Dictionary = {}
+var champion_ceremony: CanvasLayer
+var championship_sound_played := false
 
 func reset_for_loaded_career() -> void:
 	queue.clear()
 	seen.clear()
 	map_sounds.clear()
+	venue_results.clear()
+	champion_seen.clear()
 	acknowledgements_pending = false
 	active_career = ""
 	if is_instance_valid(sound_player): sound_player.stop()
@@ -45,6 +52,7 @@ func ingest() -> void:
 	var identity := str(CareerBridge.context.get("player", {}).get("id", ""))
 	if not active_career.is_empty() and identity != active_career:
 		queue.clear(); seen.clear(); map_sounds.clear()
+		venue_results.clear(); champion_seen.clear()
 		if not entry.is_empty(): _release()
 	active_career = identity
 	var feed: Dictionary = CareerBridge.context.get("feedback", {})
@@ -73,8 +81,53 @@ func can_present() -> bool:
 func present(value: Dictionary) -> void:
 	if not entry.is_empty() or value.is_empty(): return
 	entry = value.duplicate(true)
+	# Opening feedback invokes the venue's before_phone hook, which leaves
+	# the match seat. Freeze an older final's attendance before that transition.
+	var celebration := championship_plan(entry)
 	CareerBridge.feedback_active = true
 	UI.device_open(self, "feedback")
+	championship_sound_played = false
+	var ident := str(entry.get("id", ""))
+	if not celebration.is_empty() and not champion_seen.has(ident):
+		champion_seen[ident] = true
+		champion_ceremony = ChampionCeremony.new()
+		champion_ceremony.name = "VenueChampionCeremony"
+		add_child(champion_ceremony)
+		champion_ceremony.lift_started.connect(func(): championship_sound_played = true; play_sound("champion"))
+		champion_ceremony.finished.connect(_championship_finished)
+		if champion_ceremony.start(celebration): return
+		champion_ceremony.queue_free()
+	_show_newspaper()
+
+func remember_venue_result(snapshot: Dictionary, preflight: Dictionary) -> void:
+	var scene := get_tree().current_scene
+	if scene == null or scene.scene_file_path not in ["res://lan.tscn", "res://major_walk.tscn"]: return
+	var id := str(snapshot.get("match_id", snapshot.get("id", "")))
+	if not scene.has_method("match_seated") or not bool(scene.match_seated(id)): return
+	if Computer.match_center.quick_running or not bool(snapshot.get("played", false)): return
+	var value: Variant = scene.get("roster_plan")
+	if not value is Dictionary or value.is_empty(): return
+	var venue: Dictionary = preflight.get("venue", {})
+	var event_id := str(preflight.get("identity", {}).get("event_id", venue.get("event_id", "")))
+	if event_id.is_empty() or str(preflight.get("stage", "")) != "GF": return
+	venue_results[event_id] = {"personal":true, "destination":"lan" if scene.scene_file_path == "res://lan.tscn" else "major",
+		"stage":"GF", "event_id":event_id, "roster":value.duplicate(true), "result":snapshot.duplicate(true),
+		"appearance":CareerBridge.context.get("avatar", {}).get("appearance", {}).duplicate(true)}
+
+func championship_plan(award: Dictionary) -> Dictionary:
+	var event_id := str(award.get("event_id", ""))
+	if not venue_results.has(event_id):
+		# A final already underway before this version was installed still has
+		# its frozen venue, roster and saved result. No new local marker is required.
+		remember_venue_result(Computer.match_center.last_result, Computer.match_center.preflight)
+	return ChampionCeremony.plan(award, venue_results.get(event_id, {}))
+
+func _championship_finished() -> void:
+	if is_instance_valid(champion_ceremony): champion_ceremony.queue_free()
+	champion_ceremony = null
+	if not entry.is_empty(): _show_newspaper()
+
+func _show_newspaper() -> void:
 	overlay = Control.new()
 	overlay.name = "CareerHonoursFeedback"
 	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -123,7 +176,7 @@ func present(value: Dictionary) -> void:
 	flight.tween_property(sheet, "position", final_position, .52).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	flight.tween_property(sheet, "rotation", 0.0, .52).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	flight.tween_property(sheet, "modulate:a", 1.0, .28)
-	play_sound("champion" if _won_title() else "honours")
+	if not championship_sound_played: play_sound("champion" if _won_title() else "honours")
 
 func _layout() -> void:
 	if not is_instance_valid(sheet): return
@@ -212,7 +265,7 @@ func _player(parent: Node, value: Variant, featured: bool = false) -> void:
 	if not team.is_empty(): UI.label(row, team, 13, UI.MUTED).horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 
 func acknowledge(visit: bool = false) -> void:
-	if entry.is_empty() or acknowledgements_pending: return
+	if entry.is_empty() or acknowledgements_pending or (is_instance_valid(champion_ceremony) and champion_ceremony.active): return
 	var payload := {"ids":[str(entry.get("id", ""))], "revision":int(CareerBridge.context.get("calendar", {}).get("revision", 0))}
 	var accepted := bool(command_sender.call(ACK_PATH, payload)) if command_sender.is_valid() else CareerBridge.command(ACK_PATH, payload)
 	if not accepted:
@@ -237,6 +290,8 @@ func _finished(path: String, result: Dictionary) -> void:
 
 func _release() -> void:
 	if is_instance_valid(flight): flight.kill()
+	if is_instance_valid(champion_ceremony): champion_ceremony.queue_free()
+	champion_ceremony = null
 	if is_instance_valid(overlay): overlay.queue_free()
 	entry.clear(); actions.clear()
 	visit_after_ack = false
@@ -245,6 +300,11 @@ func _release() -> void:
 
 func _input(event: InputEvent) -> void:
 	if entry.is_empty(): return
+	if is_instance_valid(champion_ceremony) and champion_ceremony.active:
+		if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode in [KEY_E, KEY_P, KEY_ESCAPE]:
+			get_viewport().set_input_as_handled()
+			if not champion_ceremony.continue_button.disabled: champion_ceremony.finish()
+		return
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode in [KEY_E, KEY_P, KEY_ESCAPE]:
 		get_viewport().set_input_as_handled()
 		if event.physical_keycode == KEY_ESCAPE: acknowledge()

@@ -39,7 +39,11 @@ func arrive(destination: String, id: String) -> bool:
 	source["players_a"][0]["name"]="MUTATED OUTSIDE"
 	var until:=Time.get_ticks_msec()+30000
 	while Travel.busy and Time.get_ticks_msec()<until:await get_tree().process_frame
-	scene=get_tree().current_scene;scene.testing=true;scene.player.test_mode=true;scene.focused=true
+	scene=get_tree().current_scene
+	if scene == null or not bool(scene.get("booted")) or not is_instance_valid(scene.get("player")):
+		check(false,"physical "+destination+" scene and player must be loaded before venue checks")
+		return false
+	scene.testing=true;scene.player.test_mode=true;scene.focused=true
 	if destination=="major":scene.finish_intro()
 	await frames(12)
 	check(not Travel.busy and scene.scene_file_path==Travel.SCENES[destination],"in-process arrival "+destination)

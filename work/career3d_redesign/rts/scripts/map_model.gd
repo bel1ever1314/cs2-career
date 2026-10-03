@@ -14,13 +14,21 @@ class PortalGraph extends AStar2D:
 	var region_count := 0
 	var factors_by_side: Dictionary = {}
 	var pair_factors := PackedFloat64Array()
+	var layered := false
+	var traversal_costs: Dictionary = {}
 	func set_side(side: String) -> void:
 		pair_factors=factors_by_side.get(side,factors_by_side[""])
 	func _compute_cost(from_id: int, to_id: int) -> float:
+		var key := str(from_id)+":"+str(to_id)
+		if traversal_costs.has(key):return float(traversal_costs[key])
 		var distance := positions[from_id].distance_to(positions[to_id])
 		if region_ids[from_id]==region_ids[to_id]:return distance
 		return distance*pair_factors[int(region_ids[from_id])*region_count+int(region_ids[to_id])]
 	func _estimate_cost(from_id: int, to_id: int) -> float:
+		if layered:
+			var from := Vector2(positions[from_id].x,fposmod(positions[from_id].y,1024.0))
+			var to := Vector2(positions[to_id].x,fposmod(positions[to_id].y,1024.0))
+			return from.distance_to(to)*.82
 		return positions[from_id].distance_to(positions[to_id])*.82
 
 var data: Dictionary = {}
@@ -53,6 +61,8 @@ var _region_points: Dictionary = {}
 var _watch_anchors: Array = []
 var _centre_navigation := false
 var _nav_agent_radius := DEFAULT_RADIUS
+var _layered := false
+var _traversals: Dictionary = {}
 
 func setup(source: Dictionary) -> void:
 	data = source.duplicate(true)
@@ -63,6 +73,10 @@ func setup(source: Dictionary) -> void:
 	var decoded = JSON.parse_string(FileAccess.get_file_as_string(str(geometry.get("grid_file",""))))
 	assert(decoded is Dictionary,"Map grid data missing: " + str(data.get("map", "")))
 	var grid: Dictionary = decoded
+	_layered = str(geometry.get("kind","")) == "layered_actual_NAV"
+	_traversals.clear()
+	for row in grid.get("traversal_links",[]):
+		_traversals[str(int(row["from"]))+":"+str(int(row["to"]))]=row
 	_centre_navigation = str(grid.get("navigation_space",geometry.get("navigation_space",""))) == "NAV_agent_centres"
 	_nav_agent_radius = float(grid.get("actor_clearance",geometry.get("actor_clearance",DEFAULT_RADIUS)))
 	_width=int(grid["width"]); _height=int(grid["height"]); _cell_size=float(grid["cell_size"])
@@ -172,6 +186,9 @@ func segment_blocked(start: Vector2, finish: Vector2, radius: float = 0.0) -> bo
 
 func _trace_fraction(start: Vector2, finish: Vector2, radius: float, movement: bool) -> float:
 	if not start.is_finite() or not finish.is_finite():return 0.0
+	# Floor pages are distinct terrain. Even aligned XY cannot give movement
+	# or visibility between floors without an explicit traversal action.
+	if _layered and layer_at(start)!=layer_at(finish):return 0.0
 	if movement and not is_walkable(start,radius):return 0.0
 	var pixel := Vector2i(floori(start.x),floori(start.y))
 	if not _pixel_clear(pixel,radius,movement):return 0.0
@@ -238,6 +255,7 @@ func _nearest_cell(point: Vector2, radius: float, as_destination: bool = false) 
 	var distance := INF
 	for ring in range(maxi(_width,_height)):
 		for y in range(maxi(0,base.y-ring),mini(_height-1,base.y+ring)+1):
+			if _layered and floori(float(y)/512)!=layer_at(point):continue
 			for x in range(maxi(0,base.x-ring),mini(_width-1,base.x+ring)+1):
 				if ring>0 and x>base.x-ring and x<base.x+ring and y>base.y-ring and y<base.y+ring:continue
 				var id := y*_width+x
@@ -259,6 +277,7 @@ func _graph_for(radius: float) -> PortalGraph:
 	var graph := PortalGraph.new()
 	graph.region_ids=_region_ids; graph.positions=_positions; graph.region_count=_regions.size()
 	graph.factors_by_side=_region_pair_factors
+	graph.layered=_layered
 	graph.set_side("")
 	graph.reserve_space(int(data.get("statistics",{}).get("walk_cells",16000)))
 	var effective := key*.25
@@ -271,6 +290,15 @@ func _graph_for(radius: float) -> PortalGraph:
 			var other := _cell_id(cell+DIRECTIONS[bit])
 			if graph.has_point(other) and ((_centre_navigation and effective<=_nav_agent_radius) or not segment_blocked(_positions[id],_positions[other],effective)):
 				graph.connect_points(id,other,false)
+	for traversal_key in _traversals:
+		var row: Dictionary=_traversals[traversal_key]
+		var first := int(row["from"])
+		var last := int(row["to"])
+		if graph.has_point(first) and graph.has_point(last):
+			graph.connect_points(first,last,false)
+			var from := Vector2(_positions[first].x,fposmod(_positions[first].y,1024.0))
+			var to := Vector2(_positions[last].x,fposmod(_positions[last].y,1024.0))
+			graph.traversal_costs[traversal_key]=from.distance_to(to)+float(row["seconds"])*70.0
 	_graphs[key]=graph
 	return graph
 
@@ -451,4 +479,45 @@ func validation_report(radius: float = DEFAULT_RADIUS) -> Dictionary:
 			if not is_walkable(vec(data["spawns"][side][index]),radius):invalid_spawns.append(str(side)+":"+str(index))
 	for name in data.get("tactical_targets",{}):
 		if not is_walkable(vec(data["tactical_targets"][name]),radius):invalid_targets.append(str(name))
-	return {"invalid_spawns":invalid_spawns,"invalid_targets":invalid_targets,"walk_cells":data.get("statistics",{}).get("walk_cells",0),"source_nav_areas":data.get("statistics",{}).get("source_nav_areas",0),"directed_portals":true,"floor_overlap_approximation":true,"navigation_space":"NAV_agent_centres" if _centre_navigation else "eroded_NAV_footprint","nominal_agent_radius":_nav_agent_radius,"cell_size":_cell_size}
+	return {"invalid_spawns":invalid_spawns,"invalid_targets":invalid_targets,"walk_cells":data.get("statistics",{}).get("walk_cells",0),"source_nav_areas":data.get("statistics",{}).get("source_nav_areas",0),"directed_portals":true,"floor_overlap_approximation":not _layered,"layer_identity_preserved":_layered,"traversal_links":_traversals.size(),"navigation_space":"NAV_agent_centres" if _centre_navigation else "eroded_NAV_footprint","nominal_agent_radius":_nav_agent_radius,"cell_size":_cell_size}
+
+func layer_at(point: Vector2) -> int:
+	return clampi(floori(point.y/1024.0),0,1) if _layered else 0
+
+func traversal_between(start: Vector2, finish: Vector2) -> Dictionary:
+	if _traversals.is_empty():return {}
+	var first := _cell_id(_cell(start))
+	var last := _cell_id(_cell(finish))
+	if first<0 or last<0:return {}
+	# The actor must reach the source gate, not activate from a nearby room.
+	if start.distance_to(_cell_center(first))>.06 or finish.distance_to(_cell_center(last))>.06:return {}
+	return _traversals.get(str(first)+":"+str(last),{}).duplicate(true)
+
+func traversal_near(point: Vector2, direction: Vector2, ladder_only: bool = false) -> Dictionary:
+	var closest := 8.0
+	var result: Dictionary={}
+	for row in _traversals.values():
+		if ladder_only and row["kind"]!="ladder":continue
+		var start := _cell_center(int(row["from"]))
+		var finish := _cell_center(int(row["to"]))
+		var distance := point.distance_to(start)
+		if distance>=closest or segment_blocked(point,start,DEFAULT_RADIUS):continue
+		var offset := Vector2(finish.x-start.x,fposmod(finish.y,1024.0)-fposmod(start.y,1024.0))
+		if offset.length_squared()>1 and offset.normalized().dot(direction.normalized())<.1:continue
+		closest=distance;result=row.duplicate(true)
+		result["start"]=start;result["finish"]=finish
+	return result
+
+func traversal_markers(layer: int, all_kinds: bool = false) -> Array:
+	var result: Array=[]
+	var occupied: Array[Vector2]=[]
+	for row in _traversals.values():
+		var start := _cell_center(int(row["from"]))
+		var finish := _cell_center(int(row["to"]))
+		if layer_at(start)!=layer:continue
+		if not all_kinds and layer_at(start)==layer_at(finish) and row["kind"]!="ladder":continue
+		if occupied.any(func(point):return Vector2(point).distance_to(start)<64.0):continue
+		occupied.append(start)
+		var direction := " ↑" if layer_at(finish)<layer_at(start) else " ↓" if layer_at(finish)>layer_at(start) else ""
+		result.append({"position":start,"kind":str(row["kind"])+direction})
+	return result

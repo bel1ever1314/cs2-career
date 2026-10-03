@@ -1,0 +1,46 @@
+{
+  "issue": "Current CS2 server rejected by navigation and observation build gates",
+  "plugin_version": "1.6.0-tactics.16",
+  "server": {
+    "version": "2000924",
+    "patch": "1.41.8.8",
+    "revision": "11076591",
+    "date": "2026-10-02",
+    "sha256": "098D4DDD57E2FBE9A73623A2BF68EBAFF86F7B6342DDB3D5A0F69CD6335B31CC",
+    "previous_reviewed_sha256": "3541E46A3193FCF1151E97CE19CD4DAF86C5FDB2889033C2BAB1D4CC7F555B9C"
+  },
+  "navigation": {
+    "complete_function_baselines": "All nine functions match the previous complete SHA256 baselines at the same RVAs",
+    "move_wrapper_rva": "0x2CFEC0",
+    "idle_wrapper_rva": "0x2C8230",
+    "both_wrapper_tail_target_rva": "0x2DE010",
+    "path_rva": "0x2BAFA0",
+    "gait": "Run and Walk complete bodies and vtable slots unchanged",
+    "move_to_vtable": "OnEnter, OnUpdate and OnExit slots unchanged",
+    "known_botai_variant": "Only the existing exact six-NOP DefuseBomb_SkipIsVisibleCheck variant remains allowed"
+  },
+  "observation": {
+    "set_look_at": {"rva": "0x2DDA40", "length": 347, "sha256": "196BC0346BA71B245A59CF0A0A15B350887F3E8A783BC90AA4BF9C8D860B0935"},
+    "clear_look_at": {"rva": "0x2FC1D0", "length": 20, "sha256": "AE3C4B176B72ABFD6C1524B58648CF714D0D338F3D3E652EF340777661808917"},
+    "consumer": {"rva": "0x2E6D30", "length": 1500, "sha256": "C30F6D1B055D250092218AB745BD5A41E249158BFA251C950BB080CC4ECD2956"},
+    "disassembly": [
+      "All three unique signatures retain their reviewed RVAs and complete function boundaries",
+      "SetLookAt retains Win64 bot/descriptor/vector/priority arguments and float/byte stack parameters",
+      "Request state +0x535C, vector +0x5360, priority +0x536C and descriptor +0x5380 retain layout",
+      "Higher-priority requests are preserved and near-vector tolerance remains 10 units",
+      "ClearLookAt writes only state and descriptor; managed release remains descriptor-owned",
+      "Consumer retains enemy-aim bypass, alignment state 1 to 2, duration start at alignment and exact COS/SIN calls"
+    ],
+    "loaded_patches": "Only the four existing exact native/COS/SIN/COS+SIN complete consumer variants remain allowed"
+  },
+  "fix": "Admit two exact reviewed whole-file hashes, retain navigation baselines and loaded-code guards, additionally pin all three complete current observation bodies",
+  "checks": {
+    "build": {"errors": 0, "warnings": 0},
+    "navigation_file_gate_and_continuation": 12634,
+    "look_file_and_lease": 47,
+    "python_tactics": 46
+  },
+  "scope": "CareerMatch compatibility only; no game DLL, BotController DLL, saved route, match state or career data modification",
+  "server_module_loaded_or_executed_by_tests": false,
+  "live_cs2_execution_tested": false
+}

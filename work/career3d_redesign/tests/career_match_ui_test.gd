@@ -5,6 +5,10 @@ var checks := 0
 var commands: Array = []
 var capture_dir := ""
 
+class SeatedFixture extends Node:
+	func match_seated(id: String) -> bool:
+		return id == "fixture-match"
+
 func _ready() -> void:
 	call_deferred("run")
 
@@ -71,7 +75,7 @@ func run() -> void:
 	Computer.open_app("career_match", "lan")
 	await settle()
 	check(Computer.location == "lan", "LAN workstation location is preserved")
-	check(button("模拟当前比赛") != null and button("自己去 CS2 打") != null, "pending career game has both simulation and CS2 actions")
+	check(button("模拟当前比赛") != null and button("自己去 CS2 打") != null, "pending career game keeps simulation and direct CS2 actions")
 	await capture("01-career-match")
 	var root_id: int = Computer.content.get_child(0).get_instance_id()
 	CareerBridge.context["clock"] = {"hour":9, "minute":21}
@@ -163,7 +167,13 @@ func run() -> void:
 	check(center.map_completed and center.round_cursor == 0, "missing event map reveals only its saved final result")
 	center.result.clear()
 	center.reveal_phase = ""
-	var info := {"match_id":"fixture-match", "phase":"veto", "can_launch":false, "can_simulate":true, "veto":{"complete":false, "steps":[], "available":["dust2", "mirage"], "turn":{"team":"Green Team", "action":"ban", "mine":true}}}
+	var original_scene := get_tree().current_scene
+	var seated_fixture := SeatedFixture.new()
+	seated_fixture.scene_file_path = "res://lan.tscn"
+	get_tree().root.add_child(seated_fixture)
+	get_tree().current_scene = seated_fixture
+	Travel.match_visit = {"match_id":"fixture-match", "destination":"lan"}
+	var info := {"match_id":"fixture-match", "phase":"veto", "can_launch":false, "can_simulate":true, "venue":{"destination":"lan", "match_id":"fixture-match"}, "veto":{"complete":false, "steps":[], "available":["dust2", "mirage"], "turn":{"team":"Green Team", "action":"ban", "mine":true}}}
 	center.show_real = true
 	Computer._finished("/api/3d/match/preflight", {"ok":true, "preflight":info})
 	check(button("Dust") != null and button("交给队长") != null, "career CS2 preflight exposes map BP")
@@ -208,6 +218,9 @@ func run() -> void:
 	button("重试进入 CS2").pressed.emit()
 	check(commands[-1].path == "/api/3d/match/launch" and commands[-1].body.side == "t", "launch retry retains the map's frozen starting side")
 	center.request_pending = false
+	get_tree().current_scene = original_scene
+	Travel.match_visit.clear()
+	seated_fixture.queue_free()
 	Computer.open_app("quick", "club")
 	check(button("本赛季使用快速模式") != null, "PC quick season has a direct mode selection outside mail")
 	Phone.present("match")

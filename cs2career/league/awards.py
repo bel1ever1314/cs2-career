@@ -258,6 +258,7 @@ def make_record(ev: dict, *, include_matches: bool = True) -> dict:
             None,
         ),
         "champion_roster": ev.get("champion_roster") or [],
+        **({"champion_roster_ids": list(ev["champion_roster_ids"])} if "champion_roster_ids" in ev else {}),
         "teams": list(ev.get("field") or []),
         "format": ev.get("resolved_format") or ev.get("format"),
         "major_stage": ev.get("major_stage"),

@@ -1,6 +1,6 @@
 # 构建与 GitHub 发布
 
-## 1.7.0-preview.1 · 3D 版
+## 1.7.0-preview.2 · 3D 版
 
 本版发布普通 Windows 包与对应源码，GitHub 标记为 pre-release。
 主分支保存当前源码；既有 1.6.0-hotfix.1 标签和正式 Release 不修改。

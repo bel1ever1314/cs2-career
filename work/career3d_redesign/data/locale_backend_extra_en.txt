@@ -1,0 +1,244 @@
+# Authored backend display messages. Chinese<TAB>English. IDs and command values are unchanged.
+# Installation and compatibility preparation.
+随包人机增强 / Bot Improver	Bundled Bot Improver
+请先保存 Bot Improver 发行包的完整目录。	Save the full path to the Bot Improver release folder first.
+找不到设置中的人机增强目录，请确认发行包已解压。	The Bot Improver folder in Settings could not be found. Make sure the release has been extracted.
+人机增强来源含目录链接，未安装。	The Bot Improver source contains directory links. Nothing was installed.
+请选择 Bot Improver 发行包目录，不能使用磁盘根目录。	Select the Bot Improver release folder, not the root of a drive.
+人机增强目录缺少 {path}。请选择同时包含 addons 和 overrides 的发行包目录。	The Bot Improver folder is missing {path}. Select a release folder containing both addons and overrides.
+安装只允许使用已隔离的 3D 生涯设置。	Installation requires the isolated 3D career settings.
+安装备份不能使用磁盘根目录。	Installation backups cannot use the root of a drive.
+当前目录缺少 3D 生涯隔离标记。	The current folder is missing the 3D career isolation marker.
+当前目录的 3D 生涯隔离标记无效。	The 3D career isolation marker in the current folder is invalid.
+CS2 设置未隔离，不能继续安装。	The CS2 settings are not isolated. Installation cannot continue.
+人机增强目录包含目录链接，未安装。	The Bot Improver folder contains directory links. Nothing was installed.
+安装目标超出所选 CS2 目录，未安装。	An installation target is outside the selected CS2 folder. Nothing was installed.
+CS2 安装目标含目录链接，未安装。	A CS2 installation target contains directory links. Nothing was installed.
+随包换肤组件缺失，未安装。	The bundled skin component is missing. Nothing was installed.
+随包换肤组件包含目录链接，未安装。	The bundled skin component contains directory links. Nothing was installed.
+随包换肤桥包含目录链接，未安装。	The bundled skin bridge contains directory links. Nothing was installed.
+安装备份目录含目录链接，未安装。	The installation backup folder contains directory links. Nothing was installed.
+安装文件目标被目录占用，未安装：{path}	A folder occupies an installation file target. Nothing was installed: {path}
+安装前备份核对失败，未安装：{path}	The pre-installation backup failed verification. Nothing was installed: {path}
+请明确确认安装人机增强。	Explicitly confirm the Bot Improver installation.
+请选择随包人机增强或设置中的发行包。	Select the bundled Bot Improver or the release specified in Settings.
+CS2、训练或 RTS 对局尚未结束，请完成或取消后再安装。	A CS2, training or RTS match is still active. Finish or cancel it before installing.
+生涯或存档恢复尚未完成，请重启恢复后再安装。	Career or save recovery is incomplete. Restart to recover before installing.
+此测试包未提供随包人机增强；可在设置中选择已下载的发行包并安装。	This test build does not include Bot Improver. Select a downloaded release in Settings to install it.
+请先在设置中保存本机 CS2 / game / csgo 完整路径。	Save the full path to your local CS2 / game / csgo folder in Settings first.
+所选 CS2 目录无效或缺少 gameinfo.gi，请核对后再安装。	The selected CS2 folder is invalid or missing gameinfo.gi. Check the path before installing.
+人机增强来源不能与 CS2 安装目录重叠。	The Bot Improver source must not overlap the CS2 installation folder.
+安装人机增强	install Bot Improver
+请完全退出 CS2 后再安装人机增强。	Fully exit CS2 before installing Bot Improver.
+请完全退出 CS2 后再{action}。	Fully exit CS2 before you {action}.
+人机增强安装未完成。	The Bot Improver installation did not complete.
+可选换肤组件安装未完成。	The optional skin component installation did not complete.
+安装未完成；安装前备份保留在 {path}。{error}	Installation did not complete. The pre-installation backup remains at {path}. {error}
+设置中的人机增强	Bot Improver selected in Settings
+随包人机增强	bundled Bot Improver
+已更新并安装设置中的人机增强（{count} 个文件）。后续开赛使用兼容副本。安装前备份：{path}	Updated and installed the Bot Improver selected in Settings ({count} files). Future matches will use the compatible copy. Pre-installation backup: {path}
+已更新并安装随包人机增强（{count} 个文件）。后续开赛使用兼容副本。安装前备份：{path}	Updated and installed bundled Bot Improver ({count} files). Future matches will use the compatible copy. Pre-installation backup: {path}
+已更新并安装{name}（{count} 个文件）。后续开赛使用兼容副本。安装前备份：{path}	Updated and installed {name} ({count} files). Future matches will use the compatible copy. Pre-installation backup: {path}
+兼容组件包含无效的文件名。	A compatibility component contains an invalid file name.
+兼容组件文件超出允许目录。	A compatibility component file is outside the permitted folder.
+兼容组件包含 Windows 不支持的文件名。	A compatibility component contains a file name unsupported by Windows.
+兼容组件包含 Windows 保留文件名。	A compatibility component contains a reserved Windows file name.
+人机增强兼容清单格式不正确。	The Bot Improver compatibility manifest has an invalid format.
+人机增强兼容清单缺少版本。	The Bot Improver compatibility manifest is missing its version.
+人机增强兼容清单缺少组件。	The Bot Improver compatibility manifest is missing its components.
+兼容组件名称不正确。	A compatibility component name is invalid.
+兼容组件名称重复。	A compatibility component name is duplicated.
+兼容组件缺少版本。	A compatibility component is missing its version.
+兼容组件缺少固定校验值。	A compatibility component is missing its pinned checksum.
+兼容组件必须使用固定的官方 GitHub 下载地址。	Compatibility components must use pinned download URLs from official GitHub projects.
+兼容组件下载地址不是固定的 ZIP 发行包。	A compatibility component download URL does not point to a pinned ZIP release.
+兼容组件来自未知的上游项目。	A compatibility component comes from an unknown upstream project.
+兼容组件路径清单格式不正确。	A compatibility component path list has an invalid format.
+兼容清单引用了非运行文件。	The compatibility manifest references a file that is not part of the runtime.
+兼容清单只能保留人机增强设置，不能保留旧运行组件。	The compatibility manifest may preserve Bot Improver settings, but not old runtime components.
+兼容组件下载跳转到未知地址。	A compatibility component download redirected to an unknown address.
+兼容组件下载大小超出范围。	A compatibility component download exceeds the allowed size.
+兼容下载缓存含目录链接。	The compatibility download cache contains directory links.
+兼容下载缓存不是普通文件。	A compatibility download cache entry is not a regular file.
+兼容组件下载文件不正确。	A downloaded compatibility component file is invalid.
+兼容组件校验失败：{name}，没有安装。	Compatibility component verification failed: {name}. Nothing was installed.
+兼容组件包含过多文件。	A compatibility component contains too many files.
+兼容组件包含链接或加密文件。	A compatibility component contains links or encrypted files.
+兼容组件包含重复文件名。	A compatibility component contains duplicate file names.
+兼容组件解压大小超出范围。	A compatibility component exceeds the allowed expanded size.
+兼容组件文件与目录冲突。	A compatibility component has a file/folder conflict.
+兼容组件没有可安装的运行文件：{name}	A compatibility component contains no installable runtime files: {name}
+兼容组件目标文件重复。	A compatibility component has duplicate destination files.
+兼容发行包缺少必需文件：{name}	A compatibility release is missing required files: {name}
+人机增强来源缺少普通 addons 目录。	The Bot Improver source is missing a regular addons folder.
+人机增强运行文件含目录链接。	The Bot Improver runtime contains directory links.
+人机增强运行文件含链接。	The Bot Improver runtime contains file links.
+人机增强运行文件大小超出范围。	The Bot Improver runtime files exceed the allowed size.
+兼容安装需要完整的本机目录。	Compatibility installation requires full paths to local folders.
+兼容安装目录不存在或含链接。	A compatibility installation folder does not exist or contains links.
+兼容来源不能与游戏目录重叠。	The compatibility source must not overlap the game folder.
+兼容缓存不能与来源或游戏目录重叠。	The compatibility cache must not overlap the source or game folder.
+兼容缓存含目录链接。	The compatibility cache contains directory links.
+兼容运行缓存含目录链接。	The compatible runtime cache contains directory links.
+人机增强来源在准备期间发生变化，没有安装。	The Bot Improver source changed during preparation. Nothing was installed.
+兼容组件文件长度不符，没有安装。	A compatibility component file has an unexpected size. Nothing was installed.
+兼容组件缺少必需文件：{name}	A compatibility component is missing required files: {name}
+兼容运行组件不完整，没有安装。	The compatible runtime components are incomplete. Nothing was installed.
+# Manual slots and paired progress recovery.
+训练正在等待真实回传，请完成或取消后保存/读取。	Training is awaiting a real match result. Finish or cancel it before saving or loading.
+天梯/自定义比赛正在启动、等待回传或执行 RTS，请先完成或取消。	A ladder/custom match is starting, awaiting a result or running in RTS. Finish or cancel it first.
+职业 CS2/RTS 尚未结算，请完成或取消后保存/读取。	A career CS2/RTS match is unsettled. Finish or cancel it before saving or loading.
+生涯事务尚未提交，请重新启动恢复后再保存/读取。	A career transaction has not committed. Restart to recover before saving or loading.
+存档恢复事务尚未完成，请重新启动恢复。	Save recovery is incomplete. Restart to recover.
+手动存档版本不兼容，当前进度未更改。	This manual save version is incompatible. Your current progress is unchanged.
+手动存档赛季数据不完整。	The manual save has incomplete season data.
+手动存档赛季结构无效。	The manual save has an invalid season structure.
+随机进度版本无效。	The saved random-state version is invalid.
+手动存档角色数据不完整或含未知字段。	The manual save has incomplete character data or unknown fields.
+手动存档角色结构无效。	The manual save has an invalid character structure.
+手动存档状态版本无效。	The manual save has an invalid state version.
+手动存档的角色与战队不匹配。	The manual save's character and team do not match.
+手动存档天梯结构无效。	The manual save has an invalid ladder structure.
+这个存档包含未结算比赛，不能切换到在途身份。	This save contains an unsettled match. You cannot switch to an identity with an active match.
+手动存档内部数据不完整，当前进度未更改。	The manual save's internal data is incomplete. Your current progress is unchanged.
+没有这个存档操作。	This save operation does not exist.
+请提供 8 至 100 字符的本次存档请求编号。	Provide a request ID of 8 to 100 characters for this save operation.
+请输入 1 至 64 字符的存档名称。	Enter a save name of 1 to 64 characters.
+请先明确确认读取或删除这个手动存档。	Explicitly confirm loading or deleting this manual save first.
+这个请求编号已经用于其他存档操作。	This request ID has already been used for another save operation.
+手动存档已保存。	Manual save created.
+这个手动存档不存在。	This manual save does not exist.
+手动存档已删除，当前进度未回退。	Manual save deleted. Your current progress has not been rolled back.
+手动存档已读取。	Manual save loaded.
+存档包含无效数值：{value}	The save contains an invalid numeric value: {value}
+手动存档目录不能指向其他位置。	The manual save folder must not redirect to another location.
+手动存档编号无效。	The manual save ID is invalid.
+手动存档路径无效。	The manual save path is invalid.
+存档文件缺失或不是普通文件。	A save file is missing or is not a regular file.
+存档文件过大，未读取或覆盖。	The save file is too large. It was not read or overwritten.
+手动存档请求记录损坏，请保留原文件。	The manual save request log is corrupt. Preserve the original file.
+手动存档清单损坏。	The manual save manifest is corrupt.
+手动存档摘要无效。	The manual save summary is invalid.
+手动存档校验信息无效。	The manual save verification data is invalid.
+手动存档缺少完整的三份进度。	The manual save is missing one or more of the three complete progress files.
+损坏的手动存档	Corrupt manual save
+手动存档解压大小不符。	The manual save's expanded size does not match.
+手动存档压缩文件损坏，当前进度未更改。	The compressed manual save is corrupt. Your current progress is unchanged.
+手动存档校验失败，当前进度未更改。	The manual save failed verification. Your current progress is unchanged.
+手动存档内容不是有效进度。	The manual save does not contain valid progress.
+手动存档必须包含完整三份进度。	A manual save must contain all three complete progress files.
+手动存档编号已被其他请求占用。	The manual save ID is already used by another request.
+手动存档进度大小无效。	The manual save progress size is invalid.
+存档临时目录不能是链接。	The temporary save folder must not be a link.
+存档目录含未知内容，未删除。	The save folder contains unknown contents. Nothing was deleted.
+存档恢复事务尚未完成，请重启后再试。	Save recovery is incomplete. Restart before trying again.
+存档恢复记录损坏，未替换当前进度。	The save recovery log is corrupt. Your current progress was not replaced.
+存档恢复临时路径无效。	The temporary save recovery path is invalid.
+存档回滚文件校验失败，已保留恢复记录。	A save rollback file failed verification. The recovery log has been preserved.
+当前存档不能是链接。	The current save must not be a link.
+# Optional native skin/sticker tooling and public loadouts.
+可选饰品工具接口尚未启用。	The optional skin tools interface is not enabled.
+生涯版本数据无效。	The career revision data is invalid.
+饰品 ID 必须是有效的库存实例 ID。	The item ID must be a valid inventory instance ID.
+库存中没有这件饰品。	This item is not in your inventory.
+武器贴纸模型数据无效。	The weapon sticker model data is invalid.
+武器贴纸模型开关无效。	A weapon sticker model setting is invalid.
+模型锚点数量	Model anchor count
+模型贴纸槽位配置无效。	The model's sticker slot configuration is invalid.
+模型旋转限值超出允许范围。	The model's rotation limits exceed the allowed range.
+贴纸武器限制配置无效。	The sticker weapon restriction configuration is invalid.
+贴纸名称数据无效。	The sticker name data is invalid.
+贴纸编辑需要 schema_version、id、expected_hash、revision 和 stickers。	Sticker editing requires schema_version, id, expected_hash, revision and stickers.
+饰品工具只支持 schema_version 1。	Skin tools support only schema_version 1.
+库存已变化，请重新读取饰品后再编辑。	Your inventory has changed. Reload the item before editing.
+expected_hash 必须是当前饰品的外观哈希。	expected_hash must be the current item's appearance hash.
+饰品外观已变化，请重新读取后再编辑。	The item's appearance has changed. Reload it before editing.
+贴纸必须是数组，每件武器最多 5 张。	Stickers must be an array containing at most five stickers per weapon.
+该饰品不支持贴纸编辑。	This item does not support sticker editing.
+贴纸只能包含原生槽位、kit、磨损、旋转、偏移和锚点参数。	Stickers may contain only native slot, kit, wear, rotation, offset and anchor parameters.
+公开配装模板；磨损和图案沿用已声明的模拟默认值。仅使用游戏币，入库后可装备，不可转卖。	Public loadout template. Wear and pattern use the stated simulated defaults. Purchased with in-game currency only; items can be equipped but not resold.
+配装物品没有可用的游戏币定价参照。	No in-game currency price reference is available for this loadout item.
+配装目录价格必须是正整数游戏币。	Loadout catalogue prices must be positive integer amounts of in-game currency.
+此配装已入库，保留现有物品，不会重复扣币或补发。	This loadout is already in your inventory. Existing items are kept; you will not be charged or issued items again.
+个人游戏币不足。	You do not have enough personal in-game currency.
+{name} 配装包	{name} loadout pack
+单件采用现有游戏币目录报价；无同款报价时按同槽位目录估算合计。	Items use existing catalogue prices in in-game currency. Where an exact price is unavailable, the total is estimated from catalogue items in the same slot.
+配装购买请求必须是对象。	A loadout purchase request must be an object.
+配装购买需要有效 ID 与 8 至 100 字符的 request_id。	A loadout purchase requires a valid ID and a request_id of 8 to 100 characters.
+这个 request_id 已用于另一个配装包。	This request_id has already been used for another loadout pack.
+没有这个公开配装包。	This public loadout pack does not exist.
+库存或游戏币已变化，请刷新后再购买配装。	Your inventory or in-game currency has changed. Refresh before purchasing the loadout.
+配装已有库存记录，请刷新后查看，不会重复扣币。	This loadout already has an inventory record. Refresh to view it; you will not be charged again.
+已用 {price} 游戏币购买 {name} 配装，{count} 件物品已入库。	Purchased the {name} loadout for {price} in-game currency. {count} items were added to your inventory.
+{label}必须是 {lo} 到 {hi} 的整数。	{label} must be an integer from {lo} to {hi}.
+{label}必须是有限数字。	{label} must be a finite number.
+{label}超出允许范围。	{label} is outside the allowed range.
+{label}必须是 1-96 位字母、数字、点、横线或下划线。	{label} must contain 1 to 96 letters, digits, dots, hyphens or underscores.
+饰品数据无法读取：{error}	Item data could not be read: {error}
+贴纸目录需要 stickers 数组和 models 对象。	The sticker catalogue requires a stickers array and a models object.
+贴纸目录中的每个条目必须是对象。	Every sticker catalogue entry must be an object.
+贴纸 kit ID	Sticker kit ID
+贴纸目录存在重复 kit ID。	The sticker catalogue contains duplicate kit IDs.
+该武器模型没有登记 {axis} 偏移限值。	No {axis} offset limits are registered for this weapon model.
+{axis} 下限	{axis} minimum
+{axis} 上限	{axis} maximum
+模型限值顺序无效。	The model's minimum/maximum limit order is invalid.
+武器定义	Weapon definition
+该武器模型尚未登记贴纸支持。	Sticker support is not registered for this weapon model.
+每张贴纸必须是对象。	Every sticker must be an object.
+贴纸槽位	Sticker slot
+同一个贴纸槽位不能重复。	The same sticker slot cannot be used twice.
+该模型不支持所选贴纸槽位。	This model does not support the selected sticker slot.
+贴纸 kit ID 不在已核验目录中。	The sticker kit ID is not in the verified catalogue.
+这张贴纸不支持该武器模型。	This sticker does not support this weapon model.
+贴纸 schema	Sticker schema
+贴纸磨损	Sticker wear
+旋转下限	Minimum rotation
+旋转上限	Maximum rotation
+模型旋转限值顺序无效。	The model's rotation limit order is invalid.
+贴纸旋转	Sticker rotation
+{axis} 偏移	{axis} offset
+库存外观必须是对象。	An inventory appearance must be an object.
+涂装编号	Paint kit ID
+武器磨损	Weapon wear
+武器模板	Weapon pattern seed
+名称标签必须是最多 128 字的文本。	A name tag must be text containing at most 128 characters.
+颜色编号	Colour ID
+挂件数据必须有有效槽位。	Charm data must have a valid slot.
+外观包含非 JSON 或非有限数据。	The appearance contains non-JSON or non-finite data.
+库存必须是对象数组。	The inventory must be an array of objects.
+库存实例 ID 缺失或重复。	An inventory instance ID is missing or duplicated.
+移除槽位 {slots} 的贴纸；免费编辑，不改变售价。	Removed stickers from slots {slots}. Editing is free and does not change the sale price.
+替换槽位 {slots} 的贴纸；旧贴纸不会新增为可出售库存。	Replaced stickers in slots {slots}. Old stickers are not added as sellable inventory items.
+贴纸已免费更新；个人资金和饰品售价不变。	Stickers updated for free. Personal funds and item sale prices are unchanged.
+贴纸已免费更新；个人资金和饰品售价不变。 {warnings}	Stickers updated for free. Personal funds and item sale prices are unchanged. {warnings}
+贴纸已免费更新；个人资金和饰品售价不变。 移除槽位 {removed} 的贴纸；免费编辑，不改变售价。 替换槽位 {replaced} 的贴纸；旧贴纸不会新增为可出售库存。	Stickers updated for free. Personal funds and item sale prices are unchanged. Removed stickers from slots {removed}; sale prices are unchanged. Replaced stickers in slots {replaced}; old stickers are not added as sellable inventory items.
+皮肤目录需要 skins 数组或 ID 映射。	The skin catalogue requires a skins array or an ID mapping.
+皮肤目录条目无效。	A skin catalogue entry is invalid.
+配装来源日期需要 YYYY-MM-DD。	The loadout source date must use YYYY-MM-DD.
+配装来源日期无效。	The loadout source date is invalid.
+配装来源 URL 无效。	The loadout source URL is invalid.
+配装来源需要无登录凭据的 HTTP(S) URL。	The loadout source requires an HTTP(S) URL without login credentials.
+配装包只支持 schema_version 1。	Loadout packs support only schema_version 1.
+配装包 ID	Loadout pack ID
+免费配装包仅支持 donk、ZywOo、m0NESY、NiKo。	Free loadout packs support only donk, ZywOo, m0NESY and NiKo.
+免费配装标记必须是布尔值。	The free-loadout flag must be a boolean.
+免费配装价格	Free loadout price
+这些配装包必须免费。	These loadout packs must be free.
+配装包需要 1-64 件物品。	A loadout pack requires 1 to 64 items.
+配装物品必须是对象。	Every loadout item must be an object.
+配装物品 ID	Loadout item ID
+配装包内物品 ID 重复。	A loadout pack contains duplicate item IDs.
+配装引用了目录中不存在的皮肤。	The loadout references a skin that does not exist in the catalogue.
+默认参数必须明确标记为 finish_only 公开配装模板。	Default parameters must be explicitly marked as a finish_only public loadout template.
+默认参数需要 source_parameters 明示来源未知值。	Default parameters require source_parameters to declare unknown source values.
+默认参数不能冒充已核验的选手实例参数。	Default parameters must not be presented as verified parameters of a player's item instance.
+实例参数与声明的模板默认值不一致。	Instance parameters do not match the declared template defaults.
+配装的武器／涂装与所引用皮肤目录不符。	The loadout's weapon/paint kit does not match the referenced skin catalogue.
+涂装磨损下限	Minimum finish wear
+涂装磨损上限	Maximum finish wear
+涂装磨损限值顺序无效。	The finish wear limit order is invalid.
+涂装磨损	Finish wear
+配装的武器槽位与皮肤目录不符。	The loadout's weapon slot does not match the skin catalogue.
+下一库存编号	Next inventory ID
+免费入库 {added} 件配装；跳过 {skipped} 件已导入物品。赠送外观不可出售。	Added {added} free loadout items to your inventory; skipped {skipped} previously imported items. Gifted appearances cannot be sold.

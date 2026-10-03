@@ -17,7 +17,8 @@ func settle() -> void:
 
 func named_button(fragment: String) -> Button:
 	for button in Computer.content.find_children("*", "Button", true, false):
-		if button.is_visible_in_tree() and fragment in button.text:
+		# The shared scoreboard spaces its player marker more generously.
+		if button.is_visible_in_tree() and fragment in button.text.replace("  ", " "):
 			return button
 	return null
 

@@ -246,7 +246,20 @@ func run() -> void:
 	check(not button("CustomRTS").disabled, "Overpass becomes available in actual custom setup after completion validation")
 	CareerBridge.context.custom.lobby.map = "nuke"
 	Computer.open_app("custom", "club"); await settle()
-	check(button("CustomRTS").disabled, "custom setup still blocks a real unsupported layered map")
+	check(not button("CustomRTS").disabled, "custom setup exposes verified layered Nuke navigation")
+	button("CustomRTS").pressed.emit();await settle()
+	CareerBridge.busy=false # Local custom launch needs no queued HTTP operation.
+	room.start_session();await settle()
+	CareerBridge.busy=true
+	var layered_game=room.session
+	check(is_instance_valid(layered_game) and layered_game.initial_map=="de_nuke" and layered_game.sim!=null,"embedded custom Nuke uses its actual layered resource")
+	if is_instance_valid(layered_game):
+		layered_game.set_process(false)
+		check(layered_game.sim.get_map_model().validation_report()["layer_identity_preserved"],"embedded map preserves actual floor identities")
+		layered_game.renderer.set_layer(1)
+		check(layered_game.renderer.view_layer==1 and layered_game.renderer.texture!=null,"embedded lower floor has its own readable radar")
+		check(layered_game.find_child("RTSFloorSwitch",true,false)!=null,"embedded RTS exposes floor switching control")
+		room.close_session();await settle()
 	room.entry_kind = "arena"; room.career_match_id = "stale-match"
 	Computer.open_app("battle", "club"); await settle()
 	button("ComputerOpenRTS").pressed.emit(); await settle()

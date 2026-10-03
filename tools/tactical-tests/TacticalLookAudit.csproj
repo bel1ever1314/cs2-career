@@ -5,8 +5,10 @@
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems><NuGetAudit>false</NuGetAudit>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../vendor/CareerMatch/TacticalFeatureAudit.cs" />
     <Compile Include="../../vendor/CareerMatch/TacticalNativeLook.cs" />
     <Compile Include="TacticalNativeLookRegression.cs" />
+    <Compile Include="FeatureProfileRegression.cs" />
     <Reference Include="$(FrameworkApiDirectory)/*.dll" />
   </ItemGroup>
 </Project>

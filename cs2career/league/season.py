@@ -301,6 +301,7 @@ class Season:
 
         champ_team = next((t for t in self.teams if t["name"] == ev["champion"]), None)
         ev["champion_roster"] = [p["name"] for p in champ_team["players"]] if champ_team else []
+        ev["champion_roster_ids"] = [p["player_id"] for p in champ_team["players"] if p.get("player_id")] if champ_team else []
 
         store = self.player_event.get(ev["id"]) or {}
         ev["awards"] = awards.event_awards(ev, store)

@@ -24,7 +24,7 @@ import urllib.request
 import uuid
 from pathlib import Path
 
-from ..paths import frozen, logo_dir, save_file, save_root, static_dir, vendor_root
+from ..paths import frozen, io_path, logo_dir, save_file, save_root, static_dir, vendor_root
 from .profiles import active_manifest, generate_match_vpk, stable_player_id
 from .result import pick_better_result, result_quality
 from .gameinfo import ensure_gameinfo_mounts
@@ -246,7 +246,9 @@ def _autofill(cfg: dict) -> dict:
         cfg["csgo_path"] = str(resolved)
     else:
         cfg["csgo_path"] = find_csgo_path() or ""
-    if not Path(cfg["mod_source_path"]).is_dir():
+    mod = Path(cfg["mod_source_path"])
+    cached_source = mod.name == "runtime" and "runtime-cache" in (part.lower() for part in mod.parts)
+    if not io_path(mod).is_dir() and not cached_source:
         cfg["mod_source_path"] = find_mod_source() or cfg["mod_source_path"]
     return cfg
 
@@ -409,6 +411,23 @@ def cs2_is_live() -> bool:
     return bool(live_cs2_pids())
 
 
+def cs2_is_live_strict() -> bool:
+    """Publication guard: distinguish an empty process table from query failure.
+
+    Legacy callers retain cs2_is_live's compatibility behaviour. Never treat
+    _powershell's swallowed exception/empty output as permission to publish.
+    """
+    result = _powershell(
+        "$ErrorActionPreference='Stop'; "
+        "$tacticSyncProcesses = @(Get-Process -ErrorAction Stop | "
+        "Where-Object { $_.ProcessName -eq 'cs2' -and $_.HandleCount -ne 0 }); "
+        "'ok:' + (($tacticSyncProcesses | Select-Object -ExpandProperty Id) -join ',')"
+    ).strip()
+    if not re.fullmatch(r"ok:(?:[1-9]\d*(?:,[1-9]\d*)*)?", result):
+        raise RuntimeError("无法核验 CS2 进程状态，未同步当前对局战术")
+    return bool(result[3:])
+
+
 def require_cs2_closed(action: str = "改游戏文件") -> None:
     if cs2_is_live():
         raise ValueError(f"请先完全退出 CS2，再{action}。")
@@ -543,7 +562,11 @@ def _validate_gamedata(blob: bytes) -> dict:
 
 
 def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else ""
+    path = io_path(path)
+    if not path.is_file():
+        return ""
+    with path.open("rb") as stream:
+        return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
 def _atomic_replace(path: Path, blob: bytes, backup: Path | None = None) -> None:
@@ -664,6 +687,7 @@ def _plugin_parked(csgo: Path, name: str) -> Path:
 
 def _copy_tree(src: Path, dst: Path) -> int:
     copied = 0
+    src, dst = io_path(src), io_path(dst)
     if not src.is_dir():
         return 0
     for item in src.rglob("*"):
@@ -698,9 +722,12 @@ def restore_bot_randomizer(csgo: Path) -> int:
     """Put BotRandomizer back even if a previous match parked it."""
     live = _plugin_live(csgo, "BotRandomizer")
     dll = live / "BotRandomizer.dll"
+    mod = Path(settings()["mod_source_path"])
+    compatible = _compatible_randomizer(mod)
     sources = [
+        *([compatible] if compatible is not None else []),
         _plugin_parked(csgo, "BotRandomizer"),
-        Path(settings()["mod_source_path"])
+        mod
         / "addons"
         / "counterstrikesharp"
         / "plugins"
@@ -710,6 +737,34 @@ def restore_bot_randomizer(csgo: Path) -> int:
     if src is None:
         return 1 if dll.is_file() else 0
     return _copy_tree(src, live)
+
+
+def _compatible_randomizer(mod: Path) -> Path | None:
+    """A verified installation cohort wins over an older parked plugin.
+
+    This small, on-demand check runs during preparation, never during gameplay.
+    Legacy installations without a receipt retain their original restore order.
+    """
+    receipt = mod.parent / "RUNTIME_COMPAT_RECEIPT.json"
+    relative = "addons/counterstrikesharp/plugins/BotRandomizer/"
+    cached_source = mod.name == "runtime" and "runtime-cache" in (part.lower() for part in mod.parts)
+    if not io_path(receipt).exists() and not cached_source:
+        return None
+    try:
+        if not io_path(receipt).is_file() or io_path(receipt).stat().st_size > 1024 * 1024:
+            raise ValueError("missing compatibility receipt")
+        data = json.loads(io_path(receipt).read_text("utf-8"))
+        if data.get("schema_version") != 1 or not any(
+            item.get("name") == "BotRandomizer" for item in data.get("components", [])
+        ):
+            raise ValueError("missing Randomizer component")
+        for name in ("BotRandomizer.dll", "BotRandomizer.deps.json", "cosmetic_catalog.json", "charm_placements.json"):
+            key = relative + name
+            if _sha256(mod / key) != data.get("files", {}).get(key) or not io_path(mod / key).is_file():
+                raise ValueError("changed Randomizer component")
+        return mod / relative
+    except (OSError, ValueError, TypeError, AttributeError) as exc:
+        raise ValueError("人机增强兼容副本不完整，请关闭 CS2 后在设置中重新安装。未恢复旧插件。") from exc
 
 
 def install_skins_plugin(csgo: Path, career=None) -> int:
@@ -853,6 +908,13 @@ def mod_installed(csgo: Path) -> bool:
     )
 
 
+def mod_runtime_file(relative: Path) -> bool:
+    """Copy the bundled .NET host, not the upstream desktop executables."""
+    return relative.suffix.lower() != ".exe" or tuple(part.lower() for part in relative.parts[:3]) == (
+        "addons", "counterstrikesharp", "dotnet"
+    )
+
+
 def install_mod(csgo: Path | None = None, mod: Path | None = None) -> dict:
     """Copy only Bot Improver's runtime; career matches provide their own nine identities."""
     require_cs2_closed("把人机增强装进游戏")
@@ -877,10 +939,12 @@ def install_mod(csgo: Path | None = None, mod: Path | None = None) -> dict:
     ensure_gameinfo_mounts(csgo)
 
     files = 0
-    for src in mod.rglob("*"):
-        if src.is_dir() or src.suffix.lower() == ".exe":
+    for src in io_path(mod).rglob("*"):
+        if src.is_dir():
             continue
-        rel = src.relative_to(mod)
+        rel = src.relative_to(io_path(mod))
+        if not mod_runtime_file(rel):
+            continue
         rel_key = "/".join(part.lower() for part in rel.parts)
         if skins_inventory_mode(cfg) == "external" and external_inventory_file(rel_key):
             continue
@@ -903,7 +967,7 @@ def install_mod(csgo: Path | None = None, mod: Path | None = None) -> dict:
             continue
         if rel_key == "addons/counterstrikesharp/plugins/careermatch/tactical_playbook.json":
             continue  # Deploy only our separately validated local library.
-        dst = csgo / rel
+        dst = io_path(csgo / rel)
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dst)
         files += 1
@@ -1299,8 +1363,91 @@ def _deploy_tactical_playbook(csgo: Path, playbook: dict | None = None) -> int:
     target = plugin_dir(csgo) / "tactical_playbook.json"
     if target.is_file() and target.stat().st_size == len(blob) and target.read_bytes() == blob:
         return 0
-    tactics.write_library(target, clean)
+    tactics.write_library(target, clean, before_replace=lambda: require_cs2_closed("部署地图战术库"))
     return 1
+
+
+def tactical_publication(csgo: Path | None, map_code: str, sessions: list[dict], *, sync=False) -> dict:
+    """Read status, or publish ONLY the playbook to a verified existing session.
+
+    Sessions are trusted application facts, never HTTP-provided nonce/paths.
+    No request, result, routes, profile, DLL or career state is regenerated.
+    Publication is not a claim that a running plugin has reloaded its snapshot.
+    """
+    from .. import tactics
+    code = tactics.canonical_map(map_code)
+    clean = tactics.load_library(code)
+    out = dict(status="no_session", map=code, prepared_map="", published_map="", saved_ids=[t["id"] for t in clean["tactics"]],
+               published_ids=[], synced=False, pending=True, can_sync=False, cs2_running=None,
+               reason="战术已保存在独立库；没有当前已准备对局，下次开局自动同步。")
+    if not sessions:
+        return out
+    if csgo is None or not is_csgo_dir(Path(csgo)):
+        return dict(out, status="unavailable", reason="战术已保存；游戏目录不可用，未同步当前对局。")
+    try:
+        folder = plugin_dir(Path(csgo))
+        request_path = folder / "match_request.json"
+        if not request_path.is_file() or not (folder / "CareerMatch.dll").is_file():
+            return dict(out, reason="战术已保存；当前对局尚未准备游戏文件，下次开局自动同步。")
+        def read_request():
+            with request_path.open("rb") as source:
+                return source.read(tactics.MAX_BYTES + 1)
+        request_bytes = read_request()
+        request = tactics.decode_json(request_bytes)
+        if not isinstance(request, dict) or request.get("active") is not True or request.get("schema_version") != 2:
+            return dict(out, status="session_mismatch", reason="战术已保存；游戏请求不是有效的当前对局，未同步。")
+        prepared = tactics.canonical_map(request.get("map"))
+        out["prepared_map"] = prepared
+        matching = [s for s in sessions if isinstance(s, dict) and s.get("nonce")
+                    and s.get("nonce") == request.get("nonce")]
+        session = matching[0] if len(matching) == 1 else None
+        expected = (session or {}).get("expected_player_ids")
+        if any(not isinstance(request.get(side), dict)
+               or not isinstance(request[side].get("players"), list)
+               or any(not isinstance(p, dict) for p in request[side]["players"]) for side in ("ct", "t")):
+            return dict(out, status="session_mismatch", reason="战术已保存；游戏请求与当前会话 nonce、地图或十人身份不一致，未同步。")
+        players = [p.get("player_id") for side in ("ct", "t")
+                   for p in request.get(side, {}).get("players", []) if isinstance(p, dict)]
+        if request.get("human_player_id"):
+            players.append(request["human_player_id"])
+        if (not session or not isinstance(expected, list) or len(expected) != 10
+            or len(set(expected)) != 10 or not all(isinstance(p, str) and p for p in expected)
+            or len(players) != 10 or set(players) != set(expected) or len(set(players)) != 10
+            or tactics.canonical_map(session.get("cs2_map") or session.get("map")) != prepared):
+            return dict(out, status="session_mismatch", reason="战术已保存；游戏请求与当前会话 nonce、地图或十人身份不一致，未同步。")
+        target = folder / "tactical_playbook.json"
+        published = None
+        if target.is_file():
+            with target.open("rb") as source:
+                published = tactics.validate_library(tactics.decode_json(source.read(tactics.MAX_BYTES + 1)))
+            out["published_map"] = published["map"]
+            if published["map"] == prepared:
+                out["published_ids"] = [t["id"] for t in published["tactics"]]
+        if prepared != code:
+            return dict(out, status="map_mismatch", reason="战术已保存；当前对局是 %s，此地图下次开局自动同步。" % prepared)
+        same = published == clean
+        live = cs2_is_live_strict()
+        if live is not True and live is not False:
+            return dict(out, status="unavailable", reason="战术已保存；无法确认 CS2 已关闭，当前对局未同步。")
+        out.update(cs2_running=live, synced=same, pending=not same, can_sync=not live)
+        if same:
+            return dict(out, status="synced", reason="战术库已同步当前对局，不需重新准备或重置比赛。准备阶段使用已发布 ID。")
+        if live:
+            return dict(out, status="pending", reason="战术已保存，尚未同步：CS2 正在运行，本场快照未改动。退出后重新读取战术并点击同步当前对局，不需重置比赛。")
+        if not sync:
+            return dict(out, status="pending", reason="保存库与本场快照不同；点击同步当前对局后生效，不需重置比赛。")
+        def guard_snapshot():
+            if cs2_is_live_strict() is not False:
+                raise ValueError("请先完全退出 CS2，再同步当前对局战术。")
+            if read_request() != request_bytes:
+                raise ValueError("当前对局请求已变化，未发布战术；请刷新后再同步。")
+        guard_snapshot()
+        tactics.write_library(target, clean, before_replace=guard_snapshot)
+        return dict(out, status="synced", published_map=prepared, published_ids=list(out["saved_ids"]), synced=True, pending=False,
+                    reason="战术库已同步当前对局，不需重新准备或重置比赛。准备阶段使用已发布 ID。")
+    except (OSError, ValueError, TypeError, AttributeError, RuntimeError) as exc:
+        return dict(out, status="sync_error", can_sync=False, pending=True, synced=False,
+                    reason="战术已保存，但当前对局未同步：%s。原比赛和快照保留。" % exc)
 
 
 def _copy_botbuy_patch(csgo: Path) -> int:

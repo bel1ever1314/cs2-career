@@ -3,7 +3,7 @@ extends RefCounted
 static func signature(page: String, context: Dictionary) -> String:
 	var fields: Array = {
 		"home":["date", "player", "inbox", "stories", "nextmatch"],
-		"desktop":["date", "player", "attr_points", "inbox"],
+		"desktop":["date", "player", "attr_points", "inbox", "nextmatch"],
 		"battle":["nextmatch", "match_preflight", "ladder", "quick", "custom"],
 		"career_match":["nextmatch", "match_preflight", "recent_matches", "player", "stories"],
 		"quick":["quick", "nextmatch", "stories", "date"],
@@ -14,7 +14,7 @@ static func signature(page: String, context: Dictionary) -> String:
 		"match":["nextmatch", "recent_matches", "calendar_events"],
 		"calendar":["date", "calendar_events", "nextmatch", "quick"],
 		"profile":["player", "personal", "attr_points", "money", "team", "recent_matches"],
-		"market":["skins", "money"], "operations":["operations", "finance"],
+		"market":["skins", "money"], "operations":["operations", "finance", "environment"],
 		"transfers":["transfers", "player_transfers"], "news":["news"],
 		"stories":["stories"], "events":["teams", "calendar_events", "recent_matches"]
 	}.get(page, ["player", "team", "date"])

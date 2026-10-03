@@ -21,6 +21,7 @@ var reveal_phase := ""
 var reveal_elapsed := 0.0
 var continue_ready := false
 var request_pending := false
+var pending_action := ""
 var pending_match_id := ""
 var show_real := false
 var quick_running := false
@@ -46,6 +47,7 @@ var scoreboard: Node
 var round_strip: Control
 var notified_maps: Dictionary = {}
 var venue_after_preflight := ""
+var veto_history_expanded := false
 
 func attach(value: Node) -> void:
 	host = value
@@ -53,6 +55,19 @@ func attach(value: Node) -> void:
 func current_game() -> Dictionary:
 	var game = CareerBridge.context.get("nextmatch", {})
 	return game if game is Dictionary else {}
+
+func attendance() -> Dictionary:
+	var value = current_game().get("attendance", {})
+	return value if value is Dictionary else {}
+
+func can_prepare_here() -> bool:
+	var info := attendance()
+	if not bool(current_game().get("due", false)): return false
+	if str(info.get("destination", "")) == "club":
+		var scene := host.get_tree().current_scene
+		return host.location == "club" and scene != null and scene.scene_file_path == "res://play.tscn"
+	var venue: Dictionary = current_preflight().get("venue", {})
+	return Travel.is_match_seated(venue, str(current_game().get("id", "")))
 
 func current_preflight() -> Dictionary:
 	var current: Dictionary = CareerBridge.context.get("match_preflight", {})
@@ -76,9 +91,17 @@ func render(parent: Node) -> void:
 		var box := UI.card(parent)
 		UI.label(box, str(game.get("event", "下一场比赛")), 20)
 		UI.label(box, "%s · 对阵 %s · BO%s" % [game.get("date", ""), game.get("opponent", ""), game.get("best_of", 3)], 16)
+		var plan := attendance()
+		if not str(plan.get("display_name", "")).is_empty():
+			UI.label(box, "比赛地点 · " + str(plan.display_name), 16)
+			UI.label(box, str(plan.get("instruction", "")), 13, UI.MUTED)
 		var due := bool(game.get("due", false))
 		if request_pending:
-			UI.label(box, "正在读取本场结果……", 14, UI.MUTED)
+			var progress := "正在读取本场结果……"
+			if pending_action in ["preflight", "veto", "autoveto"]: progress = "正在核对本场比赛、阵容与地图……"
+			elif pending_action == "launch": progress = "正在启动 CS2，请稍候……"
+			elif pending_action == "collect": progress = "正在检查 CS2 战绩……"
+			UI.label(box, progress, 14, UI.MUTED)
 		elif due:
 			var actions := HBoxContainer.new()
 			actions.add_theme_constant_override("separation", 12)
@@ -93,9 +116,10 @@ func render(parent: Node) -> void:
 			rts.name = "CareerMatchPlayRTS"
 			if current_preflight().has("can_simulate"): rts.disabled = rts.disabled or not bool(current_preflight().get("can_simulate", false))
 		else:
-			UI.label(box, "比赛日开始后可以模拟，或亲自进入 CS2。", 13, UI.MUTED)
-			host._button(box, "睡到比赛日", CareerBridge.calendar.bind(str(game.get("date", "")), true))
-		if show_real or str(current_preflight().get("phase", "")) in ["veto", "waiting", "starting", "launched"]:
+			UI.label(box, "可以先睡到比赛当天早上，再点“自己去 CS2 打”前往场馆；门口也能选择比赛地点。", 13, UI.MUTED)
+			UI.primary(host._button(box, "亲自参赛 · 睡到比赛日", prepare_real.bind(str(game.get("id", "")))))
+			host._button(box, "只推进到比赛日", CareerBridge.calendar.bind(str(game.get("date", "")), true))
+		if (due and show_real and can_prepare_here()) or str(current_preflight().get("phase", "")) in ["waiting", "starting", "launched"]:
 			render_preflight(parent)
 	if not notice.is_empty(): UI.label(parent, notice, 13, UI.MUTED)
 	if not last_result.is_empty():
@@ -115,26 +139,43 @@ func render_preflight(parent: Node) -> void:
 		UI.label(card, blocked, 14, UI.MUTED)
 		if not CareerBridge.context.get("stories", []).is_empty(): host._button(card, "查看赛前决定", host._open_phone.bind("stories"), false)
 	var veto: Dictionary = info.get("veto", {})
-	var turn: Dictionary = veto.get("turn", {})
-	for step in veto.get("steps", []):
-		UI.label(card, "%s · %s · %s" % [step.get("team", ""), "选图" if str(step.get("action", "")) == "pick" else "禁图", step.get("map", "")], 12, UI.MUTED)
+	# The backend uses null for no active turn (in particular after BP completes).
+	# Keep that distinct from an actual turn; do not fabricate another ban/pick.
+	var turn = veto.get("turn")
+	var completed_veto := bool(veto.get("complete", false))
+	var steps: Array = veto.get("steps", [])
+	if completed_veto and not steps.is_empty():
+		# Keep side/launch controls in view after a long BP. History expands only
+		# on an explicit click; status polling never changes scrolling or focus.
+		UI.label(card, "地图 BP 已完成 · %d 项记录" % steps.size(), 12, UI.MUTED)
+	for step in steps if not completed_veto or veto_history_expanded else []:
+		var team_value = step.get("team")
+		var team_name := str(team_value) if team_value is String else ""
+		var step_label := str({"pick":"选图", "ban":"禁图", "decider":"决胜图"}.get(str(step.get("action", "")), "地图"))
+		var step_text := "%s · %s" % [step_label, step.get("map", "")]
+		if not team_name.is_empty(): step_text = team_name + " · " + step_text
+		UI.label(card, step_text, 12, UI.MUTED)
 	var id := str(info.get("match_id", ""))
-	if not veto.is_empty() and not veto.get("complete", false):
+	if not veto.is_empty() and not veto.get("complete", false) and turn is Dictionary:
 		UI.label(card, "%s · %s" % [turn.get("team", ""), "选择地图" if turn.get("action", "") == "pick" else "禁用地图"], 17)
 		var choices := HBoxContainer.new()
 		card.add_child(choices)
 		for map_name in veto.get("available", []):
 			var button: Button = host._button(choices, str(map_name).trim_prefix("de_").capitalize(), command.bind("veto", {"match_id":id, "map":map_name}))
 			button.disabled = button.disabled or not bool(turn.get("mine", false))
-			host._button(card, "交给队长完成地图 BP", command.bind("autoveto", {"match_id":id}))
+		host._button(card, "交给队长完成地图 BP", command.bind("autoveto", {"match_id":id}))
 	var map_value = info.get("pending_map", "")
-	var map_name := str(map_value.get("map", "")) if map_value is Dictionary else str(map_value)
+	# null is the legitimate pre-BP state, not a map named "<null>".
+	var map_name := str(map_value.get("map", "")) if map_value is Dictionary else str(map_value) if map_value is String else ""
 	if not map_name.is_empty(): UI.label(card, "下一图 · " + map_name.trim_prefix("de_").capitalize(), 17)
 	var phase := str(info.get("phase", ""))
-	var linked: Dictionary = info.get("connection", connection)
+	var linked_value = info.get("connection")
+	var linked: Dictionary = linked_value if linked_value is Dictionary else connection
+	if str(linked.get("match_id", id)) != id: linked = {}
 	if phase in ["waiting", "starting", "launched"] or str(linked.get("status", "")) in ["waiting", "failed", "blocked"]:
 		UI.label(card, str(linked.get("reason", "CS2 正在进行。赛后会读取这一图的真实结果。")), 14, UI.MUTED)
-		host._button(card, "检查并录入 CS2 战绩", command.bind("collect", {"match_id":id}))
+		if bool(linked.get("can_collect", phase in ["waiting", "starting", "launched"])):
+			host._button(card, "检查并录入 CS2 战绩", command.bind("collect", {"match_id":id}))
 		if bool(linked.get("can_retry", false)):
 			host._button(card, "重试进入 CS2", command.bind("launch", {"match_id":id, "side":str(info.get("side", "ct"))}))
 	elif bool(info.get("can_launch", false)) and bool(linked.get("can_launch", false)):
@@ -144,8 +185,18 @@ func render_preflight(parent: Node) -> void:
 		host._button(row, "T 开场 · 进入 CS2", command.bind("launch", {"match_id":id, "side":"t"}))
 	elif bool(info.get("can_launch", false)):
 		UI.label(card, str(linked.get("reason", "正在确认 CS2 已退出……")), 13, UI.MUTED)
+	else:
+		var config: Dictionary = info.get("config", {})
+		var reason := str(linked.get("reason", config.get("reason", "")))
+		if not reason.is_empty() and reason != blocked: UI.label(card, reason, 13, UI.MUTED)
+	if completed_veto and not steps.is_empty():
+		host._button(card, "收起地图 BP 记录" if veto_history_expanded else "查看地图 BP 记录", toggle_veto_history, false)
 	UI.label(card, "路径、Bot Improver 难度和换肤来源在设置中配置。", 12, UI.MUTED)
 	host._button(card, "打开 CS2 设置", host._navigate.bind("settings"), false)
+
+func toggle_veto_history() -> void:
+	veto_history_expanded = not veto_history_expanded
+	host._rebuild()
 
 func simulate_match(id: String) -> void:
 	if request_pending or not result.is_empty() or id.is_empty(): return
@@ -158,12 +209,40 @@ func open_rts(id: String) -> void:
 
 func prepare_real(id: String) -> void:
 	if request_pending or id.is_empty(): return
-	show_real = true
+	if bool(current_game().get("due", false)):
+		travel_real(id)
+		return
+	show_real = false
 	pending_match_id = id
 	connection.clear()
-	# The context GET is only a preview. Freeze the server roster before travel.
-	venue_after_preflight = id
+	# Planning is separate from travelling and does not freeze a future roster.
+	command("attend", {"match_id":id, "request_id":request_id("attend", id)})
+
+func travel_real(id: String) -> void:
+	if request_pending or id.is_empty() or id != str(current_game().get("id", "")): return
+	var plan := attendance()
+	if not can_prepare_here() and not bool(plan.get("can_travel", current_game().get("due", false))) and not bool(plan.get("can_return", false)):
+		notice = "比赛在 %s，先睡到比赛当天早上。" % current_game().get("date", "")
+		host._rebuild()
+		return
+	show_real = true
+	veto_history_expanded = false
+	pending_match_id = id
+	connection.clear()
+	# The door choice freezes this match's roster before entering the venue.
+	venue_after_preflight = "" if can_prepare_here() else id
 	command("preflight", {"match_id":id})
+
+func finish_attendance(plan: Dictionary) -> void:
+	var target := str(plan.get("sleep_target", ""))
+	if not target.is_empty() and target > str(CareerBridge.context.get("date", "")):
+		CareerBridge.calendar(target, true)
+		return
+	notice = str(plan.get("instruction", "到门口选择本场比赛地点。"))
+	CareerBridge.message = notice
+	CareerBridge.status_changed.emit()
+	host.close_computer()
+	Phone.close_phone()
 
 func command(action: String, payload: Dictionary) -> void:
 	if request_pending: return
@@ -175,8 +254,7 @@ func command(action: String, payload: Dictionary) -> void:
 			command("preflight", {"match_id":id})
 			return
 		if bool(venue.get("should_walk", false)) and Travel.has_method("is_match_seated") and not Travel.call("is_match_seated", venue, id):
-			if Travel.has_method("go_match"): Travel.call("go_match", venue, id)
-			notice = "请先到你的选手席入座。"
+			notice = "先从门口前往 %s，再到你的选手席入座。" % attendance().get("display_name", "比赛场馆")
 			host._rebuild()
 			return
 	var body := payload.duplicate(true)
@@ -185,6 +263,7 @@ func command(action: String, payload: Dictionary) -> void:
 	notice = ""
 	if send_command("/api/3d/match/" + action, body):
 		request_pending = true
+		pending_action = action
 		host._rebuild()
 	elif action == "preflight": venue_after_preflight = ""
 
@@ -205,6 +284,7 @@ func begin_reveal(snapshot: Dictionary, timeline: Dictionary = {}) -> void:
 	result = snapshot.duplicate(true)
 	saved_results[key] = result.duplicate(true)
 	last_result = result.duplicate(true)
+	if is_instance_valid(CareerBridge.feedback): CareerBridge.feedback.remember_venue_result(snapshot, preflight)
 	shown_maps = 0
 	reveal_phase = "maps"
 	reveal_elapsed = 0.0
@@ -520,6 +600,7 @@ func season_command(action: String, payload: Dictionary) -> void:
 		body["max_steps"] = 1
 	if send_command("/api/3d/season/" + action, body):
 		request_pending = true
+		pending_action = action
 		host._rebuild()
 
 func quick_step() -> void:
@@ -537,7 +618,9 @@ func finished(path: String, output: Dictionary) -> bool:
 	if path.begins_with("/api/3d/match?"): return false
 	var status_probe := path.begins_with("/api/3d/match/status")
 	var old_view := JSON.stringify([preflight, connection, notice])
-	if not status_probe: request_pending = false
+	if not status_probe:
+		request_pending = false
+		pending_action = ""
 	if output.get("preflight") is Dictionary: preflight = output.preflight.duplicate(true)
 	if output.get("connection") is Dictionary: connection = output.connection.duplicate(true)
 	elif status_probe: connection = output.duplicate(true)
@@ -545,8 +628,12 @@ func finished(path: String, output: Dictionary) -> bool:
 	if path == "/api/3d/match/collect" and output.get("ok", false): connection.clear()
 	notice = str(output.get("reason", output.get("msg", "")))
 	if output.get("ok", false):
-		var snapshot: Dictionary = output.get("result", {})
-		if not snapshot.is_empty() and snapshot.get("maps", []).size() > 0: begin_reveal(snapshot, output.get("reveal", {}))
+		# Status success does not mean a match has finished: result is explicitly
+		# null until a real saved report exists. Continue connection/UI handling.
+		var snapshot = output.get("result")
+		if snapshot is Dictionary and not snapshot.is_empty() and snapshot.get("maps", []).size() > 0:
+			var timeline = output.get("reveal")
+			begin_reveal(snapshot, timeline if timeline is Dictionary else {})
 	else:
 		quick_running = false
 	if status_probe and bool(output.get("result_ready", false)) and not request_pending:
@@ -555,6 +642,9 @@ func finished(path: String, output: Dictionary) -> bool:
 		var state: Dictionary = output.get("quick", quick_state())
 		if str(state.get("phase", "")) in ["paused", "blocked", "finished", "complete", "end", "break", "choice", "story"]: quick_running = false
 		quick_elapsed = 0.0
+	if path == "/api/3d/match/attend" and output.get("ok", false):
+		call_deferred("finish_attendance", output.get("attendance", attendance()).duplicate(true))
+		return true
 	if path == "/api/3d/match/preflight" and not venue_after_preflight.is_empty():
 		var travel_id := venue_after_preflight
 		venue_after_preflight = ""
@@ -562,6 +652,12 @@ func finished(path: String, output: Dictionary) -> bool:
 		var frozen := str(venue.get("identity_source", "")) == "frozen_match_rosters"
 		if output.get("ok", false) and output.get("status", "") != "paused" and str(preflight.get("match_id", "")) == travel_id and frozen and bool(venue.get("travel_allowed", false)) and bool(venue.get("should_walk", false)) and Travel.has_method("go_match"):
 			if Travel.call("go_match", venue, travel_id): return true
+		elif output.get("ok", false) and output.get("status", "") != "paused" and str(preflight.get("match_id", "")) == travel_id and str(attendance().get("destination", "")) == "club":
+			var scene := host.get_tree().current_scene
+			if scene != null and scene.scene_file_path != "res://play.tscn":
+				Travel.go("club")
+				return true
+			host.open_app("career_match", "club")
 	if host.screen.visible and host.active_page in ["battle", "career_match", "quick"]:
 		if status_probe and old_view == JSON.stringify([preflight, connection, notice]): return true
 		if not result.is_empty() and host.active_page == "battle": host._navigate("career_match")

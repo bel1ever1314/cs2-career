@@ -102,8 +102,7 @@ def _player_matches(state):
 
 def _due_player_match(state):
     return next(((ev, m) for ev, m in _player_matches(state)
-                 if m["date"] <= state.season.date or m.get("human") or m.get("veto")
-                 or m.get("maps") or m.get("cs2_session")), None)
+                 if m["date"] <= state.season.date or m.get("cs2_session") or m.get('career3d_rts')), None)
 
 
 def _store(state) -> dict:
@@ -125,23 +124,31 @@ def read_context(state, display_hour=8) -> dict:
     nextmatch = None
     if pairs:
         ev, m = pairs[0]
+        from tools.career3d_venues import attendance_for
+        attendance = attendance_for(state, ev, m)
         nextmatch = {"id": m["id"], "event_id": ev["id"], "event": ev["name"],
                      "date": m["date"], "opponent": m["team_b"] if m["team_a"] == mine.get("name") else m["team_a"],
-                     "best_of": m.get("best_of", 3), "due": bool(_due_player_match(state)),
+                     "best_of": m.get("best_of", 3), "due": attendance['due'],
+                     "attendance": attendance,
                      "stage": m.get("stage", ""), "series": m.get("series", "")}
+    from cs2career.career.localization import present
+    story_rows = [present(r) for r in c.story_queue]
     stories = [{"id": r["id"], "title": r.get("title", "生涯事件"),
                 "text": r.get("text", ""), "required": True,
+                **{key: r[key] for key in ('title_en', 'text_en') if key in r},
                 "choices": [{"id": ch["id"], "label": {"相信队伍 · 仅模拟当前这一场": "继续模拟",
                             "Trust the team · Simulate this final": "Continue simulation"}.get(
-                            ch.get("label", ch["id"]), ch.get("label", ch["id"]))}
+                            ch.get("label", ch["id"]), ch.get("label", ch["id"])),
+                            **{key: ch[key] for key in ('label_en',) if key in ch}}
                             for ch in r.get("choices", [])]}
-               for r in c.story_queue if r.get("id")]
+               for r in story_rows if r.get("id")]
     event_lookup = {e["id"]: e for e in s.events}
     from tools.career3d_business import inbox_rows, mail_actions
     inbox = [{"id": r["id"], "kind": r.get("kind", ""), "title": r.get("title", ""),
               "body": r.get("body", ""), "date": r.get("date", ""), "status": r.get("status", ""),
               "event_id": r.get("event_id", ""), "read": bool(r.get("read")),
               "evname": event_lookup.get(r.get("event_id"), {}).get("name", r.get("evname", "")),
+              **{key: r[key] for key in ('title_en', 'body_en', 'from_en') if key in r},
               **{key: r[key] for key in ('team_id', 'team', 'role', 'replace_id', 'expires', 'personal_transfer') if key in r},
               "dates": list(event_lookup.get(r.get("event_id"), {}).get("dates") or r.get("dates") or [])}
              for r in inbox_rows(state)]
@@ -168,6 +175,8 @@ def read_context(state, display_hour=8) -> dict:
     from tools.career3d_social import social_context
     awards = ceremony_context(state)
     from tools.career3d_feedback import feedback_context
+    from tools.career3d_trophies import trophy_context
+    from tools.career3d_environment import environment_context
     return {"ok": True, "protocol_version": PROTOCOL_VERSION, "isolated": True,
             "player": _player(you), "team": {"id": mine.get("id", ""), "name": mine.get("name", ""),
               "region": mine.get("region", ""), "rank": ranking, "money": mine.get("money", 0),
@@ -187,6 +196,8 @@ def read_context(state, display_hour=8) -> dict:
             'settings': settings_context(state),
             'ceremony': {k: v for k, v in awards.items() if k != 'attendees'}, 'awards': awards,
             'feedback': feedback_context(state),
+            'club_trophies': trophy_context(state),
+            'environment': environment_context(state),
             **resource_context(), **device_context(state), **startup_context(state), **rts_context(state), **social_context(state)}
 
 
@@ -200,8 +211,12 @@ def _pause(state):
     reason = blocker(state.career, state.season)
     if reason:
         return "story" if state.career.story_queue else "business", reason
-    if _due_player_match(state):
-        return "player_match", "轮到你上场：请打开职业比赛，选择模拟或进入 CS2。"
+    pair = _due_player_match(state)
+    if pair:
+        from tools.career3d_venues import attendance_for
+        attendance = attendance_for(state, *pair)
+        message = attendance['instruction'] if attendance['planned'] else '轮到你上场：可以模拟，或亲自前往比赛。'
+        return "player_match", message
     return "", ""
 
 
@@ -272,7 +287,10 @@ def advance_calendar(state, body: dict) -> dict:
             break
         before = (s.date, sum(bool(m.get("played")) for e in s.events for m in e.get("matches", [])))
         with _bounded_calendar(s, target):
-            if c.assist.get("quick_mode"):
+            from tools.career3d_venues import attendance_for
+            upcoming = next(iter(_player_matches(state)), None)
+            personal = bool(upcoming and attendance_for(state, *upcoming)['planned'])
+            if c.assist.get("quick_mode") and not personal:
                 token = "3d:" + hashlib.sha256(f"{request_id}:{steps}".encode()).hexdigest()
                 result = step(c, s, token, int(c.assist.get("step_counter") or 0))
                 reason = result.get("msg", "")
@@ -313,11 +331,15 @@ def advance_calendar(state, body: dict) -> dict:
 def handler_class():
     from cs2career.web.server import Handler
     class Career3DHandler(Handler):
+        def _json(self, obj, code=200):
+            from tools.career3d_locale import localize_projection
+            super()._json(localize_projection(obj), code)
+
         def do_GET(self):
             if urlparse(self.path).path not in ("/api/3d/context", "/api/3d/match", "/api/3d/team", "/api/3d/player", "/api/3d/players", "/api/3d/event", "/api/3d/news", "/api/3d/mail", "/api/3d/ladder/status",
                 "/api/3d/custom/catalog", "/api/3d/custom/status",
                 "/api/3d/match/preflight", "/api/3d/match/status", "/api/3d/settings", "/api/3d/tactics", "/api/3d/ceremony",
-                "/api/3d/start/options", "/api/3d/start/draw", "/api/3d/saves", "/api/3d/skin-tools", "/api/3d/skin-tools/item", "/api/3d/controls/management", "/api/3d/controls/training",
+                "/api/3d/environment", "/api/3d/start/options", "/api/3d/start/draw", "/api/3d/saves", "/api/3d/skin-tools", "/api/3d/skin-tools/item", "/api/3d/controls/management", "/api/3d/controls/training",
                 "/api/3d/controls/assistance", "/api/3d/controls/rankings", "/api/3d/controls/workshop"):
                 self._json({"ok": False, "msg": "3D demo endpoint not found"}, 404)
                 return
@@ -327,6 +349,9 @@ def handler_class():
             url = urlparse(self.path)
             if url.path == "/api/3d/context":
                 self._json(read_context(self.state, self.server.display_hour))
+            elif url.path == '/api/3d/environment':
+                from tools.career3d_environment import environment_context
+                self._json({'ok': True, 'environment': environment_context(self.state)})
             elif url.path in ('/api/3d/skin-tools', '/api/3d/skin-tools/item'):
                 from tools.career3d_skin_tools import tools_context, item_context
                 try:
@@ -388,7 +413,7 @@ def handler_class():
                 query = parse_qs(url.query)
                 try:
                     if url.path.endswith('/tactics'):
-                        self._json(tactics_context((query.get('map') or ['de_dust2'])[0]))
+                        self._json(tactics_context((query.get('map') or ['de_dust2'])[0], self.state))
                     else:
                         value = (query.get('year') or [''])[0]
                         if value and (not value.isdigit() or not 2000 <= int(value) <= 3000):
@@ -505,6 +530,12 @@ def handler_class():
                                 'saves': saves_context(self.state),
                                 'context': read_context(self.state, self.server.display_hour)})
                     return
+                if path.startswith('/api/3d/environment/'):
+                    from tools.career3d_environment import environment_command
+                    activity = environment_command(self.state, path.rsplit('/', 1)[1], body)
+                    self._json({'ok': True, **activity,
+                                'context': read_context(self.state, self.server.display_hour)})
+                    return
                 if path == '/api/3d/skin-tools/stickers':
                     from tools.career3d_skin_tools import apply_stickers
                     activity = apply_stickers(self.state, body)
@@ -550,7 +581,10 @@ def handler_class():
                     message = activity['reason']
                 elif path == '/api/3d/setup/install':
                     from tools.career3d_install import install_bundle
-                    activity = install_bundle(self.state, body)
+                    try:
+                        activity = install_bundle(self.state, body)
+                    except FileNotFoundError as exc:
+                        raise ValueError(str(exc)) from exc
                     message = activity['reason']
                 elif path.startswith('/api/3d/tactics/'):
                     if path == '/api/3d/tactics/import':
@@ -796,6 +830,8 @@ def main(argv=None) -> int:
     RNG.seed(DEMO_SEED)
     from cs2career.manual_saves import recover as recover_manual_load
     recover_manual_load(save_root())
+    from tools.career3d_environment import recover_environment
+    recover_environment(save_root())
     state = ApplicationState()
     if not state.career.exists:
         original_uuid = arcs.uuid4

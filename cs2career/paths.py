@@ -10,6 +10,19 @@ from pathlib import Path
 APP_NAME = "CS2Career"
 
 
+def io_path(path: Path) -> Path:
+    """Use Windows extended paths only for I/O, not saved paths or comparisons."""
+    path = Path(path)
+    if os.name != "nt":
+        return path
+    value = str(path.absolute())
+    if value.startswith("\\\\?\\"):
+        return Path(value)
+    if value.startswith("\\\\"):
+        return Path("\\\\?\\UNC\\" + value[2:])
+    return Path("\\\\?\\" + value)
+
+
 def frozen() -> bool:
     return getattr(sys, "frozen", False)
 

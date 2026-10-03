@@ -33,6 +33,7 @@ var selected_ids: Array = []
 var box_selecting := false
 var box_start := Vector2.ZERO
 var box_end := Vector2.ZERO
+var view_layer := 0
 
 func _ready() -> void:
 	font = Style.theme().default_font
@@ -47,6 +48,7 @@ func setup(map_data: Dictionary, model) -> void:
 	if not ResourceLoader.exists(preferred):
 		preferred = str(data.get("radar", {}).get("original", ""))
 	texture = load(preferred)
+	view_layer=0
 	queue_redraw()
 
 static func vec(value) -> Vector2:
@@ -100,7 +102,8 @@ func _process(dt: float) -> void:
 	if follow_player and not spectator:
 		var actor := _actor(controlled_id)
 		if not actor.is_empty() and actor.get("alive", false):
-			center = center.lerp(vec(actor["pos"]), 1.0 - exp(-8.0 * dt))
+			set_layer(layer_of(vec(actor["pos"])))
+			center = center.lerp(local_point(vec(actor["pos"])), 1.0 - exp(-8.0 * dt))
 	vision_timer -= dt
 	if vision_timer <= 0:
 		vision_timer = .15
@@ -121,16 +124,38 @@ func _reframe() -> void:
 
 func screen_to_world(screen_point: Vector2) -> Vector2:
 	_reframe()
-	return (screen_point - global_position - origin) / scale_factor
+	return (screen_point - global_position - origin) / scale_factor+layer_offset()
 
 func world_to_local(point: Vector2) -> Vector2:
-	return point * scale_factor + origin
+	return (point-layer_offset()) * scale_factor + origin
+
+func layer_offset() -> Vector2:
+	return Vector2(0,view_layer*1024) if data.get("layers",[]).size()>1 else Vector2.ZERO
+
+func layer_of(point: Vector2) -> int:
+	return clampi(floori(point.y/1024.0),0,1) if data.get("layers",[]).size()>1 else 0
+
+func local_point(point: Vector2) -> Vector2:
+	return point-Vector2(0,layer_of(point)*1024) if data.get("layers",[]).size()>1 else point
+
+func set_layer(index: int) -> void:
+	if index==view_layer or index<0 or index>=data.get("layers",[]).size():return
+	view_layer=index
+	texture=load(str(data["layers"][index]["image"]))
+	vision.clear();marker_age=0.0;queue_redraw()
+
+func cycle_layer() -> void:
+	if data.get("layers",[]).size()<2:return
+	follow_player=false
+	set_layer((view_layer+1)%data["layers"].size())
+	center=Vector2(512,512)
 
 func reset_camera(mode: String, actor: Dictionary = {}) -> void:
 	cancel_pointer()
 	follow_player = mode == "play"
 	zoom = 2.6 if follow_player else 1.0
-	center = vec(actor.get("pos", [512, 512])) if follow_player else Vector2(512, 512)
+	if not actor.is_empty():set_layer(layer_of(vec(actor.get("pos",[512,512]))))
+	center = local_point(vec(actor.get("pos", [512, 512]))) if follow_player else Vector2(512, 512)
 	rendered.clear()
 
 func change_zoom(value: float) -> void:
@@ -176,6 +201,7 @@ func _gui_input(event: InputEvent) -> void:
 				var clicked := ""
 				for p in state.get("players", []):
 					if p.get("team", "") != viewer_team or not p.get("alive", false): continue
+					if layer_of(vec(p["pos"]))!=view_layer:continue
 					var screen: Vector2 = world_to_local(vec(p["pos"]))
 					if rectangle.size.length() >= 6 and rectangle.has_point(screen):
 						ids.append(str(p["id"]))
@@ -209,7 +235,7 @@ func _actor(id: String) -> Dictionary:
 	return {}
 
 func _can_see(p: Dictionary) -> bool:
-	return spectator or p.get("team", "") == viewer_team or viewer_team in p.get("spotted_by", [])
+	return layer_of(vec(p.get("pos",[0,0])))==view_layer and (spectator or p.get("team", "") == viewer_team or viewer_team in p.get("spotted_by", []))
 
 func _point_observed(point: Vector2) -> bool:
 	if spectator: return true
@@ -231,6 +257,7 @@ func _update_vision() -> void:
 	var p := _actor(controlled_id)
 	if p.is_empty() or not p.get("alive", false):
 		return
+	if layer_of(vec(p["pos"]))!=view_layer:return
 	var at := vec(p["pos"])
 	vision.append(at)
 	var yaw := float(p["yaw"])
@@ -275,6 +302,7 @@ func _draw() -> void:
 		for point in vision: points.append(world_to_local(point))
 		draw_colored_polygon(points, Color(.68, .82, .73, .085))
 	for site in data.get("sites", {}):
+		if layer_of(vec(data["sites"][site]["center"]))!=view_layer:continue
 		var location := world_to_local(vec(data["sites"][site]["center"]))
 		var r := float(data["sites"][site].get("radius", 35)) * scale_factor
 		draw_circle(location, r, Color(.85, .66, .35, .09))
@@ -285,11 +313,13 @@ func _draw() -> void:
 	if show_routes:
 		for p in state.get("players", []):
 			if p.get("team", "") != viewer_team or not p.get("alive", false): continue
-			var previous := world_to_local(vec(p["pos"]))
+			var previous_world := vec(p["pos"])
 			for point in p.get("path", []):
-				var next := world_to_local(vec(point))
-				draw_line(previous, next, Color(.5, .79, .72, .22), 1, true)
-				previous = next
+				var next_world := vec(point)
+				if layer_of(previous_world)==view_layer and layer_of(next_world)==view_layer:
+					draw_line(world_to_local(previous_world),world_to_local(next_world), Color(.5, .79, .72, .22), 1, true)
+				previous_world = next_world
+	_draw_traversals()
 	_draw_utilities()
 	_draw_bomb()
 	for p in state.get("players", []):
@@ -315,6 +345,8 @@ func _draw() -> void:
 		var rectangle := Rect2(box_start, box_end - box_start).abs()
 		draw_rect(rectangle, Color(.5, .8, .65, .12))
 		draw_rect(rectangle, Style.GREEN, false, 1.5)
+	if data.get("layers",[]).size()>1:
+		_text(Vector2(12,22),str(data["layers"][view_layer]["name_en"]),14,Style.GOLD)
 
 func _text(at: Vector2, text: String, fontsize: int = 12, tint: Color = Style.TEXT) -> void:
 	if font == null: return
@@ -324,6 +356,7 @@ func _text(at: Vector2, text: String, fontsize: int = 12, tint: Color = Style.TE
 func _draw_actor(p: Dictionary) -> void:
 	var id := str(p["id"])
 	var at := world_to_local(vec(rendered.get(id, {}).get("pos", p["pos"])))
+	at.y-=float(p.get("height_offset",0.0))*scale_factor
 	var side_color := Style.GOLD if p.get("side", "t") == "t" else Style.BLUE
 	if not p.get("alive", false):
 		draw_line(at - Vector2(3, 3), at + Vector2(3, 3), Color(.75, .7, .6, .4), 1.5)
@@ -356,6 +389,16 @@ func _draw_actor(p: Dictionary) -> void:
 		draw_line(at + Vector2(-width / 2, radius + 5), at + Vector2(-width / 2 + width * float(p["hp"]) / 100, radius + 5), Style.GREEN, 2)
 	if p.get("interacting", false):
 		draw_arc(at, radius + 8, -PI / 2, -PI / 2 + TAU * .75, 32, Style.GOLD, 2, true)
+	if p.has("traversal"):
+		draw_arc(at,radius+10,-PI/2,-PI/2+TAU*float(p.get("motion_progress",0.0)),32,Style.GREEN,2,true)
+		_text(at+Vector2(radius+12,18),str(p.get("motion_kind","")),11,Style.GREEN)
+
+func _draw_traversals() -> void:
+	if nav==null or not nav.has_method("traversal_markers"):return
+	for gate in nav.traversal_markers(view_layer,show_routes):
+		var at := world_to_local(gate["position"])
+		draw_arc(at,5,0,TAU,16,Color(Style.GREEN,.55),1.0,true)
+		_text(at+Vector2(7,3),str(gate["kind"]),10,Color(Style.GREEN,.75))
 
 func _name_position(at: Vector2, radius: float, width: float) -> Vector2:
 	var offsets := [Vector2(-width * .5, -radius - 7), Vector2(-width * .5, radius + 22),
@@ -381,6 +424,7 @@ func _name_position(at: Vector2, radius: float, width: float) -> Vector2:
 func _draw_bomb() -> void:
 	var bomb: Dictionary = state.get("bomb", {})
 	if bomb.get("state", "") not in ["planted", "dropped"]: return
+	if layer_of(vec(bomb.get("pos",[0,0])))!=view_layer:return
 	if bomb.get("state", "") == "dropped" and not spectator and state.get("team_sides", {}).get(viewer_team, "t") != "t" and not _point_observed(vec(bomb.get("pos", [0, 0]))): return
 	var at := world_to_local(vec(bomb.get("pos", [0, 0])))
 	if bomb["state"] == "planted":
@@ -393,6 +437,7 @@ func _draw_bomb() -> void:
 
 func _draw_utilities() -> void:
 	for utility in state.get("utilities", []):
+		if layer_of(vec(utility.get("pos",[0,0])))!=view_layer:continue
 		if not spectator and utility.get("team", "") != viewer_team and not _point_observed(vec(utility.get("pos", [0, 0]))): continue
 		var at := world_to_local(vec(utility.get("pos", [0, 0])))
 		if utility.get("state", "") == "flying":
@@ -404,6 +449,7 @@ func _draw_utilities() -> void:
 
 func _draw_event(visual: Dictionary) -> void:
 	var event: Dictionary = visual["event"]
+	if layer_of(vec(event.get("from",event.get("pos",[0,0]))))!=view_layer:return
 	var age := float(visual["age"])
 	var alpha := 1.0 - age / float(visual["life"])
 	match str(event.get("type", "")):

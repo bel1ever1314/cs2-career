@@ -1,7 +1,7 @@
 """Bounded, map-specific playbooks, independent of career saves and CS2.
 
 Editing this library never installs files or touches a running game. The launcher
-deploys a validated snapshot only during its existing closed-game preparation.
+can publish its validated snapshot to a verified, closed-game current session.
 """
 from __future__ import annotations
 
@@ -30,7 +30,8 @@ MOVEMENTS = ("run", "walk")
 MAP_META = {"image": "/tactical_maps/de_dust2.png", "pos_x": -2476,
             "pos_y": 3239, "scale": 4.4, "width": 1024, "height": 1024}
 RUNTIME_NOTE = ("地图战术：分路、到点等待与箭头观察；交火优先原生 AI，下包后 T 守包、CT 回防。"
-                "仅正式准备阶段选战术，不控制真人。")
+                "仅正式准备阶段选战术，不控制真人。保存后 CS2 关闭时自动同步当前对局；"
+                "运行时仅保存，退出后点击同步，不需重新准备或重置比赛。")
 _ID = re.compile(r"[a-z0-9_-]{1,32}\Z", re.ASCII)
 _LOCK = threading.RLock()
 
@@ -276,7 +277,7 @@ def load_library(map_code: str = MAP) -> dict:
             return validate_library(decode_json(source.read(MAX_BYTES + 1)), map_code)
 
 
-def write_library(path: Path, library: dict) -> None:
+def write_library(path: Path, library: dict, *, before_replace=None) -> None:
     """Atomically write validated data; arbitrary destinations are never HTTP input."""
     blob = encode_library(validate_library(library))
     path = Path(path)
@@ -288,6 +289,8 @@ def write_library(path: Path, library: dict) -> None:
             target.write(blob)
             target.flush()
             os.fsync(target.fileno())
+        if before_replace is not None:
+            before_replace()
         os.replace(pending, path)
     finally:
         pending.unlink(missing_ok=True)

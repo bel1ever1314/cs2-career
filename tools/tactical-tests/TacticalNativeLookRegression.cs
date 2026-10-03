@@ -23,6 +23,10 @@ internal static class TacticalNativeLookRegression
     internal static void Run(string serverPath)
     {
         Check(TacticalNativeLook.TryAuditFile(serverPath, out var audit, out var reason), "current file audit: " + reason);
+        Check(TacticalNativeLook.IsAuditedServerHash(TacticalNativeLook.PreviousServerSha256), "previous reviewed build retained");
+        Check(!TacticalNativeLook.IsAuditedServerHash(new string('0', 64)) &&
+            !TacticalNativeLook.IsAuditedServerHash(TacticalNativeLook.AuditedServerSha256.ToLowerInvariant()),
+            "unreviewed and non-exact build hashes refuse");
         Check(audit is { LookRva: 0x2dda40, ClearRva: 0x2fc1d0, ConsumerRva: 0x2e6d30,
             LookBytes: 347, ClearBytes: 20, ConsumerBytes: 1500 } && audit.Sha256 == TacticalNativeLook.AuditedServerSha256,
             "complete function identities");
@@ -30,7 +34,7 @@ internal static class TacticalNativeLookRegression
         // The already-present CSS managed assembly is an unaudited file. This
         // test creates/deletes no fixture and does not load that assembly here.
         Check(!TacticalNativeLook.TryAuditFile(typeof(CounterStrikeSharp.API.Core.CCSBot).Assembly.Location,
-            out _, out var wrongReason) && wrongReason.StartsWith("look_server_build_not_audited:"), "different file hash refuses");
+            out _, out var wrongReason) && wrongReason.StartsWith("look_audit_failed:"), "different PE/profile refuses");
         Check(TacticalNativeLook.TryAuditCode(serverPath, out _, out var windows, out _), "file audit exposes complete synthetic windows");
         var nativeConsumer = windows![2];
         const int cosOffset = 0x2e729b - 0x2e6d30, sinOffset = 0x2e72c8 - 0x2e6d30;
@@ -177,6 +181,11 @@ internal static class TacticalNativeLookRegression
             Check(!lease.Update(0, 0, out _) && api.SetCalls == 0, "zero heading rejected");
             Check(!lease.Update(float.MaxValue, 0, out _) && api.SetCalls == 0, "overflowing heading rejected");
         }
+        FeatureProfileRegression.Run(serverPath, observation: true, bytes =>
+        {
+            bool passed = TacticalNativeLook.TryAuditBytes(bytes, out _, out _, out var why);
+            return (passed, why);
+        });
         Console.WriteLine($"{_checks} native-look file/lease checks passed. No server module loaded or executed; live aim is not tested.");
     }
 

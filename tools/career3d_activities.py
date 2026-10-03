@@ -302,6 +302,17 @@ def _scoped_calls(overrides):
             setattr(module, name, original)
 
 
+_CS2_PATH_FIELDS = ('steam_exe', 'csgo_path', 'mod_source_path', 'skins_source_path')
+
+
+def _clean_config_path(value):
+    """Explorer's Copy as path quotes are not part of the filesystem path."""
+    text = str(value or '').strip()
+    if len(text) >= 2 and text[0] == text[-1] and text[0] in ('"', "'"):
+        text = text[1:-1].strip()
+    return text
+
+
 def read_cs2_config():
     """settings()/status() save and autofill paths; polling must use this pure read."""
     from cs2career.cs2 import launch
@@ -314,31 +325,50 @@ def read_cs2_config():
                             (isinstance(v, str) or k in ('skin_inspect_enabled', 'skin_tools_enabled') and type(v) is bool)})
         except (OSError, ValueError):
             pass
+    for key in _CS2_PATH_FIELDS:
+        cfg[key] = _clean_config_path(cfg.get(key))
     return launch._clean(cfg)
 
 
 def config_status():
     from cs2career.cs2 import launch
-    from tools.career3d_install import setup_context
+    from tools.career3d_runtime_compat import runtime_context
     cfg = read_cs2_config()
     csgo = launch.resolve_csgo_path(cfg.get('csgo_path') or '')
     checks = {'steam': bool(cfg.get('steam_exe')) and Path(cfg['steam_exe']).is_file(),
-              'csgo': bool(cfg.get('csgo_path')) and launch.is_csgo_dir(csgo),
-              'mod': bool(cfg.get('mod_source_path')) and Path(cfg['mod_source_path']).is_dir()}
+              'csgo': bool(cfg.get('csgo_path')) and launch.is_csgo_dir(csgo)
+                      and (csgo / 'gameinfo.gi').is_file(),
+              'mod': bool(cfg.get('mod_source_path')) and launch._improver_here(Path(cfg['mod_source_path']))}
     checks['runtime'] = checks['csgo'] and launch.mod_installed(csgo)
     checks['career_match'] = checks['csgo'] and all((launch.plugin_dir(csgo) / name).is_file()
         for name in ('CareerMatch.dll', 'CareerMatch.deps.json'))
     checks['botbuy'] = checks['csgo'] and all((csgo / 'addons' / 'counterstrikesharp' / 'plugins' / 'BotBuy' / name).is_file()
         for name in ('BotBuy.dll', 'BotBuy.deps.json'))
     missing = [key for key, okay in checks.items() if not okay]
-    labels = {'steam': 'Steam 路径', 'csgo': 'CS2 路径', 'mod': '人机增强来源路径',
-              'runtime': '已安装的人机增强', 'career_match': '已安装的比赛回传组件', 'botbuy': '已安装的买枪组件'}
-    reason = '配置与现有运行组件已找到；开赛仍会检查 CS2 是否完全退出。' if not missing else \
-        '无法进入 CS2：' + '、'.join(labels[k] for k in missing) + '缺失。请在设置中核对路径；整合包可点击“安装随包人机增强”。'
+    path_errors = []
+    if not checks['steam']:
+        path_errors.append('Steam 程序未找到，请选择 steam.exe。')
+    if not checks['csgo']:
+        path_errors.append('CS2 目录未找到或缺少 gameinfo.gi，请选择游戏根目录或 game/csgo。')
+    if not checks['mod']:
+        path_errors.append('人机增强发行包目录不完整，请选择包含 addons/metamod、addons/counterstrikesharp 和 overrides 的目录。')
+    component_labels = {'runtime': '人机增强', 'career_match': '比赛回传组件', 'botbuy': '买枪组件'}
+    # A missing game path is a path problem, not evidence that its plugins
+    # need installing. Only inspect the selected, valid game's components.
+    component_errors = [label + '尚未安装到所选 CS2 目录。'
+                        for key, label in component_labels.items() if checks['csgo'] and not checks[key]]
+    if not missing:
+        reason = '路径和比赛组件已就绪。'
+    else:
+        reason = ' '.join(path_errors + component_errors)
+        if component_errors:
+            reason += ' 请在设置中点击“安装填写目录的人机增强”。'
     return {'ready': not missing, 'reason': reason, 'missing': missing, 'checks': checks,
+            'path_errors': path_errors, 'component_errors': component_errors,
+            'compatibility': runtime_context(Path(cfg.get('mod_source_path') or '')),
             'difficulty': cfg['difficulty'], 'difficulties': list(launch.DIFFICULTIES),
             'csgo_path': str(csgo) if cfg.get('csgo_path') else '', 'steam_exe': cfg.get('steam_exe', ''),
-            'mod_source_path': cfg.get('mod_source_path', ''), 'plugins_install_enabled': setup_context()['available']}
+            'mod_source_path': cfg.get('mod_source_path', ''), 'plugins_install_enabled': True}
 
 
 def settings_context(state):
@@ -378,9 +408,13 @@ def settings_command(state, body):
         raise ValueError('请完全退出 CS2 后再修改开赛设置。')
     real = body.get('real_skins', bool(state.career.real_skins))
     steam = body.get('steam_id', state.career.steam_id)
-    if type(real) is not bool or not isinstance(steam, str) or (real and (len(steam) != 17 or not steam.isdigit())):
-        raise ValueError('可选换肤需要布尔开关和 17 位数字 SteamID。')
+    if type(real) is not bool or not isinstance(steam, str):
+        raise ValueError('游戏内换肤设置格式不正确，请重新选择。')
+    if real and (len(steam) != 17 or not steam.isdigit()):
+        raise ValueError('启用游戏内换肤时，请填写 17 位数字 SteamID64；暂不使用可先关闭游戏内换肤。')
     for key, value in patch.items():
+        if key in _CS2_PATH_FIELDS:
+            value = _clean_config_path(value)
         cfg[key] = str(launch.resolve_csgo_path(value)) if key == 'csgo_path' and value else value
     # save_settings also modifies a staged CS2 request and skin ownership.
     # The low-level atomic writer is scoped to the independent save root.

@@ -96,11 +96,15 @@ func _material(color: Color, glow: float = 0.0) -> StandardMaterial3D:
 
 func _box(id: String, at: Vector3, size: Vector3, color: Color, solid: bool = false, glow: float = 0.0, parent: Node3D = null) -> MeshInstance3D:
 	var mesh := MeshInstance3D.new(); mesh.name = id
+	# Repeated siblings receive Godot-generated names. Keep the authored ID
+	# for the LAN shell adapter without renaming nodes or changing collisions.
+	mesh.set_meta("venue_authored_id",id)
 	var shape := BoxMesh.new(); shape.size = size; mesh.mesh = shape; mesh.position = at
 	mesh.material_override = _material(color, glow)
 	var owner: Node3D = self if parent == null else parent; owner.add_child(mesh)
 	if solid:
 		var body := StaticBody3D.new(); body.name = id + "Collision"; body.position = at; owner.add_child(body)
+		body.set_meta("venue_authored_id",id)
 		var collision := CollisionShape3D.new(); var box := BoxShape3D.new(); box.size = size
 		collision.shape = box; body.add_child(collision); collision_count += 1
 	return mesh

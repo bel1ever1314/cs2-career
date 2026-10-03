@@ -2,6 +2,7 @@ extends "res://scripts/small_venue_base.gd"
 ## Ten opposing stations; entering the computer never launches CS2 here.
 const Roster = preload("res://scripts/venue_match_roster.gd")
 const Competitor = preload("res://scripts/venue_competitor.gd")
+const SceneTiers = preload("res://scripts/scene_tiers.gd")
 var stations: Array[Dictionary] = []
 var roster_plan: Dictionary = {}
 var peers: Array[Node3D] = []
@@ -48,6 +49,7 @@ func _build_venue() -> void:
 	_box("EquipmentRack",Vector3(-5.48,.77,5.43),Vector3(.84,1.5,.72),Color("1a252f"),true)
 	_sign("LAN / 选手入口",Vector3(3.2,2.05,6.32),.0042,PI)
 	_sign("使用电脑选择当前生涯比赛",Vector3(3.2,1.62,6.31),.0027,PI,Color("9aafba"))
+	SceneTiers.apply_venue(self,null,int(Travel.match_visit.get("capacity",0)),"lan")
 
 func _build_station(row: Dictionary) -> void:
 	var seat := vec(row["seat"]); var screen := vec(row["screen"]); var side := signf(seat.z)
@@ -88,7 +90,12 @@ func _venue_ready() -> void:
 			var name_label:=_sign(str(identity.get("name", "")), vec(row["seat"]) + Vector3(0,1.52,.36 if i < 5 else -.36), .00165, 0.0 if i < 5 else PI)
 			name_label.billboard=BaseMaterial3D.BILLBOARD_ENABLED
 	status.text = (str(roster_plan["own_team"]) + " 对阵 " + str(roster_plan["opponent_team"]) + " · 9 位选手已入座") if not roster_plan.is_empty() else "场地预览 · 尚未取得本场稳定阵容"
-	_set_caption("走到前排中央的“你的席位”，按 E 坐下使用电脑。")
+	var guidance := Travel.preview_match_hint("lan") if roster_plan.is_empty() else ""
+	if not guidance.is_empty():
+		status.text = str(Travel.match_guidance().get("display_name", "线下赛场"))
+		_set_caption(guidance)
+	else:
+		_set_caption("走到前排中央的“你的席位”，按 E 坐下使用电脑。")
 
 func _nearest_target() -> String:
 	var distance := INF; var result := ""
@@ -104,6 +111,9 @@ func _station(id: String) -> Dictionary:
 
 func _hint_text() -> String:
 	if device_seated: return "选手席 · 收起电脑后起身"
+	if roster_plan.is_empty():
+		var guidance := Travel.preview_match_hint("lan")
+		if not guidance.is_empty(): return guidance
 	if not target.is_empty() and not roster_plan.is_empty() and not _station(target).get("player", false): return "选手已入座 · 请使用前排中央你的席位"
 	if not target.is_empty(): return "E 坐进"+("你的席位" if _station(target).get("player",false) else target+" 选手席")+" / 打开生涯比赛"
 	return "沿桌后通道走动 · 侧边通道通往另一排"

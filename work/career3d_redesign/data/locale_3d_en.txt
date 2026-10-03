@@ -1,0 +1,1529 @@
+# Complete authored 3D phrases and printf templates. Chinese<TAB>English.
+同步当前对局	Sync current match
+正在同步当前对局战术…	Syncing current match tactics…
+本场战术快照（%s）：%s\n%s	Match tactics snapshot (%s): %s\n%s
+草稿还没保存，先保存后再同步当前对局。	Save the draft before syncing the current match.
+请确认已同步当前对局，再在准备阶段粘贴。	Confirm the current match is synced before pasting during freeze time.
+请重新读取战术以确认同步状态。	Reload tactics to confirm publication status.
+同步状态已更新。	Publication status updated.
+已复制：%s	Copied: %s
+界面语言	Language
+简体中文	Simplified Chinese
+羽毛	Feathers
+腹部	Belly
+喙与脚	Beak and feet
+鸡冠	Comb
+队服	Team jersey
+饰边与耳机	Trim and headset
+奶油新秀	Cream rookie
+暖橘午后	Warm orange afternoon
+海盐蓝调	Sea-salt blue
+我的小鸡	My chicken
+选择羽毛颜色、队服与饰边，右侧改动会实时显示在角色上。	Choose feather, jersey and trim colours. Your character preview updates immediately.
+实时预览 · 外观不影响属性	Live preview · Appearance does not affect ability
+穿着	Outfit
+队服与耳机	Jersey and headset
+轻装	Casual
+点击选择	Click to choose
+颜色	Colour
+配色灵感	Colour palettes
+队服款式使用现有模型；羽毛、腹部、喙脚、鸡冠和衣服均可调色。	Choose colours for the feathers, belly, beak, feet, comb and jersey.
+随新生涯保存	Save with new career
+恢复初始配色	Reset colours
+保存外观	Save appearance
+恢复已保存外观	Restore saved appearance
+预览已更新，创建生涯时会一并保存。	Preview updated. It will be saved when you create your career.
+预览已更新，保存后会随生涯保留。	Preview updated. Save it to keep this appearance with your career.
+已预览「%s」，%s	Previewing "%s". %s
+创建生涯时会一并保存。	Saved when you create your career.
+保存后会随生涯保留。	Save to keep it with your career.
+已恢复初始配色。	Default colours restored.
+已恢复上次保存的外观。	Saved appearance restored.
+外观还没有保存。后台正在同步，请稍后点击保存。	Appearance not saved. Wait for synchronization, then select Save.
+外观还没有保存，请检查本地后台连接。	Appearance not saved. Check the local service connection.
+正在保存外观……	Saving appearance…
+外观已保存，下次进入会继续使用。	Appearance saved for your next visit.
+外观没有保存，请重试。	Appearance not saved. Please retry.
+创建生涯时会一并保存当前外观。	Your appearance will be saved with the new career.
+当前外观已保存。	Current appearance saved.
+保存中……	Saving…
+职业赛	Professional match
+入场	Entrance
+赛前准备	Pre-match preparation
+主屏	Home
+设置	Settings
+聊天	Chat
+我的	Me
+日历	Calendar
+快速赛季	Quick season
+职业比赛	Career match
+桌面	Desktop
+对战中心	Match centre
+战术室	Tactics room
+本地天梯	Local ladder
+自定义对局	Custom match
+战术模拟	Tactical simulation
+战队资料	Team profile
+选手资料	Player profile
+赛事资料	Tournament profile
+赛事新闻	Tournament news
+我的生涯	My career
+阵容与合同	Roster and contracts
+训练与成长	Training and growth
+自动安排	Automation
+职业榜单	Pro rankings
+开始与继续	Start and continue
+我的形象	My appearance
+存档管理	Save manager
+俱乐部电脑	Club workstation
+离开电脑  [E / Esc]	Leave computer  [E / Esc]
+‹ 返回	‹ Back
+开局选择	Career setup
+我的手机	My phone
+LAN 选手电脑	LAN player computer
+赛事选手电脑	Tournament player computer
+宿舍电脑	Home computer
+生涯正在载入。连接完成后即可使用。	Loading your career. This page will be available once connected.
+战术模拟模块尚未接入。	Tactical simulation is not available yet.
+界面字体	Interface font
+圆润字体 · 寒蝉全圆体	Rounded font
+清晰字体 · 系统黑体	System sans-serif
+字体随样板离线提供；仅改变显示，不影响生涯。	Fonts are provided offline. Changing the font only affects display.
+的	's
+今日安排	Today's agenda
+下一场比赛	Next match
+比赛场馆	Match venue
+查看参赛安排	View match arrangements
+调整与培养 · %s 点自由属性	Training and setup · %s available attribute points
+训练与对战	Training and matches
+%d 封邮件	%d messages
+看看日历	Open calendar
+CS2 与换肤设置	CS2 and skin settings
+从一场好好打的比赛开始。	Start with a good match.
+当前生涯角色 · 十人匹配 · 队长选人 · 地图 BP	Career character · Ten players · Captain picks · Map veto
+打开天梯	Open ladder
+约对手、练配合，打完一起看战报。	Arrange a scrim, practise teamwork and review the match together.
+约一场训练赛	Arrange a scrim
+到俱乐部电脑安排训练赛。	Arrange a scrim at the club workstation.
+自定义对局 · 战术验证	Custom match · Test tactics
+自行选择双方各五名选手、地图与开场阵营；可控制一名选手或观察十名 BOT，不计天梯积分。	Choose both five-player squads, map and starting side. Play as one player or observe ten bots. Ladder points are unaffected.
+打开自定义对局	Open custom match
+RTS 指挥对局	RTS command match
+职业赛事	Career tournaments
+比赛安排与历史战报在赛事中心；待处理的比赛也可从手机查看。	View upcoming matches and saved reports in the tournament centre or on your phone.
+查看赛事日程	View tournament schedule
+位置能力	Role ability
+当前位置 · 	Current role · 
+位置适配能力	Role-specific ability
+切换预览不会改变阵容。	Changing the preview does not change the roster.
+%s · %s 岁 · 当前位置能力 %s · 状态 %s	%s · Age %s · Role ability %s · Form %s
+属性培养	Attribute training
+比赛数据	Match statistics
+自由属性点 · %d	Available attribute points · %d
+属性资料正在载入。	Loading attributes.
+确认加点	Confirm allocation
+清空本次分配	Clear this allocation
+手机和电脑使用同一份属性与点数。	Phone and computer share the same attributes and points.
+所属战队	Current team
+最近职业比赛	Recent career matches
+还没有比赛记录，第一场后会显示你的数据。	Your statistics will appear after your first match.
+分配自由属性点	Allocate attribute points
+罕见特殊	Rare special item
+图片暂缺 · 	Image unavailable · 
+%d 游戏币	%d game coins
+我的库存	My inventory
+职业配装	Pro loadouts
+饰品资料正在载入。	Loading item details.
+正在开箱……	Opening case…
+结果已保存，轮播结束后可处理饰品。	The result is saved. Manage the item after the animation.
+开箱结果 · 	Case result · 
+结果已保存，关闭窗口也不会重新抽取。	The result is saved. Closing this window will not reroll it.
+立即出售 · ¥%s	Sell now · ¥%s
+‹ 返回列表	‹ Back to list
+卸下 	Unequip 
+装备 	Equip 
+出售 · ¥%s	Sell · ¥%s
+购买并入库	Buy and add to inventory
+武器箱与钥匙 · ¥%d	Case and key · ¥%d
+库存还没有饰品。	Your inventory is empty.
+收件箱很安静。新的赛事邀请会出现在这里。	No messages yet. New tournament invitations will appear here.
+教练的邮件	Coach's message
+俱乐部邮件	Club message
+参加这场赛事	Enter this tournament
+这次先不报名	Skip this tournament
+接受邀请后仍会让你确认最终去留，不会直接自动离队。	Accepting opens a transfer decision. You choose whether to leave.
+继续加盟决定	Continue transfer decision
+查看加盟机会	View offer
+婉拒邀请	Decline invitation
+接受邀请	Accept invitation
+处理当前加盟决定	Resolve current transfer decision
+选一天，在那天的早晨醒来。	Choose a day to wake up that morning.
+日	Sun
+一	Mon
+二	Tue
+三	Wed
+四	Thu
+五	Fri
+六	Sat
+醒来时间	Wake-up date
+睡到这一天早上	Sleep until that morning
+睡到明早	Sleep until tomorrow
+比赛和待处理事件会让时间暂停。	Matches and pending events pause time.
+继续到 	Continue to 
+今天的比赛	Today's match
+%s · %s\n对阵 %s	%s · %s\nvs %s
+比赛地点 · 	Match venue · 
+亲自参赛	Play in person
+亲自参赛 · 睡到比赛日	Play in person · Sleep until match day
+这个月的比赛	Matches this month
+天梯资料还没有载入。	Ladder data has not loaded yet.
+%s  ·  Elo %s  ·  %s 胜 / %s 负	%s  ·  Elo %s  ·  %s W / %s L
+独立天梯积分 · 可模拟比赛，也可进入 CS2 亲自打	Separate ladder rating · Simulate or play in CS2
+当前共享房间是自定义对局；天梯身份不变，先处理该房间。	A custom match room is active. Finish or close it before playing ladder.
+打开自定义房间	Open custom room
+开始天梯匹配	Find ladder match
+开始匹配	Find match
+打开本场战报	Open match report
+开始下一场匹配	Find next match
+ · 选择开场阵营	 · Choose starting side
+CT · 防守方	CT · Defenders
+T · 进攻方	T · Attackers
+地图：	Map: 
+开场：%s 队 CT · %s 队 T	Starting sides: Team %s CT · Team %s T
+模拟这场天梯比赛	Simulate ladder match
+进入 CS2	Play in CS2
+RTS 指挥这场天梯	Command ladder match in RTS
+本图暂不支持 RTS，可以模拟或进入 CS2。	RTS is unavailable for this map. Simulate or play in CS2.
+正在检查 CS2 环境。	Checking CS2 setup.
+RTS 对局待完成	RTS match pending
+继续这场 RTS 天梯	Resume RTS ladder match
+正在准备 CS2 对局。	Preparing CS2 match.
+等待 CS2 对局战绩回传。	Waiting for CS2 match results.
+CS2 对局启动未完成。	CS2 match launch did not finish.
+正在 CS2 中进行这场比赛。	This match is being played in CS2.
+当前房间无法在这台电脑继续，请结束原房间后再匹配。	This room cannot resume on this computer. Close it before matching again.
+离开当前匹配房间	Leave current room
+等待 CS2 比赛结果。	Waiting for CS2 results.
+重试进入 CS2	Retry CS2 launch
+重试录入战绩	Retry result import
+放弃这场天梯？	Abandon this ladder match?
+关闭这个未录入房间，不计算胜负或天梯积分。之后不能再为这场录入战绩。	Close this room without recording a win, loss or rating change. Results cannot be imported afterwards.
+确认放弃，不计分	Confirm abandon · No rating change
+继续等待	Keep waiting
+放弃本场天梯	Abandon ladder match
+最近天梯比赛	Recent ladder matches
+%s 队 · 队长 %s	Team %s · Captain %s
+%d · 等待选人	%d · Awaiting draft
+ ★ 你	 ★ You
+操作暂未发出，请等当前操作完成后重试。	Request not sent. Wait for the current operation, then retry.
+请先退出 CS2，核验进程状态后再放弃本场。	Close CS2 and verify its process has stopped before abandoning.
+请到俱乐部工作站约训练赛。	Arrange scrims at the club workstation.
+本地模拟训练赛。比赛保存战报，不计职业赛事奖金、排名或能力奖励。	Local simulated scrim. Reports are saved; career prizes, rankings and ability rewards are unaffected.
+暂时没有可约的对手。	No scrim opponents available.
+日期	Date
+今天	Today
+明天	Tomorrow
+确认预约训练赛	Confirm scrim booking
+已约训练赛	Booked scrims
+开始模拟训练赛	Simulate scrim
+到约定日期后可开赛。	The match starts on the booked date.
+还没有约好的训练赛。	No scrims booked yet.
+训练赛战报	Scrim reports
+你的天梯积分：%+d	Your ladder rating: %+d
+赛程与战报	Schedule and reports
+赛事日程	Tournament schedule
+ · 已报名	 · Registered
+本赛季选手数据	Season player statistics
+本赛季对 VRS Top30 对手的已记录地图；无样本不列入。	Recorded maps against VRS Top 30 opponents this season. Players without samples are excluded.
+选手或战队名称	Player or team name
+Rating %s · ADR %s · KAST %s · %s 图 · %s / %s / %s	Rating %s · ADR %s · KAST %s · %s maps · %s / %s / %s
+正在读取选手数据……	Loading player statistics…
+没有符合条件的已记录选手。	No recorded players match these filters.
+%s · %s · 能力 %s	%s · %s · Ability %s
+ · 历史资料	 · Historical profile
+统计范围	Statistics range
+%s 张已保存地图 · 不补造缺失数据	%s saved maps · Missing data is not reconstructed
+Rating %s · ADR %s · KAST %s · %s 图 / %s 回合	Rating %s · ADR %s · KAST %s · %s maps / %s rounds
+实际位置属性	Attributes for current role
+最近10图	Last 10 maps
+这个范围内没有已保存的地图记录。	No saved maps in this range.
+%s 年 · #%s · Rating %s	%s · #%s · Rating %s
+暂无记录。	No records yet.
+级别	Tier
+赛制	Format
+这次操作没有完成。	This operation did not complete.
+正在处理……	Processing…
+同步资料中……	Synchronizing…
+双败淘汰	Double elimination
+瑞士轮	Swiss
+分组赛	Group stage
+Major 多阶段	Multi-stage Major
+待开赛	Upcoming
+赛事进程	Tournament progress
+赛程尚未发布。	Schedule not published yet.
+绿色：胜者路线 · 红色：败者路线	Green: Winner path · Red: Loser path
+第 %s 阶段 · 瑞士轮	Stage %s · Swiss
+瑞士轮积分	Swiss standings
+%s 组	Group %s
+%s 胜 · %s 负	%s W · %s L
+第一晋级	First qualifier
+第二晋级	Second qualifier
+十六强	Round of 16
+待定	TBD
+CAREER  /  赛场纪事	CAREER  /  Match journal
+赛场荣誉	Tournament honours
+荣誉与战绩已保存在赛事新闻中。	Honours and results are saved in tournament news.
+和同行一起去颁奖现场	Attend the awards ceremony
+我看完了 · 继续	Finished reading · Continue
+我们夺冠了！	We are champions!
+赛事冠军	Tournament champion
+MVP  /  最有价值选手	MVP  /  Most valuable player
+EVP  /  卓越表现	EVP  /  Exceptional performance
+BEST FIVE  /  最佳阵容	BEST FIVE  /  Team of the tournament
+年度 Top20 正式揭晓	Annual Top 20 revealed
+  ·  你	  ·  You
+正在收好这份战报……	Saving your acknowledgement…
+没有确认成功，再试一下。	Acknowledgement failed. Please retry.
+比赛尚未结束。	This match has not finished.
+这场比赛没有保存全场汇总。	No series totals were saved for this match.
+本图 · 	This map · 
+这场比赛未保存完整选手数据。	Complete player statistics were not saved for this match.
+%s · 已保存 %s 人	%s · %s recorded players
+左右滑动查看完整战绩。	Scroll horizontally to view the complete scoreboard.
+十人战绩	Ten-player scoreboard
+  ·  你方	  ·  Your side
+放下手机	Put phone away
+返回主屏	Home
+生涯正在载入。稍后再打开这个 App。	Career loading. Open this app again shortly.
+早上好	Good morning
+下午好	Good afternoon
+晚上好	Good evening
+星期日	Sunday
+星期一	Monday
+星期二	Tuesday
+星期三	Wednesday
+星期四	Thursday
+星期五	Friday
+星期六	Saturday
+ · 上午	 · Morning
+ · 下午	 · Afternoon
+ · 晚上	 · Evening
+ · 加盟邀请	 · Team offer
+教练	Coach
+俱乐部	Club
+教	C
+这场赛事的邀请到了。看一下赛程，咱们要不要报名？	A tournament invitation arrived. Check the schedule and decide whether to enter.
+接受后进入加盟决定，最终是否转会仍由你确认。	Accepting opens the transfer decision. You make the final choice.
+婉拒这份邀请	Decline this invitation
+待回复	Awaiting response
+已读	Read
+已收阅	Received
+醒来：	Wake up: 
+比赛和待处理事件会让日历暂停。	Matches and pending events pause the calendar.
+小鸡形象	Chicken appearance
+%s · 能力 %s	%s · Ability %s
+本赛季 · %s 张地图	This season · %s maps
+KAST %s   ·   状态 %+d	KAST %s   ·   Form %+d
+还没有已保存的个人比赛数据。天梯与职业赛事分别记录。	No personal match statistics saved yet. Ladder and career records are separate.
+天梯 Elo %s · %s 胜 / %s 负	Ladder Elo %s · %s W / %s L
+我的战队	My team
+战队阵容	Team roster
+最近比赛与战报	Recent matches and reports
+查看职业赛事记录	View career match history
+个人余额 ¥	Personal funds ¥
+俱乐部资金 ¥	Club funds ¥
+位置适配能力 	Role ability 
+队内事件	Team events
+自由属性点 %d	Available attribute points %d
+个人属性正在载入。	Loading personal attributes.
+撤销本次分配	Undo allocation
+手机与电脑共用同一份属性点。确认前可以调整。	Phone and computer share the same points. Adjust your allocation before confirming.
+赛区 %s · 排名 %s	Region %s · Rank %s
+ · 你	 · You
+国籍	Nationality
+潜力	Potential
+天梯积分	Ladder rating
+近期状态 %+.1f	Recent form %+.1f
+30 天	30 days
+比赛数据 · %d 张地图	Match statistics · %d maps
+Rating %s · ADR %s\nKAST %s · %d 个回合	Rating %s · ADR %s\nKAST %s · %d rounds
+击杀 %s / 死亡 %s / 助攻 %s	Kills %s / Deaths %s / Assists %s
+部分历史数据不完整，缺失统计不补零。	Some historical data is incomplete. Missing statistics are not filled with zeros.
+这个范围还没有已保存的职业比赛数据。	No saved career matches in this range.
+比赛	Match
+%s · 对阵 %s\n%s	%s · vs %s\n%s
+第 %d 页 · 共 %d 张地图	Page %d · %d maps total
+结束	Finished
+事情都处理好了。继续你的一天吧。	Everything is resolved. Enjoy the rest of your day.
+选择	Choose
+我知道了	Got it
+还有 %d 件待处理	%d pending events
+赛事新闻 ›	Tournament news ›
+快速赛季 ›	Quick season ›
+下一场	Next match
+%s\n对阵 %s · BO%d	%s\nvs %s · BO%d
+打开比赛中心 · 模拟 / 亲自打	Open match centre · Simulate / Play
+自己去 CS2 打	Play in CS2
+只推进到比赛日	Advance to match day
+没有已安排的下一场比赛。	No upcoming match scheduled.
+查看赛事邀请	View tournament invitations
+还没有比赛战报。	No match reports yet.
+‹ 比赛列表	‹ Match list
+本赛季的节奏	Season pace
+%s 赛季 · %s	%s season · %s
+下赛季	Next season
+使用快速模式	Use quick mode
+正常进行	Normal pace
+比赛按地图展开；赛后停留在十人数据，再继续下一场。	Matches unfold map by map. Review the ten-player scoreboard before continuing.
+打开快速赛季与逐场战报	Open quick season and match reports
+处理队内事件	Resolve team events
+圆润字体	Rounded font
+系统黑体	System sans-serif
+声音	Sound
+静音	Mute
+Tab 切换，Enter 确认。\nP / Esc 收起，Home 回到主屏。	Tab to navigate, Enter to confirm.\nP / Esc to close, Home for the home screen.
+同步中……	Synchronizing…
+经营与财务	Club and finances
+工资与奖金自动入账。俱乐部和个人的资金各自记账。	Wages and prizes are credited automatically. Club and personal funds have separate accounts.
+经营资料还没有载入。	Club data has not loaded yet.
+ · 仅查看	 · Read only
+你是签约选手，俱乐部引援与经营由管理层负责。	As a contracted player, recruitment and club finances are handled by management.
+经营危机 · 工资缺口 	Financial crisis · Wage shortfall 
+请先处理资金缺口或手机里的经营事件。	Resolve the funding shortfall or club event on your phone first.
+借款 · 	Loan · 
+本金 %s · 欠息 %s · 月息 %s%% · 连续未还 %s 月	Principal %s · Interest owed %s · Monthly rate %s%% · %s months unpaid
+偿还借款	Repay loan
+可借额度 	Borrowing limit 
+ · 月息 	 · Monthly interest 
+借款进入俱乐部还是个人账户，沿用当前生涯合同规则。	The current career contract determines whether loans go to the club or personal account.
+申请借款	Apply for loan
+每月支出 %s · 工资 %s · 生活与差旅 %s · 可维持 %s 月	Monthly expenses %s · Wages %s · Living and travel %s · %s months of funds
+从个人口袋支持俱乐部	Support club with personal funds
+原业务尚无设施升级功能。	Facility upgrades are not available in the original management system.
+ 预计下月	 Expected next month
+下月固定收支\n	Next month's recurring income and expenses\n
+\n近期入账与支出\n	\nRecent income and expenses\n
+资金来源与下月明细	Funding sources and next month's details
+金额	Amount
+请输入大于零的整数金额。	Enter a positive whole-number amount.
+青训	Academy
+当前只能办理个人转会。	Only personal transfers are currently available.
+俱乐部资金 	Club funds 
+普通签约按成功率谈判；失败收谈判费。现役选手只能买断。报价与阵容在确认时重新核对。	Standard negotiations have a success chance and a failure fee. Active players require buyouts. Quotes and roster are rechecked on confirmation.
+%s 位可查看选手	%s available players
+%s · 能力 %s · %s 岁 · %s	%s · Ability %s · Age %s · %s
+尝试签约 %s · %.0f%%	Attempt to sign %s · %.0f%%
+谈判未成仅扣 	Failed negotiation costs 
+买断 	Buyout 
+100% 保签 	Guaranteed signing 
+新队员入队后替换谁	Who will the new player replace?
+没有符合条件的选手或位置。	No players or roles meet these criteria.
+确认引援	Confirm recruitment
+这位选手的报价已经变化，请重新选择。	This player's quote has changed. Select again.
+%s → 入队 · %s → 离队	%s → Joins · %s → Leaves
+俱乐部支出 	Club expense 
+ · 不保证谈判成功	 · Negotiation may fail
+ · 100% 保证签约	 · Guaranteed signing
+本次成功率 %.0f%%，失败谈判费 %s。	Success chance %.0f%%. Failed negotiation fee %s.
+确认签约	Confirm signing
+我的职业去向	My career destination
+今年收到 %s / %s 份主动邀约。试训成功后仍由你决定是否离队。	%s / %s incoming offers this year. You decide whether to leave after passing a trial.
+申请冷却至 %s · 加盟锁定至 %s	Application cooldown until %s · Transfer lock until %s
+上次试训 · %s · D20 %s %+d = %s · %s	Last trial · %s · D20 %s %+d = %s · %s
+通过	Passed
+未通过	Failed
+加盟机会	Team offers
+入队邀约	Joining offer
+状态未载入	Status not loaded
+待决定	Decision pending
+确认申请试训	Confirm trial application
+%s · %s · 成功率 %.0f%%	%s · %s · Success chance %.0f%%
+只掷一次 D20。失败冷却30天，成功冷却90天；最终加盟后180天不能再次转会。	One D20 roll. Failure cooldown: 30 days; success: 90 days. Joining locks transfers for 180 days.
+%s · 接替 %s · 修正 %+d · %.0f%%	%s · Replaces %s · Modifier %+d · %.0f%%
+申请试训	Apply for trial
+转会经历	Transfer history
+无	None
+正在读取生涯资料…	Loading career data…
+重新读取	Reload
+资料暂时无法读取。	Data temporarily unavailable.
+自由身	Free agent
+首发位置	Starting roles
+能力 %s · %s 岁	Ability %s · Age %s
+保留一名指挥与一名主狙。切换到已有人担任的位置时，沿用原来的位置对调。	Keep one IGL and one AWPer. Selecting an occupied role swaps the two players' roles.
+保存首发位置	Save starting roles
+入队合同	Joining contracts
+当前加盟选择：	Current joining decision: 
+在手机中完成加盟选择	Complete joining decision on phone
+入队邀请	Team invitation
+查看加盟选择	View joining decision
+婉拒合同	Decline contract
+当前没有入队合同。	No joining contracts available.
+打开转会市场	Open transfer market
+%s · 全队心态 %s	%s · Team mentality %s
+今天已结算训练奖励。	Today's training rewards have been settled.
+今天尚未结算训练奖励。	Today's training rewards have not been settled.
+待核验：%s · %s	Awaiting verification: %s · %s
+核验并结算训练	Verify and settle training
+退出 CS2 后可取消核验。本次训练不会获得奖励，现有战绩记录保留。	Close CS2 to cancel verification. This training earns no rewards; existing results are retained.
+确认取消核验	Confirm cancellation
+保留待核验训练	Keep pending training
+取消待核验训练	Cancel pending training
+CT 防守方	CT Defenders
+T 进攻方	T Attackers
+进入真实 CS2 训练赛	Play training in CS2
+请先完成游戏设置。	Complete game settings first.
+属性培养 · %s 点可分配	Attribute training · %s available points
+%s 后成长窗口：%s 至 %s	Growth window after %s: %s to %s
+手动分配属性点	Allocate points manually
+自动加点计划	Automatic point allocation
+安排模拟训练赛	Book simulated scrim
+邀请与训练计划	Invitation and training plans
+赛事邀请自动处理	Automatic tournament invitations
+自动加点方向	Automatic training focus
+均衡发展 · 优先最低属性	Balanced · Improve lowest attribute first
+应用加点方向	Apply training focus
+Top20 与选手数据	Top 20 and player statistics
+选手数据榜	Player statistics ranking
+ 年	 Year
+搜索选手或战队	Search player or team
+Rating %s · %s 图	Rating %s · %s maps
+Top10 %s · Top20 %s · MVP %s · EVP %s · 总评分 %s	Top10 %s · Top20 %s · MVP %s · EVP %s · Overall score %s
+尚无达到原榜单样本条件的选手。	No players meet the ranking's sample requirements yet.
+%d / %s · %s 名选手	%d / %s · %s players
+将包含 pack.json 的扩展文件夹放入下方目录。原加载器只读取 JSON 数据。	Place extension folders containing pack.json in the directory below. The loader only reads JSON data.
+重新扫描后，生涯事件在下次触发、比赛聊天在下次准备比赛时生效；赛事与年代用于新生涯。	After rescanning, events apply on their next trigger and chat at the next match. Tournaments and eras apply to new careers.
+已发现 %s 个扩展 · %s 个已启用	%s extensions found · %s enabled
+剧情文字	Story text
+生涯事件	Career events
+操作还没有发出，请稍后再试。	Request not sent. Please retry shortly.
+连接中断，结果尚未确认。请刷新后查看。	Connection lost. The result is unconfirmed. Refresh to check.
+属性点已分配。	Attribute points allocated.
+邀请已接受。	Invitation accepted.
+已婉拒这次邀请。	Invitation declined.
+消息已发送。	Message sent.
+选择已记录。	Choice recorded.
+训练赛已安排。	Scrim booked.
+训练赛已结束，战报已保存。	Scrim finished. Report saved.
+首发位置已保存。	Starting roles saved.
+自动安排已保存。	Automation saved.
+扩展已重新扫描。	Extensions rescanned.
+训练已核验并结算。	Training verified and settled.
+已取消本次训练核验。	Training verification cancelled.
+队友已选入阵容。	Teammate drafted.
+地图已禁用。	Map banned.
+经营操作已完成。	Management operation completed.
+转会操作已完成。	Transfer operation completed.
+饰品操作已完成。	Item operation completed.
+操作已完成。	Operation completed.
+CS2 与人机增强	CS2 and Bot Improver
+使用你配置的 Bot Improver 发行包与难度，安装时加入本项目的兼容修复。	Use your selected Bot Improver release and difficulty. Installation includes this project's compatibility fixes.
+路径需要调整	Paths need attention
+组件需要安装或更新	Components need installation or update
+CS2 运行组件已就绪	CS2 components ready
+兼容副本：	Compatibility copy: 
+Steam 程序	Steam executable
+CS2 / game / csgo 目录	CS2 / game / csgo folder
+Bot Improver 发行包目录	Bot Improver release folder
+换肤插件目录（可留空）	Skin plugin folder (optional)
+粘贴本机完整路径	Paste the complete local path
+关闭 CS2 后点击安装。首次会下载配套组件，并加入我们的修复；原发行包不变，游戏文件会先备份。	Close CS2 before installing. The first installation downloads components and adds compatibility fixes. The source release is unchanged; game files are backed up first.
+安装填写目录的人机增强	Install Bot Improver from entered folder
+安装随包人机增强	Install bundled Bot Improver
+低	Low
+中	Medium
+高	High
+生涯库存	Career inventory
+外部库存	External inventory
+游戏内换肤的账户 ID	Account ID for in-game skins
+启用游戏内换肤时，需填写 17 位数字 SteamID64；暂不使用可先关闭上方开关。	Enter your 17-digit SteamID64 to enable in-game skins, or turn off the option above.
+外部库存模式保留生涯市场；进入 CS2 时使用所选库存来源。	The career market remains available with external inventory. CS2 uses the selected inventory source.
+可选饰品工具	Optional skin tools
+启用饰品扩展接口	Enable skin extension interface
+供自行安装的检视／贴纸工具接入，不包含编辑器，也不会自动下载。	Connect separately installed inspect/sticker tools. An editor is not bundled or downloaded automatically.
+保存 CS2 设置	Save CS2 settings
+设置请求没有发出，请再试一次。	Settings request not sent. Please retry.
+请先填写 Bot Improver 发行包目录。	Enter the Bot Improver release folder first.
+正在保存当前设置，随后安装人机增强……	Saving settings before installing Bot Improver…
+正在准备兼容组件、备份并安装人机增强，首次下载请稍候……	Preparing compatibility components, backing up and installing Bot Improver. Please wait for the first download…
+安装请求没有发出，请再试一次。	Installation request not sent. Please retry.
+安装已完成。	Installation completed.
+安装未完成。	Installation did not complete.
+设置已保存。	Settings saved.
+设置没有保存。	Settings not saved.
+自动职责	Automatic role
+步枪	Rifle
+战术室 · 五个位置的路线	Tactics room · Five-player routes
+点击地图添加路点；点击彩色点选中，拖动调整位置；右键设置观察方向。	Click the map to add waypoints. Select a coloured point and drag to move it. Right-click to set its look direction.
+全部阵营	All sides
+T 进攻	T Attack
+CT 防守	CT Defence
+ID（聊天指令名）	ID (chat command name)
+小写字母 / 数字 / _ / -	Lowercase letters / Digits / _ / -
+战术名称	Tactic name
+名单顺序分配	Roster order
+按能力匹配	Match by ability
+真人手动位置 %d	Human-controlled slot %d
+职责可重复，可设置双狙。主狙按正常经济购买 AWP；资金不足时使用正常购买流程。	Roles may repeat, including two AWPers. AWPers buy according to normal economy rules, with standard purchases when funds are insufficient.
+保存战术	Save tactic
+新建	New
+导入 JSON	Import JSON
+导出当前	Export current
+导出全部	Export all
+删除战术	Delete tactic
+雷达视图只切换底图；每个路点的上层 / 下层请单独设置。	Radar view changes the background only. Set each waypoint's upper/lower level separately.
+编辑路点	Edit waypoints
+平移地图	Pan map
+适应地图	Fit map
+滚轮缩放；也可用中键或空格＋左键临时平移。	Scroll to zoom. Middle mouse or Space + left mouse temporarily pans.
+全部其他位置	All other slots
+位置 %d	Slot %d
+复制本槽路线	Copy slot route
+到当前点 · 这段路的移动方式	Movement to this waypoint
+跑动（默认）	Run (default)
+静步	Walk
+到点后等待（秒）	Wait after arrival (seconds)
+自动判断层级	Automatic level
+上层	Upper level
+下层	Lower level
+设置观察方向	Set look direction
+取消观察	Clear look direction
+上移	Move up
+下移	Move down
+删除路点	Delete waypoint
+等待 0 秒的中途路点是经过点，无需停稳；等待从到点后开始。最后一步完成后恢复原生 AI。	Intermediate waypoints with zero wait are pass-through points. Waiting starts on arrival. Native AI resumes after the final step.
+准备阶段聊天指令	Freeze-time chat command
+复制指令	Copy command
+旧的 rusha / rushb 指令仍可使用。	The existing rusha / rushb commands still work.
+选择已保存战术	Select saved tactic
+地图雷达	Map radar
+能力模式按职责与选手能力分配 Bot；真人所选路线只作参考，始终手动操作。	Ability mode assigns bots by role and ability. The human route is a reference; your player stays manually controlled.
+位置 1 是你，手动操作；位置 2—5 按本场队友名单顺序分配。	Slot 1 is your manually controlled player. Slots 2–5 follow the current teammate roster order.
+位置 %d · %s · 职责	Slot %d · %s · Role
+你手动操作	Manually controlled by you
+能力匹配队友	Ability-matched teammate
+队友 %d	Teammate %d
+本槽步骤 · %d / 12	Slot steps · %d / 12
+先选择或添加一个路点。	Select or add a waypoint first.
+路点 %d · 位置 %.1f, %.1f	Waypoint %d · Position %.1f, %.1f
+观察目标 · %.1f, %.1f	Look target · %.1f, %.1f
+观察目标 · 尚未设置	Look target · Not set
+取消标记	Cancel marker
+当前：平移地图 · 按住左键拖动地图，不会添加路点。	Pan mode · Hold left mouse to drag the map without adding waypoints.
+当前：编辑路点 · 左键添加 / 拖动路点，右键设置观察方向。	Waypoint mode · Left-click to add/drag; right-click to set look direction.
+当前草稿未保存	Current draft unsaved
+已保存	Saved
+草稿尚未保存	Draft unsaved
+等待 %ss	Wait %ss
+经过点	Pass-through point
+恢复原生 AI	Resume native AI
+自动	Auto
+跑动	Run
+地图资料正在读取；载入后再安排路点。	Loading map data. Add waypoints after loading.
+地图底图无法读取；点击重新读取。	Map background unavailable. Select Reload.
+点击地图选择观察目标。	Click the map to choose a look target.
+按住左键移动地图；切回「编辑路点」后可调整路线。	Hold left mouse to move the map. Return to Edit waypoints to adjust routes.
+要移动放大后的地图，点击上方「平移地图」。	Select Pan map above to move the zoomed map.
+自定义战术	Custom tactic
+已复制 ✓	Copied ✓
+放弃当前未保存的修改？	Discard unsaved changes?
+当前草稿未保存。切换地图后将保留草稿，继续？	Current draft is unsaved. It will remain available after switching maps. Continue?
+每个位置最多 12 个路点。	Each slot supports up to 12 waypoints.
+路线已复制到%s，记得保存战术。	Route copied to %s. Remember to save the tactic.
+其他四个位置	The other four slots
+位置 	Slot 
+目标位置已有步骤，复制后将替换，继续？	The destination has steps. Copying will replace them. Continue?
+必须是两个有限坐标。	Two finite coordinates are required.
+超出当前地图范围。	Outside the current map bounds.
+导入内容需为一条战术或战术包。	Import a tactic or tactic pack.
+战术缺少字段：	Missing tactic fields: 
+战术包含未知字段：	Unknown tactic fields: 
+ID 只能用 1—32 个小写字母、数字、下划线或短横线。	Use 1–32 lowercase letters, digits, underscores or hyphens for the ID.
+名称需为 1—40 个可见字符。	The name must contain 1–40 visible characters.
+战术阵营需为 T 或 CT。	Tactic side must be T or CT.
+分配模式需为 roster 或 ability。	Assignment mode must be roster or ability.
+真人槽位需为 1—5；名单顺序模式固定为位置 1。	Human slot must be 1–5; roster-order mode uses slot 1.
+战术需要 1—5 号各一个位置。	A tactic requires slots 1 through 5 once each.
+位置字段不完整。	Slot fields are incomplete.
+位置包含未知字段：	Unknown slot fields: 
+位置职责无效。	Invalid slot role.
+路点字段无效。	Invalid waypoint fields.
+路点缺少字段：	Missing waypoint fields: 
+路点包含未知字段：	Unknown waypoint fields: 
+路点	Waypoint
+观察目标	Look target
+层级需为 auto、upper 或 lower。	Level must be auto, upper or lower.
+移动方式需为 run 或 walk。	Movement must be run or walk.
+等待需为 0—30 秒。	Wait must be 0–30 seconds.
+此 ID 已存在，覆盖已保存战术？	This ID exists. Replace the saved tactic?
+删除这条已保存战术？生涯或比赛记录不受影响。	Delete this saved tactic? Career and match records are unaffected.
+正在保存战术…	Saving tactic…
+正在删除…	Deleting…
+正在处理…	Processing…
+请求未发送，请等待当前操作结束后重试。	Request not sent. Wait for the current operation, then retry.
+*.json ; JSON 战术	*.json ; JSON tactics
+导出战术 JSON	Export tactic JSON
+导入战术 JSON	Import tactic JSON
+无法写入所选文件。	Cannot write to the selected file.
+导出没有完成，请检查所选文件夹。	Export failed. Check the selected folder.
+已导出全部战术：	All tactics exported: 
+已导出草稿：	Draft exported: 
+无法读取所选文件。	Cannot read the selected file.
+战术数据超过 256 KiB 大小限制。	Tactic data exceeds the 256 KiB limit.
+JSON 无效：	Invalid JSON: 
+导入地图与当前地图不同，请先选择对应地图再导入。	The imported tactic uses another map. Select that map before importing.
+导入包包含未知字段。	The import pack has unknown fields.
+战术包版本、地图或数量无效。	Invalid tactic pack version, map or item count.
+导入包包含重复 ID；未写入任何条目。	Duplicate IDs in the import pack. No items were written.
+导入包含同名 ID，会覆盖已有战术，继续？	This import contains existing IDs and will replace those tactics. Continue?
+先填写有效的战术 ID，再复制指令。	Enter a valid tactic ID before copying its command.
+没有复制成功，请重试；也可以选中左侧指令手动复制。	Copy failed. Retry or select the command on the left and copy it manually.
+已复制：	Copied: 
+。草稿还没保存，先保存后再到游戏里使用。	. Save the draft before using it in-game.
+。准备阶段粘贴到游戏聊天框即可。	. Paste into game chat during freeze time.
+正在读取战术…	Loading tactics…
+战术已保存。	Tactic saved.
+战术已删除。	Tactic deleted.
+导入已完成。	Import completed.
+操作失败，请重试。	Operation failed. Please retry.
+战术列表已更新。当前草稿保留。	Tactic list updated. Current draft retained.
+还没有安排下一场比赛。	No upcoming match scheduled.
+%s · 对阵 %s · BO%s	%s · vs %s · BO%s
+正在读取本场结果……	Loading match results…
+模拟当前比赛	Simulate current match
+RTS 指挥比赛	Command match in RTS
+可以先睡到比赛当天早上，再点“自己去 CS2 打”前往场馆；门口也能选择比赛地点。	Sleep until match morning, then select Play in CS2 to travel to the venue. You can also choose it at the door.
+查看刚才的完整战报	View complete match report
+进入 CS2 前的准备	Preparation before CS2
+正在核对本场比赛、阵容与地图……	Checking match, roster and map…
+查看赛前决定	View pre-match decision
+选图	Pick map
+禁图	Ban map
+禁用地图	Ban map
+交给队长完成地图 BP	Let captain finish map veto
+下一图 · 	Next map · 
+CS2 正在进行。赛后会读取这一图的真实结果。	CS2 match in progress. This map's real results will be imported afterwards.
+检查并录入 CS2 战绩	Check and import CS2 results
+CT 开场 · 进入 CS2	Start CT · Play in CS2
+T 开场 · 进入 CS2	Start T · Play in CS2
+正在确认 CS2 已退出……	Checking that CS2 has closed…
+路径、Bot Improver 难度和换肤来源在设置中配置。	Configure paths, Bot Improver difficulty and inventory source in Settings.
+打开 CS2 设置	Open CS2 settings
+比赛在 %s，先睡到比赛当天早上。	Match date %s. Sleep until that morning first.
+到门口选择本场比赛地点。	Choose this match's venue at the door.
+先从门口前往 %s，再到你的选手席入座。	Travel to %s from the door, then take your player seat.
+RTS 指挥 · 简化模拟	RTS command · Simplified simulation
+系列赛 · 混合方式	Series · Mixed modes
+回合结果   蓝：你方获胜   红：你方失利   ·   12 回合换边	Rounds   Blue: Your win   Red: Your loss   ·   Switch sides after 12 rounds
+本图即时战绩	Live map scoreboard
+本图最终战绩	Final map scoreboard
+最终比分 · 	Final score · 
+本图已录入 · 系列赛 	Map results imported · Series 
+战绩仍有缺项；缺失的字段按原记录显示。	Some statistics are missing. The original recorded fields are shown.
+准备下一张 CS2 地图	Prepare next CS2 map
+先看看本场表现 · 稍后继续	Review performance · Continue later
+%.0f 秒后自动继续	Continues automatically in %.0f seconds
+暂停快速赛季	Pause quick season
+下一张继续 RTS	Continue next map in RTS
+第 %d 图 · %s	Map %d · %s
+%s 拿下本图	%s win this map
+等待开赛	Awaiting match start
+加时赛	Overtime
+没有完整回合记录，稍后展示已保存的比分。	Complete round records unavailable. Saved scores will be shown shortly.
+已结束 %d 回合	%d rounds completed
+系列赛 · 	Series · 
+回合统计记录未保存；本图结束后显示完整战绩。	Round statistics were not saved. Complete results appear after this map.
+系列赛完整战绩	Complete series scoreboard
+等待本图第一回合……	Waiting for this map's first round…
+这张地图没有保存回合事件。	Round events were not saved for this map.
+第 %d 回合结束 · %s 获胜	Round %d ended · %s win
+R%d · %s 获胜	R%d · %s win
+%s 首杀 %s	%s open against %s
+%s %s 杀	%s %s kills
+拆弹成功	Defuse successful
+炸弹已拆除	Bomb defused
+炸弹爆炸	Bomb exploded
+回合时间耗尽	Round time expired
+一场场展开比赛，赛后留一点时间看完整数据。	Play through matches with time to review the full scoreboard afterwards.
+结束这次休赛停留，继续赛季	End this break and continue season
+快速赛季正在进行。	Quick season in progress.
+开始 / 继续快速赛季	Start / Resume quick season
+查看待处理的队内事件	View pending team events
+职业比赛中心	Career match centre
+选手资料暂未读到，请重新搜索。	Player profile unavailable. Search again.
+%s 队已满五人。	Team %s already has five players.
+已把 %s 加入 %s 队。	%s added to Team %s.
+推荐未填满空位，请再推荐或手动补齐。	Some slots remain empty. Recommend again or fill them manually.
+上一项结果未知，请先刷新房间状态。	Previous result unknown. Refresh the room status first.
+正在处理上一项操作，请稍候。	Previous operation in progress. Please wait.
+请先结束其他房间，并为双方各选择五名不同选手。	Close other rooms first and choose five distinct players for each side.
+地图或控制角色尚未保存，请先保存设置。	Map or controlled player is unsaved. Save settings first.
+选手资料读取失败。	Failed to load player profile.
+房间状态已刷新，请确认后手动继续。	Room status refreshed. Review it and continue manually.
+房间状态读取失败。	Failed to load room status.
+ 结果未知，先刷新房间状态；不会自动重试。	 Result unknown. Refresh room status first; no automatic retry.
+操作未完成，请检查房间状态后重试。	Operation incomplete. Check room status before retrying.
+A 队开场 CT	Team A starts CT
+B 队开场 CT	Team B starts CT
+观察者 · 十名 BOT	Observer · Ten bots
+控制 	Control 
+%s 队 · %d / 5	Team %s · %d / 5
+%d · 等待选手	%d · Awaiting player
+双方各五名选手，位置由原对局系统自动分配；不改变天梯积分或生涯身份。	Five players per side. Roles are assigned by the match system. Ladder rating and career identity stay unchanged.
+正在处理操作…	Processing operation…
+另一场天梯 / FPL 房间尚未结束，自定义对局暂不可创建。	Another ladder / FPL room is active. Close it before creating a custom match.
+查看现有天梯房间	View existing ladder room
+查看本场自定义战报	View custom match report
+重新选择十人	Choose ten players again
+推荐补齐空位	Recommend empty slots
+创建房间 · A %d/5 · B %d/5	Create room · A %d/5 · B %d/5
+搜索选手并加入 A / B 队；推荐只补空位，不覆盖已选成员。	Search players and add them to Team A / B. Recommendations only fill empty slots.
+选手姓名 / 俱乐部	Player name / Club
+重新读取目录	Reload catalogue
+正在读取选手目录…	Loading player catalogue…
+%d / %d · %d 位	%d / %d · %d players
+保存地图 / 控制设置	Save map / Control settings
+模拟验证	Test simulation
+进入 CS2 验证	Test in CS2
+自定义对局正在启动 / 等待战绩。	Custom match launching / Awaiting results.
+录入 / 重试录入战绩	Import / Retry results
+刷新房间状态	Refresh room status
+结束该自定义房间？不会计算天梯积分，未录入结果将不再接收。	Close this custom room? No ladder rating changes; unimported results will no longer be accepted.
+确认结束房间	Confirm close room
+结束当前房间 / 重新选人	Close current room / Pick again
+原系统自动分配五个位置；开赛前可以保存地图、开场 CT 队和控制角色。	The system assigns five roles. Save the map, starting CT team and controlled player before the match.
+队长操作暂未发出，请重试。	Captain action not sent. Please retry.
+队长操作暂未完成。	Captain action incomplete.
+队长选人	Captain draft
+地图 BP	Map veto
+选择阵营	Choose side
+准备开赛	Ready to start
+选队友	Pick teammates
+禁地图	Ban maps
+选阵营	Choose side
+操作	Action
+轮到你%s	Your turn to %s
+%s 队 · %s 正在%s	Team %s · %s is choosing: %s
+由本局两位最高分队长选人和 BP，你可以观看完整过程。	The two highest-rated captains draft players and veto maps. Watch the full process.
+刚刚选择：%s 队 → %s	Last choice: Team %s → %s
+继续队长选人 / BP	Continue captain draft / Veto
+待选队员 · 选人顺序 A → B → B → A → A → B → B → A	Available players · Draft order A → B → B → A → A → B → B → A
+点击选入你的队伍	Click to draft into your team
+等待本局队长选择	Waiting for captain's pick
+双方轮流禁图，剩下一张开赛。	Teams alternate bans until one map remains.
+%s 队已禁用	Banned by Team %s
+已经禁用	Already banned
+点击禁用这张地图	Click to ban this map
+等待本局队长禁图	Waiting for captain's ban
+本局选人与地图 BP 记录	Draft and map veto log
+%d · %s 队 → %s	%d · Team %s → %s
+%s 队禁用 %s	Team %s banned %s
+决胜地图：	Decider map: 
+这张地图暂未通过职业 RTS 完赛验证，请使用常规模拟。	This map has not passed career RTS validation. Use normal simulation.
+点选或框选队员，右键安排走位；Shift 追加路线，Tab 查看十人战绩。	Click or box-select players; right-click to order movement. Shift adds waypoints; Tab opens the ten-player scoreboard.
+简化 2D 规则，不是 CS2 录像。职业比赛保存逐回合数据并正常结算；自定义对局不计积分。	Simplified 2D simulation. Career matches save round data and settle normally; custom matches do not affect rating.
+战术指挥	Tactical command
+亲自操控	Direct control
+只看比赛	Spectate
+未结算地图 · 	Unsettled map · 
+重新开始未完赛地图，使用原名单、原地图和原种子。	Restart the unfinished map with the same roster, map and seed.
+重新开始未结算地图	Restart unsettled map
+取消未结算地图	Cancel unsettled map
+本地天梯 · 	Local ladder · 
+开始当前天梯 RTS	Start current ladder RTS match
+沿用本局队长选人、地图 BP 和选边；只结算本地天梯，不影响 VRS、奖金或培养。	Uses this room's draft, veto and side choice. Only local ladder rating is settled; VRS, prizes and training stay unchanged.
+返回天梯房间	Return to ladder room
+职业赛事 · %s 对阵 %s	Career tournament · %s vs %s
+开始当前职业地图 · 指挥我的队伍	Start current career map · Command my team
+保留已完成 BP；未完成时自动 BP。系列赛逐图进行，先到胜场才结束。	Completed vetoes are retained; unfinished vetoes are automatic. The series runs map by map until a team reaches the required wins.
+自定义指挥对局	Custom command match
+指挥 A 队	Command Team A
+指挥 B 队	Command Team B
+开始自定义指挥	Start custom command match
+先保存十人自定义阵容，选择支持的地图。	Save a ten-player custom roster and choose a supported map first.
+支持 · 	Supported · 
+配置自定义阵容 / 地图	Configure custom roster / Map
+刚才的指挥对局	Last command match
+开局 CT 队 %d : %d 开局 T 队 · %s	Starting CT team %d : %d Starting T team · %s
+未结算	Unsettled
+\n原战绩仍保留，点击返回会重试录入。	\nOriginal results retained. Return to retry importing them.
+本图十人战绩已保存。	Ten-player map scoreboard saved.
+系列赛结束，返回电脑可看完整战报。	Series finished. Return to the computer for the full report.
+返回电脑，可继续下一张地图。	Return to the computer to continue the next map.
+本图尚未结算。取消后需要重新开始本图；以前保存的地图保持不变。	This map is unsettled. Cancelling requires restarting it; previously saved maps stay unchanged.
+楼层	Floor
+上下层独立显示；右键路线会沿楼梯或梯子跨层。	Floors are shown separately. Right-click routes use stairs or ladders between floors.
+Space 越过通路，E + 方向键攀梯。	Space crosses passages; E + direction climbs ladders.
+存档	Saves
+当前进度 · 自动保存	Current progress · Autosaved
+保存时间：%s  ·  %s	Saved: %s  ·  %s
+另存一份	Save a copy
+存档名称	Save name
+当前不能保存或读档：	Save/load currently unavailable: 
+请先完成当前操作。	Complete the current operation first.
+手动存档 · %d	Manual saves · %d
+未命名存档	Untitled save
+读档	Load
+删除	Delete
+还没有手动存档。	No manual saves yet.
+读取「%s」？	Load "%s"?
+删除「%s」？	Delete "%s"?
+当前进度会切换到这份存档。	Current progress will switch to this save.
+只删除这份手动存档。	Only this manual save will be deleted.
+确认读取	Confirm load
+确认删除	Confirm delete
+%s  ·  %s\n%s  ·  %s 开局	%s  ·  %s\n%s  ·  %s start
+暂无生涯	No career yet
+暂无队伍	No team yet
+正在读取存档……	Loading saves…
+后台暂未连接。	Local service disconnected.
+正在同步，请稍后重新读取。	Synchronizing. Reload shortly.
+存档列表未读取，请稍后重试。	Save list not loaded. Retry shortly.
+操作未发出，请稍后重试。	Request not sent. Retry shortly.
+存档列表已更新。	Save list updated.
+存档列表未读取，请重新读取。	Save list not loaded. Select Reload.
+已保存。	Saved.
+已读档。	Save loaded.
+已删除。	Deleted.
+操作完成。	Operation completed.
+操作没有完成，请重试。	Operation incomplete. Please retry.
+读档没有完成，请重新读取。	Load incomplete. Reload the list.
+连接中断，结果尚未确认。请重新读取存档列表。	Connection lost. Result unconfirmed. Reload the save list.
+你的职业生涯	Your career
+继续这段生涯	Continue this career
+开始新生涯	Start new career
+换个形象	Change appearance
+存档与读档	Save and load
+新开局会先备份当前生涯，不会动旧桌面版的存档。	Your current career is backed up before a new start. Old desktop saves are untouched.
+正在读取年代与阵容……	Loading eras and rosters…
+第一步 · 选择开局与能力	Step 1 · Choose start and ability
+接管职业选手	Play as a professional
+俱乐部名称	Club name
+接管所选年代的真实名单；形象只改变你的 3D 小鸡。	Use the selected era's actual roster. Appearance changes only your 3D chicken.
+进入下一步 · 设置形象	Next step · Customize appearance
+第二步 · 设置你的形象	Step 2 · Customize appearance
+快速赛季开局	Start with quick seasons
+正在建立生涯……	Creating career…
+确认上次开局结果	Check previous start result
+开始这段生涯	Start this career
+返回选择能力	Back to ability selection
+返回选择选手	Back to player selection
+先选齐七项能力，并收下这次抽到队伍的一项数值。	Choose all seven attributes and confirm one value from the current team first.
+先填写选手 ID 和俱乐部名称。	Enter your player name and club name first.
+开局资料没有读取成功。	Career setup data failed to load.
+先选齐七项能力。	Choose all seven attributes first.
+当前生涯会先备份，再开始新的生涯。确定你的开局和形象了吗？	Current career will be backed up before starting anew. Confirm your setup and appearance?
+再看看	Review again
+操作未发出，请等待当前操作结束后再试。	Request not sent. Wait for the current operation, then retry.
+赛场新闻	Tournament news
+转会动态	Transfer news
+看见赛场、荣誉与转会发生了什么。这里只呈现已经保存的消息。	Follow matches, honours and transfers. Only saved news is shown.
+所有月份	All months
+刷新新闻	Refresh news
+%s 篇	%s articles
+正在读取新闻……	Loading news…
+赛场动态	Tournament news
+这个范围内还没有已发表的消息。	No published news in this range yet.
+新闻暂时没有读取完成。	News has not finished loading.
+‹ 返回新闻列表	‹ Back to news
+五位置最佳阵容	Best five by role
+打开赛事资料	Open tournament profile
+抽队伍，选择你的能力	Draw teams and choose your attributes
+最多抽 10 支队伍。每次从这支队伍的一名选手身上选一项能力；七项选齐，再进入形象设置。	Draw up to 10 teams. Choose one attribute from one player per team. Complete all seven attributes before customizing appearance.
+正在读取抽取记录……	Loading draw history…
+抽取第一支队伍	Draw first team
+正在抽取队伍……	Drawing team…
+重新确认上次操作	Check previous operation
+先点击一个想要的数值	Select a value first
+已选中 %s 的%s；点击下方收下后，再抽下一支队伍。	Selected %s's %s. Confirm below before drawing the next team.
+将用 %s 的%s %s 替换原来的 %s；本次仍消耗一支队伍的选择。	Use %s's %s %s to replace %s. This still consumes one team choice.
+已抽 %d / %d 次 · 剩余 %d 次	Drawn %d / %d · %d draws remaining
+继续抽队伍 · 剩余 %d 次	Draw next team · %d remaining
+待选择	Awaiting selection
+收下 %s 的%s · %s	Confirm %s's %s · %s
+这次已收下数值	Value confirmed for this draw
+从这支队伍选一项能力。	Choose one attribute from this team.
+已保存本次选择，可继续抽下一支队伍。	Choice saved. Draw the next team.
+剩余次数刚好够补齐能力，本次请选择尚未填写的一项。	Remaining draws exactly match missing attributes. Choose an unfilled attribute.
+七项能力已选齐，可以进入下一步。剩余抽取机会也可用来替换一项能力。	All seven attributes selected. Continue or use remaining draws to replace one attribute.
+还需选择 %d 项能力。已填能力可替换，每次仍只收下一项。	%d attributes remain. You may replace filled attributes, one per draw.
+本次抽取记录\n	Current draw history\n
+正在收下这个数值……	Confirming value…
+已收下这个数值。	Value confirmed.
+队伍抽取	Team draw
+看看这次会抽到哪支队伍。	See which team appears this time.
+查看这支队伍的能力	View this team's attributes
+刚刚做过了，过几秒再来吧。	You just did that. Try again in a few seconds.
+已停止，未结算这次交互。	Stopped. This interaction was not settled.
+去	Go to
+我在这儿，你说。	I'm here. What's up?
+正在	Currently
+你在忙什么？	What are you working on?
+休息一会儿。	Taking a break.
+聊聊最近的训练	Let's talk about training
+一起加油。	Let's keep it up together.
+关闭 · E / Esc	Close · E / Esc
+俱乐部前台 · 今日安排	Club reception · Today's agenda
+比赛安排	Match arrangements
+%s · 对阵 %s	%s · vs %s
+到比赛电脑查看本场安排。	Check this match at the match computer.
+比赛地点：	Match venue: 
+今天没有待进行的正式比赛。可以去训练室，或找队友聊聊。	No official matches today. Visit the training room or chat with teammates.
+赛程与邮件可以随时用手机查看。	View your schedule and inbox on your phone anytime.
+奖杯陈列柜	Trophy cabinet
+ · 俱乐部荣誉	 · Club honours
+俱乐部荣誉	Club honours
+这个赛季的奖杯位置已经留好了。	A place for this season's trophy is ready.
+我的冠军	My titles
+你的个人冠军会记录在这里。	Your personal titles are recorded here.
+加盟前的俱乐部冠军	Club titles before you joined
+俱乐部冠军	Club titles
+守点	Holding position
+已回到大厅。	Returned to the lobby.
+欢迎回来。	Welcome back.
+大厅	Lobby
+先在俱乐部里逛逛	Explore the club first
+WASD / 方向键：相对画面方向移动\nShift：小跑；E：与最近的可达物品交互\n右键拖动：旋转镜头；滚轮：缩放\nTab：全馆鸟瞰 / 角色跟随；R：镜头复位\nN：日间 / 傍晚；Esc：停止动作或关闭帮助	WASD / Arrows: move relative to the camera\nShift: jog; E: use the nearest reachable object\nRight-drag: rotate camera; Wheel: zoom\nTab: overview / Follow; R: reset camera\nN: day / Evening; Esc: stop action or close help
+靠近小鸡按 F 聊天，1—4 选择话题，Esc 告别。\n战术白板旁按 E 翻阅纸本复盘笔记。\n训练电脑在椅子后侧使用，E / Esc 可取消动作。\n走到大厅正门即可选择下一站，滚轮选择，E 出发。	Near a chicken, press F to chat, 1–4 to choose and Esc to leave.\nPress E beside the tactics board to read review notes.\nUse training computers from behind the chair; E / Esc cancels.\nAt the front door, use the wheel to choose your destination and E to travel.
+知道了，开始走动	Got it · Start exploring
+F 和	F Chat with
+聊聊	Chat
+E 取消	E Cancel
+训练室	Training room
+战术会议室	Tactics meeting room
+厨房	Kitchen
+公共走廊	Common hallway
+休息区	Lounge
+食堂	Dining room
+ 座冠军奖杯	 Championship trophies
+年度选手颁奖	Annual player awards
+年度荣誉	Annual honours
+选手之夜\n年度荣誉典礼	Players' night\nAnnual awards ceremony
+中央台阶通往领奖台	Central stairs to the podium
+嘉宾席 / 观礼区	Guest seating / Viewing area
+预览	Preview
+预览嘉宾 %02d	Preview guest %02d
+一线选手嘉宾区（预览）	Professional player guests (preview)
+ 年度前三 · 已结算生涯	 Annual top three · Finalized career results
+预览典礼 · 尚无已结算年度排名	Preview ceremony · No finalized annual ranking yet
+ 年度前三\n\n	 Annual top three\n\n
+示例席位 / 预览\n\n	Sample places / Preview\n\n
+ 年度正式 Top20\n\n	 Final annual Top 20\n\n
+尚无年度正式 Top20\n\n预览不生成年度获奖名单	No final annual Top 20 yet\n\nPreview does not generate award winners
+完整榜单暂未提供；台上仅显示已归档前三。	Full ranking unavailable; the stage shows only the archived top three.
+年度排名来源：生涯年度结算	Annual rankings: Finalized career season results
+预览场景 · 示例嘉宾和领奖流程	Preview · Sample guests and award presentation
+走到中央通道前端，按 E 开始颁奖。	Walk to the front of the central aisle and press E to begin the awards.
+尚无已结算年度排名。当前为预览典礼，示例姓名不代表真实年度获奖结果。	No finalized annual ranking yet. This preview uses sample names, not actual award winners.
+当前一线战队选手 / 嘉宾席	Current professional players / Guest seating
+预览嘉宾席	Preview guest seating
+年度嘉宾席	Annual guest seating
+新的年度结算已就绪。重新进入颁奖厅后将使用该年度结果。	New annual results are ready. Re-enter the awards hall to view them.
+E 领取你的年度奖杯	E Collect your annual trophy
+重播	Replay
+年度颁奖	Annual awards
+预览典礼	Preview ceremony
+沿中央台阶走上舞台 · 靠近你的领奖台	Climb the central stairs · Approach your podium
+带着奖杯走回中央观礼通道 · 继续典礼	Return to the central aisle with your trophy · Continue ceremony
+中央通道通往舞台 · P 手机可查看生涯	Central aisle leads to the stage · P to view your career
+主持人：祝贺 %s！请回到观礼通道，典礼将继续。	Host: Congratulations, %s! Return to the viewing aisle to continue the ceremony.
+主持人：欢迎来到 %s 年度选手颁奖。我们依次公布第三名、第二名与第一名。	Host: Welcome to the %s annual player awards. We will announce third, second and first place.
+主持人：欢迎观看预览典礼。以下示例姓名仅用于展示领奖流程。	Host: Welcome to the preview ceremony. Sample names demonstrate the award presentation.
+荣耀属于每一位选手	Honour belongs to every player
+年度颁奖结束。恭喜所有入选选手。	Annual awards concluded. Congratulations to every selected player.
+预览典礼结束。实际年度排名将在生涯年度结算后显示。	Preview concluded. Actual annual rankings appear after the career season is finalized.
+主持人：年度%s名，%s。请上台领奖。	Host: Annual place %s, %s. Please come to the stage for your award.
+第三	3rd
+第二	2nd
+第一	1st
+主持人：预览席位 #%d，%s。请上台演示领奖。	Host: Preview place #%d, %s. Please demonstrate the award presentation.
+\n沿中央台阶上台，走到 #%d 领奖台前按 E。	\nClimb the central stairs, approach podium #%d and press E.
+主持人：祝贺 %s。	Host: Congratulations, %s.
+宿舍	Home
+P 手机	P Phone
+F1 帮助	F1 Help
+WASD / 方向键：走动\nShift：小跑；E：使用身边的物品\nP：打开手机；Esc：关闭\n右键拖动：旋转镜头；滚轮：缩放\n走到门口即可选择下一站，滚轮选择，E 出发。\n桌旁使用电脑，床边选择醒来的日期。	WASD / Arrows: walk\nShift: jog; E: use nearby objects\nP: phone; Esc: close\nRight-drag: rotate camera; Wheel: zoom\nAt the door, use the wheel to choose your destination and E to travel.\nUse the computer at the desk, or choose your wake-up date at the bed.
+继续走动	Continue exploring
+E 睡觉	E Sleep
+E 使用电脑	E Use computer
+正在载入独立生涯……	Loading career…
+请检查 data/career_link.json 中的后台程序，或 Python 和源码路径。	Check the backend executable or Python and source paths in data/career_link.json.
+独立场景检查	Standalone scene check
+生涯后台未能启动，请检查 data/career_link.json 中的后台程序路径。	Career service failed to start. Check its executable path in data/career_link.json.
+后台没有就绪。可能另一个样板窗口仍开着，请关闭它后重新打开。	The service is not ready. Close any other game window, then reopen.
+本地请求没有发出：	Local request not sent: 
+正在睡觉，醒来后再操作。	Sleeping. Wait until you wake up.
+操作未发出：本地后台尚未连接。	Request not sent: Local service disconnected.
+操作已收到，当前同步结束后执行……	Request received. It will run after synchronization…
+上一项操作正在处理，请稍等。	Previous operation in progress. Please wait.
+后台连接中断，当前场景仍可查看。请重新打开样板以恢复已保存生涯。	Service disconnected. You can still view this scene. Reopen to restore your saved career.
+操作未执行：后台同步中断。请重新打开样板后再试。	Request not executed: Synchronization interrupted. Reopen and retry.
+日历请求没有发出，时间已暂停。	Calendar request not sent. Time paused.
+载入中	Loading
+载入中%s	Loading %s
+正在保存并关闭生涯……	Saving and closing career…
+俱乐部设施	Club facilities
+设施升级从俱乐部账户扣款，家具装修使用个人资金。	Facility upgrades use club funds. Home furnishings use personal funds.
+扩建为 %s · %s	Expand to %s · %s
+升级 %s	Upgrade %s
+已完成	Completed
+购买 %s？从俱乐部账户支付 %s。	Buy %s? Pay %s from club funds.
+确认升级	Confirm upgrade
+箱子与钥匙已扣费 · 结果已保存	Case and key paid · Result saved
+已开出 	Unboxed 
+职业选手配装	Pro player loadouts
+使用游戏内个人余额购买，枪械、刀和手套一并放入库存。	Buy with personal game funds. Guns, knife and gloves are added to your inventory together.
+配装	Loadout
+%d 件 · %d 游戏币	%d items · %d game coins
+已在库存	In inventory
+购买整套	Buy full loadout
+公开配装模板；使用默认磨损和图案，入库后可装备，不可转卖。	Public loadout templates use default wear and patterns. Equip after purchase; resale is unavailable.
+收起清单	Collapse list
+查看全部配装	View all loadouts
+个人余额不足	Insufficient personal funds
+配装目录还未载入。	Loadout catalogue not loaded yet.
+刀	Knife
+5 vs 5  /  小型线下比赛	5 vs 5  /  Small LAN match
+你的席位位于前排中央	Your seat is at the centre of the front row
+LAN / 选手入口	LAN / Player entrance
+使用电脑选择当前生涯比赛	Use the computer to choose your current career match
+生涯比赛	Career match
+你的席位	Your seat
+ 选手席	 Player seat
+ 对阵 	 vs 
+ · 9 位选手已入座	 · Nine players seated
+场地预览 · 尚未取得本场稳定阵容	Venue preview · Match roster not ready
+线下赛场	LAN venue
+走到前排中央的“你的席位”，按 E 坐下使用电脑。	Go to Your seat at the centre of the front row. Press E to sit and use the computer.
+选手席 · 收起电脑后起身	Player seat · Close the computer to stand up
+选手已入座 · 请使用前排中央你的席位	Players seated · Use your seat at the centre of the front row
+E 坐进	E Sit at
+ / 打开生涯比赛	 / Open career match
+沿桌后通道走动 · 侧边通道通往另一排	Walk behind the desks · Side aisles lead to the other row
+已回到场馆入口。	Returned to the venue entrance.
+内场入口  /  ARENA	Arena entrance  /  ARENA
+向前进入内场	Continue into the arena
+冠军舞台	Champion stage
+你的席位 · 从桌侧绕至后排	Your seat · Walk around the desk to the back
+队伍集合完毕 · 和四位队友穿过中央通道，前往选手舞台。	Team assembled · Walk with your four teammates through the central aisle to the player stage.
+ 入场 · 队名亮灯，沿中央通道走向内场。	 Entrance · Team sign illuminated. Follow the central aisle into the arena.
+观众已经看到你们 · 沿中央通道走到奖杯前，再从右侧通道上舞台。	The crowd can see you · Walk towards the trophy, then use the right aisle to reach the stage.
+九位选手已就位 · 从桌侧绕到你的空席后方，按 E 入座打开比赛电脑。	Nine players ready · Walk behind your empty seat and press E to use the match computer.
+职业赛事 / 大型场馆	Career tournament / Large arena
+MAJOR / 场馆	MAJOR / Arena
+入场大厅	Entrance lobby
+P 手机 · 选手席查看比赛	P Phone · View match from player seat
+正在入场……	Entering arena…
+WASD 走动  /  Shift 小跑  /  鼠标转头  /  E 交互  /  P 手机  /  Esc 菜单  /  N 舞台灯光	WASD Walk  /  Shift Jog  /  Mouse Look  /  E Interact  /  P Phone  /  Esc Menu  /  N Stage lights
+场馆漫步	Arena walk
+穿过中央通道进入内场。\n沿座位旁的过道可走到舞台。\n视角保持平稳，不添加跑步晃头。	Follow the central aisle into the arena.\nUse the aisles beside the seats to reach the stage.\nThe camera remains steady without running head-bob.
+原创入场配乐 · 场内声 · 欢呼	Original entrance music · Arena sound · Cheers
+返回俱乐部	Return to club
+门口可选择下一站 · 可直接走开	Choose destination at the door · Walk away to dismiss
+沿通道往前 · 自由观察场馆	Follow the aisle · Explore the arena
+镜头正在切换至第一人称……	Switching to first-person camera…
+比赛电脑 · 收起后回到桌后通道	Match computer · Close to return behind the desk
+队伍集合完毕 · 沿中央通道和队友一起入场	Team assembled · Enter through the central aisle with teammates
+E 坐进你的空席 · 打开比赛电脑	E Take your seat · Open match computer
+队友正在就位 · 稍候入座	Teammates moving into position · Wait to sit
+沿桌侧绕到后方 · 你的空席在左侧中央	Walk behind the desk · Your empty seat is at the left centre
+入场大厅 / 中央入口通往内场	Entrance lobby / Central entrance leads to arena
+入场通道 / 前方是舞台	Entrance aisle / Stage ahead
+选手舞台	Player stage
+内场 / 观众席与奖杯区	Arena / Crowd seating and trophy area
+场馆公共区域	Arena common area
+从桌侧走到后方。只有你的空席可以打开比赛电脑。	Walk around the desk. Only your empty seat opens the match computer.
+1  你在忙什么？	1  What are you working on?
+2  聊聊训练	2  Talk about training
+3  一起加油	3  Encourage each other
+4  回头见	4  See you later
+  ·  对方会等你聊完再继续	  ·  Your conversation partner waits until you finish
+熟悉度 %d / 5（仅本次小样）   ·   点击选项或按 1—4，Esc 结束交谈	Familiarity %d / 5 (current visit)   ·   Click or press 1–4; Esc to end conversation
+‹ 新闻列表	‹ News list
+已发布 · %d 篇	Published · %d articles
+还没有这个分类的新闻。赛事荣誉、转会报道和年度 Top20 发布后会出现在这里。	No news in this category yet. Tournament honours, transfer reports and annual Top 20 appear after publication.
+阅读全部新闻	Read all news
+有件事想和你商量	Something to discuss with you
+联系人	Contact
+联系人正在同步。	Synchronizing contacts.
+曾经的联系人	Former contact
+聊天记录	Conversation history
+继续处理队内事件	Continue team events
+快捷回复	Quick replies
+复盘附楼	Review annex
+分析与会议中心	Analysis and meeting centre
+恢复休息室	Recovery lounge
+附楼走廊	Annex hallway
+晚安	Good night
+时间未推进，请稍后再试。	Time did not advance. Please retry shortly.
+时间暂停	Time paused
+暂时没有睡下	Sleep not started
+有比赛或事件等待你处理。	A match or event needs your attention.
+\n今天对阵 %s · %s	\nToday's opponent %s · %s
+自由走动 · 沿门口通道返回	Explore freely · Return along the entrance aisle
+出口 / 下一站	Exit / Next destination
+WASD 走动 / Shift 小跑 / 鼠标转头 / E 交互 / P 手机 / Esc 菜单	WASD Walk / Shift Jog / Mouse Look / E Interact / P Phone / Esc Menu
+走到出口可选择下一站。\nP 手机可随时查看当前生涯。	Choose your next destination at the exit.\nPress P to view your career anytime.
+本场比赛在「%s」 · %s · 可从门口选择前往	This match is at "%s" · %s · Choose it at the door
+今日对阵 %s · 到门口选择「%s」，准备本场比赛	Today's opponent %s · Choose "%s" at the door to prepare
+%s 对阵 %s · 今天可以先看看场馆，比赛日再来入座	%s vs %s · Explore the venue today and take your seat on match day
+前往场馆	Travel to venue
+回到俱乐部	Return to club
+前往线下赛场	Travel to LAN venue
+前往年度颁奖礼	Travel to annual awards
+场景未能载入，正在返回	Scene failed to load. Returning
+Major 场馆	Major arena
+年度颁奖礼	Annual awards ceremony
+休息、查看电脑	Rest and use your computer
+训练、和队友碰面	Train and meet teammates
+进入场馆 · 比赛日和队友入场	Explore the arena · Enter with teammates on match day
+面对面 5v5 · 入座打开比赛电脑	Face-to-face 5v5 · Take your seat to use the match computer
+已结算年度前三 · 现场领奖	Final annual top three · Collect awards on stage
+选择下一站	Choose next destination
+滚轮选择 · E / Enter 出发	Wheel to choose · E / Enter to travel
+可直接走开 · Esc 隐藏	Walk away to dismiss · Esc to hide
+今日比赛	Today's match
+ 比赛	 Match
+ · 返回本场席位	 · Return to match seat
+ · 到场准备	 · Prepare at venue
+ · 先处理手机中的待办	 · Resolve phone tasks first
+ · 比赛日再来	 · Return on match day
+和队友一起走向奖杯	Walk to the trophy with teammates
+查看赛事荣誉	View tournament honours
+ · 冠军属于我们	 · The title is ours
+今日比赛 · 前往俱乐部训练室，按 E 使用电脑	Today's match · Go to the club training room and press E at the computer
+今日比赛 · 走到门口，选择「%s」	Today's match · Go to the door and choose "%s"
+比赛安排已过期 · 打开手机日历查看新赛程	Match arrangement expired · Open phone calendar for the new schedule
+%s 比赛 · %s · 在手机日历睡到比赛当天	%s match · %s · Sleep until match day in phone calendar
+今日比赛 · 去训练室的电脑旁，按 E 准备比赛	Today's match · Press E at the training room computer to prepare
+今天按自己的节奏来。赛事邀请我会发到邮件里，报名之前先看一眼赛程。	Take today at your own pace. I'll send tournament invitations by mail; check the schedule before entering.
+我去看赛程	I'll check the schedule
+好，确认日期。该打的比赛我们提前准备。	Good, check the dates. We'll prepare for our matches in advance.
+我想练一会儿	I'd like to practise
+俱乐部电脑上可以约训练赛。宿舍电脑也能打一场天梯。	Book scrims at the club computer. You can play ladder matches from home too.
+有空一起练一会儿？先把手感找回来。	Want to practise together? Let's warm up first.
+马上过来	Be right there
+行，我在俱乐部等你。	Sure, I'll wait at the club.
+先看看下一场	Check the next match first
+先把赛程看清楚，练习也有个方向。	Check the schedule so we know what to practise for.
+生日快乐，{name}！	Happy birthday, {name}!
+谢谢，你还记得。今天练完一起坐会儿？	Thanks for remembering. Want to hang out after practice?
+听说你去训练了。等有空再一起坐会儿吧。	I heard you went to practise. Let's hang out when you're free.
+练习急停和点射	Practising counter-strafing and tapping
+练习狙击枪	Practising sniping
+练习突破路线	Practising entry routes
+看自己的比赛录像	Watching my match recordings
+练习补枪	Practising trading
+整理白板战术	Organizing whiteboard tactics
+整理复盘笔记	Organizing review notes
+确认今天的安排	Checking today's agenda
+擦拭奖杯柜	Cleaning the trophy cabinet
+准备大家的午饭	Preparing lunch for everyone
+照看锅里的汤	Watching the soup
+拿饮料歇一会儿	Taking a drink break
+喝一杯咖啡	Having coffee
+吃饭补充体力	Eating to recharge
+在沙发上休息	Resting on the sofa
+活动一下肩膀	Stretching my shoulders
+看看队员的训练	Checking the team's practice
+我在看前两轮的沟通。不是谁嗓门大谁就说得对，得让大家知道下一步干什么。	I'm reviewing our communication in the first two rounds. Being loud doesn't make you right; everyone needs to know the next move.
+下次遇到对面前压，你先说看到几个，我来决定要不要换点。	Next time they push, tell me how many you see. I'll decide whether we should rotate.
+行。下一张图你有什么想法就直接说，别憋着。	Sure. If you've got ideas for the next map, say them out loud.
+那就一起把这几套配合练熟，比赛里用得上。	Let's practise these setups together so we can use them in matches.
+我刚才空了两枪，都是还没站稳就急着开。再练一组就休息。	I missed two shots because I fired before stopping. One more set, then a break.
+我会先架住远点。你要过的话喊我一声，别一个人直接出。	I'll hold the long angle. Call me before crossing; don't swing alone.
+收到。你放心往前走，我尽量把后面这一枪接住。	Got it. Go ahead; I'll do my best to cover the next shot.
+好啊，等会儿我们一起练个交叉枪位。	Sure. Let's practise a crossfire later.
+我想试试换个进点路线。每次都从同一个地方出，对面都等着了。	I want to try a different entry route. They wait for us when we use the same one every time.
+我先进去，你别离我太远。就算我倒了，你也能马上补。	I'll go in first. Stay close enough to trade if I go down.
+好！不过要等我把这口水喝完。	Sure! Let me finish this drink first.
+那说好了，我拉出去的时候你跟上。	Deal. Follow me when I swing.
+我在看自己什么时候该回队伍。绕得太久，有时候正面已经打完了。	I'm reviewing when to rejoin the team. Sometimes I lurk so long the fight's already over.
+听到动静先别急着转头。你看你的方向，背后我帮你留意。	Don't turn at every sound. Hold your angle; I'll watch your back.
+嗯，慢慢来。我也有几个地方没处理好，等会儿一起看。	Take it easy. I made a few mistakes too; let's review them together.
+行，下一场试着把信息说得更及时一点。	Sure. Let's get information out sooner next match.
+我在练跟人的距离。跟太远补不上，贴太近又容易一起被打。	I'm practising spacing. Too far to trade, too close and we both get hit.
+要不要等会儿一起练？你先拉，我试着把第二个人接住。	Want to practise later? You swing first; I'll try to catch the second player.
+那就一起进步。今天有几波配合，我觉得比昨天好多了。	Let's improve together. Some setups felt much better today than yesterday.
+没问题。打丢了也别急，下一次再来。	No problem. Don't worry about a missed shot; try again next time.
+今天先把职责说清楚，不用急着多加战术。知道队友在看哪里，比一个人搜得快更重要。	Let's clarify roles before adding tactics. Knowing teammates' angles matters more than clearing everything quickly alone.
+比赛打完有意见可以提。但复盘得说具体是哪一轮、哪里能改，别只说谁打得不好。	Speak up after the match, but be specific in reviews: which round and what to improve, not just who played badly.
+好，先把身体休息好。训练不是坐得越久就越有效。	Good. Rest properly first. Longer sessions don't always mean better practice.
+我看见你的进步了。我们一件一件做好，不用急。	I've noticed your progress. Let's improve one thing at a time.
+领队	Team manager
+今天没有临时安排，你们安心训练。该休息的时候我会提醒。	No last-minute changes today. Focus on practice; I'll remind you when it's time to rest.
+设备要是不舒服就告诉我，椅子、鼠标垫这些别硬凑合。	Tell me if the equipment feels uncomfortable. Don't put up with a bad chair or mousepad.
+谢谢。场外的事我会尽量处理好，你们专心打。	Thanks. I'll handle things outside the game so you can focus on playing.
+行，等大家回来一起吃饭，别各吃各的。	Sure. Let's eat together when everyone gets back.
+厨师	Chef
+我不懂你们那些战术，但饭得趁热吃。等这锅好了就叫大家。	I don't know your tactics, but food should be eaten hot. I'll call everyone when it's ready.
+今天做清淡一点。要是有什么忌口，提前跟我说。	Today's meal will be lighter. Tell me in advance if you avoid any foods.
+那就多吃点。吃好了才有精神继续练。	Have some more. Eat properly so you've got energy to practise.
+好，你们加油，我把饭做好。	Good luck with practice. I'll get the food ready.
+分析师	Analyst
+我把几次相同的失误放到一起了，等会儿看起来会更清楚。	I've grouped similar mistakes together. They'll be easier to review later.
+有一轮其实不是枪没打过，是两个人都在看同一个口子，另一个方向空了。	One round wasn't lost to aim. Two players held the same angle and left another uncovered.
+好，我再把记录整理一下，尽量不占大家太久。	I'll organize the notes so the review won't take too long.
+谢谢。要是你还记得哪一轮特别难受，也告诉我。	Thanks. Tell me if you remember any especially difficult rounds.
+我在看前两轮的沟通。得让大家知道下一步干什么。	I'm reviewing the first two rounds' communication. Everyone needs to know the next move.
+下次遇到前压，你先报人数，我来决定要不要换点。	Next time they push, report the number. I'll decide whether to rotate.
+行，下一张图有什么想法就直接说。	Sure. Speak up with ideas for the next map.
+一起把这几套配合练熟。	Let's get these setups down together.
+刚才两枪都开急了，再练一组就休息。	I rushed both shots. One more set, then a break.
+我先架住远点。你要过的话喊我一声。	I'll hold the long angle. Call me before crossing.
+你往前走，我把后面这一枪接住。	Go ahead; I'll cover the next shot.
+等会儿一起练个交叉枪位。	Let's practise a crossfire later.
+我想换个进点路线，对面已经在等老位置了。	I want a different entry route; they're waiting for our usual one.
+我先进去，你跟紧一点，倒了也能补上。	I'll go first. Stay close and trade if I go down.
+好，喝完这口水就来。	Sure, I'll come after this drink.
+我拉出去的时候你跟上。	Follow me when I swing.
+我在看自己什么时候该回队伍，不能绕到正面都打完了。	I'm reviewing when to rejoin the team. I can't keep lurking until the fight's over.
+你看你的方向，背后我帮你留意。	Hold your angle; I'll watch your back.
+等会儿一起看，有几个地方我也没处理好。	Let's review later. I made a few mistakes too.
+下一场把信息说得更及时一点。	Let's share information sooner next match.
+我在练跟人的距离，太远补不上，太近容易一起倒。	I'm practising spacing: close enough to trade, far enough not to fall together.
+等会儿一起练？你先拉，我接第二个人。	Practise together later? You swing first; I'll catch the second player.
+今天有几波配合比昨天好多了。	Some setups were much better today than yesterday.
+打丢了别急，下一次再来。	Don't worry about a miss. Try again next time.
+正练着呢，刚才这一组还差一点。你找我什么事？	I'm practising. That last set wasn't quite right. What's up?
+刚打完一轮，可以聊两句。	Just finished a round. I've got time to chat.
+在整理刚才的想法。你也来看看，有没有漏掉的。	I'm organizing our ideas. Take a look and see if I missed anything.
+我把需要注意的地方写到这里了，等大家过来一起说。	I've written the main points here. We'll discuss them when everyone arrives.
+我在看记录。你说，我听着。	I'm reading the notes. Go ahead, I'm listening.
+快整理好了，先聊两句也没事。	Nearly done organizing. We can chat for a moment.
+在准备吃的。你先别急，马上就好。	I'm preparing food. It'll be ready soon.
+这边有点热，你往旁边站一点，我们聊。	It's hot here. Stand a little to the side and we can chat.
+出来喝点东西，脑子也换换气。	Taking a drink break and clearing my head.
+练久了坐不住，正好起来走走。	I've been practising too long. Time to stretch my legs.
+先吃两口。你吃过了没有？	Let me have a bite first. Have you eaten?
+今天这顿挺合口味的，你也来点？	Today's food is good. Want some?
+歇几分钟，手腕都有点酸了。	Taking a few minutes off. My wrists are sore.
+刚才一直盯着屏幕，出来坐一会儿。	I've been staring at the screen. Taking a break out here.
+肩膀有点紧，活动一下再回去。	My shoulders are tight. Stretching before I go back.
+别总坐着，你也起来伸伸腰。	Don't sit all day. Get up and stretch too.
+把这里收拾一下。奖杯不多，也得擦干净。	Tidying up. We don't have many trophies, but they should stay clean.
+以后拿了新的，就放旁边这个空位。	The next trophy can go in that empty spot.
+正要过去呢，你找我？	I was heading over. Looking for me?
+嗯？你说，我停一下。	Hm? Go ahead, I'll stop a moment.
+前面有人，等一下就过去。	Someone's ahead. I'll wait before passing.
+不急，先让他们走。	No rush. Let them pass first.
+俱乐部接待台	Club reception desk
+查看俱乐部安排	View club agenda
+训练电脑	Training computer
+开始短时训练	Start short practice
+练习结束。手感热起来了，下一组注意停稳再开枪。	Practice finished. You're warmed up; stop fully before shooting in the next set.
+复盘战术	Review tactics
+先确认分工，再决定谁先拉、谁补枪。战术思路整理好了。	Clarify roles, then choose who swings and who trades. Your tactical notes are ready.
+厨房冰箱	Kitchen refrigerator
+开冰箱拿饮料	Get a drink from the fridge
+拿到一杯凉饮。歇一口气，再继续训练。	A cold drink. Take a breath before returning to practice.
+食堂餐桌	Dining table
+坐下吃点东西	Sit down and eat
+简单吃了一顿。训练很重要，好好吃饭也很重要。	A simple meal. Practice matters, and eating properly does too.
+休息区沙发	Lounge sofa
+坐下休息	Sit and rest
+在沙发上放空了一会儿。今天不用每一分钟都绷着。	You relaxed on the sofa. You don't need to stay tense every minute.
+咖啡机	Coffee machine
+冲一杯咖啡	Make coffee
+咖啡好了。香味从杯子里冒出来。	Coffee's ready. Warm aromas rise from the cup.
+看看俱乐部荣誉	View club honours
+俱乐部荣誉 · 冠军陈列	Club honours · Trophy display
+休息区的队友	Teammate in the lounge
+打个招呼	Say hello
+队友：来啦？一会儿一起练两张图，练完去吃饭。	Teammate: You're here? Let's practise two maps, then get some food.
+前往 Major 场馆	Travel to Major arena
+出发 · 进入场馆切换第一人称	Travel · First-person camera inside arena
+准备入场……	Preparing to enter…
+布置房间	Decorate room
+保存摆放	Save layout
+完成	Done
+点击地面摆放 · R 旋转 · Esc 取消移动	Click floor to place · R Rotate · Esc Cancel movement
+个人资金 %s	Personal funds %s
+家具	Furniture
+墙面	Walls
+地板	Floor
+把家具放到地面上	Place furniture on the floor
+旋转 90°	Rotate 90°
+取消移动	Cancel movement
+已购买 %d · 已摆放 %d	Owned %d · Placed %d
+购买 $%d	Buy $%d
+摆放	Place
+使用	Use
+房间里的家具	Furniture in your room
+收起	Put away
+摆放还没保存。	Layout not saved yet.
+不保存，离开装修	Leave without saving
+继续布置	Keep decorating
+正在保存……	Saving…
+这里放不下，换个位置试试。	Not enough space here. Try another position.
+熟悉度	Familiarity
+点击文字展开 · 1—4 选择 · Esc 结束	Click to reveal · 1–4 Choose · Esc End
+房间最多摆放 24 件家具。	Place up to 24 furniture items in the room.
+请使用已经购买的家具。	Use furniture you already own.
+家具摆放编号无效或重复。	Invalid or duplicate furniture placement ID.
+摆放数量超过已购买数量。	Placed quantity exceeds owned quantity.
+家具的位置或旋转角度无效。	Invalid furniture position or rotation.
+家具位置应对齐四分之一格。	Align furniture to the quarter-grid.
+家具需要摆在房间里面。	Furniture must be placed inside the room.
+请选择有效的家具颜色。	Choose a valid furniture colour.
+这里已经有家具，请换个位置。	Furniture already occupies this space. Choose another position.
+请给床、电脑和门口留出走动空间。	Leave walking space around the bed, computer and door.
+这套摆放会挡住通路，请给门口和电脑留一条路。	This layout blocks a passage. Leave a route between the door and computer.
+存档不能是链接。	A save file cannot be a link.
+设施事务记录不能是链接。	The facility transaction record cannot be a link.
+设施事务记录无效，请保留当前存档。	Invalid facility transaction record. Keep the current save.
+设施回滚数据大小无效。	Invalid facility recovery data size.
+设施回滚数据校验失败。	Facility recovery data verification failed.
+请提供本次操作编号。	Provide this operation's ID.
+没有这个装修操作。	Unknown decoration action.
+这个操作编号已经用于另一笔购买。	This operation ID was already used for another purchase.
+当前俱乐部已经变化，请重新打开设施页面。	Your club has changed. Reopen the facilities page.
+请按当前俱乐部等级选择下一档升级。	Choose the next upgrade tier for the current club.
+没有这项俱乐部设施。	Unknown club facility.
+这项设施已经升级或报价发生变化。	This facility was already upgraded or its quote has changed.
+没有这件家具或装饰。	Unknown furniture or decoration.
+这款墙面或地板已经购买。	You already own this wallpaper or flooring.
+家具库存已经装满。	Furniture inventory is full.
+请先购买这款墙面或地板。	Buy this wallpaper or flooring first.
+价格已经变化，请刷新后购买。	Price changed. Refresh before buying.
+俱乐部资金不足。	Insufficient club funds.
+个人资金不足。	Insufficient personal funds.
+升级完成，回到俱乐部就能看到新设施。	Upgrade completed. Return to the club to see the new facilities.
+购买完成，可以开始布置。	Purchase completed. Start decorating.
+房间布置已保存。	Room layout saved.
+地图 %s 尚未完成导航验证：%s	Map %s has not passed navigation validation: %s
+资源尚未准备好	Resources not ready
+独立单机样本  ·  0.1	Standalone single-player prototype  ·  0.1
+战术地图 · 单机对抗	Tactical map · Single-player match
+自己上场，也可以把回合交给队友。	Play yourself or let teammates handle the round.
+游玩方式	Play mode
+亲自上场  ·  WASD + 鼠标	Play  ·  WASD + Mouse
+战术指挥  ·  下达命令，看队友执行	Command  ·  Give orders and watch teammates execute
+全场观战  ·  看十名选手对抗	Spectate  ·  Watch all ten players
+我的队伍	My team
+Team Spirit  ·  进攻开局	Team Spirit  ·  Start as attackers
+Vitality  ·  防守开局	Vitality  ·  Start as defenders
+控制选手	Controlled player
+开始对局	Start match
+继续当前对局	Resume match
+不会启动 CS2，不读取或修改生涯存档。	Does not launch CS2 or read/change career saves.
+5 vs 5  /  MR12  /  下包与回防	5 vs 5  /  MR12  /  Plant and retake
+真实雷达与现有导航资料重新投影\n独立战斗、武器与回合统计	Reprojected map radar and navigation data\nIndependent combat, weapons and round statistics
+WASD 移动   /   鼠标左键开火   /   E 下包、拆包   /   Tab 战绩   /   Esc 菜单	WASD Move   /   Left mouse Fire   /   E Plant, defuse   /   Tab Scoreboard   /   Esc Menu
+A 小推进	Push A short
+A 大推进	Push A long
+B 洞进攻	Attack B tunnels
+中路夹 B	Split B through mid
+默认分工	Default roles
+原地守住	Hold position
+A 辅路推进	Push A secondary
+A 主路推进	Push A main
+B 点推进	Push B site
+分路夹 B	Split B
+战术按钮指挥全队；点选队友，再在地图上右键，可以单独安排走位。	Tactic buttons command the team. Select teammates and right-click the map to order individual movement.
+双方全部可见。可以暂停、加速、查看战绩；不会影响 AI 的判断。	Both teams are visible. Pause, speed up or view the scoreboard without affecting AI decisions.
+%s · 能力 %d\n阵亡后可以点选一名存活队友，继续上场。	%s · Ability %d\nAfter death, select a living teammate to keep playing.
+第 1 回合 · 准备	Round 1 · Freeze time
+音效	Sound effects
+战绩	Scoreboard
+菜单	Menu
+切换操控	Switch control
+不重开回合，在指挥、本人操控与观战之间切换。	Switch between command, direct control and spectating without restarting the round.
+返回电脑	Return to computer
+全队指令	Team orders
+亲自上场 · 己方视野	Play · Team vision
+全图	Full map
+跟随	Follow
+路线	Routes
+楼层 / Floor	Floor
+上下层独立显示；右键路线会沿楼梯或梯子跨层。Space 越过通路，E + 方向键攀梯。	Floors are shown separately; right-click routes use stairs or ladders. Space crosses passages; E + direction climbs ladders.
+回合轨迹	Round history
+对局动态	Match events
+WASD 移动  ·  Shift 静步  ·  左键开火  ·  R 换弹  ·  E 下包 / 拆包\nQ 烟雾  ·  G 闪光  ·  1 / 2 切枪  ·  地图右键指挥  ·  Tab 战绩	WASD Move  ·  Shift Walk  ·  Left mouse Fire  ·  R Reload  ·  E Plant / Defuse\nQ Smoke  ·  G Flash  ·  1 / 2 Switch weapon  ·  Right-click map Command  ·  Tab Scoreboard
+回合胜利	Round won
+上场模式：切换控制；指挥模式：选中后右键安排走位。	Play mode: Switch control. Command mode: Select, then right-click to order movement.
+选手 / 位置	Player / Role
+返回对局	Return to match
+重新选人	Choose players again
+保存本场战报	Save match report
+准备对局…	Preparing match…
+本场未能启动：请查看 runtime/godot.log。	Match failed to start. Check runtime/godot.log.
+只看 / 观战	Watch / Spectate
+继续指挥	Continue commanding
+你的角色已阵亡，切换为观战；仍可返回指挥。	Your player died. Switched to spectating; you can return to command mode.
+C4 已安放在 %s 点	C4 planted at %s site
+%s 捡起 C4	%s picked up C4
+回合结束	Round ended
+%s 使用%s	%s used %s
+烟雾	Smoke
+闪光	Flash
+世界	World
+第 %d 回合 · %s	Round %d · %s
+准备	Freeze time
+C4  %d 秒	C4  %d seconds
+C4 已下包 · %s 点	C4 planted · %s site
+MR12 · 第 13 回合换边	MR12 · Switch sides at round 13
+亲自上场	Play
+全场观战	Spectate
+ · 已暂停	 · Paused
+ · 全部可见	 · Both teams visible
+ · 己方视野	 · Team vision
+左键点选 / 框选队员 · Shift 多选 · 右键走位 · Shift + 右键追加路点\n滚轮缩放 · 中键拖图 · V 守住 · C 默认分工 · 空格暂停 · Tab 战绩	Click / Box-select players · Shift Multi-select · Right mouse Move · Shift + Right mouse Add waypoint\nWheel Zoom · Middle mouse Pan · V Hold · C Default roles · Space Pause · Tab Scoreboard
+C4 · %s 携带	C4 · Carried by %s
+C4 掉落 · 可以前往拾取	C4 dropped · Move to pick it up
+未发现	Unseen
+阵亡	Dead
+回合失利	Round lost
+第 %d 回合	Round %d
+%d vs %d 存活	%d vs %d alive
+选择队友 → 右键走位	Select teammate → Right-click to move
+全场观战 · 不下达指令	Spectating · No orders
+暂停看局势，或用左侧按钮调整团队路线。	Pause to review the situation or adjust team routes with the buttons on the left.
+空格暂停 · Tab 查看战绩 · 滚轮缩放地图	Space Pause · Tab Scoreboard · Wheel Zoom map
+携带 C4 · 到 A / B 点停下，按住 E 下包	Carrying C4 · Stop at A / B and hold E to plant
+CT 回防 · 到 C4 附近，按住 E 拆包	CT retake · Approach C4 and hold E to defuse
+停下再开火更准 · 右键可以指挥队友走位	Stop before firing for accuracy · Right-click to direct teammates
+你已阵亡 · 点击左侧存活队友继续上场，或观看本回合。	You died · Select a living teammate on the left to keep playing, or spectate this round.
+正在换弹…	Reloading…
+正在安放 C4…	Planting C4…
+正在拆除 C4…	Defusing C4…
+亲自操控使用你的生涯角色；切换指挥可安排其他队员。	Direct control uses your career character; switch to command mode to direct teammates.
+已选 %s · 右键走位，Shift 追加路点	Selected %s · Right-click to move; Shift adds waypoints
+全队	Whole team
+ · 追加路点	 · Add waypoint
+ · 前往标记位置	 · Move to marked position
+比赛结束 · %d 回合 · 你的控制角色以浅绿色标出	Match finished · %d rounds · Your controlled player is highlighted in light green
+第 %d 回合 · 本面板暂停对局 · Rating 按已经完成的回合计算	Round %d · This panel pauses the match · Rating uses completed rounds
+战报已保存到独立样本的 runtime/reports 文件夹。	Match report saved in the standalone prototype's runtime/reports folder.
+此处不可到达，请点击可行走区域。	This position is unreachable. Click a walkable area.
+没有可执行指令的存活队员。	No living players available for this order.
+最多追加 16 个路点，完成后可继续安排。	Add up to 16 waypoints. More can be added once they finish.
+MR3 加时	MR3 overtime
+MR12 半场换边	MR12 halftime side switch
+准备阶段	Freeze time
+回合进行中	Round live
+CT 全员被消灭	All CT players eliminated
+T 全员被消灭，且炸弹尚未下包	All T players eliminated before planting
+回合时间耗尽，炸弹未下包	Round time expired without a plant
+%s 赢得第 %d 回合：%s	%s won round %d: %s
+比赛结束 · %d:%d · %s%s	Match finished · %d:%d · %s%s
+平局	Draw
+ 获胜	 Win
+（样本无加时）	(No overtime in this prototype)
+点击小地图查看位置；全场观战可看到双方。	Click the minimap to view a position. Spectator mode shows both teams.
+早上好，%s	Good morning, %s
+下午好，%s	Good afternoon, %s
+晚上好，%s	Good evening, %s
+本赛季使用快速模式	Use quick mode this season
+本赛季正常进行	Normal pace this season
+月息 %s%%	Monthly interest %s%%
+%s的俱乐部电脑	%s's club workstation
+%s的宿舍电脑	%s's home computer
+—— %s	— %s
+俱乐部账户	Club account
+引援与合同由管理层负责，设施可在下方升级。	Recruitment and contracts are managed by the board. Upgrade facilities below.
+正在启动 CS2，请稍候……	Starting CS2, please wait...
+正在检查 CS2 战绩……	Checking CS2 results...
+决胜图	Deciding map
+地图 BP 已完成 · %d 项记录	Map veto complete · %d entries
+查看地图 BP 记录	View map veto history
+收起地图 BP 记录	Collapse map veto history
