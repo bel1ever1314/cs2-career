@@ -74,6 +74,9 @@ static func dark_options(node: OptionButton) -> void:
 	popup.add_theme_stylebox_override("hover", style(MINT, 6, 5))
 
 static func line_edit(node: LineEdit) -> void:
+	# Keep a readable pointer on our light fields instead of the OS I-beam.
+	# The insertion caret and native text selection still belong to LineEdit.
+	node.mouse_default_cursor_shape = Control.CURSOR_ARROW
 	node.add_theme_font_override("font", Base.font())
 	node.add_theme_font_size_override("font_size", 14)
 	node.add_theme_color_override("font_color", INK)

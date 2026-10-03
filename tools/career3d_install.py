@@ -110,8 +110,6 @@ def _isolated_root() -> Path:
 def auto_prepare_config() -> dict:
     """Fill missing machine paths in isolated preferences; never install anything."""
     mod = bundle_root()
-    if mod is None:
-        return setup_context()
     _isolated_root()
     from cs2career.cs2 import launch
     from tools.career3d_activities import read_cs2_config
@@ -123,18 +121,37 @@ def auto_prepare_config() -> dict:
             if detected and Path(detected).is_file():
                 cfg['steam_exe'] = str(Path(detected).resolve())
         csgo = launch.resolve_csgo_path(cfg.get('csgo_path') or '')
-        if launch.is_csgo_dir(csgo):
+        if launch.is_csgo_dir(csgo) and (csgo / 'gameinfo.gi').is_file():
             cfg['csgo_path'] = str(csgo.resolve())
         else:
             detected = launch.find_csgo_path()
             found = launch.resolve_csgo_path(detected) if detected else Path()
-            if detected and launch.is_csgo_dir(found):
+            if detected and launch.is_csgo_dir(found) and (found / 'gameinfo.gi').is_file():
                 cfg['csgo_path'] = str(found.resolve())
-        if not cfg.get('mod_source_path') or not launch._improver_here(Path(cfg['mod_source_path'])):
+        if mod is not None and (not cfg.get('mod_source_path') or not launch._improver_here(Path(cfg['mod_source_path']))):
             cfg['mod_source_path'] = str(mod)
         if cfg != before:
             launch._write_settings(launch._clean(cfg))
     return {**setup_context(), 'prepared': cfg != before}
+
+
+def detect_machine_paths() -> dict:
+    """Explicit, local discovery for the settings form; no settings/game writes."""
+    from cs2career.cs2 import launch
+    # A player may install/move Steam after the service's initial discovery.
+    launch._FOUND.pop('steam', None)
+    launch._FOUND.pop('csgo', None)
+    steam = launch.find_steam_exe()
+    game = launch.find_csgo_path()
+    csgo = launch.resolve_csgo_path(game) if game else Path()
+    paths = {'steam_exe': str(Path(steam).resolve()) if steam and Path(steam).is_file() else '',
+             'csgo_path': str(csgo.resolve()) if game and launch.is_csgo_dir(csgo)
+                          and (csgo / 'gameinfo.gi').is_file() else ''}
+    found = [name for key, name in (('steam_exe', 'Steam'), ('csgo_path', 'CS2')) if paths[key]]
+    reason = '已检测到 ' + '、'.join(found) + '，路径已填入，保存后生效。' if found else '未找到 Steam 或 CS2，请手动选择安装路径。'
+    if len(found) == 1:
+        reason += ' 另一个路径未找到，可手动填写。'
+    return {'ok': True, 'paths': paths, 'reason': reason}
 
 
 def _bundle_files(mod: Path) -> list[Path]:
@@ -273,10 +290,13 @@ def install_bundle(state, body: dict) -> dict:
     closed()
     from tools.career3d_runtime_compat import prepare_runtime, seed_bundled_runtime
     original_mod = mod
-    # Build a compatible copy inside the independent career's cache. Downloaded
-    # releases and the user's source folder are never rewritten, and preparation
-    # failure happens before any selected-game file or saved path is changed.
-    if source == 'bundle':
+    # Installation is offline: use the selected official release or verified
+    # local cache, then overlay our bundled plugins. Checking updates is separate.
+    # Preparation failure precedes any game-file or saved-path changes.
+    # Autofill also puts the bundled mod in the editable source field. Clicking
+    # either install button for that same folder must use its verified receipt,
+    # including our BotBuy overlay, not mistake it for an unknown official DLL.
+    if source == 'bundle' or original_mod == bundle_root():
         mod = seed_bundled_runtime(root, original_mod)
     prepared = prepare_runtime(root, mod, game)
     mod = Path(prepared['mod_dir']).resolve()
@@ -317,6 +337,8 @@ def install_bundle(state, body: dict) -> dict:
     (backup / 'BACKUP_MANIFEST.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), 'utf-8')
     total = int(result.get('files', 0)) + skin_files
     installed_name = '设置中的人机增强' if source == 'external' else '随包人机增强'
-    return {'reason': f'已更新并安装{installed_name}（{total} 个文件）。后续开赛使用兼容副本。安装前备份：{backup}',
+    return {'reason': f'已从本地安装{installed_name}（{total} 个文件），无需联网。安装前备份：{backup}',
             'backup_path': str(backup), 'files': total, 'skin_files': skin_files,
-            'source': source, 'setup': setup_context(), 'runtime': runtime}
+            'source': source, 'setup': setup_context(), 'runtime': runtime,
+            'reused_components': deepcopy(prepared.get('reused_components', [])),
+            'supplemented_components': deepcopy(prepared.get('supplemented_components', []))}

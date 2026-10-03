@@ -15,6 +15,7 @@ import re
 import shutil
 import stat
 import sys
+import tempfile
 import zipfile
 
 if __package__ in (None, ''):
@@ -161,7 +162,8 @@ def build_friends(ordinary_dir: Path, compatible_runtime: Path, legal_dir: Path,
     source_hash = digest(attachments[0])
     botbuy_overlay = _botbuy_overlay(ordinary, attachments[0])
     manifest = compat.load_runtime_manifest()
-    if compat._cached_runtime(mod, manifest) is None:
+    verified = compat._cached_runtime(mod, manifest)
+    if verified is None:
         raise ValueError('Compatible runtime does not match its current reviewed receipt')
     # Plan against the original verified receipt, then remove private fixtures.
     selected = [(path, relative) for path, relative in compat._source_plan(mod)
@@ -206,8 +208,9 @@ def build_friends(ordinary_dir: Path, compatible_runtime: Path, legal_dir: Path,
     # No origin_mod_dir: a tester receives only portable metadata, never E:/...
     receipt = {'schema_version': 1, 'revision': manifest['revision'],
                'manifest_sha256': compat._manifest_hash(manifest),
-               'components': [{key: row[key] for key in ('name', 'version')}
-                              for row in manifest['components']], 'files': files}
+               'components': [{key: row[key] for key in (
+                   'name', 'version', 'source_kind', 'source_version', 'variant') if key in row}
+                              for row in verified['components']], 'files': files}
     write_json(package / compat.RECEIPT, receipt)
     compat.validate_bundled_runtime(packaged_mod, manifest)
     _copy_notices(legal, package / 'legal/bot-runtime')
@@ -235,6 +238,20 @@ def build_friends(ordinary_dir: Path, compatible_runtime: Path, legal_dir: Path,
     with zipfile.ZipFile(final) as check:
         if check.testzip() is not None:
             raise ValueError('Corrupt friends archive')
+        with tempfile.TemporaryDirectory(prefix='career-friends-archive-') as extracted:
+            extraction_root = Path(extracted)
+            if not extraction_root.is_absolute() or not extraction_root.name.startswith('career-friends-archive-'):
+                raise ValueError('Invalid archive verification temporary directory')
+            try:
+                check.extractall(compat.io_path(extraction_root))
+                restored = compat.validate_bundled_runtime(extraction_root / package_name / 'mod', manifest)
+                if restored != receipt:
+                    raise ValueError('Friends archive runtime differs from its verified stage')
+            finally:
+                # .NET payloads may exceed MAX_PATH after adding the package
+                # prefix. Clean our verified temporary root with the same
+                # extended namespace used for extraction on Windows.
+                shutil.rmtree(compat.io_path(extraction_root))
     record['archive'] = {'name': final.name, 'sha256': digest(final), 'bytes': final.stat().st_size}
     write_json(output / 'packages/FRIENDS_BUILD_MANIFEST.json', record)
     (output / 'packages/SHA256SUMS.txt').write_text(record['archive']['sha256'] + '  ' + final.name + '\n', encoding='ascii')

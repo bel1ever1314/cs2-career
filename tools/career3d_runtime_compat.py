@@ -176,6 +176,103 @@ def _manifest_hash(manifest: dict) -> str:
                                      separators=(',', ':')).encode('utf-8')).hexdigest()
 
 
+def load_runtime_files(manifest: dict) -> dict:
+    """Bundled local fingerprints; checking a selected folder never uses GitHub."""
+    from cs2career.paths import data_file
+    path = data_file('cs2_runtime_files.json')
+    if not io_path(path).is_file():
+        return {}
+    if io_path(path).stat().st_size > MAX_RECEIPT_BYTES:
+        raise ValueError('本地组件校验清单过大。')
+    data = json.loads(io_path(path).read_text('utf-8-sig'))
+    # Older packages have no file index. Never use fingerprints from another
+    # compatibility manifest to approve a DLL or an API.
+    if not isinstance(data, dict) or data.get('manifest_sha256') != _manifest_hash(manifest):
+        return {}
+    if data.get('schema_version') != 1 or not isinstance(data.get('components'), list):
+        raise ValueError('本地组件校验清单格式不正确。')
+    expected = {row['name']: row for row in manifest['components']}
+    records, owners = {}, {}
+    for row in data['components']:
+        if not isinstance(row, dict) or row.get('name') not in expected or row['name'] in records:
+            raise ValueError('本地组件校验清单名称不正确。')
+        component = expected[row['name']]
+        if row.get('version') != component['version'] or row.get('archive_sha256') != component['sha256'].lower():
+            raise ValueError('本地组件校验清单版本不一致。')
+        files = row.get('files')
+        if not isinstance(files, dict) or not files:
+            raise ValueError('本地组件校验清单缺少文件。')
+        for name, sha in files.items():
+            relative = _relative(name)
+            if (not _payload_allowed(relative) or not _under(relative, component.get('allow_paths', []))
+                    or not isinstance(sha, str) or not re.fullmatch(r'[a-f0-9]{64}', sha)
+                    or name.casefold() in owners):
+                raise ValueError('本地组件校验清单包含无效或重复文件。')
+            owners[name.casefold()] = component['name']
+        records[row['name']] = row
+    if set(records) != set(expected) or len(owners) > MAX_FILES:
+        raise ValueError('本地组件校验清单不完整。')
+    variants = data.get('approved_variants', [])
+    if not isinstance(variants, list):
+        raise ValueError('官方整包变体清单格式不正确。')
+    for variant in variants:
+        if (not isinstance(variant, dict) or not isinstance(variant.get('id'), str)
+                or not isinstance(variant.get('source_version'), str)
+                or not re.fullmatch(r'[a-f0-9]{64}', str(variant.get('source_archive_sha256', '')))
+                or not isinstance(variant.get('files'), dict) or not variant['files']
+                or not isinstance(variant.get('component_versions'), dict)):
+            raise ValueError('官方整包变体清单格式不正确。')
+        for name, sha in variant['files'].items():
+            _relative(name)
+            if name.casefold() not in owners or not isinstance(sha, str) or not re.fullmatch(r'[a-f0-9]{64}', sha):
+                raise ValueError('官方整包变体引用了未知文件。')
+        if any(name not in expected or not isinstance(version, str)
+               for name, version in variant['component_versions'].items()):
+            raise ValueError('官方整包变体版本不正确。')
+    return {'components': records, 'approved_variants': variants}
+
+
+def _local_component_plans(mod: Path, manifest: dict, source: list, fingerprints: dict) -> dict:
+    """Reuse complete known components, including coherent reviewed bundle variants."""
+    if not fingerprints:
+        return {}
+    available = {relative.as_posix().casefold(): (path, relative) for path, relative in source}
+    hashes = {}
+
+    def digest(name):
+        key = name.casefold()
+        if key not in available:
+            return None
+        if key not in hashes:
+            hashes[key] = _hash(available[key][0])
+        return hashes[key]
+
+    # Variant approval is all-or-nothing across its DLL/API cohort, not a
+    # collection of interchangeable binary hashes that could create a mix.
+    variant = next((row for row in fingerprints['approved_variants']
+                    if all(digest(name) == sha for name, sha in row['files'].items())), None)
+    variants = {name.casefold(): sha for name, sha in variant['files'].items()} if variant else {}
+    result = {}
+    for component in manifest['components']:
+        row = fingerprints['components'][component['name']]
+        preserved = {name.casefold() for name in component.get('preserve_paths', [])}
+        plan = []
+        for name, expected in row['files'].items():
+            key = name.casefold()
+            actual = digest(name)
+            if actual is None or (key not in preserved and actual != variants.get(key, expected)):
+                break
+            path, relative = available[key]
+            plan.append((path, relative, actual))
+        else:
+            info = {'source_kind': 'local_official', 'source_version': component['version']}
+            if variant and any(name.casefold() in variants for name in row['files']):
+                info = {'source_kind': 'official_bundle', 'source_version': variant['component_versions'].get(
+                    component['name'], variant['source_version']), 'variant': variant['id']}
+            result[component['name']] = {'files': plan, **info}
+    return result
+
+
 def _download_archive(url: str, destination: Path) -> None:
     """No upstream executables are started; downloads are bounded and streamed."""
     request = urllib.request.Request(url, headers={'User-Agent':'CS2Career-Compatibility-Installer'})
@@ -192,7 +289,7 @@ def _download_archive(url: str, destination: Path) -> None:
             stream.write(block)
 
 
-def _artifact(cache: Path, component: dict) -> Path:
+def _artifact(cache: Path, component: dict, *, allow_download: bool = False) -> Path:
     downloads = cache / 'downloads'
     if io_path(downloads).exists() and _is_link(downloads):
         raise ValueError('兼容下载缓存含目录链接。')
@@ -204,6 +301,9 @@ def _artifact(cache: Path, component: dict) -> Path:
             raise ValueError('兼容下载缓存不是普通文件。')
         if (not component.get('size') or io_path(target).stat().st_size == component['size']) and _hash(target) == expected:
             return target
+    if not allow_download:
+        raise ValueError('本地发行包缺少可复用的组件或版本尚未接入：' + component['name']
+                         + '。安装未联网，请选择完整官方发行包；需要更新时可点击“检查更新”。')
     pending = downloads / ('.download-' + uuid4().hex + '.zip')
     try:
         _download_archive(component['url'], pending)
@@ -370,7 +470,8 @@ def _cached_runtime(mod: Path, manifest: dict) -> dict | None:
     except (OSError, ValueError):
         return None
     return {'mod_dir':str(mod), 'origin_mod_dir':receipt.get('origin_mod_dir', str(mod)),
-            'revision':manifest['revision'], 'components':deepcopy(receipt.get('components', [])), 'cache_hit':True}
+            'revision':manifest['revision'], 'components':deepcopy(receipt.get('components', [])), 'cache_hit':True,
+            'reused_components':[row['name'] for row in manifest['components']], 'supplemented_components':[]}
 
 
 def bundled_payload_allowed(relative: PurePosixPath, *, directory: bool = False) -> bool:
@@ -398,9 +499,12 @@ def validate_bundled_runtime(mod: Path, manifest: dict | None = None) -> dict | 
     manifest = manifest or load_runtime_manifest()
     receipt = _read_receipt(mod)
     components = [{key: row[key] for key in ('name', 'version')} for row in manifest['components']]
+    recorded_components = receipt.get('components', []) if receipt else []
+    recorded_versions = [{key: row.get(key) for key in ('name', 'version')}
+                         for row in recorded_components if isinstance(row, dict)] if isinstance(recorded_components, list) else []
     if (not receipt or receipt.get('revision') != manifest['revision']
             or receipt.get('manifest_sha256') != _manifest_hash(manifest)
-            or receipt.get('components') != components
+            or recorded_versions != components or len(recorded_components) != len(components)
             or not isinstance(receipt.get('files'), dict) or not receipt['files']):
         raise ValueError('随包人机增强校验清单损坏或版本不匹配，未安装。')
     if not mod.is_absolute() or not io_path(mod).is_dir() or _is_link(mod):
@@ -439,7 +543,7 @@ def validate_bundled_runtime(mod: Path, manifest: dict | None = None) -> dict | 
         if not io_path(mod / folder).is_dir() or _is_link(mod / folder):
             raise ValueError('随包人机增强目录不完整，未安装。')
     return {'schema_version': 1, 'revision': manifest['revision'],
-            'manifest_sha256': _manifest_hash(manifest), 'components': components,
+            'manifest_sha256': _manifest_hash(manifest), 'components': deepcopy(recorded_components),
             'files': dict(sorted(receipt['files'].items()))}
 
 
@@ -488,8 +592,12 @@ def seed_bundled_runtime(root: Path, mod: Path) -> Path:
             shutil.rmtree(io_path(staging))
 
 
-def prepare_runtime(root: Path, mod: Path, game: Path) -> dict:
-    """Only explicit installation calls this; nothing is written to mod or game."""
+def prepare_runtime(root: Path, mod: Path, game: Path, *, allow_download: bool = False) -> dict:
+    """Prepare offline by default; only developer artifact preparation may opt in.
+
+    The UI installer never opts in. Selected files and verified cache archives
+    are local inputs, and nothing is written to the source or game here.
+    """
     root, mod, game = _normal_path(root), _normal_path(mod), _normal_path(game)
     if not all(path.is_absolute() for path in (root, mod, game)):
         raise ValueError('兼容安装需要完整的本机目录。')
@@ -508,10 +616,14 @@ def prepare_runtime(root: Path, mod: Path, game: Path) -> dict:
         hit = _cached_runtime(mod, manifest)
         if hit:
             return hit
+    original_plan = _source_plan(mod)
+    local_plans = _local_component_plans(mod, manifest, original_plan, load_runtime_files(manifest))
     replaced = [relative for component in manifest['components'] for relative in component.get('replace_paths', [])]
-    source_plan = [(source, relative) for source, relative in _source_plan(mod) if not _under(relative, replaced)]
+    source_plan = [(source, relative) for source, relative in original_plan if not _under(relative, replaced)]
     source_hashes = {relative.as_posix():_hash(source) for source, relative in source_plan}
-    identity = hashlib.sha256((_manifest_hash(manifest) + json.dumps(source_hashes, sort_keys=True)).encode('utf-8')).hexdigest()
+    local_hashes = {relative.as_posix():sha for row in local_plans.values() for _, relative, sha in row['files']}
+    identity = hashlib.sha256((_manifest_hash(manifest) + json.dumps(
+        {'source':source_hashes, 'local_components':local_hashes}, sort_keys=True)).encode('utf-8')).hexdigest()
     io_path(cache).mkdir(exist_ok=True)
     final = cache / identity
     if io_path(final).exists() and _is_link(final):
@@ -519,8 +631,13 @@ def prepare_runtime(root: Path, mod: Path, game: Path) -> dict:
     hit = _cached_runtime(final / 'runtime', manifest)
     if hit:
         return hit
-    archives = [(component, _artifact(cache, component)) for component in manifest['components']]
-    plans = [(component, archive, _archive_plan(archive, component)) for component, archive in archives]
+    plans = []
+    for component in manifest['components']:
+        if component['name'] in local_plans:
+            plans.append((component, None, local_plans[component['name']]['files']))
+        else:
+            archive = _artifact(cache, component, allow_download=allow_download)
+            plans.append((component, archive, _archive_plan(archive, component)))
     staging = _normal_path(tempfile.mkdtemp(prefix='.prepare-', dir=io_path(cache)))
     runtime = staging / 'runtime'
     try:
@@ -531,9 +648,17 @@ def prepare_runtime(root: Path, mod: Path, game: Path) -> dict:
             shutil.copy2(io_path(source), io_path(target))
             if _hash(target) != source_hashes[relative.as_posix()] or _hash(source) != source_hashes[relative.as_posix()]:
                 raise OSError('人机增强来源在准备期间发生变化，没有安装。')
-        # Every official archive is applied last. The old source is never
-        # copied over an updated native DLL, managed API, or gamedata.
+        # Apply final-owner files in manifest order. A later local owner also
+        # overrides shared files carried by an earlier cached ZIP.
         for component, archive, plan in plans:
+            if archive is None:
+                for source, relative, expected in plan:
+                    target = runtime.joinpath(*relative.parts)
+                    io_path(target.parent).mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(io_path(source), io_path(target))
+                    if _hash(source) != expected or _hash(target) != expected:
+                        raise OSError('人机增强来源在准备期间发生变化，没有安装。')
+                continue
             preserved = {_relative(name).as_posix().casefold() for name in component.get('preserve_paths', [])}
             with zipfile.ZipFile(io_path(archive)) as pack:
                 for entry, relative in plan:
@@ -545,6 +670,9 @@ def prepare_runtime(root: Path, mod: Path, game: Path) -> dict:
                         shutil.copyfileobj(source, output, 1024 * 1024)
                     if io_path(target).stat().st_size != entry.file_size:
                         raise ValueError('兼容组件文件长度不符，没有安装。')
+        # Required shared/API files may belong to a later component in the
+        # local index. Check the complete runtime, not each partial copy.
+        for component in manifest['components']:
             for relative in _required(component):
                 if not io_path(runtime.joinpath(*_relative(relative).parts)).is_file():
                     raise ValueError('兼容组件缺少必需文件：' + component['name'])
@@ -554,6 +682,10 @@ def prepare_runtime(root: Path, mod: Path, game: Path) -> dict:
                 raise ValueError('兼容运行组件不完整，没有安装。')
         files = {relative.as_posix():_hash(source) for source, relative in _source_plan(runtime)}
         components = [{key:component[key] for key in ('name', 'version')} for component in manifest['components']]
+        for row in components:
+            local = local_plans.get(row['name'])
+            if local and local['source_kind'] == 'official_bundle':
+                row.update({key:local[key] for key in ('source_kind', 'source_version', 'variant')})
         receipt = {'schema_version':1, 'revision':manifest['revision'], 'manifest_sha256':_manifest_hash(manifest),
                    'origin_mod_dir':str(mod), 'components':components, 'files':files}
         io_path(staging / RECEIPT).write_text(json.dumps(receipt, ensure_ascii=False, indent=2), 'utf-8')
@@ -561,7 +693,8 @@ def prepare_runtime(root: Path, mod: Path, game: Path) -> dict:
             final = cache / (identity + '-' + uuid4().hex[:12])
         os.replace(io_path(staging), io_path(final))
         return {'mod_dir':str(final / 'runtime'), 'origin_mod_dir':str(mod), 'revision':manifest['revision'],
-                'components':components, 'cache_hit':False}
+                'components':components, 'cache_hit':False, 'reused_components':list(local_plans),
+                'supplemented_components':[row['name'] for row in manifest['components'] if row['name'] not in local_plans]}
     finally:
         if io_path(staging).exists() and staging.parent == cache and staging.name.startswith('.prepare-'):
             shutil.rmtree(io_path(staging))

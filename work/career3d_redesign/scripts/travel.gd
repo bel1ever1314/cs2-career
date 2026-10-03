@@ -23,6 +23,7 @@ const SCENES := {"club":"res://play.tscn","major":"res://major_walk.tscn","bedro
 func _ready() -> void:
 	menu = TravelMenu.new(); add_child(menu)
 	menu.confirmed.connect(_confirm_menu); menu.cancelled.connect(dismiss_for_visit)
+	menu.resolve_requested.connect(_resolve_door_request)
 	overlay=CanvasLayer.new();overlay.layer=100;add_child(overlay)
 	curtain=ColorRect.new();curtain.color=Color("101c23")
 	curtain.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -119,15 +120,35 @@ func close_menu() -> void:
 	menu_scene = null
 
 func _confirm_menu(destination: String) -> void:
-	if not menu_open or busy: return
-	close_menu()
+	if not menu_open or busy or menu.request_pending: return
 	var attendance := match_guidance()
 	var today := bool(attendance.get("is_today", false)) and bool(attendance.get("due", false))
 	var can_arrive := bool(attendance.get("can_travel", false)) or bool(attendance.get("can_return", false))
 	if (bool(attendance.get("planned", false)) or today) and can_arrive and destination == str(attendance.get("destination", "")):
+		if Computer.match_center.request_pending:
+			menu.set_notice("上一项操作正在处理，请稍等。")
+			return
+		menu.set_notice("正在核对本场比赛、阵容与地图……", true)
 		Computer.match_center.travel_real(str(attendance.get("match_id", "")))
 		return
 	go(destination)
+
+func finish_door_request(text: String, events: bool = false) -> void:
+	if not menu.request_pending: return
+	menu.set_notice(text if not text.is_empty() else "场馆准备未完成，请查看比赛准备。", false, events)
+
+func _resolve_door_request(events: bool) -> void:
+	dismiss_for_visit()
+	if events and not CareerBridge.context.get("stories", []).is_empty():
+		Phone.present("stories")
+	else:
+		var scene := get_tree().current_scene
+		var place := "bedroom"
+		for destination in ["bedroom", "club", "lan", "major"]:
+			if scene != null and scene.scene_file_path == SCENES[destination]:
+				place = destination
+				break
+		Computer.open_app("career_match", place)
 
 func can_visit_match(venue: Dictionary, match_id: String) -> bool:
 	var destination := str(venue.get("destination", venue.get("kind", "")))
@@ -187,6 +208,7 @@ func go_awards(awards: Dictionary) -> bool:
 
 func go(destination: String, preserve_session: bool = true) -> void:
 	if busy or not SCENES.has(destination):return
+	menu.set_notice("")
 	close_menu()
 	busy=true
 	if destination != str(match_visit.get("destination", "")): match_visit.clear()

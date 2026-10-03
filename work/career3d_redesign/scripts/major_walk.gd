@@ -290,7 +290,7 @@ func finish_intro() -> void:
 	intro_finished=true;player.locked=false
 	for child in player.get_children():
 		if child is Node3D and not child is CollisionShape3D:child.visible=false
-	if not testing and not capturing and focused and not paused:Input.mouse_mode=Input.MOUSE_MODE_CAPTURED
+	if not testing and not capturing and focused and not paused and not CareerBridge.phone_open:Input.mouse_mode=Input.MOUSE_MODE_CAPTURED
 
 func _arrived(destination: String) -> void:
 	if destination=="major":intro=0
@@ -355,7 +355,7 @@ func set_paused(value: bool) -> void:
 	paused=value;pause_panel.visible=value;player.velocity=Vector3.ZERO
 	if value:Travel.close_menu()
 	if is_instance_valid(atmosphere):atmosphere.set_paused(value)
-	Input.mouse_mode=Input.MOUSE_MODE_VISIBLE if value else Input.MOUSE_MODE_CAPTURED
+	Input.mouse_mode=Input.MOUSE_MODE_VISIBLE if value or CareerBridge.phone_open else Input.MOUSE_MODE_CAPTURED
 
 func interact() -> void:
 	if not intro_finished or paused or device_seated:return

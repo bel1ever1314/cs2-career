@@ -1,0 +1,47 @@
+# Offline installation, onboarding and doorway feedback.
+查看待处理事项	View pending decisions
+查看比赛准备	View match preparation
+赛程已更新，请重新选择本场比赛。	The schedule has changed. Please select the match again.
+比赛准备请求未发出，请稍后再试。	Match preparation did not start. Please try again.
+场馆准备未完成，请查看比赛准备。	Venue preparation is not complete. Open match preparation for details.
+自动检测 Steam／CS2 路径	Detect Steam / CS2 paths
+正在检测本机 Steam 和 CS2 路径……	Finding Steam and CS2 on this computer…
+检测请求未发出，请稍后再试。	The search did not start. Please try again.
+安装直接使用本地发行包，并加入我们自带的组件，不需要联网。原发行包不变，游戏文件会先备份。	Install from your local release, with our included components. No internet needed. The source stays unchanged and game files are backed up first.
+检查人机增强更新	Check Bot Improver updates
+打开官方更新页面	Open official releases
+仅点击检查更新时连接 GitHub，不会自动下载或替换插件。	Connect to GitHub only when you check updates. No automatic downloads or plugin replacement.
+正在检查官方人机增强更新……	Checking official Bot Improver updates…
+更新检查未发出，不影响本地安装。	The update check did not start. Local installation still works.
+更新检查未完成，不影响本地安装。	The update check did not finish. Local installation still works.
+正在检查本地组件、备份并安装人机增强，无需联网……	Checking local components, backing up and installing Bot Improver. No internet needed…
+发现人机增强新版本，可前往官方页面查看。	A new Bot Improver release is available on the official page.
+当前人机增强已是最新版本。	Bot Improver is up to date.
+暂时无法读取本地人机增强版本，不影响现有安装。	Could not read the local Bot Improver version. Your installation is unchanged.
+上游没有返回正式发行版，现有安装保持不变。	No stable release was returned. Your installation is unchanged.
+上游版本号不是正式版本，现有安装保持不变。	The release is not a stable version. Your installation is unchanged.
+GitHub 暂时限制了更新查询，请稍后再检查。	GitHub has temporarily limited update checks. Please try again later.
+暂时没有可检查的正式发行版，现有安装保持不变。	No stable release is available to check. Your installation is unchanged.
+暂时无法连接 GitHub，请稍后再检查；不影响本地安装。	Could not reach GitHub. Try again later; local installation still works.
+更新信息暂时无法读取，请稍后再检查；不影响本地安装。	Could not read the update information. Try again later; local installation still works.
+创建你的角色	Create your character
+创建角色	Create character
+请先创建角色，或读取已有生涯存档。	Create a character first, or load an existing career save.
+选择开局与能力，再设置形象，开始你的职业生涯。	Choose your start and abilities, customize your appearance, and begin your career.
+路径检测未完成。	Path detection did not finish.
+已检测到 %s，路径已填入，保存后生效。	Found %s. Paths are filled in and will take effect when saved.
+未找到 Steam 或 CS2，请手动选择安装路径。	Steam or CS2 was not found. Select the installation paths manually.
+ 另一个路径未找到，可手动填写。	 The other path was not found and can be entered manually.
+已从本地安装%s（%s 个文件），无需联网。安装前备份：%s	Installed %s locally (%s files), without internet access. Backup before installation: %s
+本地组件校验清单过大。	The local component checklist is too large.
+本地组件校验清单格式不正确。	The local component checklist has an invalid format.
+本地组件校验清单不完整。	The local component checklist is incomplete.
+官方整包变体清单格式不正确。	The official bundle variant checklist has an invalid format.
+本地发行包缺少可复用的组件或版本尚未接入：%s。安装未联网，请选择完整官方发行包；需要更新时可点击“检查更新”。	The local release is missing reusable components or contains an unsupported version: %s. Installation stayed offline. Select a complete official release, or use Check for updates when needed.
+本地组件校验清单名称不正确。	The local component checklist has an invalid name.
+本地组件校验清单版本不一致。	The local component checklist versions do not match.
+本地组件校验清单缺少文件。	The local component checklist is missing files.
+官方整包变体版本不正确。	The official bundle variant has an invalid version.
+本地组件校验清单包含无效或重复文件。	The local component checklist contains invalid or duplicate files.
+官方整包变体引用了未知文件。	The official bundle variant refers to unknown files.
+会话已过期，请重新打开程序。	Your session has expired. Reopen the program.

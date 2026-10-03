@@ -29,6 +29,12 @@ def archive_bytes(entries):
     return data.getvalue()
 
 
+def prepare_with_downloads(root, mod, game):
+    # Archive upgrade tests explicitly opt into the developer preparation path.
+    # Player installation uses prepare_runtime's offline default.
+    return compat.prepare_runtime(root, mod, game, allow_download=True)
+
+
 class CompatibilityRuntimeTests(unittest.TestCase):
     def setUp(self):
         QA_ROOT.mkdir(parents=True, exist_ok=True)
@@ -149,7 +155,7 @@ class CompatibilityRuntimeTests(unittest.TestCase):
         return {p.relative_to(self.mod).as_posix():p.read_bytes() for p in self.mod.rglob('*') if p.is_file()}
 
     def portable_bundle(self):
-        prepared = Path(compat.prepare_runtime(self.root, self.mod, self.game)['mod_dir'])
+        prepared = Path(prepare_with_downloads(self.root, self.mod, self.game)['mod_dir'])
         package = self.base / 'friends-package'
         bundle = package / 'mod'
         shutil.copytree(prepared, bundle)
@@ -168,7 +174,7 @@ class CompatibilityRuntimeTests(unittest.TestCase):
         self.download.reset_mock()
         seeded = compat.seed_bundled_runtime(user, bundle)
         self.assertTrue(seeded.is_relative_to(user / 'runtime-cache'))
-        result = compat.prepare_runtime(user, seeded, self.game)
+        result = prepare_with_downloads(user, seeded, self.game)
         self.assertTrue(result['cache_hit'])
         self.assertEqual(compat.seed_bundled_runtime(user, bundle), seeded)
         self.download.assert_not_called()
@@ -241,7 +247,7 @@ class CompatibilityRuntimeTests(unittest.TestCase):
 
     def test_overlay_preserves_source_game_settings_and_excludes_private_payload(self):
         before = self.original_files()
-        result = compat.prepare_runtime(self.root, self.mod, self.game)
+        result = prepare_with_downloads(self.root, self.mod, self.game)
         runtime = Path(result['mod_dir'])
         self.assertTrue(runtime.is_relative_to(self.root / 'runtime-cache'))
         self.assertEqual(result['origin_mod_dir'], str(self.mod))
@@ -265,10 +271,10 @@ class CompatibilityRuntimeTests(unittest.TestCase):
         self.assertEqual(receipt['files'][NATIVE], hashlib.sha256(b'new native').hexdigest())
 
     def test_cache_reused_for_same_release_and_already_prepared_source_without_network(self):
-        first = compat.prepare_runtime(self.root, self.mod, self.game)
+        first = prepare_with_downloads(self.root, self.mod, self.game)
         self.download.reset_mock()
-        second = compat.prepare_runtime(self.root, self.mod, self.game)
-        third = compat.prepare_runtime(self.root, Path(first['mod_dir']), self.game)
+        second = prepare_with_downloads(self.root, self.mod, self.game)
+        third = prepare_with_downloads(self.root, Path(first['mod_dir']), self.game)
         self.assertEqual(first['mod_dir'], second['mod_dir'])
         self.assertEqual(first['mod_dir'], third['mod_dir'])
         self.assertTrue(second['cache_hit'] and third['cache_hit'])
@@ -282,7 +288,7 @@ class CompatibilityRuntimeTests(unittest.TestCase):
                            required_paths=[hider_config])
         self.persist_manifest()
         original = self.original_files()
-        first = compat.prepare_runtime(self.root, self.mod, self.game)
+        first = prepare_with_downloads(self.root, self.mod, self.game)
         previous = Path(first['mod_dir'])
         previous_files = {p.relative_to(previous).as_posix():p.read_bytes()
                           for p in previous.rglob('*') if p.is_file()}
@@ -291,7 +297,7 @@ class CompatibilityRuntimeTests(unittest.TestCase):
         self.persist_manifest()
         self.download.reset_mock()
         self.assertFalse(compat.runtime_context(previous)['current'])
-        rebuilt = compat.prepare_runtime(self.root, previous, self.game)
+        rebuilt = prepare_with_downloads(self.root, previous, self.game)
         runtime = Path(rebuilt['mod_dir'])
 
         self.assertFalse(rebuilt['cache_hit'])
@@ -322,7 +328,7 @@ class CompatibilityRuntimeTests(unittest.TestCase):
         self.write(self.mod, 'cfg/my_bot_normal_config.cfg', b'old normal config')
         original = self.original_files()
         base = self.add_improver_base()
-        result = compat.prepare_runtime(self.root, self.mod, self.game)
+        result = prepare_with_downloads(self.root, self.mod, self.game)
         runtime = Path(result['mod_dir'])
         for name in base['required_paths']:
             self.assertEqual((runtime / name).read_bytes(), ('official 1.4.5: ' + name).encode('utf-8'))
@@ -339,7 +345,7 @@ class CompatibilityRuntimeTests(unittest.TestCase):
         self.assertEqual((self.game / 'gameinfo.gi').read_bytes(), b'official untouched game')
 
     def test_prepared_earlier_revision_rebuilt_with_new_behavior_and_dependency_order(self):
-        first = Path(compat.prepare_runtime(self.root, self.mod, self.game)['mod_dir'])
+        first = Path(prepare_with_downloads(self.root, self.mod, self.game)['mod_dir'])
         before = {p.relative_to(first).as_posix():p.read_bytes() for p in first.rglob('*') if p.is_file()}
         self.add_improver_base()
         api = 'addons/counterstrikesharp/shared/BotControllerApi/BotControllerApi.dll'
@@ -347,7 +353,7 @@ class CompatibilityRuntimeTests(unittest.TestCase):
                            allow_paths=[api], replace_paths=[api], required_paths=[api])
         self.persist_manifest()
         self.assertFalse(compat.runtime_context(first)['current'])
-        result = compat.prepare_runtime(self.root, first, self.game)
+        result = prepare_with_downloads(self.root, first, self.game)
         runtime = Path(result['mod_dir'])
         self.assertFalse(result['cache_hit'])
         self.assertNotEqual(runtime, first)
@@ -356,12 +362,12 @@ class CompatibilityRuntimeTests(unittest.TestCase):
         self.assertTrue((runtime / 'addons/counterstrikesharp/plugins/BotAI/BotAI.dll').is_file())
         self.assertEqual({p.relative_to(first).as_posix():p.read_bytes() for p in first.rglob('*') if p.is_file()}, before)
         self.download.reset_mock()
-        self.assertTrue(compat.prepare_runtime(self.root, runtime, self.game)['cache_hit'])
+        self.assertTrue(prepare_with_downloads(self.root, runtime, self.game)['cache_hit'])
         self.download.assert_not_called()
 
     def test_fixed_base_never_copies_panel_private_roster_or_career_plugin(self):
         self.add_improver_base()
-        runtime = Path(compat.prepare_runtime(self.root, self.mod, self.game)['mod_dir'])
+        runtime = Path(prepare_with_downloads(self.root, self.mod, self.game)['mod_dir'])
         receipt = json.loads((runtime.parent / compat.RECEIPT).read_text('utf-8'))
         for name in ('Panel v1.4.5.exe', 'addons/BotHider/bot_info.json',
                      'overrides/Medium/botprofile.vpk', 'overrides/botprofile.vpk',
@@ -379,7 +385,7 @@ class CompatibilityRuntimeTests(unittest.TestCase):
         self.write(self.mod, 'overrides/scripts/ai/runner.exe', b'launcher')
         self.write(self.mod, 'overrides/sounds/anthem.vsnd_c', b'not behavior')
         self.write(self.mod, 'overrides/backup/scripts/ai/old.vdata', b'backup')
-        runtime = Path(compat.prepare_runtime(self.root, self.mod, self.game)['mod_dir'])
+        runtime = Path(prepare_with_downloads(self.root, self.mod, self.game)['mod_dir'])
         self.assertEqual((runtime / behavior).read_bytes(), b'game behavior source')
         receipt = json.loads((runtime.parent / compat.RECEIPT).read_text('utf-8'))
         self.assertEqual(receipt['files'][behavior], hashlib.sha256(b'game behavior source').hexdigest())
@@ -393,7 +399,7 @@ class CompatibilityRuntimeTests(unittest.TestCase):
         behavior = 'overrides/scripts/ai/bt_bots.vdata_c'
         self.write(self.mod, behavior, b'old behavior')
         self.add_improver_base([(behavior, b'official new behavior')])
-        runtime = Path(compat.prepare_runtime(self.root, self.mod, self.game)['mod_dir'])
+        runtime = Path(prepare_with_downloads(self.root, self.mod, self.game)['mod_dir'])
         self.assertEqual((runtime / behavior).read_bytes(), b'official new behavior')
 
     def test_base_checksum_failure_stops_before_publishing_new_runtime(self):
@@ -401,7 +407,7 @@ class CompatibilityRuntimeTests(unittest.TestCase):
         base = self.add_improver_base()
         self.urls[base['url']] = b'changed official artifact'
         with self.assertRaisesRegex(ValueError, '校验失败'):
-            compat.prepare_runtime(self.root, self.mod, self.game)
+            prepare_with_downloads(self.root, self.mod, self.game)
         self.assertFalse(list((self.root / 'runtime-cache').glob('*/runtime')))
         self.assertEqual(self.original_files(), original)
         self.assertEqual((self.game / 'gameinfo.gi').read_bytes(), b'official untouched game')
@@ -417,23 +423,23 @@ class CompatibilityRuntimeTests(unittest.TestCase):
         self.manifest['components'][0]['size'] = 1
         self.persist_manifest()
         with self.assertRaisesRegex(ValueError, '大小不符'):
-            compat.prepare_runtime(self.root, self.mod, self.game)
+            prepare_with_downloads(self.root, self.mod, self.game)
         self.assertFalse(list((self.root / 'runtime-cache').glob('*/runtime')))
 
     def test_changed_legacy_cohort_file_cannot_overwrite_official_runtime_or_invalidate_cache(self):
-        first = compat.prepare_runtime(self.root, self.mod, self.game)
+        first = prepare_with_downloads(self.root, self.mod, self.game)
         (self.mod / NATIVE).write_bytes(b'changed old native')
         self.download.reset_mock()
-        second = compat.prepare_runtime(self.root, self.mod, self.game)
+        second = prepare_with_downloads(self.root, self.mod, self.game)
         self.assertEqual(first['mod_dir'], second['mod_dir'])
         self.assertEqual((Path(second['mod_dir']) / NATIVE).read_bytes(), b'new native')
         self.download.assert_not_called()
 
     def test_changed_custom_plugin_creates_new_runtime_without_redownloading_pinned_archive(self):
-        first = compat.prepare_runtime(self.root, self.mod, self.game)
+        first = prepare_with_downloads(self.root, self.mod, self.game)
         self.write(self.mod, 'addons/counterstrikesharp/plugins/CustomAim/CustomAim.dll', b'new aim')
         self.download.reset_mock()
-        second = compat.prepare_runtime(self.root, self.mod, self.game)
+        second = prepare_with_downloads(self.root, self.mod, self.game)
         self.assertNotEqual(first['mod_dir'], second['mod_dir'])
         self.download.assert_not_called()
 
@@ -447,7 +453,7 @@ class CompatibilityRuntimeTests(unittest.TestCase):
                                      ('package/readme.txt', b'not runtime')], strip_prefix='package',
                            allow_paths=['addons/Nested'], required_paths=['addons/Nested/Test.dll'])
         self.persist_manifest()
-        result = compat.prepare_runtime(self.root, self.mod, self.game)
+        result = prepare_with_downloads(self.root, self.mod, self.game)
         runtime = Path(result['mod_dir'])
         self.assertEqual((runtime / 'addons/counterstrikesharp/plugins/BotRandomizer/BotRandomizer.dll').read_bytes(), b'new randomizer')
         self.assertFalse((runtime / 'addons/counterstrikesharp/plugins/BotRandomizer/BotRandomizer.pdb').exists())
@@ -459,7 +465,7 @@ class CompatibilityRuntimeTests(unittest.TestCase):
                            allow_paths=['addons/counterstrikesharp/dotnet'],
                            required_paths=['addons/counterstrikesharp/dotnet/dotnet.exe'])
         self.persist_manifest()
-        runtime = Path(compat.prepare_runtime(self.root, self.mod, self.game)['mod_dir'])
+        runtime = Path(prepare_with_downloads(self.root, self.mod, self.game)['mod_dir'])
         self.assertEqual((runtime / 'addons/counterstrikesharp/dotnet/dotnet.exe').read_bytes(), b'dotnet host')
         self.assertFalse((runtime / 'addons/panel.exe').exists())
 
@@ -474,12 +480,12 @@ class CompatibilityRuntimeTests(unittest.TestCase):
                            allow_paths=['addons/BotVision'], preserve_paths=[vision_config],
                            required_paths=[vision_config])
         self.persist_manifest()
-        first = compat.prepare_runtime(self.root, self.mod, self.game)
+        first = prepare_with_downloads(self.root, self.mod, self.game)
         runtime = Path(first['mod_dir'])
         self.assertEqual((runtime / hider_config).read_bytes(), b'{"custom": "hider setting"}')
         self.assertEqual((runtime / vision_config).read_bytes(), b'{"upstream": "vision default"}')
         self.write(self.mod, vision_config, b'{"custom": "vision setting"}')
-        second = Path(compat.prepare_runtime(self.root, self.mod, self.game)['mod_dir'])
+        second = Path(prepare_with_downloads(self.root, self.mod, self.game)['mod_dir'])
         self.assertEqual((second / vision_config).read_bytes(), b'{"custom": "vision setting"}')
         self.assertEqual((self.mod / hider_config).read_bytes(), b'{"custom": "hider setting"}')
 
@@ -497,7 +503,7 @@ class CompatibilityRuntimeTests(unittest.TestCase):
         before = self.original_files()
         self.urls[self.manifest['components'][0]['url']] = b'wrong artifact'
         with self.assertRaisesRegex(ValueError, '校验失败'):
-            compat.prepare_runtime(self.root, self.mod, self.game)
+            prepare_with_downloads(self.root, self.mod, self.game)
         self.assertEqual(self.original_files(), before)
         self.assertFalse(list((self.root / 'runtime-cache').glob('*/runtime')))
         self.assertEqual((self.game / 'gameinfo.gi').read_bytes(), b'official untouched game')
@@ -552,21 +558,21 @@ class CompatibilityRuntimeTests(unittest.TestCase):
         for root, mod, game in ((self.root, self.mod, self.mod),
                                 (self.mod, self.mod, self.game), (Path('relative'), self.mod, self.game)):
             with self.subTest(root=root, mod=mod, game=game), self.assertRaises(ValueError):
-                compat.prepare_runtime(root, mod, game)
+                prepare_with_downloads(root, mod, game)
         self.download.assert_not_called()
         self.assertFalse((self.root / 'runtime-cache').exists())
 
     def test_tampered_prepared_runtime_is_rebuilt_without_touching_old_tree(self):
-        first = compat.prepare_runtime(self.root, self.mod, self.game)
+        first = prepare_with_downloads(self.root, self.mod, self.game)
         runtime = Path(first['mod_dir'])
         (runtime / NATIVE).write_bytes(b'tampered')
-        result = compat.prepare_runtime(self.root, runtime, self.game)
+        result = prepare_with_downloads(self.root, runtime, self.game)
         self.assertNotEqual(result['mod_dir'], str(runtime))
         self.assertEqual((Path(result['mod_dir']) / NATIVE).read_bytes(), b'new native')
         self.assertEqual((runtime / NATIVE).read_bytes(), b'tampered')
 
     def test_version_context_is_cheap_read_only_and_not_full_game_validation(self):
-        prepared = compat.prepare_runtime(self.root, self.mod, self.game)
+        prepared = prepare_with_downloads(self.root, self.mod, self.game)
         runtime = Path(prepared['mod_dir'])
         self.download.reset_mock()
         with patch.object(compat, '_hash', side_effect=AssertionError('status must not hash files')), \
@@ -589,7 +595,7 @@ class CompatibilityRuntimeTests(unittest.TestCase):
         self.download.assert_not_called()
 
     def test_version_context_rejects_stale_oversized_and_invalid_receipts_without_network(self):
-        runtime = Path(compat.prepare_runtime(self.root, self.mod, self.game)['mod_dir'])
+        runtime = Path(prepare_with_downloads(self.root, self.mod, self.game)['mod_dir'])
         path = runtime.parent / compat.RECEIPT
         receipt = json.loads(path.read_text('utf-8'))
         self.download.reset_mock()
@@ -615,7 +621,7 @@ class CompatibilityRuntimeTests(unittest.TestCase):
                            allow_paths=['addons/counterstrikesharp/dotnet'],
                            required_paths=[long_member])
         self.persist_manifest()
-        first = compat.prepare_runtime(self.root, self.mod, self.game)
+        first = prepare_with_downloads(self.root, self.mod, self.game)
         runtime = Path(first['mod_dir'])
         self.assertGreater(len(str(runtime / long_member)), 400)
         self.assertEqual(compat.io_path(runtime / long_member).read_bytes(), b'long framework dll')
@@ -628,8 +634,8 @@ class CompatibilityRuntimeTests(unittest.TestCase):
         self.assertIn(custom, receipt['files'])
         self.assertTrue(all(not name.startswith('\\\\?\\') for name in receipt['files']))
         self.download.reset_mock()
-        same_source = compat.prepare_runtime(self.root, self.mod, self.game)
-        same_runtime = compat.prepare_runtime(self.root, runtime, self.game)
+        same_source = prepare_with_downloads(self.root, self.mod, self.game)
+        same_runtime = prepare_with_downloads(self.root, runtime, self.game)
         self.assertTrue(same_source['cache_hit'] and same_runtime['cache_hit'])
         self.assertEqual(same_source['mod_dir'], first['mod_dir'])
         self.assertEqual(same_runtime['mod_dir'], first['mod_dir'])
@@ -638,11 +644,11 @@ class CompatibilityRuntimeTests(unittest.TestCase):
 
     def test_long_cache_invalidated_payload_rebuilds_to_new_normal_path(self):
         self.use_long_roots()
-        first = compat.prepare_runtime(self.root, self.mod, self.game)
+        first = prepare_with_downloads(self.root, self.mod, self.game)
         runtime = Path(first['mod_dir'])
         compat.io_path(runtime / NATIVE).write_bytes(b'changed cached DLL')
         self.download.reset_mock()
-        rebuilt = compat.prepare_runtime(self.root, self.mod, self.game)
+        rebuilt = prepare_with_downloads(self.root, self.mod, self.game)
         self.assertNotEqual(rebuilt['mod_dir'], first['mod_dir'])
         self.assertFalse(rebuilt['mod_dir'].startswith('\\\\?\\'))
         self.assertEqual(compat.io_path(Path(rebuilt['mod_dir']) / NATIVE).read_bytes(), b'new native')
@@ -662,7 +668,7 @@ class CompatibilityRuntimeTests(unittest.TestCase):
 
         with patch.object(compat.shutil, 'copy2', side_effect=interrupted_copy):
             with self.assertRaisesRegex(OSError, 'fixture copy interruption'):
-                compat.prepare_runtime(self.root, self.mod, self.game)
+                prepare_with_downloads(self.root, self.mod, self.game)
         directories = list(compat.io_path(self.root / 'runtime-cache').iterdir())
         self.assertFalse(any(path.name.startswith('.prepare-') for path in directories))
         self.assertFalse(any(compat.io_path(path / 'runtime').exists() for path in directories))
@@ -673,7 +679,7 @@ class CompatibilityRuntimeTests(unittest.TestCase):
         self.use_long_roots()
         self.urls[self.manifest['components'][0]['url']] = b'bad checksum'
         with self.assertRaisesRegex(ValueError, '校验失败'):
-            compat.prepare_runtime(self.root, self.mod, self.game)
+            prepare_with_downloads(self.root, self.mod, self.game)
         downloads = compat.io_path(self.root / 'runtime-cache/downloads')
         self.assertEqual(list(downloads.iterdir()), [])
         self.assertEqual(compat.io_path(self.mod / NATIVE).read_bytes(), b'old native')

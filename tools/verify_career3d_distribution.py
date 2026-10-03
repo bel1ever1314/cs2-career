@@ -8,6 +8,7 @@ from pathlib import Path
 import subprocess
 import time
 import urllib.request
+from urllib.error import HTTPError
 
 
 def verify_backend(executable, qa, media=None, bundled=None):
@@ -37,11 +38,17 @@ def verify_backend(executable, qa, media=None, bundled=None):
             if connection['host'] != '127.0.0.1':
                 raise ValueError('Not loopback-only')
 
-            def request(path, body=None):
+            def request(path, body=None, expected=200):
                 payload = json.dumps(body).encode() if body is not None else None
                 req = urllib.request.Request(connection['base_url'] + path, data=payload,
                     headers={'X-Career-Token': connection['token'], 'Content-Type': 'application/json'})
-                with urllib.request.urlopen(req, timeout=60) as response:
+                try:
+                    response = urllib.request.urlopen(req, timeout=60)
+                except HTTPError as error:
+                    response = error
+                with response:
+                    if response.status != expected:
+                        raise ValueError('Unexpected endpoint status ' + path + ': ' + str(response.status))
                     return json.load(response)
 
             context = request('/api/3d/context')
@@ -50,6 +57,12 @@ def verify_backend(executable, qa, media=None, bundled=None):
                     raise ValueError('Missing context field ' + key)
             if not context['isolated']:
                 raise ValueError('Save not isolated')
+            if not context['start'].get('creation_required') or context['start'].get('can_continue'):
+                raise ValueError('A fresh player must complete character creation')
+            blocked = request('/api/3d/calendar', {'revision':context['calendar']['revision'],
+                'date':'2026-10-03'}, expected=400)
+            if blocked.get('ok') or '创建角色' not in blocked.get('msg', ''):
+                raise ValueError('Uncreated character bypassed the backend gate')
             endpoints = {}
             for path in ('/api/3d/start/options', '/api/3d/settings', '/api/3d/saves',
                          '/api/3d/skin-tools', '/api/3d/custom/catalog', '/api/3d/tactics'):
@@ -61,15 +74,21 @@ def verify_backend(executable, qa, media=None, bundled=None):
             if bundled is not None and actual != bundled:
                 raise ValueError('Bundled install availability mismatch')
             report.update(ready=True, endpoints=endpoints, bundle_available=actual,
+                          character_creation_required=True, premature_calendar_blocked=True,
                           map_images=len(context['media']['map_backgrounds']),
                           team_images=len(context['media']['team_backgrounds']),
-                          skin_tools_default_enabled=context['settings']['skin_tools_enabled'])
-            if context['settings']['skin_tools_enabled']:
-                raise ValueError('Optional skin tools must be disabled by default')
+                          skin_tools_default_enabled=context['settings']['skin_tools_enabled'],
+                          real_skins_default_enabled=context['settings']['real_skins'],
+                          skin_inspect_default_enabled=context['settings']['skin_inspect_enabled'])
+            if any(context['settings'][key] for key in
+                   ('real_skins', 'skin_tools_enabled', 'skin_inspect_enabled')):
+                raise ValueError('Skins and optional skin tools must be disabled by default')
             request('/api/3d/shutdown', {})
             proc.wait(timeout=20)
             if proc.returncode:
                 raise ValueError('Backend shutdown failed')
+            if ready.exists():
+                raise ValueError('Backend did not remove its own ready handshake')
             report['clean_shutdown'] = True
         finally:
             if proc.poll() is None:

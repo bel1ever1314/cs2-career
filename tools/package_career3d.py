@@ -232,18 +232,43 @@ def launch_cmd(bundled=False, compatibility=False):
 def archive(folder, destination, prefix=None):
     """Exclude only regenerated user state; folder itself must be a clean stage."""
     folder, destination = Path(folder), Path(destination)
+    def reject_link(path):
+        if path.is_symlink() or getattr(path.lstat(), 'st_file_attributes', 0) & 0x400:
+            raise ValueError('Symlink or reparse point in package')
+
+    for path in (folder, *folder.parents):
+        reject_link(path)
+    if not folder.is_dir():
+        raise ValueError('Package stage must be a directory')
+    entries = []
+    for directory, folders, names in os.walk(folder, topdown=True, followlinks=False):
+        base = Path(directory)
+        accepted = []
+        for name in sorted(folders):
+            path = base / name
+            reject_link(path)
+            relative = path.relative_to(folder)
+            if relative.parts[:2] != ('game', 'runtime') and name != 'godot-import.log':
+                accepted.append(name)
+        folders[:] = accepted
+        file_count = 0
+        for name in sorted(names):
+            path = base / name
+            reject_link(path)
+            relative = path.relative_to(folder)
+            if relative.parts[:2] == ('game', 'runtime') or name == 'godot-import.log':
+                continue
+            if path.is_file():
+                entries.append((path, relative.as_posix()))
+                file_count += 1
+        # Files imply their parents, but an empty directory needs its own ZIP
+        # member or extraction drops required roots such as mod/overrides.
+        if base != folder and not accepted and not file_count:
+            entries.append((base, base.relative_to(folder).as_posix() + '/'))
     destination.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(destination, 'w', zipfile.ZIP_DEFLATED, compresslevel=6) as output:
-        for file in sorted(folder.rglob('*')):
-            if not file.is_file():
-                continue
-            relative = file.relative_to(folder)
-            if relative.parts[:2] == ('game', 'runtime') or file.name == 'godot-import.log':
-                continue
-            if file.is_symlink():
-                raise ValueError('Symlink in package')
-            name = relative.as_posix()
-            output.write(file, (prefix + '/' if prefix else '') + name)
+        for path, name in sorted(entries, key=lambda row: row[1]):
+            output.write(path, (prefix + '/' if prefix else '') + name)
 
 
 PREVIEW_README = '''CS2 Career 1.7.0-preview.1 · 本地 3D 测试版

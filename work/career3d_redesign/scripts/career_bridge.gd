@@ -141,7 +141,7 @@ func _process(delta: float) -> void:
 	var scene=get_tree().current_scene
 	var at_club: bool=scene!=null and scene.scene_file_path in ["res://play.tscn","res://bedroom.tscn"]
 	var real_match_pending := _has_pending_match()
-	if at_club and not real_match_pending and not phone_open and not clock_held and not busy and not Travel.busy and context.get("stories",[]).is_empty():
+	if at_club and not bool(context.get("start", {}).get("creation_required", false)) and not real_match_pending and not phone_open and not clock_held and not busy and not Travel.busy and context.get("stories",[]).is_empty():
 		clock_minutes+=delta/maxf(.2,float(settings.get("real_seconds_per_game_minute",1.0)))
 		if clock_minutes>=1440 and not clock_boundary:
 			clock_minutes=1439; clock_boundary=true

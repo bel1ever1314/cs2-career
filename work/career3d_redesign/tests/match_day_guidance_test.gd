@@ -77,7 +77,7 @@ func run() -> void:
 	Travel.menu_open = true
 	Travel._confirm_menu("major")
 	check(requests.size() == 1 and requests[0]["path"] == "/api/3d/match/preflight" and requests[0]["body"].get("match_id") == "scheduled-test", "door confirmation prepares the correct match without requiring a prior plan")
-	check(not Travel.menu_open and not Travel.busy and CareerBridge.context["date"] == "2026-10-04", "door preparation waits for preflight instead of silently travelling or changing dates")
+	check(Travel.menu_open and not Travel.menu.request_pending and Travel.menu.status.visible and not Travel.menu.status.text.is_empty() and not Travel.busy and CareerBridge.context["date"] == "2026-10-04", "rejected door request shows its reason without silently travelling or changing dates")
 	Computer.match_center.command_sender = Callable()
 	CareerBridge.context = context_for("2026-10-06", "major", false)
 	Travel._career_changed(); Travel.menu.present("bedroom")

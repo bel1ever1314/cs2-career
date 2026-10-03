@@ -113,12 +113,21 @@ class BundledInstallTests(unittest.TestCase):
         self.mod_install.assert_not_called()
         self.running.assert_not_called()
 
-    def test_ordinary_release_does_not_discover_or_prepare_paths(self):
+    def test_ordinary_release_discovers_machine_paths_without_a_bundled_mod(self):
+        steam = self.root / 'fixture-steam/steam.exe'
+        steam.write_bytes(b'fixture Steam')
+        self.launch._write_settings({**self.cfg, 'steam_exe':'', 'csgo_path':'', 'mod_source_path':''})
         with patch.dict(os.environ, {install.ENV_MOD:''}), patch.object(install.sys, 'frozen', False, create=True), \
-                patch.object(self.launch, 'find_steam_exe', side_effect=AssertionError('no startup discovery')), \
-                patch.object(self.launch, '_write_settings', side_effect=AssertionError('no startup writes')):
-            self.assertEqual(install.auto_prepare_config(), {'available':False, 'external_available':True, 'name':install.NAME})
+                patch.object(self.launch, 'find_steam_exe', return_value=str(steam)), \
+                patch.object(self.launch, 'find_csgo_path', return_value=str(self.game)):
+            self.assertEqual(install.auto_prepare_config(), {'available':False, 'external_available':True,
+                'name':install.NAME, 'prepared':True})
+        cfg = self.activities.read_cs2_config()
+        self.assertEqual(cfg['steam_exe'], str(steam.resolve()))
+        self.assertEqual(cfg['csgo_path'], str(self.game.resolve()))
+        self.assertEqual(cfg['mod_source_path'], '')
         self.running.assert_not_called()
+        self.mod_install.assert_not_called()
 
     def test_install_requires_confirmation_and_current_revision(self):
         for body in ({'revision':7}, {'revision':7, 'confirm':'true'}, {'revision':6, 'confirm':True},
@@ -129,11 +138,53 @@ class BundledInstallTests(unittest.TestCase):
         self.mod_install.assert_not_called()
         self.assertFalse((self.data / 'install-backups').exists())
 
-    def test_only_explicit_bundle_install_seeds_offline_runtime(self):
+    def test_discovery_skips_a_stale_library_and_supports_unicode_library_paths(self):
+        steam = self.root / 'Steam'
+        steam.mkdir()
+        (steam / 'steam.exe').write_bytes(b'fixture Steam')
+        (steam / 'steamapps').mkdir()
+        stale = self.root / 'old library'
+        current = self.root / '新游戏库'
+        (stale / self.launch.CS2_TAIL).mkdir(parents=True)
+        game = current / self.launch.CS2_TAIL
+        game.mkdir(parents=True)
+        (game / 'gameinfo.gi').write_bytes(b'fixture CS2')
+        (steam / 'steamapps/libraryfolders.vdf').write_text(
+            '"libraryfolders" { "1" { "path" "' + stale.as_posix() + '" } '
+            '"2" { "path" "' + current.as_posix() + '" } }', encoding='utf-8')
+        with patch.object(self.launch, '_steam_roots', return_value=[steam]), \
+                patch.dict(self.launch._FOUND, {}, clear=True):
+            found = install.detect_machine_paths()
+        self.assertEqual(found['paths'], {'steam_exe':str((steam / 'steam.exe').resolve()),
+            'csgo_path':str(game.resolve())})
+
+    def test_explicit_discovery_refreshes_negative_cache_without_saving_or_installing(self):
+        steam = self.root / 'new Steam'
+        steam.mkdir()
+        (steam / 'steam.exe').write_bytes(b'fixture Steam')
+        game = steam / self.launch.CS2_TAIL
+        game.mkdir(parents=True)
+        (game / 'gameinfo.gi').write_bytes(b'fixture CS2')
+        before = self.activities.read_cs2_config()
+        with patch.object(self.launch, '_steam_roots', return_value=[steam]), \
+                patch.dict(self.launch._FOUND, {'steam':'', 'csgo':'', 'mod':'preserved'}, clear=True):
+            found = install.detect_machine_paths()
+            self.assertEqual(self.launch._FOUND['mod'], 'preserved')
+        self.assertEqual(found['paths']['steam_exe'], str((steam / 'steam.exe').resolve()))
+        self.assertEqual(found['paths']['csgo_path'], str(game.resolve()))
+        self.assertEqual(before, self.activities.read_cs2_config())
+        self.mod_install.assert_not_called()
+        self.running.assert_not_called()
+
+    def test_both_install_buttons_reuse_the_same_known_bundled_folder_offline(self):
         with patch('tools.career3d_runtime_compat.seed_bundled_runtime', return_value=self.mod) as seed:
             install.install_bundle(self.state, {**self.body, 'source':'bundle'})
             seed.assert_called_once_with(self.data.resolve(), self.mod.resolve())
             seed.reset_mock()
+            install.install_bundle(self.state, {**self.body, 'source':'external'})
+            seed.assert_called_once_with(self.data.resolve(), self.mod.resolve())
+            seed.reset_mock()
+            self.external_source()
             install.install_bundle(self.state, {**self.body, 'source':'external'})
             seed.assert_not_called()
 

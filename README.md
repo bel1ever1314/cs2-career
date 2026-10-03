@@ -10,11 +10,11 @@
 
 [下载 1.7.0 3D 预览版](https://github.com/bel1ever1314/cs2-career/releases/latest) · [下载 1.6.0 正式版](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.6.0-hotfix.1) · [更新日志](RELEASE_NOTES.md) · [交流与反馈](https://github.com/bel1ever1314/cs2-career/issues)
 
-当前版本是 **1.7.0-preview.3，3D 人机增强兼容更新**。原来的桌面版 **1.6.0-hotfix.1** 也保留下载。
+当前版本是 **1.7.0-preview.3-hotfix.4，3D 游玩流程修正版**。原来的桌面版 **1.6.0-hotfix.1** 也保留下载。
 
 ### 开始游玩
 
-1. 打开 [最新发布页](https://github.com/bel1ever1314/cs2-career/releases/latest)，下载 `CS2Career-1.7.0-preview.3-windows.zip`。
+1. 打开 [最新发布页](https://github.com/bel1ever1314/cs2-career/releases/latest)，下载 `CS2Career-1.7.0-preview.3-hotfix.4-windows.zip`。
 2. 完整解压到可写入的文件夹，双击 `开始游戏.cmd` 或 `Launch-CS2Career.cmd`。
 3. 按开局引导创建角色、抽取能力并调整小鸡形象，也可以选择年代接管职业选手。
 4. 进入宿舍后，去电脑前按 `E` 看看今天能做什么，或按 `P` 拿出手机。
@@ -40,9 +40,13 @@
 
 需要自行安装并登录 Steam 和 CS2，以及获取兼容的 [CS2 Bot Improver Windows 运行包](https://github.com/ed0ard/CS2-Bot-Improver/releases)。公开的 3D 运行包提供生涯程序和桥接组件，完整人机增强另行获取。
 
-1. 完全退出 CS2，在手机或电脑的“设置”中填写 Steam、CS2 与已解压的人机增强目录，点击“安装填写目录的人机增强”。程序会下载并校验我们选定的配套组件，连同本项目的兼容修复一起安装，保留安装前备份。原发行包不变，后续开赛会使用兼容副本；再次安装可复用已下载的文件。
+1. 完全退出 CS2，在手机或电脑的“设置”中填写 Steam、CS2 与已解压的人机增强目录，点击“安装填写目录的人机增强”。程序直接检查本地发行包，连同随程序提供的战术、比赛回传和兼容组件一起安装，并保留安装前备份。原发行包不变，后续开赛使用兼容副本；完整的官方包下载好后，安装无需联网。
 2. 从职业比赛、本地天梯或自定义对局准备比赛，完成选人与地图 BP 后启动 CS2。
 3. 打完正式比赛，回到生涯电脑查看回传战绩并录入结果。
+
+比赛当天也可以从门口前往对应场馆。准备过程中会显示进度；有待回复的事项时，可以直接打开手机处理，再继续出发。
+
+想查看上游新版时，主动点击“检查人机增强更新”即可，它不会自动下载或替换现有组件。游戏内换肤默认关闭，需要时在设置里手动开启。
 
 本版适配 Bot Improver 1.4.5。队友执行自定义战术时，也能响应你的行动无线电：例如守点等待中发出“跟随我”或“撤退”，就会结束旧路线、交给无线电任务；普通报点不打断战术。
 
@@ -86,11 +90,11 @@ The career now has a 3D world to walk around in. You're a chicken with a dorm ro
 
 [Download the 1.7.0 3D preview](https://github.com/bel1ever1314/cs2-career/releases/latest) · [Download the 1.6.0 desktop release](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.6.0-hotfix.1) · [Changelog — Chinese](RELEASE_NOTES.md) · [Feedback](https://github.com/bel1ever1314/cs2-career/issues)
 
-The current version is **1.7.0-preview.3, the 3D bot-runtime compatibility update**. The **1.6.0-hotfix.1** desktop version remains available separately.
+The current version is **1.7.0-preview.3-hotfix.4, the 3D play-flow update**. The **1.6.0-hotfix.1** desktop version remains available separately.
 
 ### Getting started
 
-1. Open the [latest release](https://github.com/bel1ever1314/cs2-career/releases/latest) and download `CS2Career-1.7.0-preview.3-windows.zip`.
+1. Open the [latest release](https://github.com/bel1ever1314/cs2-career/releases/latest) and download `CS2Career-1.7.0-preview.3-hotfix.4-windows.zip`.
 2. Extract the entire archive into a writable folder. Run `Launch-CS2Career.cmd` or `开始游戏.cmd`.
 3. Follow the opening flow to create a player, draft abilities, and customize your chicken, or choose an era and take over a professional player.
 4. In your dorm, walk to the computer and press `E`, or press `P` to take out your phone.
@@ -116,9 +120,13 @@ The local ladder uses your current career player. The two highest-rated particip
 
 Install and sign into Steam and CS2, and obtain a compatible [CS2 Bot Improver Windows runtime](https://github.com/ed0ard/CS2-Bot-Improver/releases). The public 3D package includes Career and its bridge components; the complete bot enhancement is obtained separately.
 
-1. Fully exit CS2. Open Settings on the phone or computer, set the Steam, CS2 and extracted bot-enhancement paths, then choose “安装填写目录的人机增强” (Install from the configured folder). The installer downloads and verifies our selected upstream components, then installs them with this project's compatibility patches and a backup of existing files. Your original release folder stays unchanged; later matches use the compatible runtime copy, and subsequent installs reuse the downloaded files.
+1. Fully exit CS2. Open Settings on the phone or computer, set the Steam, CS2 and extracted bot-enhancement paths, then choose “安装填写目录的人机增强” (Install from the configured folder). The installer checks your local release and installs it together with Career's bundled tactics, result reporting and compatibility components, backing up existing files. Your original release folder stays unchanged; later matches use the compatible runtime copy. Once you have the complete official package, installation works offline.
 2. Prepare a career, ladder, or custom match, complete the player draft and map veto, then launch CS2.
 3. Finish the official match and return to the career computer to review and import the result.
+
+On match day, you can also travel to the assigned venue from the doorway. Preparation progress is shown, and pending replies can be opened on the phone before continuing.
+
+“Check for bot-enhancement updates” only contacts GitHub when you click it and never downloads or replaces components automatically. In-game skin swapping starts disabled; enable it in Settings if you want to use it.
 
 This version supports Bot Improver 1.4.5. Accepted action radio commands such as Follow Me or Fall Back interrupt your team's custom tactics, including waypoint waits. Ordinary information calls keep the tactic running.
 

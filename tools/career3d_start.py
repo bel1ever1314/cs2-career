@@ -4,6 +4,7 @@ from functools import lru_cache
 import hashlib
 import json
 import re
+from uuid import UUID
 
 DEFAULT_APPEARANCE = {
     'body_color': 'fff1d2', 'belly_color': 'ffe3a3', 'beak_color': 'efa147',
@@ -28,12 +29,41 @@ def validate_appearance(value):
     return result
 
 
+def requires_creation(state):
+    """An internal starter career is not a player-created character."""
+    career = state.career
+    if not getattr(career, 'exists', True):
+        return True
+    incident = career.incident_state
+    onboarding = incident.get('career3d_start', {})
+    if onboarding.get('schema_version') == 1:
+        return onboarding.get('pending') is True
+    if incident.get('career3d_service', {}).get('start_receipts'):
+        return False
+    # Recognize only an untouched legacy template. Existing player careers and
+    # templates with saved play progress remain continuable without rewriting.
+    arcs = incident.get('arcs', {})
+    if (getattr(career, 'player_name', '') != 'Career3D' or getattr(career, 'mode', '') != 'create'
+            or getattr(career, 'origin', '') != 'academy'
+            or arcs.get('seed') != UUID(int=20260930).hex
+            or not arcs.get('started') or arcs.get('started') != getattr(state.season, 'date', '')
+            or arcs.get('series')):
+        return False
+    arena = getattr(getattr(state, 'arena', None), 'data', {})
+    if arena.get('history'):
+        return False
+    if any(match.get('played') for event in getattr(state.season, 'events', []) for match in event.get('matches', [])):
+        return False
+    return True
+
+
 def startup_context(state):
     from tools.career3d_attribute_draw import draw_context
     saved = state.career.incident_state.get('career3d_avatar', {})
     appearance = validate_appearance(saved.get('appearance', {}))
     return {'avatar': {'schema_version': 1, 'appearance': appearance},
-            'start': {'can_continue': bool(state.career.exists),
+            'start': {'can_continue': bool(state.career.exists) and not requires_creation(state),
+                      'creation_required': requires_creation(state),
                       'player': state.career.player_name, 'era': state.career.era,
                       'mode': state.career.mode, 'date': state.season.date,
                       'backup_before_replace': True},
@@ -129,6 +159,7 @@ def start_command(state, action, body):
     owner, real_skins = state.career.steam_id, state.career.real_skins
     result = {'reason': '新生涯已开始。', 'new_career': True}
     metadata = {
+        'career3d_start': {'schema_version': 1, 'pending': False},
         'career3d_avatar': {'schema_version': 1, 'appearance': appearance},
         'career3d_service': {'revision': revision, 'receipts': [],
                              'start_receipts': [{'id': request_id, 'hash': digest, 'result': result}]},

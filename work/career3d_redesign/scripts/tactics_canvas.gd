@@ -20,6 +20,8 @@ var tool_mode := "edit"
 var pan_button := 0
 var pan_last_position := Vector2.ZERO
 var space_down := false
+var pointer_inside := false
+var pointer_position := Vector2.ZERO
 var view_states: Dictionary = {}
 var view_key := ""
 const COLORS := [Color("2c7854"), Color("537ab0"), Color("b08339"), Color("985e97"), Color("ac6259")]
@@ -30,6 +32,9 @@ func _ready() -> void:
 	focus_mode = Control.FOCUS_ALL
 	clip_contents = true
 	get_window().focus_exited.connect(stop_gesture)
+	get_window().focus_exited.connect(clear_pointer)
+	mouse_entered.connect(track_pointer)
+	mouse_exited.connect(clear_pointer)
 
 func set_tool_mode(value: String) -> void:
 	# Refreshing selection or polling must not terminate an unchanged gesture.
@@ -40,9 +45,25 @@ func set_tool_mode(value: String) -> void:
 func set_editable(value: bool) -> void:
 	editable = value
 	if not editable: stop_drag()
+	queue_redraw()
 
 func update_cursor() -> void:
-	mouse_default_cursor_shape = Control.CURSOR_DRAG if panning or drag_slot >= 1 else (Control.CURSOR_MOVE if tool_mode == "pan" else Control.CURSOR_CROSS)
+	# Keep a recognizable system arrow. The placement reticle below is drawn
+	# against the map itself, independent of Windows cursor themes.
+	mouse_default_cursor_shape = Control.CURSOR_DRAG if panning or drag_slot >= 1 else (Control.CURSOR_MOVE if tool_mode == "pan" else Control.CURSOR_ARROW)
+	queue_redraw()
+
+func track_pointer() -> void:
+	pointer_inside = true
+	pointer_position = get_local_mouse_position()
+	queue_redraw()
+
+func clear_pointer() -> void:
+	pointer_inside = false
+	queue_redraw()
+
+func placement_pointer_visible() -> bool:
+	return pointer_inside and editable and tool_mode == "edit" and not panning and image_rect().has_point(pointer_position)
 
 func start_pan(event: InputEventMouseButton) -> void:
 	panning = true
@@ -63,7 +84,9 @@ func stop_gesture() -> void:
 	space_down = false
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_VISIBILITY_CHANGED and is_inside_tree() and not is_visible_in_tree(): stop_gesture()
+	if what == NOTIFICATION_VISIBILITY_CHANGED and is_inside_tree() and not is_visible_in_tree():
+		stop_gesture()
+		clear_pointer()
 
 func use_view(key: String) -> void:
 	if key == view_key: return
@@ -148,6 +171,10 @@ func stop_drag() -> void:
 	update_cursor()
 
 func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion:
+		pointer_inside = Rect2(Vector2.ZERO, size).has_point(event.position)
+		pointer_position = event.position
+		queue_redraw()
 	# View operations never change world coordinates and stay available while saving.
 	if event is InputEventMouseButton and event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
 		zoom_at(1.25 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 0.8, event.position)
@@ -241,3 +268,12 @@ func _draw() -> void:
 				draw_line(look, look - direction * 9 - perpendicular * 4, color, 1.5, true)
 				if number == selected_slot and index == selected_step: draw_circle(look, 4.5, color, false, 1.5)
 			previous = position
+	if placement_pointer_visible():
+		# The center is exactly the click coordinate, including zoom and pan.
+		for direction in [Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]:
+			var start: Vector2 = pointer_position + direction * 4.0
+			var end: Vector2 = pointer_position + direction * 12.0
+			draw_line(start, end, Color("172b24"), 5.0, true)
+			draw_line(start, end, Color("fffdf6"), 2.0, true)
+		draw_circle(pointer_position, 2.5, Color("172b24"))
+		draw_circle(pointer_position, 1.0, Color("fffdf6"))

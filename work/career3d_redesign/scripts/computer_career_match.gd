@@ -219,10 +219,16 @@ func prepare_real(id: String) -> void:
 	command("attend", {"match_id":id, "request_id":request_id("attend", id)})
 
 func travel_real(id: String) -> void:
-	if request_pending or id.is_empty() or id != str(current_game().get("id", "")): return
+	if request_pending:
+		Travel.finish_door_request("上一项操作正在处理，请稍等。")
+		return
+	if id.is_empty() or id != str(current_game().get("id", "")):
+		Travel.finish_door_request("赛程已更新，请重新选择本场比赛。")
+		return
 	var plan := attendance()
 	if not can_prepare_here() and not bool(plan.get("can_travel", current_game().get("due", false))) and not bool(plan.get("can_return", false)):
 		notice = "比赛在 %s，先睡到比赛当天早上。" % current_game().get("date", "")
+		Travel.finish_door_request(notice)
 		host._rebuild()
 		return
 	show_real = true
@@ -230,7 +236,7 @@ func travel_real(id: String) -> void:
 	pending_match_id = id
 	connection.clear()
 	# The door choice freezes this match's roster before entering the venue.
-	venue_after_preflight = "" if can_prepare_here() else id
+	venue_after_preflight = id if Travel.menu.request_pending or not can_prepare_here() else ""
 	command("preflight", {"match_id":id})
 
 func finish_attendance(plan: Dictionary) -> void:
@@ -265,7 +271,10 @@ func command(action: String, payload: Dictionary) -> void:
 		request_pending = true
 		pending_action = action
 		host._rebuild()
-	elif action == "preflight": venue_after_preflight = ""
+	elif action == "preflight":
+		venue_after_preflight = ""
+		notice = CareerBridge.message if not CareerBridge.message.is_empty() else "比赛准备请求未发出，请稍后再试。"
+		Travel.finish_door_request(notice)
 
 func send_command(path: String, body: Dictionary) -> bool:
 	if command_sender.is_valid(): return bool(command_sender.call(path, body.duplicate(true)))
@@ -657,7 +666,11 @@ func finished(path: String, output: Dictionary) -> bool:
 			if scene != null and scene.scene_file_path != "res://play.tscn":
 				Travel.go("club")
 				return true
+			Travel.menu.set_notice("")
 			host.open_app("career_match", "club")
+			return true
+		var reason := notice if not bool(output.get("ok", false)) or str(output.get("status", "")) == "paused" else "场馆准备未完成，请查看比赛准备。"
+		Travel.finish_door_request(reason, not CareerBridge.context.get("stories", []).is_empty())
 	if host.screen.visible and host.active_page in ["battle", "career_match", "quick"]:
 		if status_probe and old_view == JSON.stringify([preflight, connection, notice]): return true
 		if not result.is_empty() and host.active_page == "battle": host._navigate("career_match")

@@ -152,6 +152,54 @@ class Career3DSetupHttpTests(unittest.TestCase):
         return {path.relative_to(self.game).as_posix(): path.read_bytes()
                 for path in self.game.rglob('*') if path.is_file()}
 
+    def test_detect_machine_paths_is_an_authenticated_read_without_install_or_save(self):
+        before = self.files()
+        with patch.object(launch, 'find_steam_exe', return_value=str(self.steam)) as steam, \
+                patch.object(launch, 'find_csgo_path', return_value=str(self.game)) as game:
+            status, rejected = self.request('/api/3d/settings/detect', token='wrong-token')
+            self.assertEqual(403, status)
+            steam.assert_not_called()
+            game.assert_not_called()
+            status, detected = self.request('/api/3d/settings/detect')
+        self.assertEqual(200, status)
+        self.assertEqual({'steam_exe':str(self.steam.resolve()), 'csgo_path':str(self.game.resolve())}, detected['paths'])
+        self.assertEqual(before, self.files())
+        self.assertFalse(launch.SETTINGS_PATH.exists())
+        self.assertEqual(0, self.saved)
+        self.running.assert_not_called()
+        self.mod_install.assert_not_called()
+        self.runtime_prepare.assert_not_called()
+
+    def test_pending_character_cannot_start_business_actions_but_can_read_settings(self):
+        self.state.career.incident_state['career3d_start'] = {'schema_version':1, 'pending':True}
+        status, blocked = self.request('/api/3d/calendar', {'revision':7, 'date':'2026-10-03'})
+        self.assertEqual(400, status)
+        self.assertIn('创建角色', blocked['msg'])
+        self.assertEqual(0, self.saved)
+        self.assertEqual(7, service._revision(self.state))
+        self.assertEqual(200, self.request('/api/3d/settings')[0])
+
+    def test_updates_require_explicit_authenticated_query_and_do_not_hold_state_lock(self):
+        before = self.files()
+        def query():
+            self.assertFalse(self.server.state_lock._is_owned())
+            return {'checked':False, 'update_available':False, 'reason':'无法连接，不影响本地安装。'}
+        with patch('tools.career3d_runtime_updates.check_updates', side_effect=query) as updates:
+            self.assertEqual(200, self.request('/api/3d/settings')[0])
+            updates.assert_not_called()
+            self.assertEqual(403, self.request('/api/3d/settings/updates', token='wrong-token')[0])
+            updates.assert_not_called()
+            status, result = self.request('/api/3d/settings/updates')
+            self.assertEqual(200, status)
+            self.assertTrue(result['ok'])
+            self.assertFalse(result['checked'])
+            self.assertIn('不影响', result['reason'])
+            updates.assert_called_once_with()
+        self.assertEqual(before, self.files())
+        self.assertEqual(0, self.saved)
+        self.runtime_prepare.assert_not_called()
+        self.mod_install.assert_not_called()
+
     def test_ordinary_package_save_then_external_install_unlocks_ladder(self):
         self.assertIsNone(install.bundle_root())
         before = self.files()

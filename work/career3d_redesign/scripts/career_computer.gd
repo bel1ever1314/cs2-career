@@ -279,6 +279,8 @@ func present(place: String = "bedroom") -> void:
 		phone.close_phone(false)
 	screen.visible = true
 	UI.device_open(self, "computer")
+	if StartGate.requires_creation() and active_page not in ["start", "saves"]:
+		active_page = "start"
 	if location != "club" and active_page == "scrim":
 		active_page = "desktop"
 	if active_page == "saves":
@@ -347,6 +349,9 @@ func _collect_career_result(id: String) -> void:
 func close_computer(release: bool = true) -> void:
 	if screen == null:
 		return
+	if StartGate.requires_creation():
+		StartGate.remind()
+		return
 	if is_instance_valid(rts_room.session) and not rts_room.close_session(): return
 	_clear_action_feedback()
 	page_scroll[active_page] = scroll.scroll_vertical
@@ -356,6 +361,9 @@ func close_computer(release: bool = true) -> void:
 		UI.device_closed(self)
 
 func _navigate(page: String, push: bool = true) -> void:
+	if StartGate.requires_creation() and page not in ["start", "saves"]:
+		StartGate.remind()
+		return
 	if active_page != page and is_instance_valid(action_feedback): action_feedback.clear_notice()
 	detail_intent_serial += 1
 	page_scroll[active_page] = scroll.scroll_vertical

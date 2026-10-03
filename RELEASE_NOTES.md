@@ -1,3 +1,33 @@
+# 1.7.0-preview.3-hotfix.4（3D 游玩流程修正版，2026-10-03）
+
+这次把朋友试玩时遇到的安装、鼠标和进场馆问题一起整理了一下。
+
+- 安装人机增强直接使用已经下载好的完整官方发行包，战术、比赛回传和兼容组件随程序提供。安装无需联网，原发行包也不会被改动。
+- 检查上游更新改为独立按钮，只在主动点击时联网，不自动下载或替换插件。
+- 调整便携版后台启动与开局流程，让完整解压后的程序能连接本地生涯后台，并先完成角色创建。
+- 游戏内换肤默认关闭；文本框使用清晰的箭头指针，输入和选中文字时不再丢失鼠标。
+- 从门口前往比赛时显示准备状态；有待处理事项可直接打开手机，处理后继续出发，场馆与比赛准备之间的提示更清楚。
+- 保留新版人机增强、无线电接手自定义战术、比赛回传和已有存档。
+
+完整解压 Windows 包，运行 `开始游戏.cmd`。继续旧生涯时，将原来的 `game/runtime/career/save/` 复制到新包的同一位置。
+
+[下载本次更新](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.7.0-preview.3-hotfix.4)
+
+## English
+
+This update brings together the installation, cursor and venue-entry fixes from recent playtests.
+
+- Install directly from a complete official Bot Improver release you have already downloaded. Career's tactics, result reporting and compatibility components are included, so installation works offline and leaves the original release unchanged.
+- Checking upstream updates is now an explicit action and never downloads or replaces plugins automatically.
+- Updated portable backend startup and the opening flow, including character creation before entering the career.
+- In-game skins start disabled. Text fields retain a visible pointer for typing and selection.
+- Doorway travel shows match-preparation progress and lets you open pending replies on the phone before continuing to the venue.
+- Existing bot-runtime support, radio handoff, match reporting and saves are retained.
+
+Extract the entire Windows archive and run `Launch-CS2Career.cmd`. Copy `game/runtime/career/save/` from your previous package to the same location to continue your career.
+
+---
+
 # 1.7.0-preview.3（人机增强兼容与无线电指挥，2026-10-03）
 
 这次接上了新版人机增强，也把玩家无线电和自定义战术之间的交接补好了。

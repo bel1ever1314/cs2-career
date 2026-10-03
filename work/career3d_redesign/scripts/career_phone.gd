@@ -225,6 +225,10 @@ func _resize() -> void:
 	panel.scale = Vector2(fit / stretch.x, fit / stretch.y)
 
 func present(page: String = "today") -> void:
+	if StartGate.requires_creation():
+		StartGate.remind()
+		Computer.open_app("start", "bedroom")
+		return
 	if Travel.busy or CareerBridge.sleeping:
 		return
 	Travel.close_menu()
@@ -1208,7 +1212,7 @@ func _finished(path: String, result: Dictionary) -> void:
 		if not str(result.get("social_page", "")).is_empty():
 			_route(str(result.social_page))
 		return
-	if path in ["/api/3d/settings", "/api/3d/setup/install"]:
+	if path in ["/api/3d/settings", "/api/3d/settings/detect", "/api/3d/settings/updates", "/api/3d/setup/install"]:
 		# Computer owns the shared settings controller and handles this signal
 		# even while hidden. Phone is earlier in autoload order, so wait until
 		# the shared controller has consumed the result before drawing it.

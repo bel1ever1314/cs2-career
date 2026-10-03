@@ -8,6 +8,9 @@ var fetched := false
 var message := ""
 var command_sender: Callable
 var saving := false
+var detecting := false
+var checking_updates := false
+var update_url := ""
 var install_message := ""
 var install_source := ""
 var install_stage := ""
@@ -63,6 +66,10 @@ func render(host: Node, parent: Node, compact: bool = false) -> void:
 		var version_text := "兼容副本：" + str(compatibility.get("revision", ""))
 		var version_label := UI.label(parent, version_text, 12, UI.MUTED)
 		version_label.name = "DeviceSettingsCompatibility"
+	var detect_button: Button = host._button(parent, "自动检测 Steam／CS2 路径", detect_paths, false)
+	detect_button.name = "DeviceSettingsDetectPaths"
+	detect_button.set_meta("local_detection", true)
+	action_buttons.append(detect_button)
 	for field in [{"key":"steam_exe", "name":"Steam 程序"}, {"key":"csgo_path", "name":"CS2 / game / csgo 目录"}, {"key":"mod_source_path", "name":"Bot Improver 发行包目录"}, {"key":"skins_source_path", "name":"换肤插件目录（可留空）"}]:
 		UI.label(parent, str(field.name), 12, UI.MUTED)
 		var edit := LineEdit.new()
@@ -74,7 +81,7 @@ func render(host: Node, parent: Node, compact: bool = false) -> void:
 		parent.add_child(edit)
 		form_controls.append(edit)
 		edit.text_changed.connect(func(value: String): set_value(str(field.key), value))
-	UI.label(parent, "关闭 CS2 后点击安装。首次会下载配套组件，并加入我们的修复；原发行包不变，游戏文件会先备份。", 12, UI.MUTED)
+	UI.label(parent, "安装直接使用本地发行包，并加入我们自带的组件，不需要联网。原发行包不变，游戏文件会先备份。", 12, UI.MUTED)
 	# Installation is stricter than a normal queued preference write. Keep its
 	# transient busy gate out of the host's cached domain availability.
 	var install_external_button: Button = host._button(parent, "安装填写目录的人机增强", install_external, false)
@@ -86,6 +93,14 @@ func render(host: Node, parent: Node, compact: bool = false) -> void:
 		install_bundle_button.name = "DeviceSettingsInstallBundle"
 		install_bundle_button.set_meta("install_source", "bundle")
 		action_buttons.append(install_bundle_button)
+	var check_button: Button = host._button(parent, "检查人机增强更新", check_updates, false)
+	check_button.name = "DeviceSettingsCheckUpdates"
+	action_buttons.append(check_button)
+	UI.label(parent, "仅点击检查更新时连接 GitHub，不会自动下载或替换插件。", 12, UI.MUTED)
+	if not update_url.is_empty():
+		var release_button: Button = host._button(parent, "打开官方更新页面", open_update_page, false)
+		release_button.name = "DeviceSettingsUpdatePage"
+		action_buttons.append(release_button)
 	UI.label(parent, "人机难度", 12, UI.MUTED)
 	options(parent, "difficulty", [{"id":"Low", "name":"低"}, {"id":"Medium", "name":"中"}, {"id":"High", "name":"高"}], "Medium")
 	UI.label(parent, "游戏内换肤", 16)
@@ -155,7 +170,7 @@ func set_value(key: String, value: Variant) -> void:
 	_sync_form_state()
 
 func submit() -> void:
-	if saving or (pending and not pending_read) or not install_stage.is_empty() or (CareerBridge.busy and CareerBridge.active_post): return
+	if detecting or saving or (pending and not pending_read) or not install_stage.is_empty() or (CareerBridge.busy and CareerBridge.active_post): return
 	saving = true
 	install_message = ""
 	_send_settings()
@@ -179,6 +194,32 @@ func _send_settings() -> void:
 
 func _command(path: String, body: Dictionary) -> bool:
 	return bool(command_sender.call(path, body.duplicate(true))) if command_sender.is_valid() else CareerBridge.command(path, body)
+
+func detect_paths() -> void:
+	if pending or saving or detecting or not install_stage.is_empty() or CareerBridge.busy: return
+	pending_path = "/api/3d/settings/detect"
+	detecting = true
+	pending = bool(query_sender.call(pending_path)) if query_sender.is_valid() else CareerBridge._send(pending_path, {}, false)
+	if not pending:
+		detecting = false
+		pending_path = ""
+	_set_message("正在检测本机 Steam 和 CS2 路径……" if pending else "检测请求未发出，请稍后再试。")
+	_sync_form_state()
+
+func check_updates() -> void:
+	if pending or saving or not install_stage.is_empty() or CareerBridge.busy: return
+	pending_path = "/api/3d/settings/updates"
+	checking_updates = true
+	pending = bool(query_sender.call(pending_path)) if query_sender.is_valid() else CareerBridge._send(pending_path, {}, false)
+	if not pending:
+		checking_updates = false
+		pending_path = ""
+	_set_message("正在检查官方人机增强更新……" if pending else "更新检查未发出，不影响本地安装。")
+	_sync_form_state()
+
+func open_update_page() -> void:
+	if update_url.begins_with("https://github.com/ed0ard/CS2-Bot-Improver/releases"):
+		OS.shell_open(update_url)
 
 func install_external() -> void:
 	_prepare_install("external")
@@ -205,7 +246,7 @@ func _install_saved_settings() -> void:
 	pending_path = "/api/3d/setup/install"
 	pending = _command(pending_path, body)
 	if pending:
-		_set_message("正在准备兼容组件、备份并安装人机增强，首次下载请稍候……")
+		_set_message("正在检查本地组件、备份并安装人机增强，无需联网……")
 	else:
 		install_stage = ""
 		install_source = ""
@@ -263,7 +304,7 @@ func fetch() -> void:
 		_sync_form_state()
 
 func reset(host: Node) -> void:
-	if saving or (pending and not pending_read) or not install_stage.is_empty(): return
+	if detecting or saving or (pending and not pending_read) or not install_stage.is_empty(): return
 	dirty = false
 	draft.clear()
 	fetched = false
@@ -273,6 +314,30 @@ func reset(host: Node) -> void:
 	host._rebuild()
 
 func finished(path: String, result: Dictionary) -> bool:
+	if path == "/api/3d/settings/updates":
+		if not checking_updates or pending_path != path: return true
+		checking_updates = false
+		pending = false
+		pending_path = ""
+		update_url = str(result.get("url", ""))
+		_set_message(str(result.get("reason", result.get("msg", "更新检查未完成，不影响本地安装。"))))
+		_sync_form_state()
+		return true
+	if path == "/api/3d/settings/detect":
+		if not detecting or pending_path != path: return true
+		detecting = false
+		pending = false
+		pending_path = ""
+		if result.get("ok", false):
+			var paths: Dictionary = result.get("paths", {})
+			for key in ["steam_exe", "csgo_path"]:
+				var found := str(paths.get(key, ""))
+				if not found.is_empty():
+					draft[key] = found
+					dirty = true
+		_set_message(str(result.get("reason", result.get("msg", "路径检测未完成。"))))
+		_sync_form_state()
+		return true
 	if path == "/api/3d/setup/install":
 		if install_stage != "installing" or pending_path != path: return true
 		pending = false

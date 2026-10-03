@@ -36,11 +36,16 @@ func render(parent: Node) -> void:
 		var content := UI.card(columns)
 		content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var start: Dictionary = CareerBridge.context.get("start", {})
-		UI.label(content, str(start.get("player", CareerBridge.context.get("player", {}).get("name", ""))), 24)
-		UI.label(content, str(start.get("date", CareerBridge.context.get("date", ""))) + " · " + str(CareerBridge.context.get("team", {}).get("name", "")), 14, UI.MUTED)
-		UI.primary(host._button(content, "继续这段生涯", host.close_computer, false))
-		host._button(content, "开始新生涯", begin_new, false)
-		host._button(content, "换个形象", host._navigate.bind("appearance"), false)
+		if StartGate.requires_creation():
+			UI.label(content, "创建你的角色", 24)
+			UI.label(content, "选择开局与能力，再设置形象，开始你的职业生涯。", 14, UI.MUTED)
+			UI.primary(host._button(content, "创建角色", begin_new, false))
+		else:
+			UI.label(content, str(start.get("player", CareerBridge.context.get("player", {}).get("name", ""))), 24)
+			UI.label(content, str(start.get("date", CareerBridge.context.get("date", ""))) + " · " + str(CareerBridge.context.get("team", {}).get("name", "")), 14, UI.MUTED)
+			UI.primary(host._button(content, "继续这段生涯", host.close_computer, false))
+			host._button(content, "开始新生涯", begin_new, false)
+			host._button(content, "换个形象", host._navigate.bind("appearance"), false)
 		host._button(content, "存档与读档", host._navigate.bind("saves"), false)
 		UI.label(content, "新开局会先备份当前生涯，不会动旧桌面版的存档。", 12, UI.MUTED)
 		return

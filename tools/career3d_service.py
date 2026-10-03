@@ -35,6 +35,21 @@ def _write_json(path: Path, value: dict) -> None:
     pending.replace(path)
 
 
+def _import_skin_owner(state) -> None:
+    """Autofill the installed account without opting the player into skins."""
+    from tools.career3d_activities import read_cs2_config, _existing_skin_plugin
+    cfg = read_cs2_config()
+    owner_file = Path(cfg.get('csgo_path') or '') / 'addons' / 'counterstrikesharp' / 'configs' / 'plugins' / 'InventorySimulator' / 'owner.txt'
+    if cfg.get('csgo_path') and not state.career.steam_id and owner_file.is_file():
+        try:
+            owner = owner_file.read_text('ascii').strip()
+            if len(owner) == 17 and owner.isdigit() and _existing_skin_plugin(cfg):
+                state.career.steam_id = owner
+                state.persist()
+        except (OSError, ValueError):
+            pass
+
+
 def isolate(data_dir: Path) -> Path:
     """Refuse regular game folders and unmarked existing saves, without loading them."""
     root = data_dir.expanduser().resolve()
@@ -336,9 +351,18 @@ def handler_class():
             super()._json(localize_projection(obj), code)
 
         def do_GET(self):
+            if urlparse(self.path).path == '/api/3d/settings/updates':
+                if not self._allowed():
+                    self._json({'ok': False, 'msg': '会话已过期，请重新打开程序。'}, 403)
+                    return
+                # A manual GitHub query has no career state dependency. Never
+                # hold the simulation/save lock while waiting for the network.
+                from tools.career3d_runtime_updates import check_updates
+                self._json({'ok': True, **check_updates()})
+                return
             if urlparse(self.path).path not in ("/api/3d/context", "/api/3d/match", "/api/3d/team", "/api/3d/player", "/api/3d/players", "/api/3d/event", "/api/3d/news", "/api/3d/mail", "/api/3d/ladder/status",
                 "/api/3d/custom/catalog", "/api/3d/custom/status",
-                "/api/3d/match/preflight", "/api/3d/match/status", "/api/3d/settings", "/api/3d/tactics", "/api/3d/ceremony",
+                "/api/3d/match/preflight", "/api/3d/match/status", "/api/3d/settings", "/api/3d/settings/detect", "/api/3d/settings/updates", "/api/3d/tactics", "/api/3d/ceremony",
                 "/api/3d/environment", "/api/3d/start/options", "/api/3d/start/draw", "/api/3d/saves", "/api/3d/skin-tools", "/api/3d/skin-tools/item", "/api/3d/controls/management", "/api/3d/controls/training",
                 "/api/3d/controls/assistance", "/api/3d/controls/rankings", "/api/3d/controls/workshop"):
                 self._json({"ok": False, "msg": "3D demo endpoint not found"}, 404)
@@ -408,6 +432,9 @@ def handler_class():
             elif url.path == '/api/3d/settings':
                 from tools.career3d_activities import settings_context
                 self._json({'ok': True, 'settings': settings_context(self.state)})
+            elif url.path == '/api/3d/settings/detect':
+                from tools.career3d_install import detect_machine_paths
+                self._json(detect_machine_paths())
             elif url.path in ('/api/3d/tactics', '/api/3d/ceremony'):
                 from tools.career3d_matches import tactics_context, ceremony_context
                 query = parse_qs(url.query)
@@ -501,6 +528,11 @@ def handler_class():
                     self.wfile.flush()
                     threading.Thread(target=self.server.shutdown, daemon=True).start()
                     return
+                from tools.career3d_start import requires_creation
+                if requires_creation(self.state) and path not in (
+                        '/api/3d/start/create', '/api/3d/start/draw', '/api/3d/settings',
+                        '/api/3d/setup/install', '/api/3d/saves/load'):
+                    raise ValueError('请先创建角色，或读取已有生涯存档。')
                 from cs2career.paths import save_root
                 if (save_root() / 'manual-load.pending.json').exists():
                     raise ValueError('存档恢复事务尚未完成，请重新启动完成恢复后再操作。')
@@ -838,25 +870,15 @@ def main(argv=None) -> int:
         arcs.uuid4 = lambda: UUID(int=DEMO_SEED)
         try:
             state.create_career({"era": "2026", "mode": "create", "origin": "academy",
-                                 "name": "Career3D", "org": "Morning Academy", "region": "AS", "role": "rifle"})
+                                 "name": "Career3D", "org": "Morning Academy", "region": "AS", "role": "rifle"},
+                                start_metadata={'career3d_start': {'schema_version': 1, 'pending': True}})
         finally:
             arcs.uuid4 = original_uuid
         configure_season(state.career, state.season, args.mode == "quick", state.season.year)
         state.persist()
-    # Reuse only the installed skin owner's configuration, never original career
-    # inventory/preferences. Missing ownership remains an explicit UI empty state.
+    # An installed plugin identifies an account, not consent to enable skins.
     if not args.no_cs2_config:
-        from tools.career3d_activities import read_cs2_config, _existing_skin_plugin
-        cfg = read_cs2_config()
-        owner_file = Path(cfg.get('csgo_path') or '') / 'addons' / 'counterstrikesharp' / 'configs' / 'plugins' / 'InventorySimulator' / 'owner.txt'
-        if cfg.get('csgo_path') and not state.career.steam_id and owner_file.is_file():
-            try:
-                owner = owner_file.read_text('ascii').strip()
-                if len(owner) == 17 and owner.isdigit() and _existing_skin_plugin(cfg):
-                    state.career.steam_id, state.career.real_skins = owner, True
-                    state.persist()
-            except (OSError, ValueError):
-                pass
+        _import_skin_owner(state)
     server = create_server(state, port=args.port)
     server.RequestHandlerClass = handler_class()
     server.game_disabled = True

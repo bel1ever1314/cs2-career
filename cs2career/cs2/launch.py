@@ -156,7 +156,7 @@ def find_csgo_path() -> str:
         for root in _steam_roots():
             for lib in _steam_libraries(root):
                 csgo = lib / CS2_TAIL
-                if csgo.is_dir():
+                if csgo.is_dir() and (csgo / "gameinfo.gi").is_file():
                     return str(csgo)
         return ""
 
