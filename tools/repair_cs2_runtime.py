@@ -60,7 +60,18 @@ def preserved(relative: str) -> bool:
     return (key.startswith('addons/counterstrikesharp/configs/')
             or key in ('addons/bothider/config.json', 'addons/bothider/bot_info.json',
                        'addons/botvision/config.json', 'addons/metamod/metaplugins.ini')
-            or key.startswith('addons/counterstrikesharp/plugins/careermatch/'))
+             or key.startswith('addons/counterstrikesharp/plugins/careermatch/'))
+
+
+def external_inventory_file(relative: str) -> bool:
+    """Match launcher's external-inventory protection without importing settings."""
+    parts = relative.replace('\\', '/').casefold().split('/')
+    return ('inventorysimulator' in parts or 'invsimcareer' in parts
+            or parts[-1].startswith('inventory-simulator')
+            or parts[-1] == 'invsim_career.cfg'
+            or parts[-1] in ('inventories.json', 'inventorysimulator.dll', 'inventorysimulator.deps.json',
+                            'invsimcareer.dll', 'invsimcareer.deps.json')
+            or parts[-1].startswith('inventories.career'))
 
 
 def build_capsule(stage: Path, source: Path) -> Path:
@@ -148,13 +159,30 @@ def rollback(receipt_path: Path) -> None:
     backup = receipt_path.parent
     game = Path(receipt['game'])
     save = Path(receipt['settings'])
+    current_settings = json.loads(save.read_text(encoding='utf-8-sig')) if save.is_file() else {}
+    external = current_settings.get('skins_inventory_mode') == 'external'
     for entry in reversed(receipt['changes']):
+        if external and entry['kind'] == 'game' and external_inventory_file(entry['relative']):
+            continue
         target = inside(game, entry['relative']) if entry['kind'] == 'game' else save
         old = inside(backup, entry['backup']) if entry.get('backup') else None
         if old is not None and old.exists():
             if digest(old) != entry['before']:
                 raise ValueError('Backup hash mismatch')
-            atomic_copy(old, target)
+            if external and entry['kind'] == 'settings':
+                # This tool changes only mod_source_path. An older career-mode
+                # receipt must not revert today's external mode or other prefs.
+                previous = json.loads(old.read_text(encoding='utf-8-sig'))
+                restored = dict(current_settings)
+                if 'mod_source_path' in previous:
+                    restored['mod_source_path'] = previous['mod_source_path']
+                else:
+                    restored.pop('mod_source_path', None)
+                pending = backup / 'settings-rollback-external.json'
+                pending.write_text(json.dumps(restored, ensure_ascii=False, indent=2), encoding='utf-8')
+                atomic_copy(pending, target)
+            else:
+                atomic_copy(old, target)
         elif entry.get('before') is None and target.exists():
             # Keep newly added files recoverable outside all plugin autoload paths.
             recover = inside(backup, 'rolled-back-new/' + entry['relative'])
@@ -174,6 +202,7 @@ def apply(stage: Path, game: Path, capsule: Path, settings: Path) -> Path:
     if ambiguous:
         raise ValueError(f'Official signature preflight requires review: {ambiguous}')
     settings_data = json.loads(settings.read_text(encoding='utf-8-sig'))
+    external = settings_data.get('skins_inventory_mode') == 'external'
     if Path(settings_data['csgo_path']).resolve() != game.resolve():
         raise ValueError('Settings refer to a different game')
     source_manifest = json.loads((stage / 'capsule-files.json').read_text(encoding='utf-8'))
@@ -202,6 +231,8 @@ def apply(stage: Path, game: Path, capsule: Path, settings: Path) -> Path:
         for rel in source_manifest:
             if not rel.startswith('addons/'):
                 continue
+            if external and external_inventory_file(rel):
+                continue
             src, target = inside(capsule, rel), inside(game, rel)
             if target.exists() and (preserved(rel) or digest(src) == digest(target)):
                 continue
@@ -229,7 +260,7 @@ def apply(stage: Path, game: Path, capsule: Path, settings: Path) -> Path:
                 checkpoint()
         # This is a data backup, not a plugin. CSS auto-loads every *.json here.
         duplicate = inside(game, 'addons/counterstrikesharp/gamedata/inventory-simulator.previous.json')
-        if duplicate.exists():
+        if duplicate.exists() and not external:
             entry = remember(duplicate, duplicate.relative_to(game).as_posix(), 'game')
             retired = inside(backup, 'retired/' + duplicate.name)
             retired.parent.mkdir(parents=True, exist_ok=True)

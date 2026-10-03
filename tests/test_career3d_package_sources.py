@@ -1,4 +1,5 @@
 """Public source staging must reject leaks and never publish partial output."""
+import ast
 import hashlib
 import importlib.util
 import json
@@ -15,12 +16,43 @@ spec.loader.exec_module(pkg)
 
 
 class Career3DSourcePackageTests(unittest.TestCase):
+    def test_public_python_imports_have_their_local_tool_sources(self):
+        root = Path(__file__).resolve().parents[1]
+        selected = {path.relative_to(root).as_posix() for path in pkg.source_files(root)}
+        missing = []
+        for relative in sorted(selected):
+            if not relative.endswith('.py'):
+                continue
+            path = root / relative
+            for node in ast.walk(ast.parse(path.read_text('utf-8-sig'))):
+                names = []
+                if isinstance(node, ast.ImportFrom):
+                    if node.module == 'tools':
+                        names = [alias.name for alias in node.names]
+                    elif node.module and node.module.startswith('tools.'):
+                        names = [node.module[6:].split('.')[0]]
+                    elif relative.startswith('tools/') and node.module:
+                        # CLI tools may import sibling helpers both relatively
+                        # and by their bare module name when run as scripts.
+                        names = [node.module.split('.')[0]]
+                elif isinstance(node, ast.Import):
+                    names = [alias.name[6:].split('.')[0] for alias in node.names
+                             if alias.name.startswith('tools.')]
+                for name in names:
+                    dependency = 'tools/' + name + '.py'
+                    if (root / dependency).is_file() and dependency not in selected:
+                        missing.append((relative, dependency))
+        self.assertEqual([], missing, 'Public Python source imports must be self-contained')
+
     def fixture(self, base):
         root, assets, fonts = base / "source", base / "original-assets", base / "fonts"
         paths = {
             "LICENSE": "original license\n", "cs2career/__init__.py": "__version__ = '1.6.0'\n",
             "tools/career3d_service.py": "# public backend\n", "tools/career3d_start.py": "# public start\n",
             "tools/run_tests.py": "# public test runner\n", "docs/skin-tools-interface.zh-CN.txt": "public protocol\n",
+            "tools/promote_calibration_pack.py": "# public calibration exporter\n",
+            "tools/repair_cs2_runtime.py": "# public reversible runtime repair helper\n",
+            "tools/install_tactical_commands.py": "# public reversible tactics deployment helper\n",
             "licenses/runtime/Python.txt": "original runtime license\n",
             "tests/test_fixture.py": "# public test\n", "extensions/_templates/story/manifest.json": "{}\n",
             pkg.PROJECT + "/project.godot": "config_version=5\n",
@@ -85,6 +117,8 @@ class Career3DSourcePackageTests(unittest.TestCase):
             for relative in excluded:
                 self.assertFalse((output / relative).exists(), relative)
             self.assertTrue((output / "tools/career3d_service.py").is_file())
+            for helper in ('promote_calibration_pack.py', 'repair_cs2_runtime.py', 'install_tactical_commands.py'):
+                self.assertTrue((output / 'tools' / helper).is_file(), helper)
             self.assertTrue((output / "docs/skin-tools-interface.zh-CN.txt").is_file())
             self.assertTrue((output / "licenses/runtime/Python.txt").is_file())
             self.assertTrue((output / pkg.PROJECT / "scripts/example.gd.uid").is_file())

@@ -73,6 +73,7 @@ TOOL_FILES = frozenset({
     "sync_career_rts.ps1", "deploy_career_rts.ps1", "deploy_career3d_redesign.ps1",
     "godot_source_snapshots.gdignore", "transfer_ui_fixture.py", "career_matrix.py",
     "flow_evidence.py", "compare_player_flows.py", "playthrough.py",
+    "promote_calibration_pack.py", "repair_cs2_runtime.py", "install_tactical_commands.py",
 })
 TOOL_TEST_DIRS = ("tools/identity-tests", "tools/botbuy-tests", "tools/tactical-tests")
 PRIVATE_HOME = re.compile(
