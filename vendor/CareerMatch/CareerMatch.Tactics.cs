@@ -73,6 +73,7 @@ public sealed partial class CareerMatchPlugin
     {
         AddCommandListener("say", OnTacticalChat, HookMode.Pre);
         AddCommandListener("say_team", OnTacticalChat, HookMode.Pre);
+        LoadTacticalRadio();
         RegisterListener<Listeners.OnTick>(TickTacticalCommands);
         AddCommand("css_tactics", "Opening tactics: rusha / rushb / default", (player, command) =>
         {
@@ -171,7 +172,11 @@ public sealed partial class CareerMatchPlugin
             else
             {
                 _tacticalRoundIntent = decision.Plan;
-                if (decision.Plan is { } acceptedPlan) CommitCustomSlots(acceptedPlan);
+                if (decision.Plan is { } acceptedPlan)
+                {
+                    _tacticalRadio.Supersede(acceptedPlan);
+                    CommitCustomSlots(acceptedPlan);
+                }
             }
             SubmitTacticalBuying(decision.Plan, player);
         }
@@ -226,8 +231,9 @@ public sealed partial class CareerMatchPlugin
         StopTacticalCommands(reason);
         ClearCustomSlots();
         _tacticalRoundIntent = null;
-        if (newMap) _tacticalReleases.Clear();
+        _tacticalReleases.Clear(); // No old-round delayed Idle may cancel a new native radio task.
         _tacticalEpoch++;
+        _tacticalRadio.Reset();
         if (newMap) _tacticalTipShown = false;
     }
 
@@ -256,7 +262,7 @@ public sealed partial class CareerMatchPlugin
             if (!_tacticalNavigator.IsMovingTo(p, actor.Pawn, point.X, point.Y, point.Z)) return;
             if (_tacticalNavigator.TryIdle(p, actor.Pawn, out var result))
                 TacticalTrace("native_move_cancelled", new { actor.Id, reason, result });
-            else if (result == "native_combat_or_objective_retained" && reason != "unload")
+            else if (result == "native_combat_or_objective_retained" && reason is not ("unload" or "player_radio"))
                 _tacticalReleases[actor.Slot] = new(actor.Id, actor.Slot, actor.Pawn, point, Server.CurrentTime + 5);
         }
         catch (Exception ex) { Logger.LogWarning("Tactical release skipped for {Slot}: {Error}", actor.Slot, ex.Message); }
@@ -431,6 +437,7 @@ public sealed partial class CareerMatchPlugin
                     || _postPlantActors.ContainsKey(release.Slot)
                     || p is not { IsValid: true } || ControllerId(p) != release.Id
                     || _ledger.GetValueOrDefault(release.Id)?.IsBot != true || _tacticalNavigator is null
+                    || NativeRadioOwnsActor(p)
                     || !_tacticalNavigator.IsMovingTo(p, release.Pawn, goal.X, goal.Y, goal.Z))
                 { _tacticalReleases.Remove(release.Slot); continue; }
                 if (_tacticalNavigator.TryIdle(p, release.Pawn, out var result))

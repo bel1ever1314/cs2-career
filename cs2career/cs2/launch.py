@@ -1229,6 +1229,7 @@ def write_career_cfg(csgo: Path, match: dict, opts: dict | None = None) -> None:
         "mp_autokick 0",
         "bot_auto_vacate 0",
         "bot_join_after_player 0",
+        "bot_ignore_radio 0",
         "bot_quota_mode normal",
         f"mp_forcecamera {0 if match.get('observer') else 1}",
         f"bot_quota {total}",

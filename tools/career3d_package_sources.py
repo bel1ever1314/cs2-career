@@ -44,11 +44,12 @@ ROOT_FILES = frozenset({
     "build_desktop_preview.py", "build_exe.py", "开始游玩-FAQ.txt",
     "剧情扩展说明.txt", "本队路径与界面平滑说明.txt", "自动模拟和辅助设置说明.txt",
     "助攻与场内对话说明.txt", "比分观赛和Major赛制说明.txt", "自己改剧情和打包.txt",
+    "游戏内指挥说明.txt",
 })
 TEXT_SUFFIXES = frozenset({
     ".py", ".cs", ".csproj", ".js", ".cjs", ".css", ".html", ".json",
     ".md", ".txt", ".svg", ".ps1", ".cmd", ".gd", ".uid", ".tscn",
-    ".godot", ".gdshader", ".gdshaderinc", ".cfg", ".toml", ".yml", ".yaml",
+    ".godot", ".gdshader", ".gdshaderinc", ".cfg", ".toml", ".yml", ".yaml", ".kv3",
 })
 BINARY_SUFFIXES = frozenset({".png", ".jpg", ".jpeg", ".webp", ".db"})
 SPECIAL_TEXT_NAMES = frozenset({"LICENSE", "NOTICE", ".gitignore", ".gdignore"})

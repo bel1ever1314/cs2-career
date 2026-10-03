@@ -104,6 +104,7 @@ DialogueRegression.Run();
 NaturalRegression.Run();
 ClipRegression.Run();
 TacticalCommandRegression.Run();
+TacticalRadioRegression.Run();
 TacticalPlaybookRegression.Run();
 TacticalSlotRegression.Run();
 TacticalObjectiveRegression.Run();

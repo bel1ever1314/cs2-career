@@ -32,10 +32,12 @@ public sealed partial class CareerMatchPlugin
         if (plan is null || plan.MatchNonce != _sessionNonce || plan.Round != _tacticalEpoch
             || !_roundLive || _resultWritten || InWarmup() || _request is not { Active: true, Observer: false }) return;
         var epoch = _tacticalEpoch; var nonce = _sessionNonce;
+        var intentRevision = _tacticalRadio.Revision;
         // planted_c4 may not be published yet inside the game event callback.
         Server.NextFrame(() =>
         {
             if (epoch != _tacticalEpoch || nonce != _sessionNonce || !_roundLive || _resultWritten
+                || intentRevision != _tacticalRadio.Revision || _tacticalRoundIntent != plan
                 || !_naturalBombPlanted || InWarmup()) return;
             StartPostPlantTactic(plan);
         });
@@ -63,6 +65,7 @@ public sealed partial class CareerMatchPlugin
             var actualPlan = plan with { Site = siteName };
             var players = AllSlots().Where(p => ControllerId(p) is { } id && id != plan.IssuerId
                 && _ledger.GetValueOrDefault(id)?.IsBot == true && LiveSide(p) == plan.Side
+                && !NativeRadioOwnsActor(p)
                 && !p.ControllingBot && !p.HasBeenControlledByPlayerThisRound
                 && p.PlayerPawn.Value is { IsValid: true, Health: > 0, Bot: not null, AbsOrigin: not null }).ToArray();
             var prepared = new List<PostPlantActor>();

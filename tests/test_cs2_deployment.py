@@ -208,3 +208,4 @@ class DeploymentTests(unittest.TestCase):
         self.assertTrue(active_manifest(self.csgo)['valid'])
         cfg=(self.csgo/'cfg/career_rules.cfg').read_text('utf-8')
         self.assertIn('bot_quota 10',cfg);self.assertIn('mp_forcecamera 0',cfg)
+        self.assertIn('bot_ignore_radio 0',cfg)

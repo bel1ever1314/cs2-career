@@ -1,3 +1,30 @@
+# 1.7.0-preview.3（人机增强兼容与无线电指挥，2026-10-03）
+
+这次接上了新版人机增强，也把玩家无线电和自定义战术之间的交接补好了。
+
+- 安装流程适配 Bot Improver 1.4.5，更新行为、瞄准、状态和道具组件，保留生涯自己的买枪、战术导航与朝向接口。
+- 自定义战术执行中，队友可以响应玩家的行动无线电。比如本来要守 20 秒，收到“跟随我”“撤退”等有效指令后，会立即结束旧战术和等待。
+- 无线电接手后，旧节点、延迟回调和守包任务不会再把队友拉回去；下一回合可以重新选择战术。普通报点、确认与庆祝消息不取消路线。
+- 比赛仍按当前九人或十人名单生成档案，加入新版匿名行为资源，不使用上游的固定职业选手名单。
+- 整理源码包、普通 Windows 包与朋友测试整合包。整合包随附人机增强，通过设置里的安装按钮准备真实 CS2 对局。
+
+普通 Windows 包完整解压后运行 `开始游戏.cmd`。进入真实 CS2 时，在设置中填写 Steam、CS2 和已解压的人机增强目录，再点击安装。更新时保留 `game/runtime/career/save/`，就能继续原来的生涯。
+
+[下载本次更新](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.7.0-preview.3)
+
+## English
+
+This update adds Bot Improver 1.4.5 compatibility and connects action radio commands with custom tactics.
+
+- Updated behavior, aim, state and utility components while preserving Career's purchasing, navigation and look controls.
+- Accepted action radio commands immediately end the team's old tactic, including waypoint waits. Information and acknowledgement calls do not interrupt it.
+- Old tasks and deferred callbacks no longer reclaim bots after a radio handoff. Tactics can be selected again in the next round.
+- Match profiles keep the current nine- or ten-bot roster and include the new anonymous behavior resources.
+
+Extract the Windows archive and run `Launch-CS2Career.cmd`. Keep `game/runtime/career/save/` when updating to continue your career.
+
+---
+
 # 1.7.0-preview.2（3D 预览修正版，2026-10-03）
 
 谢谢大家这两天的试玩。这次主要把进入比赛、返回场馆和使用自定义战术的流程接顺了一些。

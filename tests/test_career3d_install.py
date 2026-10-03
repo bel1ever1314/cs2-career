@@ -129,6 +129,22 @@ class BundledInstallTests(unittest.TestCase):
         self.mod_install.assert_not_called()
         self.assertFalse((self.data / 'install-backups').exists())
 
+    def test_only_explicit_bundle_install_seeds_offline_runtime(self):
+        with patch('tools.career3d_runtime_compat.seed_bundled_runtime', return_value=self.mod) as seed:
+            install.install_bundle(self.state, {**self.body, 'source':'bundle'})
+            seed.assert_called_once_with(self.data.resolve(), self.mod.resolve())
+            seed.reset_mock()
+            install.install_bundle(self.state, {**self.body, 'source':'external'})
+            seed.assert_not_called()
+
+    def test_invalid_bundle_receipt_blocks_before_backup_or_game_install(self):
+        (self.mod.parent / 'RUNTIME_COMPAT_RECEIPT.json').write_text('{broken', 'utf-8')
+        with self.assertRaisesRegex(ValueError, '校验清单'):
+            install.install_bundle(self.state, self.body)
+        self.runtime_prepare.assert_not_called()
+        self.mod_install.assert_not_called()
+        self.assertFalse((self.data / 'install-backups').exists())
+
     def test_pending_training_ladder_cs2_rts_and_recovery_block_install(self):
         cases = [('training', None), ('arena', None), ('cs2', None), ('rts', None),
                  ('recovery', 'manual-load.pending.json'), ('recovery', 'personal-transfer.pending.json')]

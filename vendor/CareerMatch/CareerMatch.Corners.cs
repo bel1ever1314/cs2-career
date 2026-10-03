@@ -122,8 +122,10 @@ public sealed partial class CareerMatchPlugin
         try { NaturalNative.CancelMove(slot,run.Move); }
         finally
         {
-            if(run.AimLocked) NaturalNative.Unlock(slot,1);
-            if(run.Suppression>0) NaturalNative.CancelSuppression(slot,run.Suppression);
+            // Each owned token gets a release attempt even if another native
+            // cancellation fails during immediate player-radio handoff.
+            try { if(run.AimLocked) NaturalNative.Unlock(slot,1); }
+            finally { if(run.Suppression>0) NaturalNative.CancelSuppression(slot,run.Suppression); }
         }
         _cornerCooldown[$"{slot}:{run.Action.Station}"]=Server.TickCount+NaturalTicks(_cornerPack?.Settings.RearmMs??18000);
         // Time spent observing is not a stalled journey. Resume the original

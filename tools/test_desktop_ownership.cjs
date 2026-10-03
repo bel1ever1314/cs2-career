@@ -4,7 +4,8 @@ const root=path.join(__dirname,'../cs2career/web/static');
 const ui={pages:{},head:t=>`<h2>${t}</h2>`,link:(_k,_id,t)=>t,empty:t=>t,paint:(host,html)=>host.innerHTML=html};
 const S={design_preview:true,career:{ops:{wages:[]},skins:{inventory:[],market:[],weapons:[],cases:[],pending:{name:'Saved drop',rarity:'covert',wear:.1,spot:100,sell:90,weapon:'AK'}},loan:{},pocket:1000}};
 const host=()=>({innerHTML:'',querySelectorAll:()=>[]});
-const sandbox={CareerUI:ui,S,get:async()=>({}),$:id=>id==='match-chat'?{value:'custom'}:null,PLAY:{},document:{addEventListener:()=>{}},
+const settingsControls={'match-chat':{value:'custom'},'skin-inventory-mode':{value:'career'},'skin-inspect-enabled':{checked:false}};
+const sandbox={CareerUI:ui,S,get:async()=>({}),$:id=>settingsControls[id]??null,PLAY:{},document:{addEventListener:()=>{}},
   esc:String,money:String,financeCard:t=>`<div>${t}</div>`,bindBotSettings:()=>{},bindSkinPref:()=>{},botSettingsCard:()=>'<div>Bot配置</div>',
   rarityRank:()=>0,localStorage:{getItem:()=>null}};
 for(const name of ['economy','settings','collection'])vm.runInNewContext(fs.readFileSync(path.join(root,`desk/${name}.js`),'utf8'),sandbox);
@@ -14,6 +15,8 @@ for(const name of ['economy','settings','collection'])vm.runInNewContext(fs.read
   assert.doesNotMatch(economy.innerHTML,/data-open-case|pending-keep|skin-pref|data-skin-detail/);
   const settings=host();await ui.pages.settings({},settings,()=>true);
   assert.match(settings.innerHTML,/id="skin-pref"/);assert.match(settings.innerHTML,/id="p-save"/);
+  assert.equal(typeof settingsControls['skin-inventory-mode'].onchange,'function');
+  assert.equal(typeof settingsControls['skin-inspect-enabled'].onchange,'function');
   for(const view of ['inventory','skins','cases']){
     const h=host();await ui.pages[view]({view},h,()=>true);
     assert.equal(h.innerHTML.includes('id="pending-keep"'),view==='cases','case results have one action owner');

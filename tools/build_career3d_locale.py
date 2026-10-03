@@ -19,6 +19,10 @@ TARGET = PROJECT / 'data/locale_en.json'
 AUTHORED = PROJECT / 'data/locale_3d_en.txt'
 PRINTF = re.compile(r'%(?:[-+0 #]*\d*(?:\.\d+)?)?[sdf]')
 BRACES = re.compile(r'\{([a-z_][a-z_0-9]*)\}')
+RUNTIME_COMPAT_PHRASES = {
+    '兼容组件下载大小不正确。': 'The compatibility component download has an incorrect size.',
+    '兼容组件下载大小不符：%s，没有安装。': 'The compatibility component download size does not match: %s. Nothing was installed.',
+}
 
 
 def authored():
@@ -61,6 +65,7 @@ def compile_catalogue():
     sys.path.insert(0, str(ROOT))
     from cs2career.career.localization import phrases
     pairs.update(phrases())
+    pairs.update(RUNTIME_COMPAT_PHRASES)
     def bilingual(value):
         if isinstance(value, dict):
             for key, item in value.items():

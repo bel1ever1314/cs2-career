@@ -271,12 +271,14 @@ def install_bundle(state, body: dict) -> dict:
             raise ValueError('请完全退出 CS2 后再' + action + '。')
 
     closed()
-    from tools.career3d_runtime_compat import prepare_runtime
+    from tools.career3d_runtime_compat import prepare_runtime, seed_bundled_runtime
     original_mod = mod
     # Build a compatible copy inside the independent career's cache. Downloaded
     # releases and the user's source folder are never rewritten, and preparation
     # failure happens before any selected-game file or saved path is changed.
-    prepared = prepare_runtime(root, original_mod, game)
+    if source == 'bundle':
+        mod = seed_bundled_runtime(root, original_mod)
+    prepared = prepare_runtime(root, mod, game)
     mod = Path(prepared['mod_dir']).resolve()
     runtime = {'requested_source': str(original_mod),
                'origin_source': str(prepared.get('origin_mod_dir') or original_mod),

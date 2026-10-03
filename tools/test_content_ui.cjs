@@ -1,7 +1,7 @@
 /* Run the actual page renderers: no browser, game launch or player data. */
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const nodes={},posts=[];
-const env=vm.createContext({CareerUI:{pages:{},head:()=>'',empty:()=>'',go:()=>{}},S:{career:{}},PLAY:{},
+const env=vm.createContext({CareerUI:{pages:{},head:()=>'',empty:()=>'',go:()=>{},paint:(host,html)=>host.innerHTML=html},S:{career:{}},PLAY:{},
   get:async()=>({root:'isolated',packs:[],ready:0,match_chat:'custom'}),
   post:async(url,data)=>{posts.push([url,data]);return {};},
   esc:s=>String(s??'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])),

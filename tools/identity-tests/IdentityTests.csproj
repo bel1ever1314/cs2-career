@@ -20,6 +20,7 @@
     <Compile Include="../../vendor/CareerMatch/TeamScoreMapping.cs" Link="TeamScoreMapping.cs" />
     <Compile Include="../../vendor/CareerMatch/RosterReadiness.cs" Link="RosterReadiness.cs" />
     <Compile Include="../../vendor/CareerMatch/TacticalCommands.cs" Link="TacticalCommands.cs" />
+    <Compile Include="../../vendor/CareerMatch/TacticalRadioPolicy.cs" Link="TacticalRadioPolicy.cs" />
     <Compile Include="../../vendor/CareerMatch/TacticalPlaybook.cs" Link="TacticalPlaybook.cs" />
     <Compile Include="../../vendor/CareerMatch/TacticalWaypointPolicy.cs" Link="TacticalWaypointPolicy.cs" />
     <Compile Include="../../vendor/CareerMatch/TacticalSlotAssignment.cs" Link="TacticalSlotAssignment.cs" />

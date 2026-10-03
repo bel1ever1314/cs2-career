@@ -1,19 +1,22 @@
 # 构建与 GitHub 发布
 
-## 1.7.0-preview.2 · 3D 版
+## 1.7.0-preview.3 · 3D 版
 
-本版发布普通 Windows 包与对应源码，GitHub 标记为 pre-release。
+本版发布普通 Windows 包与对应源码，按作者要求设置为 GitHub Latest。
+名称保留 3D 预览版；GitHub 的 Latest 使用非 draft、非 prerelease 发布。
 主分支保存当前源码；既有 1.6.0-hotfix.1 标签和正式 Release 不修改。
 
 3D 后台入口是 `tools/career3d_backend_main.py`，Godot 项目在
 `work/career3d_redesign`。源码运行见 `SOURCE_BUILD.md`。
-本地候选构建见 `tools/package_career3d.py`；公开归档使用
-`tools/package_career3d_public.py` 从已核对的源码/普通运行 ZIP 重封装。
-公开树、有限文档覆盖和最终哈希由该工具生成，不直接上传工作目录。
+使用 `tools/package_career3d.py --ordinary-only --version 1.7.0-preview.3`
+重新冻结当前源码并生成普通运行包；不复用旧版后台 EXE。
+朋友测试整合包通过 `tools/package_career3d_friends.py` 从这个干净运行包派生，
+单独附加已核对的人机增强、许可与对应来源资料，不复制个人存档或游戏目录。
 
 发布普通 Windows ZIP、源码 ZIP、`BUILD_MANIFEST.json` 和 `SHA256SUMS.txt`。
 普通包的 `source/` 必须附带同一份公开源码 ZIP，必要的许可证和素材出处保留。
-整合候选的外部 SDK 附件不在本次公开分发中；依赖获取信息见
+朋友整合包单独保存在本地，供测试者使用；GitHub 普通包不携带完整增强。
+外部 SDK 镜像不混入公开源码；依赖获取信息见
 `docs/external-runtime-pins.json`，更详细的构建记录见
 `docs/3d-preview-packaging.zh-CN.txt`。
 

@@ -441,8 +441,10 @@ public sealed partial class CareerMatchPlugin
         if(!_naturalRuns.Remove(slot,out var run)) return;
         try
         {
-            if(run.Buttons>0) NaturalNative.CancelButtons(slot,run.Buttons);
-            NaturalNative.CancelMove(slot,run.Move);
+            // Radio handoff cannot leave the movement token running just
+            // because cancelling one old stance/button token failed.
+            try { if(run.Buttons>0) NaturalNative.CancelButtons(slot,run.Buttons); }
+            finally { NaturalNative.CancelMove(slot,run.Move); }
         }
         finally { if(run.AimLocked) NaturalNative.Unlock(slot,1); }
         _naturalCooldowns[$"{slot}:{run.Node.Id}"]=Server.TickCount+2*64;
@@ -533,6 +535,7 @@ public sealed partial class CareerMatchPlugin
     private void SetNaturalTask(CCSPlayerController player,string phase,string kind,string lane,
         NaturalNode node,string reason,int deadlineSeconds=22)
     {
+        if (NativeRadioOwnsActor(player)) return;
         if(_naturalTasks.TryGetValue(player.Slot,out var old)&&old.TargetNodeId==node.Id
             &&old.Kind==kind&&old.Phase==phase) return;
         ReleaseMotionClip(player.Slot,"task_changed");
@@ -1034,7 +1037,7 @@ public sealed partial class CareerMatchPlugin
             {
                 // A player-issued opening plan owns strategic navigation for
                 // this side. Never let natural clips/holds fight that command.
-                if (TacticalOwnsActor(player.Slot, LiveSide(player))) continue;
+                if (TacticalOwnsActor(player.Slot, LiveSide(player)) || NativeRadioOwnsActor(player)) continue;
                 var cfg=NaturalConfig(player.Slot); var pawn=player.PlayerPawn.Value;
                 // BotHider may clear the engine fake-client flag. The signed
                 // career roster + native bot body identify eligibility; IsBot

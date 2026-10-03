@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "upstream_version": "1.4.5",
+  "source": "https://github.com/ed0ard/CS2-Bot-Improver/releases/tag/v1.4.5",
+  "source_archive_sha256": "ae37b86533abfe0547c5ad4346d478cd846727509fc092842a81240eb0130140",
+  "license": "AGPL-3.0",
+  "normalization": "UTF-8 and LF; upstream player databases are excluded",
+  "levels": {
+    "Low": {
+      "scripts/ai/rush/bt_default.kv3": {
+        "file": "bt_default.kv3",
+        "sha256": "d71e9a73574fd31ecb3543913f1276ac0f3c0c9c069b6c29f2ffd0fe35e0e8c0",
+        "upstream_sha256": "dd95eeb8a62e9f60034acdfd4ba85597be6fcb8d30cc54a96ff2bd367ca339d7"
+      },
+      "scripts/ai/rush/bt_config.kv3": {
+        "file": "bt_config_Low.kv3",
+        "sha256": "d56f9f54772461fb41e01b9978eba41231f8c372cf2eea20e85f0f5661dcb9c0",
+        "upstream_sha256": "f84bdeeac814f95a1567dcb1b49e2a34a4b60b82227ea3742cdbcb13923bcf2b"
+      }
+    },
+    "Medium": {
+      "scripts/ai/rush/bt_default.kv3": {
+        "file": "bt_default.kv3",
+        "sha256": "d71e9a73574fd31ecb3543913f1276ac0f3c0c9c069b6c29f2ffd0fe35e0e8c0",
+        "upstream_sha256": "dd95eeb8a62e9f60034acdfd4ba85597be6fcb8d30cc54a96ff2bd367ca339d7"
+      },
+      "scripts/ai/rush/bt_config.kv3": {
+        "file": "bt_config_Medium.kv3",
+        "sha256": "34c0a2de200cd8e50f35c7ed5d03b8d92965268e946b941590082718dd331c28",
+        "upstream_sha256": "8f2720933d75c6838fe4014301ce22c4c8a6e3e35bef7d9e02cef365e404de94"
+      }
+    },
+    "High": {
+      "scripts/ai/rush/bt_default.kv3": {
+        "file": "bt_default.kv3",
+        "sha256": "d71e9a73574fd31ecb3543913f1276ac0f3c0c9c069b6c29f2ffd0fe35e0e8c0",
+        "upstream_sha256": "dd95eeb8a62e9f60034acdfd4ba85597be6fcb8d30cc54a96ff2bd367ca339d7"
+      },
+      "scripts/ai/rush/bt_config.kv3": {
+        "file": "bt_config_High.kv3",
+        "sha256": "6b658e3a0e3e7e62c1f3a097771c0bb29c3504b3cdcabc202e5c8bf86c6da700",
+        "upstream_sha256": "a69d570ca99fea9c3ef252254765d060d44a4bf1fb478dd7f93352590b88ea46"
+      }
+    }
+  }
+}

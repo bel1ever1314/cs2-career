@@ -18,7 +18,7 @@ from pathlib import Path
 from zlib import crc32
 
 from ..paths import save_root
-from . import improver_presets
+from . import bot_behavior, improver_presets
 
 VPK_SIGNATURE = 0x55AA1234
 ENTRY_NAME = "botprofile"
@@ -169,13 +169,36 @@ def _template_text(difficulty: str = 'Medium') -> str:
     return text.rstrip() + "\n\n"
 
 
-def vpk_bytes(db_text: str) -> bytes:
-    data = db_text.encode("utf-8")
-    tree = (f"{ENTRY_EXT}\0".encode() + b" \0" + f"{ENTRY_NAME}\0".encode()
-            + struct.pack("<IHHIIH", crc32(data), 0, NO_ARCHIVE, 0, len(data), 0xFFFF) + b"\0\0\0")
+def vpk_bytes(db_text: str, resources: dict[str, bytes] | None = None) -> bytes:
+    """Pack our roster plus explicitly reviewed, anonymous behavior resources."""
+    files = {ENTRY_NAME + '.' + ENTRY_EXT: db_text.encode('utf-8')}
+    for path, payload in (resources or {}).items():
+        if path not in bot_behavior.RESOURCE_PATHS or not isinstance(payload, bytes) or not payload or len(payload) > 64 * 1024:
+            raise ValueError('VPK 只允许已审核的 Bot 行为脚本。')
+        files[path] = payload
+    groups = {}
+    for path, payload in files.items():
+        folder, _, name = path.rpartition('/')
+        stem, ext = name.rsplit('.', 1)
+        groups.setdefault(ext, {}).setdefault(folder or ' ', {})[stem] = payload
+    entries, chunks, offset = [], [], 0
+    for ext, folders in sorted(groups.items()):
+        entries.append(ext.encode() + b'\0')
+        for folder, names in sorted(folders.items()):
+            entries.append(folder.encode() + b'\0')
+            for name, payload in sorted(names.items()):
+                entries.append(name.encode() + b'\0' + struct.pack('<IHHIIH',
+                    crc32(payload), 0, NO_ARCHIVE, offset, len(payload), 0xFFFF))
+                chunks.append(payload)
+                offset += len(payload)
+            entries.append(b'\0')
+        entries.append(b'\0')
+    entries.append(b'\0')
+    tree, data = b''.join(entries), b''.join(chunks)
     header = struct.pack("<IIIIIII", VPK_SIGNATURE, 2, len(tree), len(data), 0, 48, 0)
     body = header + tree + data
-    return body + hashlib.md5(tree).digest() + hashlib.md5(b"").digest() + hashlib.md5(body).digest()
+    checksummed = body + hashlib.md5(tree).digest() + hashlib.md5(b"").digest()
+    return checksummed + hashlib.md5(checksummed).digest()
 
 
 def write_vpk(dst: Path, db_text: str) -> None:
@@ -263,7 +286,8 @@ def generate_match_vpk(csgo: Path, match: dict, difficulty: str, cache_root: Pat
     db_text = _template_text(difficulty) + "".join(_profile_block(bot) for bot in bots)
     if PROFILE_RE.findall(db_text) != [b["profile_name"] for b in bots]:
         raise ValueError("生成后的 BotProfile 清单与请求不一致")
-    payload, vpk_sha = vpk_bytes(db_text), hashlib.sha256(vpk_bytes(db_text)).hexdigest()
+    payload = vpk_bytes(db_text, bot_behavior.resources(difficulty))
+    vpk_sha = hashlib.sha256(payload).hexdigest()
     manifest = {
         "schema_version": 2, "type": profile_type, "nonce": match["nonce"], "difficulty": difficulty, "count": count,
         "difficulty_model": improver_presets.MODEL,

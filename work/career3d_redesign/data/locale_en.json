@@ -1243,6 +1243,8 @@
     "{player}：\n\n{team} 已按合同解除与你的关系。个人账户与饰品库存已清零。\n你现在是自由身。若有俱乐部愿意给你一份位置，信会送到这只邮箱。": "{player},\n\n{team} has terminated your contract. Your personal account and item inventory have been cleared.\nYou are now a free agent. Any club offering you a place will contact you through this inbox.",
     "{player}：\n\n你已经离开 {team}。目前没有俱乐部合同。\n自由市场的报价会送到这只邮箱，接下其中一封才能重新上场。": "{player},\n\nYou have left {team} and do not currently have a club contract.\nFree-agent offers will arrive in this inbox. Accept one to return to competition.",
     "家里": "Your family",
+    "兼容组件下载大小不正确。": "The compatibility component download has an incorrect size.",
+    "兼容组件下载大小不符：%s，没有安装。": "The compatibility component download size does not match: %s. Nothing was installed.",
     "青训俱乐部": "Academy club",
     "普通俱乐部": "Established club",
     "豪门俱乐部": "Elite club",
@@ -3418,6 +3420,21 @@
     "配装的武器槽位与皮肤目录不符。": "The loadout's weapon slot does not match the skin catalogue.",
     "下一库存编号": "Next inventory ID",
     "免费入库 {added} 件配装；跳过 {skipped} 件已导入物品。赠送外观不可出售。": "Added {added} free loadout items to your inventory; skipped {skipped} previously imported items. Gifted appearances cannot be sold.",
+    "随包人机增强校验清单损坏或版本不匹配，未安装。": "The bundled Bot Improver verification manifest is damaged or its version does not match. Nothing was installed.",
+    "随包人机增强目录无效或含链接，未安装。": "The bundled Bot Improver directory is invalid or contains links. Nothing was installed.",
+    "随包人机增强文件不完整，未安装。": "The bundled Bot Improver files are incomplete. Nothing was installed.",
+    "随包人机增强缺少必需组件，未安装。": "The bundled Bot Improver is missing required components. Nothing was installed.",
+    "随包人机增强缓存目录无效。": "The bundled Bot Improver cache directory is invalid.",
+    "随包人机增强缓存不能与来源重叠。": "The bundled Bot Improver cache must not overlap its source directory.",
+    "随包人机增强缓存含链接。": "The bundled Bot Improver cache contains links.",
+    "随包人机增强已有缓存损坏，未安装。": "The existing bundled Bot Improver cache is damaged. Nothing was installed.",
+    "随包人机增强目录不完整，未安装。": "The bundled Bot Improver directory is incomplete. Nothing was installed.",
+    "随包人机增强包含非运行文件或链接，未安装：%s": "The bundled Bot Improver contains a non-runtime file or a link. Nothing was installed: %s",
+    "随包人机增强文件名重复，未安装。": "The bundled Bot Improver contains duplicate file names. Nothing was installed.",
+    "随包人机增强包含非普通文件，未安装。": "The bundled Bot Improver contains a non-regular file. Nothing was installed.",
+    "随包人机增强运行文件大小超出范围，未安装。": "The bundled Bot Improver runtime file size is out of range. Nothing was installed.",
+    "随包人机增强文件校验失败，未安装：%s": "Bundled Bot Improver file verification failed. Nothing was installed: %s",
+    "随包人机增强在复制期间发生变化，未安装。": "The bundled Bot Improver changed during copying. Nothing was installed.",
     "无法核验 CS2 进程状态，未同步当前对局战术": "CS2 process status could not be verified; current match tactics were not synced.",
     "请先完全退出 CS2，再同步当前对局战术。": "Close CS2 completely before syncing current match tactics.",
     "地图战术：分路、到点等待与箭头观察；交火优先原生 AI，下包后 T 守包、CT 回防。仅正式准备阶段选战术，不控制真人。保存后 CS2 关闭时自动同步当前对局；运行时仅保存，退出后点击同步，不需重新准备或重置比赛。": "Map tactics: routes, arrival waits and observation; native AI takes priority in combat, then T hold and CT retake after the plant. Select during freeze time; humans remain manual. Saving auto-syncs the current match when CS2 is closed. While running, only the library is saved; close CS2 and sync without resetting the match.",
@@ -4410,6 +4427,15 @@
       "prefix": "已选 "
     },
     {
+      "source": "随包人机增强包含非运行文件或链接，未安装：%s",
+      "pattern": "^随包人机增强包含非运行文件或链接，未安装：([\\s\\S]+?)$",
+      "replacement": "The bundled Bot Improver contains a non-runtime file or a link. Nothing was installed: {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "随包人机增强包含非运行文件或链接，未安装："
+    },
+    {
       "source": "试训 D20：{roll} {modifier} = {total}，通过。",
       "pattern": "^试训\\ D20：([\\s\\S]+?)\\ ([\\s\\S]+?)\\ =\\ ([\\s\\S]+?)，通过。$",
       "replacement": "Trial D20: {roll} {modifier} = {total}. Passed.",
@@ -4511,6 +4537,15 @@
         "replace"
       ],
       "prefix": ""
+    },
+    {
+      "source": "兼容组件下载大小不符：%s，没有安装。",
+      "pattern": "^兼容组件下载大小不符：([\\s\\S]+?)，没有安装。$",
+      "replacement": "The compatibility component download size does not match: {0}. Nothing was installed.",
+      "keys": [
+        "0"
+      ],
+      "prefix": "兼容组件下载大小不符："
     },
     {
       "source": "%s 张已保存地图 · 不补造缺失数据",
@@ -4615,6 +4650,15 @@
         "axis"
       ],
       "prefix": "该武器模型没有登记 "
+    },
+    {
+      "source": "随包人机增强文件校验失败，未安装：%s",
+      "pattern": "^随包人机增强文件校验失败，未安装：([\\s\\S]+?)$",
+      "replacement": "Bundled Bot Improver file verification failed. Nothing was installed: {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "随包人机增强文件校验失败，未安装："
     },
     {
       "source": "开场：%s 队 CT · %s 队 T",

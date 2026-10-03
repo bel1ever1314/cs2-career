@@ -11,8 +11,9 @@
 
 - CS2 Bot Improver：ed0ard 与原项目贡献者，AGPL-3.0。
   https://github.com/ed0ard/CS2-Bot-Improver
-  复用的内容是 botprofile_presets 匿名模板、Medium 参数规律及 vendor/BotBuy 源码。
+  复用的内容是 botprofile_presets 匿名模板、Medium 参数规律、1.4.5 匿名 Rush 行为脚本及 vendor/BotBuy 源码。
   原1700人名单及增强整包不随发行包分发。模板来源哈希在 presets.json；
+  匿名行为脚本的来源、规范化方式与哈希在 botprofile_behavior/resources.json；
   BotBuy 生涯修改是延迟实体校验及阻止生涯 SSG08 随机改成冲锋枪。
   AGPL 全文见根目录 LICENSE。
 - InventorySimulator：Ian Lucas，MIT；本地 DLL 是历史项目已有的修改版本。

@@ -1,10 +1,21 @@
 {
   "schema_version": 1,
-  "revision": "windows-20261003.1",
+  "revision": "windows-20261003.2-improver145",
   "checked_date": "2026-10-03",
   "platform": "windows-x64",
   "game_build": "2000922",
   "components": [
+    {
+      "name": "CS2 Bot Improver",
+      "version": "1.4.5",
+      "url": "https://github.com/ed0ard/CS2-Bot-Improver/releases/download/v1.4.5/CS2BotImprover.zip",
+      "sha256": "ae37b86533abfe0547c5ad4346d478cd846727509fc092842a81240eb0130140",
+      "size": 73129728,
+      "replace_paths": ["addons/counterstrikesharp/plugins/BotAI", "addons/counterstrikesharp/plugins/BotAimImprover", "addons/counterstrikesharp/plugins/BotState", "addons/counterstrikesharp/plugins/NadeSystem", "addons/counterstrikesharp/plugins/BotBuy", "addons/counterstrikesharp/plugins/RoundDamageRecap", "addons/counterstrikesharp/configs/plugins/BotAI", "addons/counterstrikesharp/configs/plugins/BotAimImprover", "addons/counterstrikesharp/configs/plugins/BotState", "addons/counterstrikesharp/configs/plugins/NadeSystem", "cfg", "overrides"],
+      "allow_paths": ["addons/counterstrikesharp/plugins/BotAI", "addons/counterstrikesharp/plugins/BotAimImprover", "addons/counterstrikesharp/plugins/BotState", "addons/counterstrikesharp/plugins/NadeSystem", "addons/counterstrikesharp/plugins/BotBuy", "addons/counterstrikesharp/plugins/RoundDamageRecap", "addons/counterstrikesharp/shared/0Harmony", "addons/counterstrikesharp/shared/BotControllerApi", "addons/counterstrikesharp/shared/BotHiderApi", "addons/BotHider/config.json", "addons/BotVision/config.json", "cfg", "overrides/scripts"],
+      "preserve_paths": ["addons/BotHider/config.json", "addons/BotVision/config.json"],
+      "required_paths": ["addons/counterstrikesharp/plugins/BotAI/BotAI.dll", "addons/counterstrikesharp/plugins/BotAI/BotAI.deps.json", "addons/counterstrikesharp/plugins/BotAimImprover/BotAimImprover.dll", "addons/counterstrikesharp/plugins/BotAimImprover/BotAimImprover.deps.json", "addons/counterstrikesharp/plugins/BotState/BotState.dll", "addons/counterstrikesharp/plugins/BotState/BotState.deps.json", "addons/counterstrikesharp/plugins/NadeSystem/NadeSystem.dll", "addons/counterstrikesharp/plugins/NadeSystem/NadeSystem.deps.json", "addons/counterstrikesharp/plugins/NadeSystem/grenades/de_dust2_smoke.json", "addons/counterstrikesharp/plugins/BotBuy/BotBuy.dll", "addons/counterstrikesharp/plugins/BotBuy/BotBuy.deps.json", "addons/counterstrikesharp/plugins/RoundDamageRecap/RoundDamageRecap.dll", "addons/counterstrikesharp/plugins/RoundDamageRecap/RoundDamageRecap.deps.json", "addons/counterstrikesharp/shared/0Harmony/0Harmony.dll", "cfg/my_bot_normal_config.cfg", "cfg/gamemode_rush.cfg"]
+    },
     {
       "name": "Metamod",
       "version": "2.0.0.1472",

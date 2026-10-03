@@ -1,0 +1,16 @@
+# Bundled Bot Improver offline runtime validation messages.
+随包人机增强校验清单损坏或版本不匹配，未安装。	The bundled Bot Improver verification manifest is damaged or its version does not match. Nothing was installed.
+随包人机增强目录无效或含链接，未安装。	The bundled Bot Improver directory is invalid or contains links. Nothing was installed.
+随包人机增强文件不完整，未安装。	The bundled Bot Improver files are incomplete. Nothing was installed.
+随包人机增强缺少必需组件，未安装。	The bundled Bot Improver is missing required components. Nothing was installed.
+随包人机增强缓存目录无效。	The bundled Bot Improver cache directory is invalid.
+随包人机增强缓存不能与来源重叠。	The bundled Bot Improver cache must not overlap its source directory.
+随包人机增强缓存含链接。	The bundled Bot Improver cache contains links.
+随包人机增强已有缓存损坏，未安装。	The existing bundled Bot Improver cache is damaged. Nothing was installed.
+随包人机增强目录不完整，未安装。	The bundled Bot Improver directory is incomplete. Nothing was installed.
+随包人机增强包含非运行文件或链接，未安装：%s	The bundled Bot Improver contains a non-runtime file or a link. Nothing was installed: %s
+随包人机增强文件名重复，未安装。	The bundled Bot Improver contains duplicate file names. Nothing was installed.
+随包人机增强包含非普通文件，未安装。	The bundled Bot Improver contains a non-regular file. Nothing was installed.
+随包人机增强运行文件大小超出范围，未安装。	The bundled Bot Improver runtime file size is out of range. Nothing was installed.
+随包人机增强文件校验失败，未安装：%s	Bundled Bot Improver file verification failed. Nothing was installed: %s
+随包人机增强在复制期间发生变化，未安装。	The bundled Bot Improver changed during copying. Nothing was installed.
