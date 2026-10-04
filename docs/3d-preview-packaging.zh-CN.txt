@@ -1,4 +1,4 @@
-1.7.0-preview.3-hotfix.6 构建与发布
+1.7.0-preview.3-hotfix.7 买枪补购修正版：构建与发布
 
 GitHub 发布源码包和普通 3D Windows 包，设置为 Latest，保留旧版下载。
 名称保留 preview；Latest 使用非 draft、非 prerelease 发布属性。
@@ -11,8 +11,8 @@ Steam 和 CS2 由玩家自行安装；普通包的完整人机增强另行获取
 docs/external-runtime-pins.json。本次使用全新源码冻结后台，仅构建普通 Windows 包与源码包。
 
 公开归档：
-CS2Career-1.7.0-preview.3-hotfix.6-source.zip
-CS2Career-1.7.0-preview.3-hotfix.6-windows.zip
+CS2Career-1.7.0-preview.3-hotfix.7-source.zip
+CS2Career-1.7.0-preview.3-hotfix.7-windows.zip
 BUILD_MANIFEST.json
 SHA256SUMS.txt
 
@@ -29,14 +29,15 @@ tools/career3d_package_bots.py：历史组件核验与来源资料辅助。
 tools/package_career3d_friends.py：从同版普通运行包派生朋友测试整合包。
 tools/package_career3d_public.py：从已核对的本地源码/普通运行 ZIP 重封装公开包，
 移除整合候选的依赖附件、更新文档、嵌入对应源码，生成最终哈希。
-tools/package_career3d.py：冻结后台、导入 Godot 项目、素材复制和三个归档。
+tools/package_career3d.py：冻结后台、导入 Godot 项目、素材复制和归档；普通构建生成两个 ZIP。
 tools/career3d_backend_main.py：冻结入口，业务导入仍在独立存档目录选定之后。
 tools/career3d_install.py：明确确认安装、关闭游戏检查和覆盖前备份。
 
 重建需要 Python 3.12、PyInstaller、orjson，以及 Godot 4.7.2 Windows 版。
 公开重封装使用 package_career3d_public.py 的 --source-zip、--windows-zip、
 --project-root 和 --output 参数；--output 是全新公开暂存目录。
-当前普通公开构建使用 --ordinary-only --version 1.7.0-preview.3-hotfix.6，不需要 --bot-stage。
+当前普通公开构建使用 --ordinary-only --version 1.7.0-preview.3-hotfix.7，不需要 --bot-stage。
+本次更新重点是无主武器时的买枪补购与狙位预算不足时的回退购买。
 每次公开更新重新冻结后台，不复用旧版 EXE。源码、包内 CareerMatch.dll 和客户端
 需与本次发布对应。
 
@@ -52,7 +53,7 @@ tools/career3d_install.py：明确确认安装、关闭游戏检查和覆盖前�
 代码可直接从源码运行，也可用打包脚本冻结。素材目录不要指向私人存档。
 
 发行物需要检查：源码与包内资源完整、无私人路径/数据、配置为相对路径、
-冻结后台新存档启动、Godot 脚本导入、客户端与后台连接、三个 ZIP 完整性。
+冻结后台新存档启动、Godot 脚本导入、客户端与后台连接、两个公开 ZIP 完整性。
 不能把单元测试或开发机启动当成另一台电脑的实机 CS2 兼容验证。
 此预览不承诺未来 CS2 更新兼容，测试者需要反馈真实对局问题。
 

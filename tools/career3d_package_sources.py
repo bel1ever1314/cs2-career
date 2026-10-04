@@ -75,7 +75,7 @@ TOOL_FILES = frozenset({
     "flow_evidence.py", "compare_player_flows.py", "playthrough.py",
     "promote_calibration_pack.py", "repair_cs2_runtime.py", "install_tactical_commands.py",
 })
-TOOL_TEST_DIRS = ("tools/identity-tests", "tools/botbuy-tests", "tools/tactical-tests")
+TOOL_TEST_DIRS = ("tools/identity-tests", "tools/botbuy-tests", "tools/botbuy-runtime-tests", "tools/tactical-tests")
 PRIVATE_HOME = re.compile(
     r"(?P<drive>[A-Z]:)(?P<separator>[/\\]+)Users[/\\]+(?P<user>[^/\\\s\"'<>]+)", re.I)
 CREDENTIAL = re.compile(

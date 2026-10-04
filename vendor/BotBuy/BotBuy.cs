@@ -14,7 +14,7 @@ namespace BotBuyPatch;
 public sealed partial class BotBuyPatch : BasePlugin
 {
     public override string ModuleName        => "BotBuyPatch";
-    public override string ModuleVersion => "1.0.12-career.4";
+    public override string ModuleVersion => "1.0.12-career.5";
     public override string ModuleAuthor      => "ed0ard";
     public override string ModuleDescription => "Enable bots to take more buy options";
 
@@ -26,6 +26,8 @@ public sealed partial class BotBuyPatch : BasePlugin
     private readonly Dictionary<int, HashSet<uint>> _roundStartWeapons = new();
     private readonly Dictionary<int, Dictionary<string, uint>> _purchasedWeapons = new();
     private readonly HashSet<uint> _refundingWeapons = new();
+    private float _emptyPrimaryReadyAt;
+    private readonly Dictionary<int, string> _emptyPrimaryDiagnostics = new();
 
     // Read once per round, not once per item. Synthetic Steam IDs from the
     // generated match request survive BotHider renaming; nicknames never bind jobs.
@@ -189,6 +191,8 @@ public sealed partial class BotBuyPatch : BasePlugin
     {
         _roundGeneration++; _roundMap = Server.MapName; _purchasePhase = true; _tacticalDuties.Clear();
         RefreshCareerContext(); _roundPawns.Clear(); _roundStartWeapons.Clear(); _purchasedWeapons.Clear(); _refundingWeapons.Clear();
+        _emptyPrimaryReadyAt = Server.CurrentTime + .8f;
+        _emptyPrimaryDiagnostics.Clear();
         // Don't Buy on Aim_Rush
         if (Server.MapName == "aim_rush") return HookResult.Continue;
 
@@ -242,7 +246,8 @@ public sealed partial class BotBuyPatch : BasePlugin
             return HookResult.Continue;
         }
         if (_careerActive)
-            foreach (var delay in new[] { .9f, 1.8f, 3.2f })
+            foreach (var delay in new[] { .9f, 1.8f, 3.2f,
+                Math.Max(.9f, (ConVar.Find("mp_freezetime")?.GetPrimitiveValue<float>() ?? 15f) - .25f) }.Distinct())
                 AddRoundTimer(delay, () => {
                     foreach (var player in Utilities.FindAllEntitiesByDesignerName<CCSPlayerController>("cs_player_controller"))
                         ApplyCareerPurchases(player);
@@ -769,7 +774,8 @@ public sealed partial class BotBuyPatch : BasePlugin
             return false;
 
         return CareerWeaponPolicy.HasPrimary(pawn.WeaponServices.MyWeapons
-            .Select(h => h.Value).Where(w => w is { IsValid: true }).Select(w => w!.DesignerName));
+            .Select(h => h.Value).Where(w => w is { IsValid: true }
+                && !_refundingWeapons.Contains(w.EntityHandle.Raw)).Select(w => w!.DesignerName));
     }
 
 //----------------------------------------------------------------------------------------------
@@ -825,6 +831,16 @@ public sealed partial class BotBuyPatch : BasePlugin
         if (givenHandle == IntPtr.Zero) return false;
         var given = new CEntityInstance(givenHandle);
         if (!given.IsValid) return false;
+
+        // A valid spawned entity alone does not prove that the bot received a
+        // primary. Charge and record it only after it is attached to this pawn.
+        if (CareerTactics.TacticalBuyPolicy.PrimaryPrice(itemName) > 0
+            && !(pawn.WeaponServices?.MyWeapons.Any(h => h.Value is { IsValid: true } w
+                && w.EntityHandle.Raw == given.EntityHandle.Raw && w.DesignerName == itemName) ?? false))
+        {
+            given.AcceptInput("Kill");
+            return false;
+        }
 
         player.InGameMoneyServices.Account -= price;
         Utilities.SetStateChanged(player, "CCSPlayerController", "m_pInGameMoneyServices");

@@ -32,6 +32,29 @@ internal static class CareerWeaponPolicy
     internal static bool HasPrimary(IEnumerable<string> weapons) =>
         weapons.Any(weapon => TacticalBuyPolicy.PrimaryPrice(weapon) > 0);
 
+    internal static string[] EmptyPrimaryCandidates(bool active, bool eligible, bool buying,
+        bool pistolRound, bool hasPrimary, bool ct, string role, int money, int reserve, float rifleRoll)
+    {
+        // Keep native pistol/eco decisions, and leave the armor/utility reserve intact.
+        if (!active || !eligible || !buying || pistolRound || hasPrimary || money < 2800 || reserve < 0)
+            return [];
+
+        string rifle = Rifle(ct, rifleRoll);
+        string alternateRifle = rifle == "weapon_m4a1" ? "weapon_m4a1_silencer" : "weapon_m4a1";
+        string economyRifle = ct ? "weapon_famas" : "weapon_galilar";
+        var candidates = new List<string>();
+        if (role == "awp") candidates.Add("weapon_awp");
+        candidates.Add(rifle);
+        if (ct) candidates.Add(alternateRifle);
+        candidates.Add(economyRifle);
+        // A sniper who cannot afford an AWP still prefers an ordinary rifle.
+        if (role == "awp") candidates.Add("weapon_ssg08");
+        return candidates.Where(weapon => CanBuy(active, weapon, role)
+            && TacticalBuyPolicy.PrimaryAllowed(ct, weapon)
+            && TacticalBuyPolicy.PrimaryPrice(weapon) <= (long)money - reserve)
+            .Distinct(StringComparer.Ordinal).ToArray();
+    }
+
     // A Scout is a valid economical sniper choice, not a cheap rifle to undo.
     internal static bool IsEconomyPrimary(bool ct, string weapon) => weapon is
         "weapon_mp7" or "weapon_mp5sd" or "weapon_ump45" or "weapon_bizon" or "weapon_p90"

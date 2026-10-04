@@ -1,4 +1,4 @@
-CS2 Career 1.7.0-preview.3-hotfix.6
+CS2 Career 1.7.0-preview.3-hotfix.7
 
 这次可以走进自己的宿舍和俱乐部了。打开手机看消息、日历和个人资料，
 坐到电脑前安排比赛、设计战术，也可以进入场馆亲自打下一场。
@@ -18,6 +18,8 @@ CS2 Career 1.7.0-preview.3-hotfix.6
 保下来的枪和捡来的枪不会强制换掉，狙击职责与队友配枪继续保留。
 更新了游戏内换肤的函数签名，整理旧签名备份和缓存的加载顺序。
 本地对局补回丢刀设置，手动开启换肤后沿用已装备的饰品。
+补齐没有主武器时的购买：预算足够会补买 AK／M4，狙位买不起 AWP 时
+也会选择合适的主枪。保留正常手枪局、经济局和已有武器，不重复扣款买枪。
 
 开始游玩
 完整解压，双击“开始游戏.cmd”或 Launch-CS2Career.cmd。
@@ -60,6 +62,8 @@ Bot Improver: check your paths in Settings and select Install bundled Bot Improv
 For an ordinary package, choose your extracted official Windows release instead.
 Installation is offline and includes this project's bundled components.
 In-game skins start disabled; enable them in Settings only if you want to use them.
+Bots without a primary now buy an affordable rifle, including snipers who cannot
+afford an AWP. Pistol rounds, eco budgets and carried weapons are preserved.
 Check for updates only contacts GitHub when clicked and never replaces plugins.
 Your original release folder stays unchanged;
 later matches use the compatible runtime copy.

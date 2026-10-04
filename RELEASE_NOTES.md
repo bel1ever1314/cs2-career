@@ -1,3 +1,23 @@
+# 1.7.0-preview.3-hotfix.7（买枪补购修正，2026-10-04）
+
+这次修正了人机有钱却没买主武器的情况。
+
+- 正常购买后仍没有主枪、预算足够的队员，会补买 AK／M4；预算较低时保留 FAMAS、加利尔等选择。
+- 狙位买不起 AWP 时会改用可负担的主枪，不再只等狙击枪预算。
+- 买枪后检查武器是否真正进入该队员的库存，失败时不扣款，并尝试下一种可负担武器。
+- 保留原生购买的时间窗口、手枪局、经济局、保枪与捡枪；冻结结束前再检查一次遗漏。
+- 买枪诊断记录本回合的选择、预算和结果，不逐帧刷日志。
+
+## English
+
+- Bots left without a primary after normal buying now purchase an affordable AK/M4, with economical rifles available on lower budgets.
+- Assigned snipers choose an affordable primary when an AWP is beyond their budget.
+- Weapon delivery is checked before charging. A failed purchase can fall back to another affordable weapon.
+- Native buying gets the first opportunity. Pistol rounds, eco budgets and carried weapons are preserved, with a final check before freeze time ends.
+- Purchase diagnostics record choices, budgets and outcomes without per-frame logging.
+
+---
+
 # 1.7.0-preview.3-hotfix.6（换肤与丢刀修复，2026-10-04）
 
 - 更新游戏内换肤签名，继续使用玩家已经装备的 CT／T 饰品。

@@ -78,8 +78,8 @@ public sealed partial class BotBuyPatch
             .Where(w => w is { IsValid: true } && TacticalBuyPolicy.PrimaryPrice(w.DesignerName) > 0).ToArray() ?? [];
         if (primaries.Length == 0)
         {
-            if (duty == "awp" && (player.InGameMoneyServices?.Account ?? 0) >= TacticalBuyPolicy.AwpPrice + PurchaseReserve(player))
-                Buy(player, "weapon_awp");
+            // Missing-primary purchases are handled once by the common fallback,
+            // after the native bot has had its normal opening purchase window.
             return;
         }
         if (primaries.Length != 1) return;

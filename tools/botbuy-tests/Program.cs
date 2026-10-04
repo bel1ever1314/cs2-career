@@ -80,6 +80,102 @@ Check(CareerWeaponPolicy.ArmorReserve(false, 0, false) == 1000, "T upgrade reser
 Check(CareerWeaponPolicy.ArmorReserve(false, 100, false) == 350, "Existing full kevlar needs only helmet budget");
 Check(CareerWeaponPolicy.ArmorReserve(true, 70, false) == 0, "Usable CT armor is not purchased again");
 Check(CareerWeaponPolicy.ArmorReserve(false, 70, true) == 0, "Existing usable helmet armor is not charged again");
+string[] EmptyPrimary(bool ct, string role, int money, int reserve, float roll = .25f,
+    bool active = true, bool eligible = true, bool buying = true, bool pistol = false, bool hasPrimary = false) =>
+    CareerWeaponPolicy.EmptyPrimaryCandidates(active, eligible, buying, pistol, hasPrimary, ct, role, money, reserve, roll);
+foreach (bool ct in new[] { false, true })
+{
+    int reserve = CareerWeaponPolicy.ArmorReserve(ct, 0, false) + 300;
+    string rifle = ct ? "weapon_m4a1" : "weapon_ak47";
+    string economyRifle = ct ? "weapon_famas" : "weapon_galilar";
+    foreach (string role in roles)
+        Check(EmptyPrimary(ct, role, 4350, reserve).FirstOrDefault() == rifle,
+            "4350 buys the side's ordinary rifle, including AWP and unknown duties");
+    Check(EmptyPrimary(ct, "awp", 4350, reserve).LastOrDefault() == "weapon_ssg08",
+        "Scout remains a fallback after the sniper's ordinary rifles");
+    foreach (int budget in new[] { 0, 950, 1300 })
+    {
+        int awpBoundary = 4750 + budget;
+        Check(EmptyPrimary(ct, "awp", awpBoundary, budget).FirstOrDefault() == "weapon_awp",
+            "AWP duty buys AWP at the exact weapon plus reserve boundary");
+        Check(EmptyPrimary(ct, "awp", awpBoundary - 1, budget).FirstOrDefault() == rifle,
+            "One dollar short of reserved AWP falls back to an ordinary rifle");
+        Check(!EmptyPrimary(ct, "rifle", awpBoundary, budget).Contains("weapon_awp"),
+            "A rich non-sniper still cannot auto buy AWP");
+        int rifleBoundary = TacticalBuyPolicy.PrimaryPrice(rifle) + budget;
+        Check(EmptyPrimary(ct, "rifle", Math.Max(2800, rifleBoundary), budget).FirstOrDefault() == rifle,
+            "A non-eco round buys a rifle when its weapon plus reserve fits");
+        if (rifleBoundary > 2800)
+            Check(EmptyPrimary(ct, "rifle", rifleBoundary - 1, budget).FirstOrDefault() == economyRifle,
+                "One dollar short of reserved rifle falls back to FAMAS or Galil");
+    }
+    Check(EmptyPrimary(ct, "rifle", 16000, reserve, active: false).Length == 0,
+        "Missing-primary fallback only runs for active career requests");
+    Check(EmptyPrimary(ct, "rifle", 16000, reserve, eligible: false).Length == 0,
+        "Human, takeover, dead or otherwise ineligible player never gets a fallback");
+    Check(EmptyPrimary(ct, "rifle", 16000, reserve, buying: false).Length == 0,
+        "Warmup, closed purchase phase or outside buy zone never gets a fallback");
+    Check(EmptyPrimary(ct, "awp", 16000, reserve, pistol: true).Length == 0,
+        "First pistol round never gets a missing-primary fallback even with high money");
+    Check(EmptyPrimary(ct, "awp", 16000, reserve, hasPrimary: true).Length == 0,
+        "Existing primary never triggers missing-primary purchasing");
+    Check(EmptyPrimary(ct, "awp", 2799, 0).Length == 0,
+        "Below 2800 retains native eco decisions even when a cheaper primary fits");
+    Check(EmptyPrimary(ct, "awp", -1, 0).Length == 0,
+        "An unavailable or negative account cannot buy a fallback");
+    Check(EmptyPrimary(ct, "awp", 16000, -1).Length == 0,
+        "Negative reserve is rejected rather than increasing spending money");
+    Check(EmptyPrimary(ct, "awp", 16000, int.MinValue).Length == 0,
+        "Extreme invalid reserve cannot overflow into a purchase budget");
+    Check(EmptyPrimary(ct, "awp", 16000, int.MaxValue).Length == 0,
+        "A reserve exceeding the account leaves no affordable weapon");
+}
+Check(EmptyPrimary(true, "rifle", 4350, 950, .75f).SequenceEqual(
+    new[] { "weapon_m4a1_silencer", "weapon_m4a1", "weapon_famas" }),
+    "Failed preferred M4 can retry the alternate M4 then FAMAS, without duplicates");
+Check(EmptyPrimary(false, "awp", 6050, 1300).SequenceEqual(
+    new[] { "weapon_awp", "weapon_ak47", "weapon_galilar", "weapon_ssg08" }),
+    "Failed AWP can retry ordinary T rifles before Scout within the same budget");
+Check(EmptyPrimary(true, "rifle", 2800, 950).Length == 0,
+    "2800 CT preserves full basic armor and smoke budget even if no rifle fits");
+Check(EmptyPrimary(true, "awp", 2800, 950).SequenceEqual(new[] { "weapon_ssg08" }),
+    "Budget-limited sniper may buy Scout when FAMAS does not fit");
+Check(EmptyPrimary(false, "rifle", 3100, 1300).SequenceEqual(new[] { "weapon_galilar" }),
+    "Galil at its exact boundary preserves basic T armor and smoke money");
+Check(EmptyPrimary(false, "awp", 3000, 1300).SequenceEqual(new[] { "weapon_ssg08" }),
+    "Scout at its exact boundary preserves basic T armor and smoke money");
+foreach (bool ct in new[] { false, true })
+foreach (string role in roles)
+foreach (int reserve in new[] { 0, 300, 650, 950, 1000, 1300 })
+foreach (int money in Enumerable.Range(0, 16001))
+{
+    var candidates = EmptyPrimary(ct, role, money, reserve);
+    Check(candidates.Length == candidates.Distinct(StringComparer.Ordinal).Count(),
+        "Every fallback list is deduplicated for sequential failure retries");
+    foreach (string candidate in candidates)
+    {
+        Check(!CareerWeaponPolicy.IsForbidden(candidate) && TacticalBuyPolicy.PrimaryAllowed(ct, candidate),
+            "Fallback never offers a banned gun or a primary from the wrong side");
+        Check(TacticalBuyPolicy.PrimaryPrice(candidate) > 0
+            && TacticalBuyPolicy.PrimaryPrice(candidate) + (long)reserve <= money,
+            "Every fallback candidate retains the complete armor and utility reserve");
+        Check(candidate != "weapon_awp" || role == "awp", "Fallback AWP is restricted to the sniper duty");
+    }
+    if (money < 2800)
+        Check(candidates.Length == 0, "Every account below 2800 keeps native eco buying");
+    else if (role == "awp" && money >= 4750 + reserve)
+        Check(candidates.FirstOrDefault() == "weapon_awp", "Affordable reserved AWP has first priority");
+    else if (money >= (ct ? 2900 : 2700) + reserve)
+        Check(candidates.FirstOrDefault() == (ct ? "weapon_m4a1" : "weapon_ak47"),
+            "Affordable reserved main rifle always precedes cheaper alternatives");
+    else if (money >= (ct ? 1950 : 1800) + reserve)
+        Check(candidates.FirstOrDefault() == (ct ? "weapon_famas" : "weapon_galilar"),
+            "Affordable economy rifle is used when the main rifle cannot fit");
+    else if (role == "awp" && money >= 1700 + reserve)
+        Check(candidates.FirstOrDefault() == "weapon_ssg08", "Scout is the final budget-limited sniper fallback");
+    else
+        Check(candidates.Length == 0, "No money is charged when all reserved candidates are unaffordable");
+}
 Check(TacticalBuyPolicy.PrimaryAllowed(true, "weapon_m4a1") && !TacticalBuyPolicy.PrimaryAllowed(false, "weapon_m4a1"), "M4 restricted to CT purchases");
 Check(TacticalBuyPolicy.PrimaryAllowed(false, "weapon_ak47") && !TacticalBuyPolicy.PrimaryAllowed(true, "weapon_ak47"), "AK restricted to T purchases");
 Check(!TacticalBuyPolicy.PrimaryAllowed(true, "weapon_knife"), "Unknown or non-primary cannot use the primary price table");
