@@ -8,13 +8,14 @@ namespace CareerMatch;
 public sealed partial class CareerMatchPlugin
 {
     private sealed class CustomTacticActor(string id, int slot, int rosterSlot, uint pawn,
-        TacticalTarget[] targets, CustomTacticSlot source, int health, float now)
+        TacticalTarget[] targets, CustomTacticSlot source, string side, int health, float now)
     {
         internal readonly string Id = id;
         internal readonly int Slot = slot, RosterSlot = rosterSlot;
         internal readonly uint Pawn = pawn;
         internal readonly TacticalTarget[] Targets = targets;
-        internal readonly TacticalStepClock Clock = new(source.Steps.Select(s => s.Wait).ToArray());
+        internal readonly TacticalStepClock Clock = new(source.Steps.Select(s => s.Wait).ToArray(),
+            TacticalFinishPolicy.HoldFinal(source.Finish, side));
         internal readonly CustomTacticSlot Source = source;
         internal readonly TacticalTravelProgress Travel = new();
         internal readonly TacticalDirectMove DirectMove = new();
@@ -87,7 +88,9 @@ public sealed partial class CareerMatchPlugin
         // Even a zero-wait route needs a brief movement lease while the native
         // path timer is busy. It must not follow an old path during preparation.
         EnsureTacticalHold();
-        if (tactic.Slots.Any(s => s.Steps.Any(p => p.Wait > 0 && p.LookAt is not null)) && _tacticalLook is null)
+        if (bindings.Any(b => b.Route.Steps.Select((p, i) => p.LookAt is not null
+            && (p.Wait > 0 || (i == b.Route.Steps.Count - 1 && TacticalFinishPolicy.HoldFinal(b.Route.Finish, plan.Side)))).Any(v => v))
+            && _tacticalLook is null)
             throw new InvalidDataException("观察朝向接口未就绪：" + _tacticalLookState);
         var areas = CCSNavArea.GetAllNavAreas();
         if (areas.Count == 0) throw new InvalidDataException("地图导航未加载");
@@ -119,7 +122,7 @@ public sealed partial class CareerMatchPlugin
                 targets.Add(new(point.X, point.Y, point.Z, 40, false));
             }
             actors.Add(new(binding.PlayerId, player.Slot, binding.TacticSlot, pawn.EntityHandle.Raw,
-                targets.ToArray(), binding.Route, pawn.Health, Server.CurrentTime));
+                targets.ToArray(), binding.Route, plan.Side, pawn.Health, Server.CurrentTime));
         }
         return actors.ToArray();
     }
@@ -140,7 +143,8 @@ public sealed partial class CareerMatchPlugin
             }
             TacticalTrace("custom_started", new { plan.TacticId, plan.Side,
                 direction = _tacticalLookState,
-                actors = prepared.Select(a => new { a.Id, a.Slot, a.RosterSlot, a.Targets }) });
+                actors = prepared.Select(a => new { a.Id, a.Slot, a.RosterSlot, a.Targets,
+                    finish = a.Source.Finish, holdFinal = TacticalFinishPolicy.HoldFinal(a.Source.Finish, plan.Side) }) });
         }
         catch (Exception ex)
         {
@@ -239,7 +243,7 @@ public sealed partial class CareerMatchPlugin
     {
         var step = actor.Source.Steps[actor.Clock.Stage];
         var now = Server.CurrentTime;
-        if (!settled || nativeAction || step.LookAt is not { } target || step.Wait <= 0)
+        if (!settled || nativeAction || step.LookAt is not { } target || (step.Wait <= 0 && !actor.Clock.FinalHold))
         {
             ReleaseCustomLook(actor);
             if (nativeAction) actor.NextLookAttempt = now+1;
@@ -280,7 +284,16 @@ public sealed partial class CareerMatchPlugin
                     _customTacticActors.Remove(actor.Slot); continue;
                 }
                 var now = Server.CurrentTime; var bot = pawn.Bot;
+                if ((pawn.Health < actor.Health || bot.IsAvoidingGrenade.Timestamp > now)
+                    && ReleaseTacticForDanger(player, pawn.Health < actor.Health ? "health_loss" : "avoiding_grenade")) continue;
                 var weapon = pawn.WeaponServices?.ActiveWeapon.Value?.DesignerName ?? "";
+                if (TacticalFinishPolicy.ObjectiveNeedsControl(actor.Clock.FinalHold, pawn.IsDefusing, weapon))
+                {
+                    ReleaseCustomTacticActor(actor, "objective_handoff");
+                    _customTacticActors.Remove(actor.Slot);
+                    TacticalTrace("custom_objective_handoff", new { actor.Id, actor.Clock.Stage, weapon, pawn.IsDefusing });
+                    continue;
+                }
                 var nativeAction = bot.IsEnemyVisible || bot.IsAttacking || pawn.Health < actor.Health
                     || pawn.BlindUntilTime > now || pawn.IsDefusing || weapon.Contains("grenade")
                     || weapon.Contains("flashbang") || weapon.Contains("molotov") || weapon.Contains("c4")
@@ -294,14 +307,14 @@ public sealed partial class CareerMatchPlugin
                 else if (actor.Gait is { Active: true }) KeepCustomTravelGait(actor);
                 var goal = actor.Targets[actor.Clock.Stage];
                 var reached = goal.Reached(pawn.AbsOrigin) && Math.Abs(goal.Z-pawn.AbsOrigin.Z) < 24;
-                var waiting = actor.Source.Steps[actor.Clock.Stage].Wait > 0;
+                var waiting = actor.Source.Steps[actor.Clock.Stage].Wait > 0 || actor.Clock.FinalHold;
                 var holding = actor.Hold is { Active: true };
                 var pos = pawn.AbsOrigin;
                 var distance = (pos.X-goal.X)*(pos.X-goal.X) + (pos.Y-goal.Y)*(pos.Y-goal.Y);
                 var holdingInBounds = holding && TacticalWaitPolicy.InHoldBounds(distance, goal.Z-pos.Z, goal.Radius);
-                var holdPosition = TacticalWaitPolicy.ShouldHold(actor.Source.Steps[actor.Clock.Stage].Wait, reached, holdingInBounds);
+                var holdPosition = TacticalWaitPolicy.ShouldHold(waiting, reached, holdingInBounds);
                 if (TacticalWaitPolicy.YieldToNative(holdPosition, nativeAction)) actor.YieldUntil = now + 1;
-                // Arrival owns movement until this wait expires. A stale native
+                // Arrival owns movement during a wait or final defense. A stale native
                 // jump/stuck intent is NOT evidence of danger and must never
                 // release the lease. Fighting still uses native aim/shooting.
                 var interrupted = !holdPosition && (nativeAction || now < actor.YieldUntil);
@@ -447,8 +460,13 @@ public sealed partial class CareerMatchPlugin
                 {
                     UpdateCustomLook(actor, player, pawn, settled, nativeAction);
                     actor.LastProgress = now;
-                    if (actor.State != "waiting")
-                    { actor.State = "waiting"; TacticalTrace("custom_wait_started", new { actor.Id, stage, actor.Clock.Remaining }); }
+                    var holdState = actor.Clock.HoldingFinal ? "holding_final" : "waiting";
+                    if (actor.State != holdState)
+                    {
+                        actor.State = holdState;
+                        TacticalTrace(actor.Clock.HoldingFinal ? "custom_final_hold_started" : "custom_wait_started",
+                            new { actor.Id, stage, actor.Clock.Remaining, finish = actor.Source.Finish, side = plan.Side });
+                    }
                     if (now >= actor.NextDiagnostic)
                     {
                         TraceCustomTacticPosition(actor, pawn, goal, "custom_hold_progress");
@@ -464,7 +482,7 @@ public sealed partial class CareerMatchPlugin
                 if (actor.PathHold is { Active: true }) actor.PathHold.Keep();
                 if (!TacticalWaypointPolicy.ShouldCheckMovement(Server.TickCount, transit,
                     transit && goal.Reached(pos) && Math.Abs(goal.Z-pos.Z) < 24)) continue;
-                if (actor.State == "waiting")
+                if (actor.State is "waiting" or "holding_final")
                 { actor.BestDistance = float.MaxValue; actor.LastProgress = now; actor.Travel.Reset(now); }
                 if (distance + 400 < actor.BestDistance) { actor.BestDistance = distance; actor.LastProgress = now; }
                 if (actor.Travel.IsStalled(now, pos.X, pos.Y, MathF.Sqrt(distance)))

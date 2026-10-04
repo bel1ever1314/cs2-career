@@ -43,7 +43,7 @@ public sealed record TacticalBotCandidate(string Id, string Side, bool IsBot,
 
 public static class TacticalCommands
 {
-    public const string Usage = "正式比赛准备阶段输入 play <id> / 战术 <id>，或 rusha / rushb（或 rush a / rush b、全员A / 全员B）；default / 取消战术取消本轮指令。旧 tactic 指令仍兼容，仅指挥同队 Bot，不控制真人。";
+    public const string Usage = "准备阶段输入 play <id>。";
     public const int MaximumInputCharacters = 128;
 
     /// <summary>Only entire supported chat messages match; ordinary chat returns null.</summary>

@@ -5,6 +5,7 @@ const MapCanvas = preload("res://scripts/tactics_canvas.gd")
 const DEFAULT_MAPS := ["de_dust2", "de_mirage", "de_inferno", "de_nuke", "de_ancient", "de_anubis", "de_overpass", "de_train", "de_vertigo", "de_cache"]
 const DUTIES := [{"id":"auto", "name":"自动职责"}, {"id":"awp", "name":"主狙"}, {"id":"entry", "name":"突破"}, {"id":"rifle", "name":"步枪"}, {"id":"lurk", "name":"自由人"}, {"id":"igl", "name":"指挥"}]
 const MAX_BYTES := 256 * 1024
+const FINISHES := [{"id":"auto", "name":"自动：CT 留守，T 自主行动"}, {"id":"hold", "name":"留守最后位置"}, {"id":"native", "name":"恢复原生行动"}]
 var host: Node
 var map_code := "de_dust2"
 var libraries: Dictionary = {}
@@ -148,6 +149,8 @@ func render(parent: Node) -> void:
 	editor.add_child(slots_row)
 	for number in range(1, 6): button(slots_row, "TacticsSlot%d" % number, str(number), select_slot.bind(number))
 	choice(editor, "TacticsDuty", DUTIES, str(slot().get("duty", "auto")), func(value: String): slot()["duty"] = value; changed())
+	UI.label(editor, "路线结束后", 11, UI.MUTED)
+	choice(editor, "TacticsFinish", FINISHES, str(slot().get("finish", "auto")), func(value: String): slot()["finish"] = value; changed())
 	controls.step_count = UI.label(editor, "", 11, UI.MUTED)
 	var step_scroll := ScrollContainer.new()
 	step_scroll.custom_minimum_size.y = 98
@@ -190,7 +193,7 @@ func render(parent: Node) -> void:
 	button(step_actions, "TacticsStepUp", "上移", reorder_step.bind(-1))
 	button(step_actions, "TacticsStepDown", "下移", reorder_step.bind(1))
 	button(step_actions, "TacticsRemoveStep", "删除路点", remove_step)
-	UI.label(view, "等待 0 秒的中途路点是经过点，无需停稳；等待从到点后开始。最后一步完成后恢复原生 AI。", 11, UI.MUTED)
+	UI.label(view, "中途 0 秒不停留；最后按结束方式行动。留守时仍会射击，受伤、无线电或炸弹任务可接管。", 11, UI.MUTED)
 	var command_row := HBoxContainer.new()
 	view.add_child(command_row)
 	UI.label(command_row, "准备阶段聊天指令", 11, UI.MUTED)
@@ -199,7 +202,6 @@ func render(parent: Node) -> void:
 	button(command_row, "TacticsCopyCommand", "复制指令", copy_command)
 	button(command_row, "TacticsSync", "同步当前对局", sync_current_match)
 	controls.publication = UI.label(view, "", 11, UI.MUTED)
-	UI.label(view, "旧的 rusha / rushb 指令仍可使用。", 11, UI.MUTED)
 	controls.notice = UI.label(view, notice, 12, UI.MUTED)
 	controls.runtime = UI.label(view, "", 11, UI.MUTED)
 	refresh_library_controls()
@@ -310,6 +312,7 @@ func refresh(update_values: bool = false) -> void:
 		select_value(controls.TacticsAssignment, str(draft.get("assignment", "roster")))
 		select_value(controls.TacticsHumanSlot, str(draft.get("human_slot", 1)))
 		select_value(controls.TacticsDuty, str(slot().get("duty", "auto")))
+		select_value(controls.TacticsFinish, str(slot().get("finish", "auto")))
 		if has_step():
 			var step: Dictionary = steps()[selected_step]
 			controls.TacticsHold.set_value_no_signal(float(step.get("wait", 0)))
@@ -370,7 +373,11 @@ func refresh_timeline() -> void:
 	for index in range(steps().size()):
 		var step: Dictionary = steps()[index]
 		var wait_value := float(step.get("wait", 0))
-		var wait_text := "等待 %ss" % str(wait_value) if wait_value > 0 else ("经过点" if index < steps().size() - 1 else "恢复原生 AI")
+		var wait_text := "等待 %ss" % str(wait_value) if wait_value > 0 else "经过点"
+		if index == steps().size() - 1:
+			var finish := str(slot().get("finish", "auto"))
+			var final_text := "留守最后位置" if finish == "hold" or (finish == "auto" and draft.get("side") == "ct") else "恢复原生行动"
+			wait_text = (wait_text + " → " if wait_value > 0 else "") + final_text
 		var layer := str(step.get("level", "auto"))
 		var layer_text := "自动" if layer == "auto" else ("上层" if layer == "upper" else "下层")
 		var caption := "%d · %.0f, %.0f\n%s · %s · %s%s" % [index + 1, float(step.position[0]), float(step.position[1]), "静步" if step.get("movement", "run") == "walk" else "跑动", layer_text, wait_text, " · ↗" if step.get("look_at") is Array else ""]
@@ -643,8 +650,11 @@ func copy_route(target: String) -> void:
 		if number != selected_slot and (target == "all" or str(number) == target): targets.append(number)
 	if targets.is_empty(): return
 	var source := steps().duplicate(true)
+	var finish := str(slot().get("finish", "auto"))
 	var apply_copy := func():
-		for number in targets: draft.slots[number - 1]["steps"] = source.duplicate(true)
+		for number in targets:
+			draft.slots[number - 1]["steps"] = source.duplicate(true)
+			draft.slots[number - 1]["finish"] = finish
 		report_notice("路线已复制到%s，记得保存战术。" % ("其他四个位置" if target == "all" else "位置 " + target))
 		changed()
 	if targets.any(func(number): return not draft.slots[number - 1].steps.is_empty()): request_confirmation("目标位置已有步骤，复制后将替换，继续？", apply_copy)
@@ -700,10 +710,11 @@ func tactic_error(value) -> String:
 	for row in value.slots:
 		if not row is Dictionary or not row.has("slot") or not row.has("steps"): return "位置字段不完整。"
 		for key in row:
-			if key not in ["slot", "steps", "duty"]: return "位置包含未知字段：" + str(key)
+			if key not in ["slot", "steps", "duty", "finish"]: return "位置包含未知字段：" + str(key)
 		if (not row.slot is float and not row.slot is int) or float(row.slot) != int(row.slot) or int(row.slot) < 1 or int(row.slot) > 5 or int(row.slot) in seen: return "战术需要 1—5 号各一个位置。"
 		seen.append(int(row.slot))
 		if row.get("duty", "auto") not in ["auto", "awp", "entry", "rifle", "lurk", "igl"]: return "位置职责无效。"
+		if row.get("finish", "auto") not in ["auto", "hold", "native"]: return "路线结束方式无效。"
 		if not row.steps is Array or row.steps.size() > 12: return "每个位置最多 12 个路点。"
 		for step in row.steps:
 			if not step is Dictionary: return "路点字段无效。"

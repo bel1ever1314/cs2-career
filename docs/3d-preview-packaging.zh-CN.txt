@@ -1,7 +1,7 @@
-1.7.0-preview.3-hotfix.7 买枪补购修正版：构建与发布
+1.7.1 购买、发枪与战术更新：构建与发布
 
 GitHub 发布源码包和普通 3D Windows 包，设置为 Latest，保留旧版下载。
-名称保留 preview；Latest 使用非 draft、非 prerelease 发布属性。
+本次统一使用 1.7.1；Latest 使用非 draft、非 prerelease 发布属性。
 以前的朋友测试整合包单独保存在本地，本次仅发布普通运行包和源码包。
 源码包包括当前生涯内核、Godot 客户端、RTS、资源生成源码、测试及许可。
 运行包附带 Python 冻结后台和官方 Godot 运行器，不要求玩家安装开发工具。
@@ -11,8 +11,8 @@ Steam 和 CS2 由玩家自行安装；普通包的完整人机增强另行获取
 docs/external-runtime-pins.json。本次使用全新源码冻结后台，仅构建普通 Windows 包与源码包。
 
 公开归档：
-CS2Career-1.7.0-preview.3-hotfix.7-source.zip
-CS2Career-1.7.0-preview.3-hotfix.7-windows.zip
+CS2Career-1.7.1-source.zip
+CS2Career-1.7.1-windows.zip
 BUILD_MANIFEST.json
 SHA256SUMS.txt
 
@@ -36,8 +36,9 @@ tools/career3d_install.py：明确确认安装、关闭游戏检查和覆盖前�
 重建需要 Python 3.12、PyInstaller、orjson，以及 Godot 4.7.2 Windows 版。
 公开重封装使用 package_career3d_public.py 的 --source-zip、--windows-zip、
 --project-root 和 --output 参数；--output 是全新公开暂存目录。
-当前普通公开构建使用 --ordinary-only --version 1.7.0-preview.3-hotfix.7，不需要 --bot-stage。
-本次更新重点是无主武器时的买枪补购与狙位预算不足时的回退购买。
+当前普通公开构建使用 --ordinary-only --version 1.7.1，不需要 --bot-stage。
+本次更新重点是原生购买模板、消音 M4、队友发枪与战术守点、受伤避险。
+配套插件：BotBuy 1.0.12-career.10、CareerMatch 1.6.0-tactics.20。
 每次公开更新重新冻结后台，不复用旧版 EXE。源码、包内 CareerMatch.dll 和客户端
 需与本次发布对应。
 

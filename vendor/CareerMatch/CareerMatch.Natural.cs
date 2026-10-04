@@ -535,7 +535,7 @@ public sealed partial class CareerMatchPlugin
     private void SetNaturalTask(CCSPlayerController player,string phase,string kind,string lane,
         NaturalNode node,string reason,int deadlineSeconds=22)
     {
-        if (NativeRadioOwnsActor(player)) return;
+        if (NativeRadioOwnsActor(player) || NativeSafetyOwnsActor(player)) return;
         if(_naturalTasks.TryGetValue(player.Slot,out var old)&&old.TargetNodeId==node.Id
             &&old.Kind==kind&&old.Phase==phase) return;
         ReleaseMotionClip(player.Slot,"task_changed");
@@ -1037,7 +1037,7 @@ public sealed partial class CareerMatchPlugin
             {
                 // A player-issued opening plan owns strategic navigation for
                 // this side. Never let natural clips/holds fight that command.
-                if (TacticalOwnsActor(player.Slot, LiveSide(player)) || NativeRadioOwnsActor(player)) continue;
+                if (TacticalOwnsActor(player.Slot, LiveSide(player)) || NativeRadioOwnsActor(player) || NativeSafetyOwnsActor(player)) continue;
                 var cfg=NaturalConfig(player.Slot); var pawn=player.PlayerPawn.Value;
                 // BotHider may clear the engine fake-client flag. The signed
                 // career roster + native bot body identify eligibility; IsBot

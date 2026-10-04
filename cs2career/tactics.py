@@ -162,7 +162,10 @@ def validate_tactic(value, map_code: str = MAP) -> dict:
         raise ValueError("战术必须恰好包含 1–5 号五个槽位")
     slots, seen = [], set()
     for slot in row["slots"]:
-        slot = _keys(slot, {"slot", "steps"}, "槽位", {"duty"})
+        slot = _keys(slot, {"slot", "steps"}, "槽位", {"duty", "finish"})
+        finish = slot.get("finish", "auto")
+        if finish not in ("auto", "hold", "native"):
+            raise ValueError("路线结束方式只能是 auto、hold 或 native")
         duty = slot.get("duty", "auto")
         if duty not in DUTIES:
             raise ValueError("槽位职责只能是 auto、awp、entry、lurk、rifle 或 igl")
@@ -193,6 +196,8 @@ def validate_tactic(value, map_code: str = MAP) -> dict:
         clean_slot = {"slot": index, "steps": steps}
         if "duty" in slot:
             clean_slot["duty"] = duty
+        if "finish" in slot:
+            clean_slot["finish"] = finish
         slots.append(clean_slot)
     clean = {"id": ident, "name": name.strip(), "side": row["side"], "slots": sorted(slots, key=lambda s: s["slot"])}
     if "assignment" in row:

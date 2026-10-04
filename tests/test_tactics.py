@@ -139,6 +139,23 @@ class TacticalDataTests(unittest.TestCase):
         self.assertEqual("ability", result["tactics"][-1]["assignment"])
         self.assertEqual(4, result["tactics"][-1]["human_slot"])
 
+    def test_route_ending_round_trips_without_rewriting_old_routes(self):
+        legacy = tactic(side="ct")
+        self.assertNotIn("finish", tactics.validate_tactic(legacy)["slots"][0])
+        for finish in ("auto", "hold", "native"):
+            value = tactic(ident="finish_" + finish, side="ct")
+            value["slots"][0]["finish"] = finish
+            tactics.save_tactic(value)
+            stored = next(t for t in tactics.load_library()["tactics"] if t["id"] == value["id"])
+            self.assertEqual(finish, stored["slots"][0]["finish"])
+            imported = tactics.validate_tactic(json.loads(json.dumps(stored)))
+            self.assertEqual(stored, imported)
+        for invalid in (None, "", "rush", True, 1, [], {}):
+            value = tactic()
+            value["slots"][0]["finish"] = invalid
+            with self.subTest(finish=invalid), self.assertRaises(ValueError):
+                tactics.validate_tactic(value)
+
     def test_rejects_invalid_assignment_human_slot_and_duty(self):
         for invalid in (None, "captain", "ABILITY", True, 1, {}, []):
             with self.subTest(assignment=invalid), self.assertRaises(ValueError):

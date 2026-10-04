@@ -153,6 +153,21 @@ class EnvironmentLeaseTests(unittest.TestCase):
             self.assertEqual(data, self.bytes_for('cfg/' + name))
         self.assert_plugins_untouched()
 
+    def test_exit_restore_keeps_personal_settings_changed_during_play(self):
+        user_file = self.root / 'userdata/fixture/730/local/cfg/cs2_user_convars_0_slot0.vcfg'
+        user_file.parent.mkdir(parents=True)
+        before = b'"config" { "convars" { "cl_crosshairstyle" "4" } }'
+        after = b'"config" { "convars" { "cl_crosshairstyle" "6" "cl_crosshair_thickness" "2" } }'
+        user_file.write_bytes(before)
+        autoexec = self.csgo / 'cfg/autoexec.cfg'
+        autoexec.write_bytes(b'// personal settings\ncl_crosshair_gap -2\n')
+        enabled = environment.switch_environment(self.csgo, 'enhanced')
+        self.assertEqual(user_file.read_bytes(), before)
+        user_file.write_bytes(after)  # The player changed their crosshair in CS2.
+        environment.finish_watch(self.csgo, enabled['generation'])
+        self.assertEqual(user_file.read_bytes(), after)
+        self.assertEqual(autoexec.read_bytes(), b'// personal settings\ncl_crosshair_gap -2\n')
+
     def test_repeated_switch_keeps_same_game_bytes_and_no_duplicate_hook(self):
         first = environment.switch_environment(self.csgo, 'enhanced')
         first_gi = self.bytes_for('gameinfo.gi')

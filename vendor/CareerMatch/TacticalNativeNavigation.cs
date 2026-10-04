@@ -472,7 +472,8 @@ internal sealed class TacticalNativeNavigation
             // flags. The caller must additionally check the signed career roster.
             var weapon = pawn.WeaponServices?.ActiveWeapon.Value?.DesignerName ?? "";
             if (!inspectOnly && (nativeBot.IsEnemyVisible || nativeBot.IsAttacking || pawn.BlindUntilTime > Server.CurrentTime || pawn.IsDefusing ||
-                weapon.Contains("grenade") || weapon.Contains("flashbang") || weapon.Contains("molotov") || weapon.Contains("c4")))
+                weapon.Contains("grenade") || weapon.Contains("flashbang") || weapon.Contains("molotov") || weapon.Contains("c4")
+                || nativeBot.IsAvoidingGrenade.Timestamp > Server.CurrentTime))
             { reason = "native_combat_or_objective_retained"; return false; }
             bot = nativeBot.Handle; reason = ""; return true;
         }

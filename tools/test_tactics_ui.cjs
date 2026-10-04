@@ -10,6 +10,8 @@ const base=path.resolve(__dirname,'../cs2career/web/static'),editor=require(path
 const mapMetadata=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../cs2career/data/tactical_maps.json'),'utf8')).maps,meta=mapMetadata.de_dust2;
 const draft=()=>editor.fresh();
 function pure(){
+  for(const finish of ['auto','hold','native']){const v=draft();v.slots[2].finish=finish;assert.equal(editor.parseImport(v).tactic.slots[2].finish,finish);}
+  for(const finish of ['rush',null,1,{}]){const v=draft();v.slots[2].finish=finish;assert.throws(()=>editor.normalize(v));}
   const checked=editor.checkMeta(meta);assert.deepEqual(editor.pixelToWorld([0,0],checked),[-2476,3239]);
   assert.deepEqual(editor.pixelToWorld([1024,1024],meta),[2029.6000000000004,-1266.6000000000004]);
   for(const point of [[0,0],[512,512],[23.4,800.2]]){const pixel=editor.worldToPixel(editor.pixelToWorld(point,meta),meta);pixel.forEach((v,i)=>assert.ok(Math.abs(v-point[i])<1e-10));}

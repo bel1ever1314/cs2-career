@@ -21,7 +21,7 @@ import zipfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = '1.7.0-preview.1'
+VERSION = '1.7.1'
 MODELS = ('cozy_room.glb', 'chicken_club.glb', 'player_chicken.glb', 'major_walk.glb')
 ENGINE_VERSION = '4.7.2-stable'
 ENGINE_LEGAL_HASHES = {
@@ -221,7 +221,7 @@ def stage_game(source, target, engine, media_config, *, version=VERSION):
     project_file = target / 'project.godot'
     text = project_file.read_text('utf-8').replace(
         'config/name="CS2 Career · 俱乐部生活样板"',
-        f'config/name="CS2 Career {version} · 3D 测试版"')
+        f'config/name="CS2 Career {version} · 3D"')
     project_file.write_text(text, encoding='utf-8')
     # Import in the distributed location; .godot editor metadata is never shipped.
     result = subprocess.run([str(engine), '--headless', '--path', str(target), '--import'],
@@ -290,7 +290,7 @@ def archive(folder, destination, prefix=None):
             output.write(path, (prefix + '/' if prefix else '') + name)
 
 
-PREVIEW_README = '''CS2 Career 1.7.0-preview.1 · 本地 3D 测试版
+PREVIEW_README = '''CS2 Career 1.7.1 · 本地 3D 测试版
 
 解压整个文件夹，不要在压缩包里直接打开。双击“开始游戏.cmd”。
 不需要安装 Python 或 Godot。显卡兼容问题可试“兼容显卡启动.cmd”。

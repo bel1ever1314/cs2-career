@@ -37,7 +37,8 @@ public sealed class TacticalPlaybook
                 throw new InvalidDataException("tactical_playbook_tactic_invalid");
             foreach (var slot in tactic.Slots)
             {
-                if (slot.Steps is null || slot.Steps.Count > 12 || !TacticalSlotAssignment.ValidDuty(slot.Duty))
+                if (slot.Steps is null || slot.Steps.Count > 12 || !TacticalSlotAssignment.ValidDuty(slot.Duty)
+                    || !TacticalFinishPolicy.Valid(slot.Finish))
                     throw new InvalidDataException("tactical_playbook_steps_invalid");
                 foreach (var step in slot.Steps)
                     if (step is null || !TacticalMapCatalog.ContainsPoint(result.Map, step.Position) || step.Level is not ("auto" or "upper" or "lower")
@@ -95,6 +96,7 @@ public sealed class CustomTacticSlot
     [JsonRequired, JsonPropertyName("slot")] public int Slot { get; set; }
     [JsonRequired, JsonPropertyName("steps")] public List<CustomTacticStep> Steps { get; set; } = [];
     [JsonPropertyName("duty")] public string Duty { get; set; } = "auto";
+    [JsonPropertyName("finish")] public string Finish { get; set; } = "auto";
 }
 public sealed class CustomTacticStep
 {
@@ -152,15 +154,28 @@ public static class TacticalNavProjection
 }
 
 public enum TacticStepAction { Move, Wait, Paused, Advanced, Completed }
+internal static class TacticalFinishPolicy
+{
+    internal static bool Valid(string? finish) => finish is "auto" or "hold" or "native";
+    // Resolve against the accepted round's SIDE, never a roster's original side
+    // or a player's weapon role. Intermediate waits remain finite.
+    internal static bool HoldFinal(string finish, string side)
+        => finish == "hold" || (finish == "auto" && side == "ct");
+    internal static bool ObjectiveNeedsControl(bool finalHold, bool defusing, string weapon)
+        => finalHold && (defusing || weapon == "weapon_c4");
+}
 internal static class TacticalWaitPolicy
 {
     // A wait is a positional order, not a request to suspend native perception.
-    // Once acquired, keep movement ownership through braking and combat. Native
-    // aim, firing and use remain untouched by the movement-only lease.
+    // Once acquired, keep movement through braking and ordinary observation /
+    // firing. Damage and native grenade avoidance remove the actor BEFORE this
+    // policy runs. Native aim, firing and use remain untouched by the lease.
     internal static bool InHoldBounds(float distanceSquared, float heightDifference, float arrivalRadius)
         => distanceSquared <= (arrivalRadius+32)*(arrivalRadius+32) && Math.Abs(heightDifference) < 48;
     internal static bool ShouldHold(float wait, bool reached, bool holdingInBounds)
         => wait > 0 && (reached || holdingInBounds);
+    internal static bool ShouldHold(bool waiting, bool reached, bool holdingInBounds)
+        => waiting && (reached || holdingInBounds);
     internal static bool YieldToNative(bool holdPosition, bool nativeAction)
         => nativeAction && !holdPosition;
 }
@@ -189,11 +204,13 @@ internal sealed class TacticalTravelProgress
     }
 }
 
-public sealed class TacticalStepClock(IReadOnlyList<float> waits)
+public sealed class TacticalStepClock(IReadOnlyList<float> waits, bool holdFinal = false)
 {
     public int Stage { get; private set; }
     public bool Arrived { get; private set; }
     public float Remaining { get; private set; } = waits.Count > 0 ? waits[0] : 0;
+    public bool FinalHold => holdFinal && Stage == waits.Count - 1 && waits.Count > 0;
+    public bool HoldingFinal => FinalHold && Arrived && Remaining <= 0;
     private float? _lastWait;
     public TacticStepAction Tick(float now, bool reached, bool interrupted)
     {
@@ -205,6 +222,10 @@ public sealed class TacticalStepClock(IReadOnlyList<float> waits)
         if (_lastWait is { } last) Remaining = Math.Max(0, Remaining - Math.Clamp(now-last, 0, .25f));
         _lastWait = now;
         if (Remaining > 0) return TacticStepAction.Wait;
+        // Keep a real terminal task instead of extending the timer or dropping
+        // native ownership for a frame. Round/radio/danger/objective releases
+        // still remove the actor through the same control cleanup paths.
+        if (FinalHold) return TacticStepAction.Wait;
         Stage++; Arrived = false; _lastWait = null;
         Remaining = Stage < waits.Count ? waits[Stage] : 0;
         return Stage >= waits.Count ? TacticStepAction.Completed : TacticStepAction.Advanced;

@@ -4,6 +4,7 @@
   'use strict';
   const COLORS=['#ffad65','#65d6bc','#82adff','#cc9aff','#f592b5'];
   const DUTIES=[['auto','自动分配'],['awp','主狙'],['entry','突破'],['lurk','自由人'],['rifle','步枪手'],['igl','指挥']];
+  const FINISHES=[['auto','自动：CT 留守，T 自主行动'],['hold','留守最后位置'],['native','恢复原生行动']];
   const MAPS=[['dust2','Dust II'],['mirage','Mirage'],['inferno','Inferno'],['nuke','Nuke'],['ancient','Ancient'],['anubis','Anubis'],['overpass','Overpass'],['train','Train'],['vertigo','Vertigo'],['cache','Cache']].map(([map,name])=>({map:'de_'+map,name}));
   const MAP_IMAGE=/^\/tactical_maps\/(de_(?:dust2|mirage|inferno|nuke|ancient|anubis|overpass|train|vertigo|cache))(?:_lower)?\.png$/;
   const clone=value=>JSON.parse(JSON.stringify(value));
@@ -14,6 +15,8 @@
   const error=message=>{throw new Error(tr(message));};
   const entries=new WeakMap();
   root.CareerI18n?.register('en',{phrases:{
+    '路线结束后':'After the route','自动：CT 留守，T 自主行动':'Auto: CT holds, T resumes native AI','留守最后位置':'Hold the final position','恢复原生行动':'Resume native AI','路线结束方式无效。':'Invalid route ending.',
+    '中途 0 秒不停留；最后按结束方式行动。留守时仍会射击，受伤、无线电或炸弹任务可接管。':'Zero-wait intermediate points stay continuous. The final point follows the route ending. Holding preserves shooting; damage, radio and bomb objectives can take over.',
     '战术编辑器':'Tactic editor','五槽路线':'Five-slot routes','地图':'Map','雷达视图':'Radar view','实验功能，实际移动、等待和观察效果需进游戏验证。':'Experimental. Verify movement, waiting and observation in-game.',
     '路线、到点等待与箭头观察；下包后 T 守包、CT 回防。':'Routes, arrival waits and look arrows. After planting, T guards the site and CT retakes.',
     '分路、到点等待与箭头观察；交火优先原生 AI，下包后 T 守包、CT 回防。仅正式准备阶段选战术，不控制真人。':'Routes, arrival waits and look arrows; native combat takes priority. After planting, T guards and CT retakes. Select a tactic during official freeze time. The human player is never controlled.',
@@ -98,7 +101,9 @@
       if(row.steps.length>12)error('每个槽最多 12 步。');
       const duty=row.duty===undefined?'auto':row.duty;
       if(!DUTIES.some(([id])=>id===duty))error('槽位职责无效。');
-      return {slot:row.slot,duty,steps:row.steps.map(step=>{
+      const finish=row.finish===undefined?'auto':row.finish;
+      if(!FINISHES.some(([id])=>id===finish))error('路线结束方式无效。');
+      return {slot:row.slot,duty,finish,steps:row.steps.map(step=>{
         if(!record(step))error('步骤坐标需为两个有效数字。');
         const position=coordinates(step.position),wait=step.wait??0,level=step.level??'auto',movement=step.movement===undefined?'run':step.movement;
         if(!finite(wait)||wait<0||wait>30)error('等待需为 0—30 秒。');
@@ -120,7 +125,7 @@
     }
     return {map,tactic:normalize(value)};
   }
-  function fresh(side='t',taken=[]){let count=1,id='my_tactic';while(taken.some(row=>row.id===id))id='my_tactic_'+(++count);return{id,name:tr('自定义战术'),side,assignment:'roster',human_slot:1,slots:Array.from({length:5},(_,i)=>({slot:i+1,duty:'auto',steps:[]}))};}
+  function fresh(side='t',taken=[]){let count=1,id='my_tactic';while(taken.some(row=>row.id===id))id='my_tactic_'+(++count);return{id,name:tr('自定义战术'),side,assignment:'roster',human_slot:1,slots:Array.from({length:5},(_,i)=>({slot:i+1,duty:'auto',finish:'auto',steps:[]}))};}
   function mount(host){
     const state={map:'de_dust2',availableMaps:clone(MAPS),layer:'upper',draft:fresh(),base:null,originalId:null,slot:2,index:-1,lookMode:false,meta:null,list:[],busy:false,loaded:false,mapReady:false,drag:null,frame:null,slotLabels:['你 · 手动操作','队友1','队友2','队友3','队友4']};
     host.innerHTML='<div class="page-head"><h2>'+esc(tr('战术编辑器'))+'</h2><span class="hint">'+esc(tr('路线、到点等待与箭头观察；下包后 T 守包、CT 回防。'))+'</span></div><div class="tactics-layout"><aside class="tactics-library"><div class="tactics-library-title"><h3>'+esc(tr('已保存战术'))+'</h3><button class="btn sm" data-tactic-refresh>'+esc(tr('重新读取'))+'</button></div><label class="tactics-map-selector">'+esc(tr('地图'))+'<select data-tactic-map-select aria-label="'+esc(tr('地图'))+'">'+MAPS.map(row=>'<option value="'+row.map+'">'+esc(row.name)+'</option>').join('')+'</select></label><select data-tactic-filter aria-label="'+esc(tr('阵营'))+'"><option value="all">'+esc(tr('全部阵营'))+'</option><option value="t">'+esc(tr('进攻方 T'))+'</option><option value="ct">'+esc(tr('防守方 CT'))+'</option></select><div data-tactic-library></div></aside><section class="tactics-editor"><form data-tactic-form><div class="tactics-fields"><label>'+esc(tr('ID（聊天指令名）'))+'<input data-tactic-id required maxlength="32" pattern="[a-z0-9_-]{1,32}" spellcheck="false" autocomplete="off"></label><label>'+esc(tr('名称'))+'<input data-tactic-name required maxlength="40" autocomplete="off"></label><label>'+esc(tr('阵营'))+'<select data-tactic-side><option value="t">'+esc(tr('进攻方 T'))+'</option><option value="ct">'+esc(tr('防守方 CT'))+'</option></select></label></div><div class="tactics-toolbar"><button class="btn primary" type="submit" data-tactic-save>'+esc(tr('保存战术'))+'</button><button class="btn" type="button" data-tactic-new>'+esc(tr('新建'))+'</button><button class="btn" type="button" data-tactic-import>'+esc(tr('导入 JSON'))+'</button><button class="btn" type="button" data-tactic-export>'+esc(tr('导出当前'))+'</button><button class="btn" type="button" data-tactic-export-all>'+esc(tr('导出全部'))+'</button><button class="btn sm" type="button" data-tactic-delete>'+esc(tr('删除战术'))+'</button><input type="file" accept=".json,application/json" data-tactic-file hidden><small data-tactic-dirty></small></div><div class="tactics-slots">'+COLORS.map((color,i)=>'<button type="button" data-tactic-slot="'+(i+1)+'" style="--slot-color:'+color+'"><i></i><b>'+(i+1)+'</b><span data-tactic-count="'+(i+1)+'">0 / 12</span></button>').join('')+'</div><p class="hint tactics-slot-note">'+esc(tr('槽 1 是你（手动操作）；槽 2—5 是本场我方四名队友，按比赛请求顺序分配。'))+'</p><div class="tactics-workspace"><div class="tactics-map-panel"><div class="tactics-radar-controls" data-tactic-radar-controls hidden><label>'+esc(tr('雷达视图'))+'<select data-tactic-radar></select></label><span class="hint">'+esc(tr('雷达视图仅切换底图；每步层级请单独设置。'))+'</span></div><div class="tactics-map" data-tactic-map><img data-tactic-image alt="" draggable="false"><svg data-tactic-svg viewBox="0 0 1024 1024" role="application" aria-label="'+esc(tr('五槽路线'))+'"></svg></div><p class="hint">'+esc(tr('地图上点击添加步骤；拖动彩色点调整位置。'))+'</p><div class="tactics-copy"><label>'+esc(tr('将本槽路线复制到'))+'<select data-tactic-copy-to>'+COLORS.map((_,i)=>'<option value="'+(i+1)+'">'+(i+1)+'</option>').join('')+'<option value="all">'+esc(tr('全部其他槽'))+'</option></select></label><button class="btn sm" type="button" data-tactic-copy>'+esc(tr('复制路线'))+'</button></div></div><aside class="tactics-steps"><h3>'+esc(tr('本槽步骤'))+'</h3><div data-tactic-steps></div><div class="tactics-step-detail" data-tactic-detail hidden><h3>'+esc(tr('选中步骤'))+' <span data-tactic-step-number></span></h3><p><span>'+esc(tr('移动位置'))+'</span><code data-tactic-position></code></p><label>'+esc(tr('等待（秒）'))+'<input type="number" min="0" max="30" step="any" required data-tactic-wait></label><label>'+esc(tr('层级'))+'<select data-tactic-level><option value="auto">'+esc(tr('自动判断'))+'</option><option value="upper">'+esc(tr('上层'))+'</option><option value="lower">'+esc(tr('下层'))+'</option></select></label><p><span>'+esc(tr('观察目标'))+'</span><code data-tactic-look></code></p><div class="tactics-step-actions"><button class="btn sm" type="button" data-tactic-look-set>'+esc(tr('设置观察方向'))+'</button><button class="btn sm" type="button" data-tactic-look-clear>'+esc(tr('取消观察方向'))+'</button><button class="btn sm" type="button" data-tactic-up>'+esc(tr('上移'))+'</button><button class="btn sm" type="button" data-tactic-down>'+esc(tr('下移'))+'</button><button class="btn sm" type="button" data-tactic-step-delete>'+esc(tr('删除步骤'))+'</button></div></div><p class="hint" data-tactic-selection-note>'+esc(tr('先选择或添加一个步骤。'))+'</p></aside></div></form><div class="tactics-command"><div><span>'+esc(tr('准备阶段聊天指令'))+'</span><code data-tactic-command data-no-i18n></code></div><button class="btn sm" data-tactic-command-copy>'+esc(tr('复制指令'))+'</button><p class="hint">'+esc(tr('旧的 rusha / rushb 指令仍可使用。'))+'</p></div><p class="tactics-status" data-tactic-status role="status" aria-live="polite"></p><p class="hint tactics-runtime" data-tactic-runtime data-no-i18n></p></section></div>';
@@ -133,7 +138,9 @@
     q('.tactics-fields').after(assignmentControls);
     qa('[data-tactic-slot]').forEach((button,i)=>{const card=root.document.createElement('div');card.className='tactic-slot-card';button.before(card);card.append(button);const dutyLabel=root.document.createElement('label');dutyLabel.className='tactic-slot-duty';dutyLabel.innerHTML=esc(tr('槽位职责'))+'<select data-tactic-duty="'+(i+1)+'" aria-label="'+(i+1)+' · '+esc(tr('槽位职责'))+'">'+DUTIES.map(([id,name])=>'<option value="'+id+'">'+esc(tr(name))+'</option>').join('')+'</select>';card.append(dutyLabel);});
     q('.tactics-slot-note').dataset.tacticAssignmentNote='';
-    const transitNote=root.document.createElement('p');transitNote.className='hint tactics-transit-note';transitNote.textContent=tr('中途步骤等待为 0 时按经过点执行，不要求停稳；等待大于 0 才在点位停留。最后一步完成后恢复原生决策。');q('[data-tactic-steps]').after(transitNote);
+    const finishLabel=root.document.createElement('label');finishLabel.innerHTML=esc(tr('路线结束后'))+'<select data-tactic-finish>'+FINISHES.map(([id,name])=>'<option value="'+id+'">'+esc(tr(name))+'</option>').join('')+'</select>';q('[data-tactic-steps]').before(finishLabel);
+    const transitNote=root.document.createElement('p');transitNote.className='hint tactics-transit-note';transitNote.textContent=tr('中途 0 秒不停留；最后按结束方式行动。留守时仍会射击，受伤、无线电或炸弹任务可接管。');q('[data-tactic-steps]').after(transitNote);
+    q('.tactics-command > p').remove();
     qa('[data-tactic-slot]').forEach((button,i)=>{const label=root.document.createElement('span');label.className='tactic-slot-label';label.dataset.tacticSlotLabel=String(i+1);label.textContent=tr(state.slotLabels[i]);button.insertBefore(label,button.querySelector('[data-tactic-count]'));});
     const row=()=>state.draft.slots[state.slot-1],step=()=>row().steps[state.index],dirty=()=>JSON.stringify(state.draft)!==state.base;
     const status=(message,bad=false)=>{q('[data-tactic-status]').textContent=tr(message);q('[data-tactic-status]').classList.toggle('bad',bad);};
@@ -182,7 +189,10 @@
     };
     const scheduleMap=()=>{if(state.frame==null)state.frame=root.requestAnimationFrame(drawMap);};
     const listSteps=()=>{
-      q('[data-tactic-steps]').innerHTML=row().steps.length?row().steps.map((s,i)=>'<button type="button" data-tactic-step="'+i+'" class="'+(i===state.index?'selected':'')+'"><b>'+(i+1)+'</b><span>'+s.position.map(v=>Math.round(v)).join(', ')+'<small>'+esc(tr(s.movement==='walk'?'静步':'跑步'))+' · '+esc(s.level==='auto'?tr('自动判断'):s.level==='upper'?tr('上层'):tr('下层'))+' · '+esc(s.wait>0?tr('到点等待')+' '+s.wait+'s':tr(i<row().steps.length-1?'经过点（不停留）':'最终到点后恢复原生决策'))+(s.look_at?' · ↗':'')+'</small></span></button>').join(''):'<p class="hint">'+esc(tr('尚无步骤，点击地图开始。'))+'</p>';
+      q('[data-tactic-finish]').value=row().finish;
+      const holds=row().finish==='hold'||(row().finish==='auto'&&state.draft.side==='ct');
+      const waitText=(s,i)=>i<row().steps.length-1?(s.wait>0?tr('到点等待')+' '+s.wait+'s':tr('经过点（不停留）')):(s.wait>0?tr('到点等待')+' '+s.wait+'s → ':'')+tr(holds?'留守最后位置':'恢复原生行动');
+      q('[data-tactic-steps]').innerHTML=row().steps.length?row().steps.map((s,i)=>'<button type="button" data-tactic-step="'+i+'" class="'+(i===state.index?'selected':'')+'"><b>'+(i+1)+'</b><span>'+s.position.map(v=>Math.round(v)).join(', ')+'<small>'+esc(tr(s.movement==='walk'?'静步':'跑步'))+' · '+esc(s.level==='auto'?tr('自动判断'):s.level==='upper'?tr('上层'):tr('下层'))+' · '+esc(waitText(s,i))+(s.look_at?' · ↗':'')+'</small></span></button>').join(''):'<p class="hint">'+esc(tr('尚无步骤，点击地图开始。'))+'</p>';
       qa('[data-tactic-step]').forEach(b=>b.onclick=()=>select(state.slot,Number(b.dataset.tacticStep)));
     };
     const details=()=>{
@@ -246,7 +256,8 @@
     q('[data-tactic-map-select]').onchange=e=>loading(e.target.value);
     q('[data-tactic-radar]').onchange=e=>{if(state.busy)return;state.layer=e.target.value;showRadar();};
     q('[data-tactic-new]').onclick=()=>{if(discard()){setDraft(fresh(q('[data-tactic-side]').value,state.list));listLibrary();status('');}};
-    q('[data-tactic-id]').oninput=e=>{state.draft.id=e.target.value;updateDirty();};q('[data-tactic-name]').oninput=e=>{state.draft.name=e.target.value;updateDirty();};q('[data-tactic-side]').onchange=e=>{state.draft.side=e.target.value;updateDirty();};
+    q('[data-tactic-id]').oninput=e=>{state.draft.id=e.target.value;updateDirty();};q('[data-tactic-name]').oninput=e=>{state.draft.name=e.target.value;updateDirty();};q('[data-tactic-side]').onchange=e=>{state.draft.side=e.target.value;updateDirty();listSteps();};
+    q('[data-tactic-finish]').onchange=e=>{row().finish=e.target.value;updateDirty();listSteps();};
     q('[data-tactic-assignment]').onchange=e=>{state.draft.assignment=e.target.value;if(state.draft.assignment==='roster')state.draft.human_slot=1;assignmentDetails();lock();updateDirty();};
     q('[data-tactic-human-slot]').onchange=e=>{if(state.draft.assignment!=='ability')return;state.draft.human_slot=Number(e.target.value);assignmentDetails();updateDirty();};
     qa('[data-tactic-duty]').forEach(select=>select.onchange=e=>{state.draft.slots[Number(e.target.dataset.tacticDuty)-1].duty=e.target.value;updateDirty();});
@@ -261,7 +272,7 @@
     q('[data-tactic-copy]').onclick=()=>{
       const value=q('[data-tactic-copy-to]').value,targets=value==='all'?state.draft.slots.filter(s=>s.slot!==state.slot):[state.draft.slots[Number(value)-1]].filter(s=>s&&s.slot!==state.slot);
       if(!targets.length||!row().steps.length)return;if(targets.some(s=>s.steps.length)&&!root.confirm(tr('目标槽已有步骤，复制后将替换，继续？')))return;
-      const source=clone(row().steps);targets.forEach(s=>s.steps=clone(source));refreshEditor();status('路线已复制，记得保存战术。');
+      const source=clone(row().steps),finish=row().finish;targets.forEach(s=>{s.steps=clone(source);s.finish=finish;});refreshEditor();status('路线已复制，记得保存战术。');
     };
     const svg=q('[data-tactic-svg]');
     const pointer=event=>{const box=svg.getBoundingClientRect();return pixelToWorld([Math.max(0,Math.min(state.meta.width,(event.clientX-box.left)/box.width*state.meta.width)),Math.max(0,Math.min(state.meta.height,(event.clientY-box.top)/box.height*state.meta.height))],state.meta);};

@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Capabilities;
 using CareerTactics;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
 namespace BotBuyPatch;
 
@@ -18,6 +19,7 @@ public sealed partial class BotBuyPatch
     public override void Load(bool hotReload)
     {
         _buyApiLoaded = true;
+        Logger.LogInformation("Career BotBuy {Version} loaded", ModuleVersion);
         Capabilities.RegisterPluginCapability(TacticalBuying, () => ReceiveTacticalBuyPlan);
     }
     public override void Unload(bool hotReload)
@@ -78,12 +80,15 @@ public sealed partial class BotBuyPatch
             .Where(w => w is { IsValid: true } && TacticalBuyPolicy.PrimaryPrice(w.DesignerName) > 0).ToArray() ?? [];
         if (primaries.Length == 0)
         {
-            // Missing-primary purchases are handled once by the common fallback,
-            // after the native bot has had its normal opening purchase window.
+            // This method runs only for explicit player-issued duties. Normal
+            // roster snipers keep the engine's SniperPro purchase decision.
+            if (duty == "awp" && !IsFirstRoundOfHalf()
+                && (player.InGameMoneyServices?.Account ?? 0) >= TacticalBuyPolicy.AwpPrice + PurchaseReserve(player))
+                Buy(player, "weapon_awp");
             return;
         }
         if (primaries.Length != 1) return;
-        var weapon = primaries[0]!; var name = weapon.DesignerName; var entity = weapon.EntityHandle.Raw;
+        var weapon = primaries[0]!; var name = WeaponName(weapon); var entity = weapon.EntityHandle.Raw;
         var bought = _purchasedWeapons.GetValueOrDefault(player.Slot)?.GetValueOrDefault(name) ?? 0;
         var old = _roundStartWeapons.GetValueOrDefault(player.Slot)?.Contains(entity) ?? true;
         var money = player.InGameMoneyServices?.Account ?? 0;

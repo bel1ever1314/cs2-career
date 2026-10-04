@@ -19,7 +19,7 @@ import tempfile
 from typing import Mapping
 
 
-VERSION = "1.7.0-preview.1"
+VERSION = "1.7.1"
 PROJECT = "work/career3d_redesign"
 RTS_PROJECT = "work/career_rts"
 DEFAULT_ASSET_ROOT = Path("E:/CS2CareerTools/Career3DRedesign/assets")
@@ -75,7 +75,7 @@ TOOL_FILES = frozenset({
     "flow_evidence.py", "compare_player_flows.py", "playthrough.py",
     "promote_calibration_pack.py", "repair_cs2_runtime.py", "install_tactical_commands.py",
 })
-TOOL_TEST_DIRS = ("tools/identity-tests", "tools/botbuy-tests", "tools/botbuy-runtime-tests", "tools/tactical-tests")
+TOOL_TEST_DIRS = ("tools/identity-tests", "tools/botbuy-tests", "tools/botbuy-runtime-tests", "tools/tactical-tests", "tools/tactical-safety-tests")
 PRIVATE_HOME = re.compile(
     r"(?P<drive>[A-Z]:)(?P<separator>[/\\]+)Users[/\\]+(?P<user>[^/\\\s\"'<>]+)", re.I)
 CREDENTIAL = re.compile(

@@ -17,12 +17,6 @@ LEVELS = ('Low', 'Medium', 'High')
 # database, on all difficulties and roles; BotBuy enforces the same policy for
 # its purchases. It does not restrict a human's inventory or dropped weapons.
 EXCLUDED_PURCHASE_PREFERENCES = frozenset(('aug', 'scar20', 'g3sg1'))
-# These are the two weapon templates assigned to Career positions. Promote
-# existing full-buy rifles before budget rifles, without making the latter
-# unavailable on an eco. The designated sniper still considers AWP first.
-_MAIN_RIFLE_ORDER = ('ak47', 'm4a1_silencer', 'm4a1', 'sg556', 'famas', 'galilar')
-_ROLE_PURCHASE_ORDER = {'RiflePro': _MAIN_RIFLE_ORDER,
-                        'SniperPro': ('awp',) + _MAIN_RIFLE_ORDER}
 _WEAPON_LINE = re.compile(r'(?mi)^[ \t]*WeaponPreference[ \t]*=[ \t]*(\w+)'
                           r'[^\r\n]*(?:\r?\n|$)')
 PARAMETER_KEYS = (
@@ -33,19 +27,25 @@ PARAMETER_KEYS = (
 )
 
 
-def _prioritize_role_rifles(text: str) -> str:
-    """Reorder existing preference rows, preserving every other tuning row."""
-    def reorder(block):
-        body = block['body']
-        rows = list(_WEAPON_LINE.finditer(body))
-        priority = {weapon: index for index, weapon in enumerate(_ROLE_PURCHASE_ORDER[block['name']])}
-        ordered = sorted(rows, key=lambda row: priority.get(row[1].casefold(), len(priority)))
-        replacements = iter(row[0] for row in ordered)
-        body = _WEAPON_LINE.sub(lambda _row: next(replacements), body)
-        return block['header'] + body + block['end']
+def _adapt_role_weapons(text: str) -> str:
+    """Keep upstream order; replace its AUG slot with M4-S as requested.
+
+    Removing AUG outright moves the cheap FAMAS ahead of CT's ordinary rifle.
+    Do not re-sort the entire upstream template or touch ability/aiming rows.
+    """
+    def adapt(block):
+        seen = set()
+        def weapon(row):
+            name = row[1].casefold()
+            name = 'm4a1_silencer' if name == 'aug' else name
+            if name in seen:
+                return ''
+            seen.add(name)
+            return row[0][:row.start(1) - row.start()] + name + row[0][row.end(1) - row.start():]
+        return block['header'] + _WEAPON_LINE.sub(weapon, block['body']) + block['end']
 
     return re.sub(r'(?ms)(?P<header>^Template (?P<name>RiflePro|SniperPro)\b[^\r\n]*\r?\n)'
-                  r'(?P<body>.*?)(?P<end>^End[^\r\n]*(?:\r?\n|$))', reorder, text)
+                  r'(?P<body>.*?)(?P<end>^End[^\r\n]*(?:\r?\n|$))', adapt, text)
 
 
 @lru_cache(maxsize=3)
@@ -67,12 +67,12 @@ def preset(level: str) -> dict:
     templates = re.findall(r'(?ms)^Template [^\r\n]+\r?\n.*?^End\s*$', canonical)
     text = ('// Base: ' + level + '; shared career tiers: Medium templates only.\n'
             + default[0].rstrip() + '\n\n' + '\n\n'.join(t.rstrip() for t in templates) + '\n')
+    text = _adapt_role_weapons(text)
     text = re.sub(
         r'(?mi)^\s*WeaponPreference\s*=\s*(' + '|'.join(sorted(EXCLUDED_PURCHASE_PREFERENCES))
         + r')\s*(?://[^\r\n]*)?\r?\n',
         '', text,
     )
-    text = _prioritize_role_rifles(text)
     blocks = {}
     for block in re.finditer(r'(?ms)^(Default|Template [^\r\n]+)\r?\n(.*?)^End\s*$', text):
         name = block[1].split('//')[0].strip().removeprefix('Template ')

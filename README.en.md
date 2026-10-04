@@ -6,13 +6,13 @@ An unofficial CS2 player-career game. The idea is to give each match a story of 
 
 The career now has a 3D world to walk around in. You're a chicken with a dorm room, a club, a phone, and a computer. Develop your player and plan the season between matches; on match day, simulate the series, command your team in RTS, or enter CS2 and play it yourself.
 
-[Download the 1.7.0 3D preview](https://github.com/bel1ever1314/cs2-career/releases/latest) · [Download the 1.6.0 desktop release](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.6.0-hotfix.1) · [Changelog — Chinese](RELEASE_NOTES.md) · [Feedback](https://github.com/bel1ever1314/cs2-career/issues)
+[Download 1.7.1](https://github.com/bel1ever1314/cs2-career/releases/latest) · [Download the 1.6.0 desktop release](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.6.0-hotfix.1) · [Changelog](RELEASE_NOTES.md) · [Feedback](https://github.com/bel1ever1314/cs2-career/issues)
 
-The current version is **1.7.0-preview.3-hotfix.7, the bot weapon-purchase fallback update**. The **1.6.0-hotfix.1** desktop version remains available separately.
+The current version is **1.7.1**, bringing together the recent buying, teammate-drop and tactics updates. The **1.6.0-hotfix.1** desktop version remains available separately.
 
 ## Getting started
 
-1. Open the [latest release](https://github.com/bel1ever1314/cs2-career/releases/latest) and download `CS2Career-1.7.0-preview.3-hotfix.7-windows.zip`.
+1. Open the [latest release](https://github.com/bel1ever1314/cs2-career/releases/latest) and download `CS2Career-1.7.1-windows.zip`.
 2. Extract the entire archive into a writable folder. Run `Launch-CS2Career.cmd` or `开始游戏.cmd`.
 3. Follow the opening flow to create a player, draft abilities, and customize your chicken, or choose an era and take over a professional player.
 4. In your dorm, walk to the computer and press `E`, or press `P` to take out your phone.
@@ -48,7 +48,7 @@ On match day, you can also travel to the assigned venue from the doorway. Prepar
 
 This version supports Bot Improver 1.4.5. Accepted action radio commands such as Follow Me or Fall Back interrupt your team's custom tactics, including waypoint waits. Ordinary information calls keep the tactic running.
 
-Use these plugins for **local bot matches with `-insecure`**. Before returning to official matchmaking, disable or remove the plugins following their instructions and check your Steam launch options.
+Use these plugins for **local bot matches with `-insecure`**. Settings provides a one-click plugin switch, and Career restores the normal environment after its CS2 session exits. Before official matchmaking, confirm normal mode and remove `-insecure` from your Steam launch options.
 
 Skin loadouts can come from Career or a separately configured plugin such as [Inventory Simulator](https://github.com/ianlucas/cs2-css-inventory-simulator/releases). 3D skin inspection and direct sticker editing are optional interfaces, disabled by default, and require a separate tool and adapter. An external inspector is not bundled.
 

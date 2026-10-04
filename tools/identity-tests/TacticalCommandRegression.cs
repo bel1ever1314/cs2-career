@@ -83,7 +83,7 @@ internal static class TacticalCommandRegression
         Check(TacticalCommands.EligibleBots(allowed.Plan!, actors).SequenceEqual(new[] { "b1", "b2" }), "only valid living same-side ledger Bots, never human/takeover/opponent");
         Check(TacticalCommands.EligibleBots(new("n", 1, "spectator", "human", TacticalOrder.RushA, "A"), actors).Count == 0, "observer plan cannot target anyone");
         Check(TacticalCommands.EligibleBots(new("n", 1, "t", "human", TacticalOrder.Cancel, ""), actors).Count == 0, "cancel has no Bot action");
-        Check(TacticalCommands.Usage.Contains("不控制真人"), "help accurately states scope");
+        Check(TacticalCommands.Usage == "准备阶段输入 play <id>。", "help presents the supported play command without map-specific rush tips");
         Console.WriteLine($"{count} tactical-command checks passed (whole-chat parser, authorization, preparation scope, last-only queue, Bot-only targets).");
     }
 }

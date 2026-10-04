@@ -1281,6 +1281,15 @@ def mod_installed(csgo: Path) -> bool:
 
 def mod_runtime_file(relative: Path) -> bool:
     """Copy the bundled .NET host, not the upstream desktop executables."""
+    parts = tuple(part.casefold() for part in relative.parts)
+    # An existing/downloaded mod directory can contain its owner's personal
+    # config. Never install that over this player's crosshair, keys or video.
+    if 'userdata' in parts or (parts and parts[0] == 'cfg' and (
+        relative.suffix.casefold() == '.vcfg'
+        or relative.name.casefold() in {'autoexec.cfg', 'config.cfg', 'video.txt', 'cs2_video.txt'}
+        or relative.name.casefold().startswith(('cs2_user_', 'cs2_machine_', 'pwa_userconfig'))
+    )):
+        return False
     return relative.suffix.lower() != ".exe" or tuple(part.lower() for part in relative.parts[:3]) == (
         "addons", "counterstrikesharp", "dotnet"
     )

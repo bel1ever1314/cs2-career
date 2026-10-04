@@ -8,6 +8,7 @@ namespace BotBuyPatch;
 // eligibility, inventory, tactical and timer methods are compiled by the project.
 public sealed partial class BotBuyPatch
 {
+    public Microsoft.Extensions.Logging.TestLogger Logger { get; } = new();
     private bool _careerActive = true, _purchasePhase = true;
     private int _roundGeneration = 1;
     private string _roundMap = "de_mirage";
@@ -17,11 +18,10 @@ public sealed partial class BotBuyPatch
     private readonly Dictionary<int, HashSet<uint>> _roundStartWeapons = [];
     private readonly Dictionary<int, Dictionary<string, uint>> _purchasedWeapons = [];
     private readonly HashSet<uint> _refundingWeapons = [];
-    private float _emptyPrimaryReadyAt = 100.8f;
-    private readonly Dictionary<int, string> _emptyPrimaryDiagnostics = [];
+    private readonly Dictionary<CounterStrikeSharp.API.Modules.Utils.CsTeam, List<CCSPlayerController>> _poorPlayersByTeam = [];
     private readonly List<(float At, Action Callback)> _timers = [];
 
-    public int SwapCalls { get; private set; }
+    public int SwapCalls => FakeWorld.Players.Sum(p => p.RemovalCalls.Count);
     public int PurchasedCount => _purchasedWeapons.Values.Sum(items => items.Count);
     public IEnumerable<float> TimerTimes => _timers.Select(timer => timer.At);
 
@@ -30,19 +30,29 @@ public sealed partial class BotBuyPatch
         _careerRoles[player.SteamID] = role;
         _roundPawns[player.Slot] = player.PlayerPawn.Value!.EntityHandle.Raw;
         _roundStartWeapons[player.Slot] = [];
-        FakeWorld.Players.Add(player);
+        if (!FakeWorld.Players.Contains(player)) FakeWorld.Players.Add(player);
     }
 
     public void AssignDuty(CCSPlayerController player, string duty) => _tacticalDuties[player.SteamID] = duty;
     public void MarkPendingRefund(CBasePlayerWeapon weapon) => _refundingWeapons.Add(weapon.EntityHandle.Raw);
     public void MarkRoundStart(CCSPlayerController player, CBasePlayerWeapon weapon) =>
         _roundStartWeapons[player.Slot].Add(weapon.EntityHandle.Raw);
+    public void Purchased(CCSPlayerController player, string name) =>
+        OnItemPurchase(new() { Userid = player, Weapon = name }, new());
+    public void NewRoundForTest() { _roundGeneration++; _m4PreferenceAttempts.Clear(); }
     public void SetActive(bool active) => _careerActive = active;
     public void EndPurchasePhase() => _purchasePhase = false;
     public void NextRound() => _roundGeneration++;
-    public void Schedule() => ScheduleCareerChecks();
+    public void Schedule()
+    {
+        var players = CaptureRoundPlayers();
+        CapturePoorPlayers(players);
+        ScheduleTeamGifts(players);
+    }
+    public void GiveAgain() => GiveTeamWeapons(FakeWorld.Players);
     public void Apply(CCSPlayerController player) => ApplyCareerPurchases(player);
     public void TacticalOnly(CCSPlayerController player) => ApplyTacticalPurchase(player);
+    public string CanonicalWeapon(CBasePlayerWeapon weapon) => WeaponName(weapon);
     public bool PurchaseDirect(CCSPlayerController player, string weapon) => Buy(player, weapon);
 
     public void Advance(float now)
@@ -61,12 +71,7 @@ public sealed partial class BotBuyPatch
     private string PurchaseRole(CCSPlayerController player) =>
         _tacticalDuties.TryGetValue(player.SteamID, out var duty) && duty != "auto" ? duty : CareerRole(player);
 
-    // Refund/replacement are outside this empty-inventory harness. Carried items
-    // are deliberately not refundable, so no fixture can fabricate buy proof.
-    private bool CanRefund(CCSPlayerController player, string weapon) => false;
-    private bool Swap(CCSPlayerController player, string oldWeapon, string newWeapon)
-    {
-        SwapCalls++;
-        return false;
-    }
+    // Non-career legacy refund history is unrelated to the verified per-round
+    // primary transaction under test. The primary refund and swap run production.
+    private (List<string> Weapons, int Money, int Armor) PreviousInventory(CCSPlayerController player) => ([], 0, 0);
 }

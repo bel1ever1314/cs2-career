@@ -1633,3 +1633,9 @@ CS2 正在运行，请完全退出后再切换插件。	CS2 is running. Fully cl
 插件加载入口已关闭。\n%s	Plugin loading is disabled.\n%s
 Steam 的 CS2 启动选项仍含 -insecure；请在 Steam → CS2 → 属性 → 启动选项中移除后再打排位。	CS2's Steam launch options still contain -insecure. Remove it under Steam → CS2 → Properties → Launch Options before playing ranked.
 暂时无法确认 Steam 的 CS2 启动选项，请在 Steam 属性中检查。	CS2's Steam launch options could not be confirmed. Check them in Steam Properties.
+路线结束后	After the route
+自动：CT 留守，T 自主行动	Auto: CT holds, T resumes native AI
+留守最后位置	Hold the final position
+恢复原生行动	Resume native AI
+路线结束方式无效。	Invalid route ending.
+中途 0 秒不停留；最后按结束方式行动。留守时仍会射击，受伤、无线电或炸弹任务可接管。	Zero-wait intermediate points stay continuous. The final point follows the route ending. Holding preserves shooting; damage, radio and bomb objectives can take over.

@@ -39,8 +39,9 @@ class Package3DTests(unittest.TestCase):
                 self.assertEqual(set(output.namelist()), {
                     'preview/licenses/runtime/LICENSE.txt', 'preview/game/data/career_link.json'})
 
-    def test_preview_version_not_stable_release(self):
-        self.assertEqual(VERSION, '1.7.0-preview.1')
+    def test_release_version_matches_source_stager(self):
+        self.assertEqual(VERSION, '1.7.1')
+        self.assertEqual(VERSION, source_pkg.VERSION)
 
     def legal_fixture(self, base):
         engine = base / 'Godot.exe'

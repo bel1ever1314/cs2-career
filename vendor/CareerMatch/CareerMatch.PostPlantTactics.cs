@@ -65,7 +65,7 @@ public sealed partial class CareerMatchPlugin
             var actualPlan = plan with { Site = siteName };
             var players = AllSlots().Where(p => ControllerId(p) is { } id && id != plan.IssuerId
                 && _ledger.GetValueOrDefault(id)?.IsBot == true && LiveSide(p) == plan.Side
-                && !NativeRadioOwnsActor(p)
+                && !NativeRadioOwnsActor(p) && !NativeSafetyOwnsActor(p)
                 && !p.ControllingBot && !p.HasBeenControlledByPlayerThisRound
                 && p.PlayerPawn.Value is { IsValid: true, Health: > 0, Bot: not null, AbsOrigin: not null }).ToArray();
             var prepared = new List<PostPlantActor>();
@@ -131,9 +131,6 @@ public sealed partial class CareerMatchPlugin
             TacticalTrace("post_plant_started", new { side = plan.Side, siteName,
                 mode = plan.Side == "t" ? "guard_site" : "retake_then_native_defuse",
                 targets = prepared.Select(a => new { a.Id, a.Target }) });
-            AllSlots().FirstOrDefault(p => ControllerId(p) == plan.IssuerId)?.PrintToChat(plan.Side == "t"
-                ? " \x04炸弹已下：原战术结束，队友留在包点守包。\x01"
-                : " \x04炸弹已下：原战术结束，队友回防实际包点。\x01");
         }
         catch (Exception ex)
         {
@@ -142,7 +139,7 @@ public sealed partial class CareerMatchPlugin
             _postPlantState = "unavailable:" + ex.Message;
             TacticalTrace("post_plant_unavailable", new { reason = ex.Message });
             AllSlots().FirstOrDefault(p => ControllerId(p) == plan.IssuerId)?.PrintToChat(
-                " \x02原战术已结束，但实际包点任务未能建立，队友暂用原生 AI。输入 css_tactics 查看原因。\x01");
+                " \x02包点任务未能建立，队友继续原生 AI。输入 css_tactics 查看原因。\x01");
         }
     }
 
@@ -180,6 +177,8 @@ public sealed partial class CareerMatchPlugin
                     || pawn.EntityHandle.Raw != actor.Pawn)
                 { ReleasePostPlantActor(actor, "death_takeover_disconnect"); _postPlantActors.Remove(actor.Slot); continue; }
                 var now = Server.CurrentTime; var bot = pawn.Bot;
+                if ((pawn.Health < actor.Health || bot.IsAvoidingGrenade.Timestamp > now)
+                    && ReleaseTacticForDanger(p, pawn.Health < actor.Health ? "health_loss" : "avoiding_grenade")) continue;
                 var weapon = pawn.WeaponServices?.ActiveWeapon.Value?.DesignerName ?? "";
                 var combat = bot.IsEnemyVisible || bot.IsAttacking || pawn.Health < actor.Health || pawn.BlindUntilTime > now
                     || pawn.IsDefusing || weapon.Contains("grenade") || weapon.Contains("flashbang")

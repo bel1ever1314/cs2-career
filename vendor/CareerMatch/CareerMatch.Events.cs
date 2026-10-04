@@ -205,6 +205,7 @@ public sealed partial class CareerMatchPlugin
     private HookResult OnPlayerHurt(EventPlayerHurt ev, GameEventInfo info)
     {
         if (!_roundLive || InWarmup()) return HookResult.Continue;
+        OnTacticalDamage(ev);
         if (ev.DmgHealth <= 0) return HookResult.Continue;
         NaturalObserveCombat(ev.Attacker, ev.Userid, false);
         BindPlayerSlots();

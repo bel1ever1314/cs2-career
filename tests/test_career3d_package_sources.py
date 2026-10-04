@@ -16,6 +16,12 @@ spec.loader.exec_module(pkg)
 
 
 class Career3DSourcePackageTests(unittest.TestCase):
+    def test_tactical_safety_production_harness_is_in_public_source(self):
+        root = Path(__file__).resolve().parents[1]
+        selected = {path.relative_to(root).as_posix() for path in pkg.source_files(root)}
+        for name in ('Program.cs', 'TacticalSafetyTests.csproj'):
+            self.assertIn('tools/tactical-safety-tests/' + name, selected)
+
     def test_public_python_imports_have_their_local_tool_sources(self):
         root = Path(__file__).resolve().parents[1]
         selected = {path.relative_to(root).as_posix() for path in pkg.source_files(root)}

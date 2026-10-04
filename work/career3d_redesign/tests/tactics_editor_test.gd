@@ -40,6 +40,8 @@ func mouse_button(point: Vector2, button_index: int, pressed: bool = true) -> In
 	return event
 
 func run() -> void:
+	check("--no-service" in OS.get_cmdline_user_args(), "fixture forbids a live backend")
+	if not failures.is_empty(): get_tree().quit(1); return
 	get_viewport().size = Vector2i(1280, 720)
 	if "--capture" in OS.get_cmdline_user_args():
 		get_window().content_scale_size = Vector2i(1280, 720)
@@ -56,6 +58,16 @@ func run() -> void:
 	check(editor.controls.TacticsId is LineEdit and editor.controls.TacticsId.max_length == 32, "chat-command ID is editable")
 	check(editor.controls.TacticsDuty.is_visible_in_tree() and not editor.controls.TacticsDuty.disabled, "duties are editable under roster assignment")
 	check(editor.controls.TacticsHumanSlot.disabled, "roster assignment fixes manual slot to one")
+	check(editor.controls.TacticsFinish.item_count == 3 and not editor.controls.TacticsFinish.disabled, "route has auto / hold / native endings")
+	editor.controls.TacticsFinish.select(1)
+	editor.controls.TacticsFinish.item_selected.emit(1)
+	check(editor.slot().get("finish") == "hold" and editor.tactic_error(editor.draft).is_empty(), "hold ending is editable and exportable")
+	editor.controls.TacticsFinish.select(2)
+	editor.controls.TacticsFinish.item_selected.emit(2)
+	check(editor.slot().get("finish") == "native", "native ending remains an explicit choice")
+	editor.controls.TacticsFinish.select(0)
+	editor.controls.TacticsFinish.item_selected.emit(0)
+	check(editor.slot().get("finish") == "auto", "auto ending can be restored")
 	check(Computer.content.get_combined_minimum_size().x <= Computer.scroll.size.x + 1, "detailed editor fits monitor width")
 	var editor_id: int = editor.view.get_instance_id()
 	var canvas_id: int = editor.canvas.get_instance_id()
@@ -157,6 +169,7 @@ func run() -> void:
 	check(editor.selected_step == 1 and editor.steps()[1].position == expected, "reordering keeps the complete selected step together")
 	editor.copy_route("2")
 	check(editor.draft.slots[1].steps == editor.steps(), "copy route copies all step details")
+	check(editor.draft.slots[1].get("finish") == editor.slot().get("finish"), "copy route retains final task intent")
 	editor.steps()[0].wait = 7
 	check(editor.draft.slots[1].steps[0].wait != 7, "copied routes are independent nested data")
 	editor.copy_route("2")

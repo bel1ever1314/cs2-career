@@ -10,7 +10,10 @@
     <Compile Include="Program.cs" />
     <Compile Include="FakeCounterStrikeSharp.cs" />
     <Compile Include="BotBuyTestHost.cs" />
-    <Compile Include="../../vendor/BotBuy/BotBuy.FullBuy.cs" Link="BotBuy.FullBuy.cs" />
+    <Compile Include="../../vendor/BotBuy/BotBuy.CareerRules.cs" Link="BotBuy.CareerRules.cs" />
+    <Compile Include="../../vendor/BotBuy/BotBuy.M4Preference.cs" Link="BotBuy.M4Preference.cs" />
+    <Compile Include="../../vendor/BotBuy/BotBuy.TeamGifts.cs" Link="BotBuy.TeamGifts.cs" />
+    <Compile Include="../../vendor/BotBuy/BotBuy.WeaponIdentity.cs" Link="BotBuy.WeaponIdentity.cs" />
     <Compile Include="../../vendor/BotBuy/CareerWeaponPolicy.cs" Link="CareerWeaponPolicy.cs" />
     <Compile Include="../../vendor/BotBuy/TacticalBuyPlan.cs" Link="TacticalBuyPlan.cs" />
   </ItemGroup>
@@ -31,18 +34,27 @@
         var source = File.ReadAllText(SourceFile);
         var tactical = File.ReadAllText(TacticalFile);
         var generated = "using CounterStrikeSharp.API;\nusing CounterStrikeSharp.API.Core;\nusing CounterStrikeSharp.API.Modules.Utils;\nusing CounterStrikeSharp.API.Modules.Cvars;\nusing CounterStrikeSharp.API.Modules.Timers;\nusing CareerTactics;\nnamespace BotBuyPatch;\npublic sealed partial class BotBuyPatch\n{\n";
-        foreach (var name in new[] { "CanModify", "HasPrimaryWeapon", "Buy", "IsFirstRoundOfHalf", "AddRoundTimer", "NormalizePurchasedWeapons" })
+        foreach (var name in new[] { "CanModify", "HasPrimaryWeapon", "Buy", "Refund", "CanRefund", "Swap", "IsFirstRoundOfHalf", "AddRoundTimer", "NormalizePurchasedWeapons" })
         {
             var match = Regex.Match(source, @"(?m)^    private (?:bool|void) " + name + @"\([^\r\n]*\)[\s\S]*?^    }");
             if (!match.Success) throw new InvalidOperationException("Production method missing: " + name);
             generated += match.Value + "\n";
         }
+        var onPurchase = Regex.Match(source, @"(?m)^    public HookResult OnItemPurchase\([^\r\n]*\)[\s\S]*?^    }");
+        if (!onPurchase.Success) throw new InvalidOperationException("Production purchase handler missing");
+        generated += onPurchase.Value + "\n";
         var purchase = Regex.Match(tactical, @"(?m)^    private void ApplyTacticalPurchase\([^\r\n]*\)[\s\S]*?^    }");
         if (!purchase.Success) throw new InvalidOperationException("Production tactical purchase method missing");
         generated += purchase.Value + "\n";
-        var schedule = Regex.Match(source, @"(?m)^        if \(_careerActive\)\r?\n            foreach \(var delay in new\[\][\s\S]*?^                }\);");
-        if (!schedule.Success) throw new InvalidOperationException("Production career purchase schedule missing");
-        generated += "private void ScheduleCareerChecks()\n{\n" + schedule.Value + "\n}\n}\n";
+        if (!source.Contains("var allPlayers = CaptureRoundPlayers();")
+            || !source.Contains("CapturePoorPlayers(allPlayers);")
+            || !source.Contains("ScheduleTeamGifts(allPlayers);"))
+            throw new InvalidOperationException("Production round handler must wire the tested gift roster and schedule");
+        if (source.Contains("allPlayers = allPlayers.Where(CanModify)") || source.Contains("_emptyPrimaryReadyAt"))
+            throw new InvalidOperationException("Human gift filter / retired full-buy loop must not return");
+        if (!source.Contains("_m4PreferenceAttempts.Clear();"))
+            throw new InvalidOperationException("M4 correction guard must reset each round");
+        generated += "}\n";
         Directory.CreateDirectory(Path.GetDirectoryName(OutputFile));
         File.WriteAllText(OutputFile, generated);
       ]]></Code>

@@ -1,5 +1,21 @@
+namespace Microsoft.Extensions.Logging
+{
+    public sealed class TestLogger
+    {
+        public void LogInformation(string message, params object[] values) =>
+            CounterStrikeSharp.API.Server.Console.Add(message + string.Join(" ", values));
+    }
+}
+
 namespace CounterStrikeSharp.API.Core
 {
+    public enum HookResult { Continue }
+    public sealed class GameEventInfo { }
+    public sealed class EventItemPurchase
+    {
+        public CCSPlayerController? Userid { get; set; }
+        public string Weapon { get; set; } = "";
+    }
     public sealed class CHandle<T>(T? value) where T : class
     {
         public T? Value { get; set; } = value;
@@ -34,7 +50,12 @@ namespace CounterStrikeSharp.API.Core
         }
     }
 
-    public sealed class CBasePlayerWeapon(EntityData entity) : CEntityInstance(entity);
+    public sealed class CBasePlayerWeapon(EntityData entity) : CEntityInstance(entity)
+    {
+        public AttributeManager AttributeManager { get; } = new();
+    }
+    public sealed class AttributeManager { public Item Item { get; } = new(); }
+    public sealed class Item { public ushort ItemDefinitionIndex { get; set; } }
 
     public sealed class CCSPlayer_WeaponServices
     {
@@ -74,6 +95,7 @@ namespace CounterStrikeSharp.API.Core
     {
         public bool IsValid { get; set; } = true;
         public bool IsBot { get; set; } = true;
+        public string PlayerName { get; set; } = "test bot";
         public bool ControllingBot { get; set; }
         public bool HasBeenControlledByPlayerThisRound { get; set; }
         public IntPtr Handle { get; set; } = new(10);
@@ -86,14 +108,31 @@ namespace CounterStrikeSharp.API.Core
         public CHandle<CCSPlayerController> OriginalControllerOfCurrentPawn { get; } = new(null);
         public InGameMoneyServices? InGameMoneyServices { get; set; } = new() { Account = 4350 };
         public List<string> GiveCalls { get; } = [];
+        public List<string> RemovalCalls { get; } = [];
+        public bool RemoveSucceeds { get; set; } = true;
+        public bool DeferredRemoval { get; set; }
+        public List<string> Chat { get; } = [];
+        public void PrintToChat(string text) => Chat.Add(text);
         public Func<CCSPlayerController, string, SpawnMode>? GiveBehavior { get; set; }
+        public bool SharedVariantClass { get; set; }
+
+        public bool RemoveItemByDesignerName(string name)
+        {
+            RemovalCalls.Add(name);
+            if (!RemoveSucceeds) return false;
+            var item = PlayerPawn.Value!.WeaponServices!.MyWeapons.FirstOrDefault(h => h.Value is { IsValid: true } w && w.DesignerName == name);
+            if (item is null) return false;
+            if (!DeferredRemoval) item.Value!.AcceptInput("Kill");
+            return true;
+        }
 
         public IntPtr GiveNamedItem(string name)
         {
             GiveCalls.Add(name);
             var mode = GiveBehavior?.Invoke(this, name) ?? SpawnMode.Attached;
             if (mode == SpawnMode.Zero) return IntPtr.Zero;
-            var weapon = FakeWorld.NewWeapon(name);
+            var weapon = FakeWorld.NewWeapon(SharedVariantClass && name == "weapon_m4a1_silencer" ? "weapon_m4a1" : name);
+            if (SharedVariantClass && name == "weapon_m4a1_silencer") weapon.AttributeManager.Item.ItemDefinitionIndex = 60;
             var handle = new IntPtr(weapon.EntityHandle.Raw);
             if (mode == SpawnMode.Invalid) FakeWorld.Entities[handle].IsValid = false;
             if (mode == SpawnMode.Attached)
@@ -145,6 +184,7 @@ namespace CounterStrikeSharp.API.Core
             CounterStrikeSharp.API.Server.CurrentTime = 100f;
             CounterStrikeSharp.API.Server.MapName = "de_mirage";
             CounterStrikeSharp.API.Server.Console.Clear();
+            CounterStrikeSharp.API.Server.Frames.Clear();
             CounterStrikeSharp.API.Modules.Cvars.ConVar.Reset();
         }
     }
@@ -157,6 +197,13 @@ namespace CounterStrikeSharp.API
         public static float CurrentTime { get; set; }
         public static string MapName { get; set; } = "de_mirage";
         public static List<string> Console { get; } = [];
+        public static Queue<Action> Frames { get; } = [];
+        public static void NextFrame(Action action) => Frames.Enqueue(action);
+        public static void RunNextFrame()
+        {
+            var callbacks = Frames.ToArray(); Frames.Clear();
+            foreach (var action in callbacks) action();
+        }
         public static void PrintToConsole(string message) => Console.Add(message);
     }
 
@@ -178,6 +225,7 @@ namespace CounterStrikeSharp.API
 namespace CounterStrikeSharp.API.Modules.Utils
 {
     public enum CsTeam { None, Spectator, Terrorist, CounterTerrorist }
+    public static class ChatColors { public const string Green = "", Yellow = ""; }
 }
 
 namespace CounterStrikeSharp.API.Modules.Timers
@@ -192,14 +240,15 @@ namespace CounterStrikeSharp.API.Modules.Cvars
         private static readonly Dictionary<string, ConVar> Values = [];
         private object _value = "";
         public string StringValue => _value.ToString() ?? "";
-        public T GetPrimitiveValue<T>() => (T)Convert.ChangeType(_value, typeof(T));
+        public T GetPrimitiveValue<T>() => _value is T typed ? typed
+            : throw new InvalidOperationException($"ConVar is a {_value.GetType().Name} but you are trying to get a {typeof(T)} value.");
         public static ConVar? Find(string name) => Values.GetValueOrDefault(name);
         public static void Set(string name, object value) => Values[name] = new() { _value = value };
         public static void Reset()
         {
             Values.Clear();
             Set("bot_loadout", ""); Set("mp_maxmoney", 16000);
-            Set("mp_freezetime", 15f); Set("mp_maxrounds", 24);
+            Set("mp_freezetime", 15); Set("mp_maxrounds", 24);
             Set("mp_overtime_maxrounds", 6);
         }
     }

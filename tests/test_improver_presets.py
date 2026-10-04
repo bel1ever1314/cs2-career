@@ -128,43 +128,22 @@ class ImproverPresetTests(unittest.TestCase):
             self.assertRegex(sniper, r'WeaponPreference\s*=\s*awp\b')
             self.assertEqual(source['template_hash'], hashlib.sha256(source['text'].encode()).hexdigest())
 
-    def test_full_buy_rifles_precede_famas_galil_on_every_difficulty(self):
-        for level in presets.LEVELS:
-            source = presets.preset(level)['text']
-            for role in ('RiflePro', 'SniperPro'):
-                body = re.search(rf'(?ms)^Template {role}\s*\n(.*?)^End', source)[1]
-                weapons = re.findall(r'WeaponPreference\s*=\s*(\w+)', body)
-                with self.subTest(level=level, role=role):
-                    for full_buy in ('ak47', 'm4a1_silencer', 'm4a1'):
-                        for budget in ('famas', 'galilar'):
-                            self.assertLess(weapons.index(full_buy), weapons.index(budget))
-                    self.assertLess(weapons.index('famas'), weapons.index('deagle'))
-                    self.assertLess(weapons.index('galilar'), weapons.index('deagle'))
-                    self.assertEqual(len(weapons), len(set(weapons)))
-                    if role == 'SniperPro':
-                        self.assertEqual('awp', weapons[0])
-                    else:
-                        self.assertEqual('ak47', weapons[0])
-
-    def test_reordering_does_not_change_archives_or_remove_economy_choices(self):
-        paths = [presets.data_file(f'botprofile_presets/{level}.db') for level in presets.LEVELS]
-        original = {path: path.read_bytes() for path in paths}
-        archived = paths[1].read_text(encoding='utf-8')
-        # The archival source still exposes the exact old ordering for audit.
-        old_rifle = re.search(r'(?ms)^Template RiflePro\s*\n(.*?)^End', archived)[1]
-        self.assertLess(old_rifle.index('famas'), old_rifle.index('m4a1_silencer'))
+    def test_native_role_preferences_keep_upstream_order_with_requested_aug_substitution(self):
+        archived = presets.data_file('botprofile_presets/Medium.db').read_text(encoding='utf-8')
         for level in presets.LEVELS:
             source = presets.preset(level)['text']
             for role in ('RiflePro', 'SniperPro'):
                 old = re.search(rf'(?ms)^Template {role}\s*\n(.*?)^End', archived)[1]
                 new = re.search(rf'(?ms)^Template {role}\s*\n(.*?)^End', source)[1]
-                expected = [weapon for weapon in re.findall(r'WeaponPreference\s*=\s*(\w+)', old)
-                            if weapon not in presets.EXCLUDED_PURCHASE_PREFERENCES]
-                self.assertCountEqual(expected, re.findall(r'WeaponPreference\s*=\s*(\w+)', new))
+                expected = list(dict.fromkeys(
+                    'm4a1_silencer' if name == 'aug' else name
+                    for name in re.findall(r'WeaponPreference\s*=\s*(\w+)', old)
+                    if name not in ('scar20', 'g3sg1')))
+                self.assertEqual(expected, re.findall(r'WeaponPreference\s*=\s*(\w+)', new))
+                self.assertLess(expected.index('m4a1_silencer'), expected.index('famas'))
+                self.assertEqual(expected[0], 'awp' if role == 'SniperPro' else 'ak47')
                 non_weapons = re.compile(r'(?m)^[ \t]*WeaponPreference[^\r\n]*(?:\r?\n|$)')
                 self.assertEqual(non_weapons.sub('', old), non_weapons.sub('', new))
-        for path, content in original.items():
-            self.assertEqual(content, path.read_bytes())
 
     def test_other_weapon_styles_and_personalities_are_not_reordered(self):
         archived = presets.data_file('botprofile_presets/Medium.db').read_text(encoding='utf-8')
@@ -179,17 +158,33 @@ class ImproverPresetTests(unittest.TestCase):
         self.assertEqual(('RiflePro', 'RusherPersonality'), ROLE_STYLE['entry'])
         self.assertEqual(('SniperPro', 'SniperPersonality'), ROLE_STYLE['awp'])
 
-    def test_reorder_is_idempotent_and_preserves_non_weapon_rows_and_comments(self):
+    def test_m4_purchase_compatibility_candidates_are_lower_priority_in_real_templates(self):
+        # BotBuy's narrowly scoped correction must remain consistent with the
+        # generated native templates, including the sniper's AWP-first order.
+        from cs2career.cs2.profiles import ROLE_STYLE
+        candidates = ('famas', 'm4a1', 'p90', 'mp9')
+        for level in presets.LEVELS:
+            text = presets.preset(level)['text']
+            for role in ('rifle', 'entry', 'support', 'igl', 'lurk', 'awp'):
+                template = ROLE_STYLE[role][0]
+                block = re.search(rf'(?ms)^Template {template}\s*\n(.*?)^End', text)[1]
+                weapons = re.findall(r'WeaponPreference\s*=\s*(\w+)', block)
+                for candidate in candidates:
+                    if candidate in weapons:
+                        self.assertLess(weapons.index('m4a1_silencer'), weapons.index(candidate))
+                if role == 'awp':
+                    self.assertLess(weapons.index('awp'), weapons.index('m4a1_silencer'))
+
+    def test_role_adaptation_is_idempotent_and_leaves_ability_rows_unchanged(self):
         fixture = ('Template RiflePro\r\n'
-                   '  WeaponPreference = famas // budget fallback\r\n'
+                   '  WeaponPreference = aug // rifle slot\r\n'
                    '  ReactionTime = 0.01 // untouched tuning\r\n'
                    '  WeaponPreference = m4a1_silencer // full buy\r\n'
                    '  WeaponPreference = ak47\r\n'
                    'End\r\n')
-        result = presets._prioritize_role_rifles(fixture)
+        result = presets._adapt_role_weapons(fixture)
         self.assertIn('  ReactionTime = 0.01 // untouched tuning\r\n', result)
-        self.assertIn('  WeaponPreference = famas // budget fallback\r\n', result)
-        self.assertIn('  WeaponPreference = m4a1_silencer // full buy\r\n', result)
-        self.assertEqual(['ak47', 'm4a1_silencer', 'famas'],
+        self.assertIn('  WeaponPreference = m4a1_silencer // rifle slot\r\n', result)
+        self.assertEqual(['m4a1_silencer', 'ak47'],
                          re.findall(r'WeaponPreference\s*=\s*(\w+)', result))
-        self.assertEqual(result, presets._prioritize_role_rifles(result))
+        self.assertEqual(result, presets._adapt_role_weapons(result))

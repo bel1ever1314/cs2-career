@@ -13,6 +13,11 @@ internal static class TacticalPlaybookRegression
                     Steps = s == 1 ? [] : [new() { Position = [10*s, 100], Wait = 2, Level = "auto" }] }).ToList() }] },
             new JsonSerializerOptions { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
         var json = Valid(); var playbook = TacticalPlaybook.Parse(json);
+        foreach (var finish in new[] { "auto", "hold", "native" })
+            Check(TacticalPlaybook.Parse(json.Replace("\"finish\":\"auto\"", "\"finish\":\"" + finish + "\""))
+                .Tactics[0].Slots.All(s => s.Finish == finish), "route endings survive strict JSON parser");
+        Check(TacticalPlaybook.Parse(json.Replace(",\"finish\":\"auto\"", ""))
+            .Tactics[0].Slots.All(s => s.Finish == "auto"), "old libraries resolve auto without rewriting disk");
         Check(playbook.Tactics.Count == 1 && playbook.Tactics[0].Slots.Count == 5, "strict five-slot round trip");
         var sample = TacticalPlaybook.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "tactical_playbook.json")));
         Check(sample.Tactics.Count == 2 && sample.Tactics.Any(t => t.Id == "split_test")
@@ -53,6 +58,8 @@ internal static class TacticalPlaybookRegression
         Reject(json.Replace("沙二分路", "abc\\u200b"), "name format category rejected");
         Reject(json.Replace("沙二分路", "abc\\ue000"), "name private-use category rejected");
         Reject(json.Replace("\"side\":\"t\"", "\"side\":\"spectator\""), "unknown side");
+        Reject(json.Replace("\"finish\":\"auto\"", "\"finish\":\"rush\""), "unknown finish");
+        Reject(json.Replace("\"finish\":\"auto\"", "\"finish\":null"), "null finish");
         Reject(json.Replace("\"wait\":2", "\"wait\":31"), "wait bound");
         Reject(json.Replace("\"wait\":2", "\"wait\":-1"), "negative wait");
         Reject(json.Replace("\"level\":\"auto\"", "\"level\":\"roof\""), "unknown floor");
@@ -183,6 +190,7 @@ internal static class TacticalPlaybookRegression
         lease.Release(); lease.Release();
         Check(!lease.Active && holdApi.Cancelled.SequenceEqual(new long[] {11,22}), "hold cancellation is owned and idempotent");
         CheckTimedHolds(Check);
+        CheckFinalDefense(Check);
         CheckTravelProgress(Check);
         CheckDirectPaths(Check);
         CheckTransitWaypoints(Check);
@@ -199,6 +207,46 @@ internal static class TacticalPlaybookRegression
         try { cancelLease.Release(); } catch (InvalidOperationException) { cancelFailed = true; }
         Check(cancelFailed && cancelApi.Cancelled.SequenceEqual(new long[] {11,22}), "movement cancellation error still releases button suppression");
         Console.WriteLine($"{count} tactical-playbook checks passed (strict data, stable five slots, NAV floors, custom chat, 64-tick positional waits, direct path commits, zero-wait transit, native travel yield, detour progress).");
+    }
+
+    private static void CheckFinalDefense(Action<bool,string> check)
+    {
+        foreach (var side in new[] { "t", "ct" })
+        foreach (var finish in new[] { "auto", "hold", "native" })
+        {
+            var expected = finish == "hold" || (finish == "auto" && side == "ct");
+            check(TacticalFinishPolicy.Valid(finish), "known finish accepted");
+            check(TacticalFinishPolicy.HoldFinal(finish, side) == expected, "finish resolves from current side " + side + finish);
+            var route = new TacticalStepClock([0, .5f, 20], expected);
+            check(route.Tick(0, true, false) == TacticStepAction.Advanced && route.Stage == 1, "zero-wait intermediate keeps moving");
+            check(route.Tick(1, true, false) == TacticStepAction.Wait, "middle wait begins on arrival");
+            route.Tick(1.25f, true, false);
+            check(route.Tick(1.5f, true, false) == TacticStepAction.Advanced && route.Stage == 2, "middle wait remains finite");
+            check(route.Tick(2, false, false) == TacticStepAction.Move, "terminal wait never holds before arrival");
+            route.Tick(3, true, false);
+            for (var i = 1; i <= 80; i++) route.Tick(3+i*.25f, true, false);
+            check(route.Stage == (expected ? 2 : 3), "twenty seconds only completes native ending");
+            for (var tick = 0; tick < 1000; tick++)
+                check(route.Tick(24+tick/64f, true, false) == (expected ? TacticStepAction.Wait : TacticStepAction.Completed),
+                    "terminal task cannot fall off final array or release movement");
+            if (!expected) continue;
+            check(route.HoldingFinal && route.Remaining == 0, "hold is an explicit task, not a fake timer");
+            check(route.Tick(50, false, true) == TacticStepAction.Paused, "native interruption pauses final task");
+            check(route.Tick(51, false, false) == TacticStepAction.Move, "displacement returns to real navigation");
+            check(route.Tick(52, true, false) == TacticStepAction.Wait && route.Stage == 2, "arrival resumes final hold without replaying route");
+        }
+        var immediate = new TacticalStepClock([0], holdFinal: true);
+        check(immediate.Tick(0, false, false) == TacticStepAction.Move, "zero terminal hold still requires arrival");
+        check(immediate.Tick(1, true, false) == TacticStepAction.Wait && immediate.HoldingFinal, "explicit zero terminal hold works");
+        check(new TacticalStepClock([], true).Tick(0, true, false) == TacticStepAction.Completed, "empty routes never invent hold targets");
+        check(TacticalWaitPolicy.ShouldHold(true, true, false) && !TacticalWaitPolicy.ShouldHold(true, false, false),
+            "final hold uses arrival and displacement bounds");
+        check(TacticalFinishPolicy.ObjectiveNeedsControl(true, false, "weapon_c4"), "T bomb carrier can leave explicit terminal hold");
+        check(TacticalFinishPolicy.ObjectiveNeedsControl(true, true, "weapon_m4a1"), "defuse takes priority over final hold");
+        check(!TacticalFinishPolicy.ObjectiveNeedsControl(true, false, "weapon_ak47"), "rifle does not unlock final defense");
+        check(!TacticalFinishPolicy.ObjectiveNeedsControl(false, false, "weapon_c4"), "nonterminal behavior is unchanged");
+        foreach (var value in new string?[] { null, "", "rush", "HOLD" })
+            check(!TacticalFinishPolicy.Valid(value), "unknown finish rejected");
     }
 
     private static void CheckMapBoundariesAndLevels(string valid, Action<bool,string> check)

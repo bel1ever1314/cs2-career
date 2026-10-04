@@ -1,4 +1,4 @@
-CS2 Career 1.7.0-preview.3-hotfix.7
+CS2 Career 1.7.1
 
 这次可以走进自己的宿舍和俱乐部了。打开手机看消息、日历和个人资料，
 坐到电脑前安排比赛、设计战术，也可以进入场馆亲自打下一场。
@@ -14,12 +14,14 @@ CS2 Career 1.7.0-preview.3-hotfix.7
 退出 CS2 后自动恢复普通游戏环境。中途退出也可以继续原来的比赛，
 或改用逐图模拟、RTS 完成这一场。
 瞄准方式、道具频率、人机难度、身份显示和局内对话可以分别设置。
-购买逻辑也一起调整了：经济足够优先 AK／M4，经济不足仍能用便宜主枪；
-保下来的枪和捡来的枪不会强制换掉，狙击职责与队友配枪继续保留。
+购买交给人机增强的 RiflePro／SniperPro 模板，保留道具与经济判断，不改能力。
+修正消音 M4 优先级被跳过的问题，保下来的枪和捡来的枪不会强制换掉。
+冻结时间内持续检查队友武器与余额，有余钱且已有主枪的 Bot 可以给缺枪队友配枪。
+战术终点可以选择自动、守点或交回原生 AI；自动模式下 CT 守住终点、T 继续推进。
+执行路线或等待时受伤、需要躲避道具的队员可以先脱离导航避险。
 更新了游戏内换肤的函数签名，整理旧签名备份和缓存的加载顺序。
 本地对局补回丢刀设置，手动开启换肤后沿用已装备的饰品。
-补齐没有主武器时的购买：预算足够会补买 AK／M4，狙位买不起 AWP 时
-也会选择合适的主枪。保留正常手枪局、经济局和已有武器，不重复扣款买枪。
+更新后进入 CS2 前，请关闭 CS2，并在设置中重新安装一次人机增强，更新配套插件。
 
 开始游玩
 完整解压，双击“开始游戏.cmd”或 Launch-CS2Career.cmd。
@@ -62,16 +64,20 @@ Bot Improver: check your paths in Settings and select Install bundled Bot Improv
 For an ordinary package, choose your extracted official Windows release instead.
 Installation is offline and includes this project's bundled components.
 In-game skins start disabled; enable them in Settings only if you want to use them.
-Bots without a primary now buy an affordable rifle, including snipers who cannot
-afford an AWP. Pistol rounds, eco budgets and carried weapons are preserved.
+Buying uses Bot Improver's RiflePro / SniperPro templates without changing abilities.
+Fixed M4A1-S purchase priority. Carried and picked-up weapons are preserved.
+Teammate drops check current inventories and budgets throughout freeze time.
+Tactic slots can hold at their destination or return to native play, with automatic
+CT holding and T progression. Damage and grenade avoidance release affected bots.
+Before playing CS2 after updating, close CS2 and reinstall through Settings to apply
+the current companion plugins.
 Check for updates only contacts GitHub when clicked and never replaces plugins.
 Your original release folder stays unchanged;
 later matches use the compatible runtime copy.
 Settings include a one-click plugin switch. Career enables plugins for local CS2
 matches and restores the normal game environment after CS2 exits.
 Aim, utility, difficulty, bot identity and match chat have separate options.
-Bots prioritize AK/M4 purchases when affordable, retain economical choices,
-and preserve carried weapons, pickups, sniper assignments and team drops.
+Native purchasing retains its economy, utility and role-specific decisions.
 Updated cosmetic function signatures and prevented stale signature caches and
 backups from overriding the compatible copy. Knife dropping is enabled in
 Career's local matches; skins still follow your explicit setting and loadout.

@@ -1,3 +1,32 @@
+# 1.7.1（购买、发枪与战术更新，2026-10-04）
+
+最近几轮的调整整理到 1.7.1，不再继续叠加很长的热修版本号。
+
+- **买枪按位置来。** 步枪手和狙击手使用人机增强的 RiflePro／SniperPro 购买模板，保留道具购买与经济判断，不改选手能力。修正消音 M4 在模板里排在前面、实际却被跳过的问题；保下来的枪和捡来的枪不强换。
+- **补上队友之间的发枪。** 冻结时间内持续检查队友的现有武器与余额，有余钱且已经有主枪的 Bot 可以给缺枪队友配枪，不再只在开局检查一次。发枪使用赠送者的钱，不动真人的钱。
+- **战术可以守在终点。** 每个槽位可选择自动、守住终点或交回原生 AI。自动模式下 CT 到位后守点，T 继续推进；无线电、交火和下包按各自规则接手。
+- **受伤时能先避险。** 执行路线或等待时受到伤害、需要躲避道具的队员会脱离当前导航，不再被旧节点拉回危险位置。
+- **少一些无用提示。** 游戏内战术提示保留 `play <id>`，去掉下包后的“战术执行完毕”等多余消息。
+- 保留离线安装已有官方人机增强、插件一键切换与退出恢复、比赛中断后继续或改用模拟／RTS、游戏内换肤与丢刀等功能，并整理个人设置与准星配置的保留逻辑。
+
+下载 `CS2Career-1.7.1-windows.zip`，完整解压后运行 `开始游戏.cmd`。
+继续旧生涯时，把原来的 `game/runtime/career/save/` 复制到新包同一位置。需要进入 CS2 的玩家，关闭 CS2 后在设置中重新执行一次“安装填写目录的人机增强”，带上这次的配套插件。
+
+## English
+
+1.7.1 brings the recent fixes together under one version number.
+
+- Rifle and sniper roles use Bot Improver's RiflePro / SniperPro buying templates, preserving utility purchases, economy decisions and player abilities. Fixed the M4A1-S being skipped despite its template priority; carried and picked-up weapons stay untouched.
+- Teammate drops now check current weapons and balances throughout freeze time, rather than only once at round start. Armed bots with spare money can equip an unarmed teammate. Human players' money is never spent.
+- Each tactic slot can choose automatic behavior, hold its final position, or return control to native AI. Automatic mode holds for CT and continues native play for T, with radio, combat and bomb objectives handled separately.
+- Damage and grenade avoidance can release an affected bot from tactical navigation instead of pulling it back into danger.
+- Simplified tactic hints to `play <id>` and removed unnecessary completion messages after planting.
+- Retained offline installation, plugin switching and automatic restoration, interrupted-match recovery, simulation / RTS alternatives, cosmetics and knife dropping, with personal settings and crosshair preservation improvements.
+
+Download `CS2Career-1.7.1-windows.zip`, extract everything and run `Launch-CS2Career.cmd`. Copy your previous `game/runtime/career/save/` into the same location to continue your career. For CS2 play, close CS2 and run the installer from Settings again to apply this release's bundled companion plugins.
+
+---
+
 # 1.7.0-preview.3-hotfix.7（买枪补购修正，2026-10-04）
 
 这次修正了人机有钱却没买主武器的情况。

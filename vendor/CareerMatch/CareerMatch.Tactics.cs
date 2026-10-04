@@ -234,6 +234,7 @@ public sealed partial class CareerMatchPlugin
         _tacticalReleases.Clear(); // No old-round delayed Idle may cancel a new native radio task.
         _tacticalEpoch++;
         _tacticalRadio.Reset();
+        _tacticalSafetyHandoffs.Clear();
         if (newMap) _tacticalTipShown = false;
     }
 
@@ -262,7 +263,7 @@ public sealed partial class CareerMatchPlugin
             if (!_tacticalNavigator.IsMovingTo(p, actor.Pawn, point.X, point.Y, point.Z)) return;
             if (_tacticalNavigator.TryIdle(p, actor.Pawn, out var result))
                 TacticalTrace("native_move_cancelled", new { actor.Id, reason, result });
-            else if (result == "native_combat_or_objective_retained" && reason is not ("unload" or "player_radio"))
+            else if (result == "native_combat_or_objective_retained" && reason is not ("unload" or "player_radio" or "danger_handoff" or "objective_handoff"))
                 _tacticalReleases[actor.Slot] = new(actor.Id, actor.Slot, actor.Pawn, point, Server.CurrentTime + 5);
         }
         catch (Exception ex) { Logger.LogWarning("Tactical release skipped for {Slot}: {Error}", actor.Slot, ex.Message); }
@@ -278,7 +279,7 @@ public sealed partial class CareerMatchPlugin
         if (_tacticalTipShown || _request is not { Active: true, Observer: false } || InWarmup()) return;
         var human = AllSlots().FirstOrDefault(p => ControllerId(p) == _request.HumanPlayerId);
         if (human is null) return;
-        human.PrintToChat(" \x04准备阶段输入 play <id> / 战术 <id>，或 rusha / rushb；default 取消，指令仅对本回合有效。\x01");
+        human.PrintToChat(" \x04准备阶段输入 play <id>。\x01");
         _tacticalTipShown = true;
     }
 
@@ -374,6 +375,8 @@ public sealed partial class CareerMatchPlugin
                     || pawn.EntityHandle.Raw != actor.Pawn)
                 { _tacticalActors.Remove(actor.Slot); TacticalTrace("removed_death_takeover_disconnect", new { actor.Id }); continue; }
                 var now = Server.CurrentTime;
+                if ((pawn.Health < actor.Health || pawn.Bot.IsAvoidingGrenade.Timestamp > now)
+                    && ReleaseTacticForDanger(p, pawn.Health < actor.Health ? "health_loss" : "avoiding_grenade")) continue;
                 var bot = pawn.Bot; var weapon = pawn.WeaponServices?.ActiveWeapon.Value?.DesignerName ?? "";
                 var combat = bot.IsEnemyVisible || bot.IsAttacking || pawn.Health < actor.Health
                     || pawn.BlindUntilTime > now || weapon.Contains("grenade") || weapon.Contains("flashbang")
@@ -437,7 +440,7 @@ public sealed partial class CareerMatchPlugin
                     || _postPlantActors.ContainsKey(release.Slot)
                     || p is not { IsValid: true } || ControllerId(p) != release.Id
                     || _ledger.GetValueOrDefault(release.Id)?.IsBot != true || _tacticalNavigator is null
-                    || NativeRadioOwnsActor(p)
+                    || NativeRadioOwnsActor(p) || NativeSafetyOwnsActor(p)
                     || !_tacticalNavigator.IsMovingTo(p, release.Pawn, goal.X, goal.Y, goal.Z))
                 { _tacticalReleases.Remove(release.Slot); continue; }
                 if (_tacticalNavigator.TryIdle(p, release.Pawn, out var result))
