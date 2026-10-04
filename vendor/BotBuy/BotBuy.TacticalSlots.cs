@@ -54,12 +54,12 @@ public sealed partial class BotBuyPatch
                 _tacticalDuties.Remove(id);
             foreach (var item in plan.Duties) _tacticalDuties[item.Key] = item.Value;
             var revision = ++_tacticalBuyRevision;
-            foreach (var player in players) ApplyTacticalPurchase(player);
+            foreach (var player in players) ApplyCareerPurchases(player);
             foreach (var delay in new[] { .2f, .8f, 1.6f, 3.2f })
                 AddRoundTimer(delay, () => {
                     if (revision != _tacticalBuyRevision) return;
                     foreach (var player in Utilities.FindAllEntitiesByDesignerName<CCSPlayerController>("cs_player_controller"))
-                        if (player.IsValid && _tacticalDuties.ContainsKey(player.SteamID)) ApplyTacticalPurchase(player);
+                        if (player.IsValid && _tacticalDuties.ContainsKey(player.SteamID)) ApplyCareerPurchases(player);
                 });
             return Reply(true, "accepted_money_required");
         }
@@ -68,7 +68,9 @@ public sealed partial class BotBuyPatch
 
     private void ApplyTacticalPurchase(CCSPlayerController player)
     {
-        if (!CanModify(player) || !_tacticalDuties.TryGetValue(player.SteamID, out var duty) || duty == "auto") return;
+        if (!CanCareerPurchase(player)) return;
+        var duty = PurchaseRole(player);
+        if (duty == "auto") return;
         var pawn = player.PlayerPawn.Value!;
         var rules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").FirstOrDefault()?.GameRules;
         if (rules is null || rules.WarmupPeriod || !rules.FreezePeriod || !pawn.InBuyZone) return;
@@ -76,7 +78,7 @@ public sealed partial class BotBuyPatch
             .Where(w => w is { IsValid: true } && TacticalBuyPolicy.PrimaryPrice(w.DesignerName) > 0).ToArray() ?? [];
         if (primaries.Length == 0)
         {
-            if (duty == "awp" && (player.InGameMoneyServices?.Account ?? 0) >= TacticalBuyPolicy.AwpPrice)
+            if (duty == "awp" && (player.InGameMoneyServices?.Account ?? 0) >= TacticalBuyPolicy.AwpPrice + PurchaseReserve(player))
                 Buy(player, "weapon_awp");
             return;
         }
@@ -85,7 +87,8 @@ public sealed partial class BotBuyPatch
         var bought = _purchasedWeapons.GetValueOrDefault(player.Slot)?.GetValueOrDefault(name) ?? 0;
         var old = _roundStartWeapons.GetValueOrDefault(player.Slot)?.Contains(entity) ?? true;
         var money = player.InGameMoneyServices?.Account ?? 0;
-        if (TacticalBuyPolicy.CanReplace(duty, name, money, entity, bought, old, 1, CanRefund(player, name)))
+        if (TacticalBuyPolicy.CanReplace(duty, name, money, entity, bought, old, 1, CanRefund(player, name),
+            PurchaseReserve(player), CounterStrikeSharp.API.Modules.Cvars.ConVar.Find("mp_maxmoney")?.GetPrimitiveValue<int>() ?? 16000))
             Swap(player, name, "weapon_awp");
         else if (duty != "awp" && name == "weapon_awp" && entity == bought && bought != 0 && !old && CanRefund(player, name))
             Swap(player, name, CareerWeaponPolicy.Rifle(player.TeamNum == 3, player.SteamID % 2 == 0 ? .25f : .75f));

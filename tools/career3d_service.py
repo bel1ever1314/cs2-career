@@ -362,7 +362,7 @@ def handler_class():
                 return
             if urlparse(self.path).path not in ("/api/3d/context", "/api/3d/match", "/api/3d/team", "/api/3d/player", "/api/3d/players", "/api/3d/event", "/api/3d/news", "/api/3d/mail", "/api/3d/ladder/status",
                 "/api/3d/custom/catalog", "/api/3d/custom/status",
-                "/api/3d/match/preflight", "/api/3d/match/status", "/api/3d/settings", "/api/3d/settings/detect", "/api/3d/settings/updates", "/api/3d/tactics", "/api/3d/ceremony",
+                "/api/3d/match/preflight", "/api/3d/match/status", "/api/3d/settings", "/api/3d/settings/environment", "/api/3d/settings/detect", "/api/3d/settings/updates", "/api/3d/tactics", "/api/3d/ceremony",
                 "/api/3d/environment", "/api/3d/start/options", "/api/3d/start/draw", "/api/3d/saves", "/api/3d/skin-tools", "/api/3d/skin-tools/item", "/api/3d/controls/management", "/api/3d/controls/training",
                 "/api/3d/controls/assistance", "/api/3d/controls/rankings", "/api/3d/controls/workshop"):
                 self._json({"ok": False, "msg": "3D demo endpoint not found"}, 404)
@@ -432,6 +432,9 @@ def handler_class():
             elif url.path == '/api/3d/settings':
                 from tools.career3d_activities import settings_context
                 self._json({'ok': True, 'settings': settings_context(self.state)})
+            elif url.path == '/api/3d/settings/environment':
+                from tools.career3d_cs2_environment import environment_context
+                self._json({'ok': True, 'environment': environment_context()})
             elif url.path == '/api/3d/settings/detect':
                 from tools.career3d_install import detect_machine_paths
                 self._json(detect_machine_paths())
@@ -530,7 +533,7 @@ def handler_class():
                     return
                 from tools.career3d_start import requires_creation
                 if requires_creation(self.state) and path not in (
-                        '/api/3d/start/create', '/api/3d/start/draw', '/api/3d/settings',
+                        '/api/3d/start/create', '/api/3d/start/draw', '/api/3d/settings', '/api/3d/settings/environment',
                         '/api/3d/setup/install', '/api/3d/saves/load'):
                     raise ValueError('请先创建角色，或读取已有生涯存档。')
                 from cs2career.paths import save_root
@@ -610,6 +613,10 @@ def handler_class():
                 elif path == '/api/3d/settings':
                     from tools.career3d_activities import settings_command
                     activity = settings_command(self.state, body)
+                    message = activity['reason']
+                elif path == '/api/3d/settings/environment':
+                    from tools.career3d_cs2_environment import environment_command
+                    activity = environment_command(self.state, body)
                     message = activity['reason']
                 elif path == '/api/3d/setup/install':
                     from tools.career3d_install import install_bundle

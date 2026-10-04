@@ -71,4 +71,82 @@ Check(!TacticalBuyPolicy.CanReplace("awp","weapon_ak47",16000,1,1,false,2,true),
 Check(!TacticalBuyPolicy.CanReplace("awp","weapon_ak47",16000,1,1,false,1,false),"used/refund-restricted gun kept");
 Check(!TacticalBuyPolicy.CanReplace("awp","weapon_ak47",16000,0,0,false,1,true),"no fake purchase record");
 Check(TacticalBuyPolicy.PrimaryPrice("weapon_aug")==3300 && TacticalBuyPolicy.PrimaryPrice("weapon_c4")==0,"purchase whitelist excludes bomb/utility");
+Check(CareerWeaponPolicy.HasPrimary(["weapon_knife", "weapon_m4a1"]), "Holding knife does not make a carried rifle disappear");
+Check(CareerWeaponPolicy.HasPrimary(["weapon_glock", "weapon_mac10"]), "Inventory scan includes the MAC-10");
+Check(CareerWeaponPolicy.HasPrimary(["weapon_flashbang", "weapon_sg556"]), "Inventory scan includes the SG 553");
+Check(!CareerWeaponPolicy.HasPrimary(["weapon_knife", "weapon_deagle", "weapon_c4"]), "Pistol, knife and bomb do not count as primary");
+Check(CareerWeaponPolicy.ArmorReserve(true, 0, false) == 650, "CT upgrade reserves kevlar");
+Check(CareerWeaponPolicy.ArmorReserve(false, 0, false) == 1000, "T upgrade reserves helmet and kevlar");
+Check(CareerWeaponPolicy.ArmorReserve(false, 100, false) == 350, "Existing full kevlar needs only helmet budget");
+Check(CareerWeaponPolicy.ArmorReserve(true, 70, false) == 0, "Usable CT armor is not purchased again");
+Check(CareerWeaponPolicy.ArmorReserve(false, 70, true) == 0, "Existing usable helmet armor is not charged again");
+Check(TacticalBuyPolicy.PrimaryAllowed(true, "weapon_m4a1") && !TacticalBuyPolicy.PrimaryAllowed(false, "weapon_m4a1"), "M4 restricted to CT purchases");
+Check(TacticalBuyPolicy.PrimaryAllowed(false, "weapon_ak47") && !TacticalBuyPolicy.PrimaryAllowed(true, "weapon_ak47"), "AK restricted to T purchases");
+Check(!TacticalBuyPolicy.PrimaryAllowed(true, "weapon_knife"), "Unknown or non-primary cannot use the primary price table");
+foreach (bool ct in new[] { false, true })
+{
+    var gun = ct ? "weapon_famas" : "weapon_galilar";
+    int refund = TacticalBuyPolicy.PrimaryPrice(gun);
+    int target = TacticalBuyPolicy.PrimaryPrice(CareerWeaponPolicy.Rifle(ct, .25f));
+    foreach (int reserve in new[] { 0, 300, 650, 1000, 1300 })
+    foreach (int money in Enumerable.Range(0, 16001))
+        Check(CareerWeaponPolicy.CanUpgradeEconomyPrimary(true, true, true, ct, "rifle", gun,
+            money, reserve, 16000, 1, 1, false, 1, true) == (Math.Min(16000, money + refund) >= target + reserve),
+            "Upgrade budget follows real refundable money, armor/utility reserve and account cap");
+    foreach (var role in new[] { "rifle", "entry", "lurk", "igl", "support", "auto", "unknown" })
+        Check(CareerWeaponPolicy.CanUpgradeEconomyPrimary(true, true, true, ct, role, gun,
+            5000, 1000, 16000, 1, 1, false, 1, true), "Non-sniper rich new economy gun upgrades");
+    Check(!CareerWeaponPolicy.CanUpgradeEconomyPrimary(true, true, true, ct, "awp", gun,
+        16000, 0, 16000, 1, 1, false, 1, true), "Sniper plan is handled before ordinary rifle upgrades");
+    Check(!CareerWeaponPolicy.CanUpgradeEconomyPrimary(false, true, true, ct, "rifle", gun,
+        16000, 0, 16000, 1, 1, false, 1, true), "Outside career no economic replacement");
+    Check(!CareerWeaponPolicy.CanUpgradeEconomyPrimary(true, false, true, ct, "rifle", gun,
+        16000, 0, 16000, 1, 1, false, 1, true), "Human or takeover cannot be upgraded");
+    Check(!CareerWeaponPolicy.CanUpgradeEconomyPrimary(true, true, false, ct, "rifle", gun,
+        16000, 0, 16000, 1, 1, false, 1, true), "Not buying means no upgrade");
+    Check(!CareerWeaponPolicy.CanUpgradeEconomyPrimary(true, true, true, ct, "rifle", gun,
+        16000, 0, 16000, 1, 1, true, 1, true), "Round-start saved gun remains untouched");
+    Check(!CareerWeaponPolicy.CanUpgradeEconomyPrimary(true, true, true, ct, "rifle", gun,
+        16000, 0, 16000, 2, 1, false, 1, true), "Picked-up entity is not a refundable purchase");
+    Check(!CareerWeaponPolicy.CanUpgradeEconomyPrimary(true, true, true, ct, "rifle", gun,
+        16000, 0, 16000, 1, 1, false, 2, true), "Multiple primaries are not stripped");
+    Check(!CareerWeaponPolicy.CanUpgradeEconomyPrimary(true, true, true, ct, "rifle", gun,
+        16000, 0, 16000, 1, 1, false, 1, false), "Refund refusal preserves cheap primary");
+    Check(!CareerWeaponPolicy.CanUpgradeEconomyPrimary(true, true, true, ct, "rifle", gun,
+        16000, 0, 16000, 0, 0, false, 1, true), "Missing entity cannot produce an upgrade");
+    Check(!CareerWeaponPolicy.CanUpgradeEconomyPrimary(true, true, true, ct, "rifle", gun,
+        5000, 1000, target, 1, 1, false, 1, true), "Refund cap must leave armor money too");
+    foreach (var kept in new[] { "weapon_ssg08", "weapon_awp", "weapon_ak47", "weapon_m4a1", "weapon_m4a1_silencer", "weapon_c4" })
+        Check(!CareerWeaponPolicy.CanUpgradeEconomyPrimary(true, true, true, ct, "rifle", kept,
+            16000, 0, 16000, 1, 1, false, 1, true), "Good primary, Scout and bomb are not cheap rifle upgrades");
+}
+Check(!TacticalBuyPolicy.CanReplace("awp", "weapon_famas", 2800, 1, 1, false, 1, true, 300), "AWP upgrade also preserves utility budget");
+Check(TacticalBuyPolicy.CanReplace("awp", "weapon_famas", 3100, 1, 1, false, 1, true, 300), "AWP upgrade has enough refundable money and utility reserve");
+Check(!TacticalBuyPolicy.CanReplace("awp", "weapon_famas", 16000, 1, 1, false, 1, true, 300, 4750), "AWP reserve respects max-money cap");
+Check(CareerWeaponPolicy.GiftArmorPrice(true, 1700, 950) == 650, "CT armor gift uses spare money, not total balance");
+Check(CareerWeaponPolicy.GiftArmorPrice(true, 950, 950) == 0, "CT gift does not consume the donor's armor and utility budget");
+Check(CareerWeaponPolicy.GiftArmorPrice(false, 1999, 1000) == 0, "T armor gift requires spare full-armor money");
+Check(CareerWeaponPolicy.GiftArmorPrice(false, 2000, 1000) == 1000, "T armor gift preserves donor's reserve");
+foreach (var gun in new[] { "weapon_aug", "weapon_scar20", "weapon_awp" })
+{
+    Check(!CareerWeaponPolicy.CanBuy(true, gun, "rifle"), "Rollback does not change default purchase restrictions");
+    Check(CareerWeaponPolicy.CanBuy(true, gun, "rifle", true), "Failed replacement may restore its verified original weapon");
+}
+Check(CareerWeaponPolicy.ConfirmedNewPrimary(1, 1, false, 1), "Recorded new exact entity permits primary refund");
+Check(!CareerWeaponPolicy.ConfirmedNewPrimary(1, 1, true, 1), "Carried primary cannot be refunded even in pistol rounds");
+Check(!CareerWeaponPolicy.ConfirmedNewPrimary(2, 1, false, 1), "Different pickup cannot be refunded");
+Check(!CareerWeaponPolicy.ConfirmedNewPrimary(1, 1, false, 2), "Duplicate primary cannot be refunded by name");
+Check(!CareerWeaponPolicy.ConfirmedNewPrimary(0, 0, false, 1), "No fake entity record can justify refund");
+Check(!CareerWeaponPolicy.ConfirmedNewPrimary(1, 1, false, 1, true), "CSS delayed removal cannot refund the old entity twice");
+// Match the actual CSS 0.1s Kill ordering: old gun remains present until later,
+// but its proof is gone; buying or rolling back creates a different entity.
+var purchaseProof = new Dictionary<string, uint> { ["weapon_aug"] = 123 };
+var pendingRemovals = new HashSet<uint>();
+Check(CareerWeaponPolicy.ConfirmedNewPrimary(123, purchaseProof["weapon_aug"], false, 1), "Initial AUG purchase eligible before sniper replacement");
+pendingRemovals.Add(123); purchaseProof.Remove("weapon_aug");
+purchaseProof["weapon_awp"] = 456;
+Check(!CareerWeaponPolicy.ConfirmedNewPrimary(123, purchaseProof.GetValueOrDefault("weapon_aug"), false, 1,
+    pendingRemovals.Contains(123)), "Pending AUG cannot be normalized after AUG-to-AWP refund");
+Check(CareerWeaponPolicy.ConfirmedNewPrimary(456, purchaseProof["weapon_awp"], false, 1,
+    pendingRemovals.Contains(456)), "Only the new AWP has a valid purchase proof");
 Console.WriteLine($"PASS BotBuy career policy: {checks} assertions (pure rules; live buying not simulated).");

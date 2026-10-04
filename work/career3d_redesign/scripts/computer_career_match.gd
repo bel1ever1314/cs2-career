@@ -75,6 +75,16 @@ func current_preflight() -> Dictionary:
 	if str(preflight.get("match_id", "")) == id and not id.is_empty(): return preflight
 	return current if str(current.get("match_id", "")) == id else {}
 
+func current_connection() -> Dictionary:
+	var id := str(current_game().get("id", ""))
+	if not connection.is_empty() and str(connection.get("match_id", id)) == id:
+		return connection
+	var linked = current_preflight().get("connection", {})
+	return linked if linked is Dictionary and str(linked.get("match_id", id)) == id else {}
+
+func is_interrupted() -> bool:
+	return str(current_connection().get("status", "")) == "interrupted"
+
 func is_presenting() -> bool:
 	return request_pending or not result.is_empty()
 
@@ -108,18 +118,18 @@ func render(parent: Node) -> void:
 			box.add_child(actions)
 			var simulate: Button = host._button(actions, "模拟当前比赛", simulate_match.bind(str(game.get("id", ""))))
 			simulate.name = "CareerMatchSimulate"
-			if current_preflight().has("can_simulate"): simulate.disabled = simulate.disabled or not bool(current_preflight().get("can_simulate", false))
+			if current_preflight().has("can_simulate"): simulate.disabled = simulate.disabled or not bool(current_connection().get("can_simulate", current_preflight().get("can_simulate", false)))
 			UI.primary(simulate)
 			var play: Button = host._button(actions, "自己去 CS2 打", prepare_real.bind(str(game.get("id", ""))))
 			play.name = "CareerMatchPlayCS2"
 			var rts: Button = host._button(actions, "RTS 指挥比赛", open_rts.bind(str(game.get("id", ""))))
 			rts.name = "CareerMatchPlayRTS"
-			if current_preflight().has("can_simulate"): rts.disabled = rts.disabled or not bool(current_preflight().get("can_simulate", false))
+			if current_preflight().has("can_simulate"): rts.disabled = rts.disabled or not bool(current_connection().get("can_rts", current_preflight().get("can_simulate", false)))
 		else:
 			UI.label(box, "可以先睡到比赛当天早上，再点“自己去 CS2 打”前往场馆；门口也能选择比赛地点。", 13, UI.MUTED)
 			UI.primary(host._button(box, "亲自参赛 · 睡到比赛日", prepare_real.bind(str(game.get("id", "")))))
 			host._button(box, "只推进到比赛日", CareerBridge.calendar.bind(str(game.get("date", "")), true))
-		if (due and show_real and can_prepare_here()) or str(current_preflight().get("phase", "")) in ["waiting", "starting", "launched"]:
+		if (due and show_real and can_prepare_here()) or str(current_preflight().get("phase", "")) in ["waiting", "starting", "launched"] or is_interrupted():
 			render_preflight(parent)
 	if not notice.is_empty(): UI.label(parent, notice, 13, UI.MUTED)
 	if not last_result.is_empty():
@@ -169,10 +179,21 @@ func render_preflight(parent: Node) -> void:
 	var map_name := str(map_value.get("map", "")) if map_value is Dictionary else str(map_value) if map_value is String else ""
 	if not map_name.is_empty(): UI.label(card, "下一图 · " + map_name.trim_prefix("de_").capitalize(), 17)
 	var phase := str(info.get("phase", ""))
-	var linked_value = info.get("connection")
-	var linked: Dictionary = linked_value if linked_value is Dictionary else connection
-	if str(linked.get("match_id", id)) != id: linked = {}
-	if phase in ["waiting", "starting", "launched"] or str(linked.get("status", "")) in ["waiting", "failed", "blocked"]:
+	var linked := current_connection()
+	if str(linked.get("status", "")) == "interrupted":
+		UI.label(card, str(linked.get("reason", "CS2 已退出，本场比赛尚未结束。")), 14, UI.MUTED)
+		UI.label(card, "重新进入会重开当前未完成地图；已完成的地图和战绩保留。也可以直接继续模拟或切换 RTS。", 13, UI.MUTED)
+		if bool(linked.get("can_resume", false)):
+			var resume: Button = host._button(card, "重新进入 CS2 · 重开当前图", resume_real.bind(id))
+			resume.name = "CareerMatchResumeCS2"
+			UI.primary(resume)
+		if bool(linked.get("can_simulate", false)):
+			var simulate: Button = host._button(card, "继续模拟剩余比赛", simulate_match.bind(id))
+			simulate.name = "CareerMatchResumeSimulate"
+		if bool(linked.get("can_rts", false)):
+			var rts: Button = host._button(card, "切换 RTS · 重开当前图", open_rts.bind(id), false)
+			rts.name = "CareerMatchResumeRTS"
+	elif phase in ["waiting", "starting", "launched"] or str(linked.get("status", "")) in ["waiting", "failed", "blocked"]:
 		UI.label(card, str(linked.get("reason", "CS2 正在进行。赛后会读取这一图的真实结果。")), 14, UI.MUTED)
 		if bool(linked.get("can_collect", phase in ["waiting", "starting", "launched"])):
 			host._button(card, "检查并录入 CS2 战绩", command.bind("collect", {"match_id":id}))
@@ -206,6 +227,13 @@ func simulate_match(id: String) -> void:
 func open_rts(id: String) -> void:
 	if request_pending or not result.is_empty() or id.is_empty(): return
 	host.rts_room.open_career(id)
+
+func resume_real(id: String) -> void:
+	if request_pending or not bool(current_connection().get("can_resume", false)): return
+	if can_prepare_here():
+		command("launch", {"match_id":id, "side":str(current_preflight().get("side", "ct"))})
+	else:
+		travel_real(id)
 
 func prepare_real(id: String) -> void:
 	if request_pending or id.is_empty(): return
@@ -571,6 +599,8 @@ func render_quick(parent: Node) -> void:
 		UI.primary(host._button(row, season_label + "使用快速模式", choose_mode.bind(true)))
 		host._button(row, season_label + "正常进行", choose_mode.bind(false))
 	if not str(state.get("block_reason", "")).is_empty(): UI.label(parent, str(state.block_reason), 14, UI.MUTED)
+	if is_interrupted():
+		render_preflight(parent)
 	if state.get("mode", "normal") == "quick":
 		if break_pending(state):
 			host._button(parent, "结束这次休赛停留，继续赛季", resume_quick)
@@ -618,6 +648,18 @@ func quick_step() -> void:
 	if not CareerBridge.context.get("stories", []).is_empty():
 		quick_running = false
 		host._rebuild()
+		return
+	var linked := current_connection()
+	if str(linked.get("status", "")) == "interrupted" and bool(linked.get("can_simulate", false)):
+		simulate_match(str(current_game().get("id", "")))
+		return
+	# A CS2 map that is starting or live must not be overwritten by season/run.
+	# Polling below turns a verified process exit into a recoverable interruption.
+	var info := current_preflight()
+	var pending_map := str(info.get("phase", "")) in ["waiting", "starting", "launched"]
+	# A failed launch can retain its previous preparation phase without an
+	# active session. Do not let that stale label block the whole quick season.
+	if bool(info.get("session_pending", false)) or (pending_map and str(linked.get("status", "")) not in ["failed", "finished", "collected", "ready"]):
 		return
 	season_command("run", {})
 
@@ -696,7 +738,7 @@ func process(delta: float) -> void:
 			quick_elapsed = 0.0
 			quick_step()
 	var info := current_preflight()
-	if show_real and str(info.get("phase", "")) in ["waiting", "starting", "launched", "ready"]:
+	if (show_real and str(info.get("phase", "")) == "ready") or str(info.get("phase", "")) in ["waiting", "starting", "launched"] or is_interrupted():
 		poll_elapsed += delta
 		if poll_elapsed >= 2.0 and not CareerBridge.busy and not request_pending:
 			poll_elapsed = 0.0

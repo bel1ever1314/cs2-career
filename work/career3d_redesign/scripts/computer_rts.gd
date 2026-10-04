@@ -16,6 +16,7 @@ var play_mode := "command"
 var entry_kind := "career"
 var arena_result: Dictionary = {}
 var series_finished := false
+var command_sender: Callable
 
 func attach(owner) -> void:
 	host = owner
@@ -32,7 +33,9 @@ func rosters() -> Dictionary:
 
 func eligible() -> bool:
 	var room := lobby()
-	return not room.is_empty() and room.get("phase") == "ready" and "de_" + str(room.get("map", "")) in Maps.available_maps() and rosters().get("ct", []).size() == 5 and rosters().get("t", []).size() == 5
+	var linked: Dictionary = CareerBridge.context.get("custom", {}).get("connection", host.custom_room.status)
+	var recoverable := str(linked.get("status", "")) == "interrupted" and bool(linked.get("can_rts", false))
+	return not room.is_empty() and (room.get("phase") == "ready" or recoverable) and "de_" + str(room.get("map", "")) in Maps.available_maps() and rosters().get("ct", []).size() == 5 and rosters().get("t", []).size() == 5
 
 func open_career(match_id: String) -> void:
 	entry_kind = "career"
@@ -59,10 +62,13 @@ func resume_series() -> void:
 
 func ladder_eligible() -> bool:
 	var room = CareerBridge.context.get("ladder", {}).get("lobby")
-	return room is Dictionary and room.get("mode", "") in ["rank", "fpl"] and room.get("phase", "") == "ready" and career_map_reason("de_" + str(room.get("map", ""))).is_empty()
+	var linked: Dictionary = host.cs2_status
+	var recoverable := str(linked.get("status", "")) == "interrupted" and bool(linked.get("can_rts", false))
+	return room is Dictionary and room.get("mode", "") in ["rank", "fpl"] and (room.get("phase", "") == "ready" or recoverable) and career_map_reason("de_" + str(room.get("map", ""))).is_empty()
 
 func career_map_reason(map_id: String) -> String:
 	if map_id.is_empty(): return ""
+	map_id = "de_" + map_id.trim_prefix("de_").to_lower()
 	var state: Dictionary = CareerBridge.context.get("rts", {})
 	if map_id in state.get("career_maps", Maps.available_maps()): return ""
 	return str(state.get("limitations", {}).get(map_id, "这张地图暂未通过职业 RTS 完赛验证，请使用常规模拟。"))
@@ -144,7 +150,8 @@ func command(action: String, payload: Dictionary) -> void:
 	var body := payload.duplicate(true)
 	body["revision"] = int(CareerBridge.context.get("calendar", {}).get("revision", 0))
 	if action.begins_with("arena_"): body["arena_revision"] = int(CareerBridge.context.get("ladder", {}).get("revision", 0))
-	if CareerBridge.command("/api/3d/rts/" + action, body): pending_action = action
+	var accepted: bool = bool(command_sender.call("/api/3d/rts/" + action, body.duplicate(true))) if command_sender.is_valid() else CareerBridge.command("/api/3d/rts/" + action, body)
+	if accepted: pending_action = action
 	else: notice = CareerBridge.message
 
 func received(path: String, result: Dictionary) -> void:
@@ -177,7 +184,7 @@ func received(path: String, result: Dictionary) -> void:
 func begin_saved(value: Dictionary) -> void:
 	if is_instance_valid(session): return
 	frozen = value.duplicate(true); last_report.clear()
-	entry_kind = "arena" if value.get("kind", "") == "arena" else "career"
+	entry_kind = ("custom" if value.get("mode", value.get("lobby_mode", "")) == "custom" else "arena") if value.get("kind", "") == "arena" else "career"
 	series_finished = false
 	arena_result.clear()
 	career_match_id = str(value.get("match_id", ""))
@@ -185,6 +192,12 @@ func begin_saved(value: Dictionary) -> void:
 
 func start_session() -> void:
 	if not eligible() or CareerBridge.busy or is_instance_valid(session): return
+	var linked: Dictionary = host.custom_room.status
+	if str(linked.get("status", "")) == "interrupted" and bool(linked.get("can_rts", false)):
+		var room := lobby()
+		var side := "ct" if str(room.get("ct", "a")) == commanded_side else "t"
+		command("arena_start", {"lobby_id":room.get("id", ""), "commanded_side":side})
+		return
 	frozen.clear(); last_report.clear()
 	entry_kind = "custom"; arena_result.clear(); series_finished = false
 	var room := lobby()
@@ -226,7 +239,7 @@ func close_session() -> bool:
 	if is_instance_valid(session) and session.sim != null: last_report = session.sim.report()
 	remove_session()
 	if not arena_result.is_empty():
-		host._navigate("ladder")
+		host._navigate("custom" if entry_kind == "custom" else "ladder")
 		host._open_report(arena_result)
 	elif series_finished or host.match_center.is_presenting():
 		# RTS has already shown the real rounds. Return to their saved table,

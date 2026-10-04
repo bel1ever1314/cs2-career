@@ -2802,6 +2802,112 @@
     "地图 BP 已完成 · %d 项记录": "Map veto complete · %d entries",
     "查看地图 BP 记录": "View map veto history",
     "收起地图 BP 记录": "Collapse map veto history",
+    "CS2 已退出，本场比赛尚未结束。": "CS2 has closed. This match is still unfinished.",
+    "重新进入会重开当前未完成地图；已完成的地图和战绩保留。也可以直接继续模拟或切换 RTS。": "Re-entering restarts the unfinished map. Completed maps and results are kept. You can also continue by simulation or switch to RTS.",
+    "重新进入 CS2 · 重开当前图": "Re-enter CS2 · Restart this map",
+    "继续模拟剩余比赛": "Simulate the remaining match",
+    "切换 RTS · 重开当前图": "Switch to RTS · Restart this map",
+    "CS2 已退出，可以继续当前房间。": "CS2 has closed. You can continue this room.",
+    "重新进入或切换 RTS 会重开当前未完成地图；模拟使用原来的十人和地图。": "Re-entering or switching to RTS restarts the unfinished map. Simulation keeps the same ten players and map.",
+    "继续模拟本场": "Continue by simulation",
+    "重新进入或切换 RTS 会重开当前未完成地图；原名单、地图 BP 和天梯身份保留。": "Re-entering or switching to RTS restarts the unfinished map. Your roster, map veto and ladder identity are kept.",
+    "继续模拟这场天梯": "Simulate this ladder match",
+    "已装备 CT 侧 %d 项、T 侧 %d 项；进入比赛时同步。": "Equipped: %d CT items, %d T items. Synced when entering a match.",
+    "本局使用玩家配置的外部配装。": "This match uses your configured external loadout.",
+    "游戏内换肤未开启。": "In-game skins are off.",
+    "未提供本局角色配装。": "No player loadout is available for this match.",
+    "换肤已开启，请先在设置中填写 Steam 账号。": "Skins are enabled. Enter your Steam account in Settings first.",
+    "换肤已开启，但 CT／T 配装为空；请在饰品市场装备饰品后进入比赛。": "Skins are enabled, but the CT and T loadouts are empty. Equip items in the Market before entering a match.",
+    "本局已装备饰品会同步到 CS2。": "Equipped items will be synced to CS2 for this match.",
+    "换肤已开启，但游戏内换肤组件尚未安装。": "Skins are enabled, but the in-game skin component is not installed.",
+    "本局配装未同步完成，请检查游戏目录权限后重试。": "The match loadout was not synced. Check game folder permissions and retry.",
+    "本局换肤未同步：{error}": "The match loadout was not synced: {error}",
+    "本局换肤未同步：%s": "The match loadout was not synced: %s",
+    "原房间请求身份不完整，不能覆盖待回传比赛。": "The original room request is incomplete. The pending match cannot be overwritten.",
+    "CS2 已退出。可以重新进入当前地图，或改用模拟／RTS；已完成地图保留。": "CS2 has closed. Re-enter the current map, or continue by simulation or RTS. Completed maps are kept.",
+    "真实战绩已回传，请先录入。": "The real match result has arrived. Record it first.",
+    "CS2 正在运行，等待这场比赛结束。": "CS2 is running. Wait for this match to end.",
+    "请刷新连接状态，确认 CS2 已退出。": "Refresh the connection status to confirm CS2 has closed.",
+    "CS2 正在启动，请稍候再刷新。": "CS2 is starting. Refresh again in a moment.",
+    "原比赛身份或阵容已变化，请刷新当前比赛，不能覆盖待回传地图。": "The original match identity or roster has changed. Refresh the match; the pending map cannot be overwritten.",
+    "等待原场回传。": "Waiting for the original match result.",
+    "已保留完成地图，重新进入当前未结束地图。%s": "Completed maps are kept. Re-entering the unfinished map. %s",
+    "只有自定义 RTS 可选择指挥侧，请选择 CT 或 T。": "Only custom RTS lets you choose the commanded side. Choose CT or T.",
+    "请完全退出 CS2，再切换当前地图的执行方式。": "Fully exit CS2 before switching how to play this map.",
+    "当前游戏请求已变化，未停用其他比赛；请刷新后重试。": "The active game request changed. Other matches were left untouched; refresh and retry.",
+    "现有换肤组件缺失；请安装可选换肤组件，或关闭游戏内换肤后开赛。": "The skin component is missing. Install the optional component or turn off in-game skins before starting.",
+    "已停用的换肤组件复制校验失败，原副本保留。": "The disabled skin component could not be verified after copying. The original backup is kept.",
+    "游戏内换肤组件位置已变化，未覆盖现有插件；请刷新后重试。": "The skin component location changed. Existing plugins were left untouched; refresh and retry.",
+    "瞄准预设": "Aim preset",
+    "爆头优先": "Prefer headshots",
+    "混合": "Mixed",
+    "身体优先": "Prefer body shots",
+    "选择人机优先瞄准的部位；个人能力与比赛难度仍会影响枪法。": "Choose the bots' preferred aim target. Player abilities and difficulty still affect accuracy.",
+    "道具预设": "Utility preset",
+    "偏少": "Less",
+    "偏多": "More",
+    "最多": "Maximum",
+    "调整人机使用道具的频率。": "Adjust how often bots use utility.",
+    "队友与对手身份": "Bot identity display",
+    "选手身份 · 隐藏 BOT 标记": "Player identity · Hide BOT label",
+    "显示 BOT 标记": "Show BOT label",
+    "只改变游戏内身份显示，不改变你控制的选手。": "Only changes the in-game identity display, not the player you control.",
+    "移动控制 · 原版增强": "Movement · Classic enhancement",
+    "局内队伍对话": "In-match team dialogue",
+    "仅扩展包模式使用扩展工坊安装的比赛聊天；没有扩展包时不会播放内置对话。": "Extension-only mode uses match dialogue installed from the Workshop. Without an extension, built-in dialogue stays off.",
+    "正在保存 CS2 设置……": "Saving CS2 settings...",
+    "头部优先": "Prefer head shots",
+    "本地插件开关": "Local plugins",
+    "关闭 CS2 后可切换。仅调整本地插件加载，不会启动游戏或联网。退出增强对局后会自动恢复普通 CS2。": "Switch after closing CS2. This only changes local plugin loading; it does not start the game or connect online. Normal CS2 is restored automatically after you leave an enhanced match.",
+    "开启本地插件": "Enable local plugins",
+    "关闭插件 · 恢复普通 CS2": "Disable plugins · Restore normal CS2",
+    "刷新插件状态": "Refresh plugin status",
+    "请先保存路径设置，再切换本地插件。": "Save your path settings before switching local plugins.",
+    "请先读取插件状态，确认 CS2 已完全关闭。": "Read the plugin status first to confirm CS2 has fully closed.",
+    "当前为普通 CS2。": "Normal CS2 is active.",
+    "本地插件已开启。": "Local plugins are enabled.",
+    "插件状态待确认": "Plugin status is not confirmed yet",
+    "本地插件加载配置需要调整。": "The local plugin loading configuration needs adjustment.",
+    "正在开启本地插件……": "Enabling local plugins...",
+    "正在恢复普通 CS2……": "Restoring normal CS2...",
+    "插件切换请求没有发出，请再试一次。": "The plugin switch request was not sent. Try again.",
+    "正在读取本地插件状态……": "Reading local plugin status...",
+    "插件状态读取请求没有发出，请再试一次。": "The plugin status request was not sent. Try again.",
+    "插件状态已更新。": "Plugin status updated.",
+    "插件切换未完成。": "The plugin switch did not complete.",
+    "插件状态读取未完成。": "The plugin status check did not complete.",
+    "CS2 环境守护参数不完整。": "The CS2 environment monitor parameters are incomplete.",
+    "CS2 环境守护进程身份无效。": "The CS2 environment monitor process identity is invalid.",
+    "找不到独立的 CS2 环境守护后台。": "The independent CS2 environment monitor could not be found.",
+    "请先保存有效的 CS2 game/csgo 路径。": "Save a valid CS2 game/csgo path first.",
+    "CS2 游戏配置不完整，请先在 Steam 验证游戏文件。": "The CS2 configuration is incomplete. Verify the game files in Steam first.",
+    "本地插件状态文件无效，请重新检查游戏设置。": "The local plugin state file is invalid. Check your game settings again.",
+    "请完全退出 CS2 后再开启或关闭本地插件。": "Fully close CS2 before enabling or disabling local plugins.",
+    "暂时无法确认 CS2 是否已退出，请刷新连接状态后重试。": "CS2 exit status is not confirmed yet. Refresh the connection status and try again.",
+    "游戏配置文件大小异常，未修改。": "The game configuration file size is unusual. Nothing was changed.",
+    "游戏配置备份核对失败，原文件未替换。": "The game configuration backup could not be verified. The original file was not replaced.",
+    "游戏配置在切换过程中发生变化，请刷新后重试。": "The game configuration changed during switching. Refresh and try again.",
+    "CS2 配置引用了已移除的继承目录，请先在 Steam 验证游戏文件。": "The CS2 configuration references a removed inherited directory. Verify the game files in Steam first.",
+    "请选择开启本地插件或恢复普通 CS2。": "Choose to enable local plugins or restore normal CS2.",
+    "本地插件恢复进程身份无效。": "The plugin restoration process identity is invalid.",
+    "本地插件已开启。退出 CS2 后会自动恢复普通环境。": "Local plugins are enabled. Normal CS2 is restored automatically after CS2 closes.",
+    "本地插件加载入口已关闭，普通 CS2 环境已恢复。": "Local plugin loading is disabled. Normal CS2 has been restored.",
+    "检测到部分本地加载入口，可以一键恢复普通 CS2。": "Some local plugin loading entries were detected. You can restore normal CS2 with one click.",
+    "CS2 正在运行，请完全退出后再切换插件。": "CS2 is running. Fully close it before switching plugins.",
+    "暂时无法确认 CS2 进程，请刷新后再切换插件。": "The CS2 process status is not confirmed yet. Refresh before switching plugins.",
+    "本地插件已开启。退出 CS2 后自动恢复普通环境。": "Local plugins are enabled. Normal CS2 is restored automatically after CS2 closes.",
+    "插件已关闭，可以从 Steam 正常启动 CS2。": "Plugins are disabled. You can start CS2 normally from Steam.",
+    "本地插件恢复进程未能启动，已恢复普通 CS2。请重新打开程序后重试。": "The plugin restoration monitor could not start. Normal CS2 has been restored. Reopen the app and try again.",
+    "本地插件已开启。请从本项目进入比赛，或一键恢复普通 CS2。": "Local plugins are enabled. Enter a match through this app, or restore normal CS2 with one click.",
+    "所选 CS2 尚未安装完整的本地比赛组件，请先安装人机增强。": "The selected CS2 installation is missing local match components. Install the bot enhancement first.",
+    "插件恢复进程未能启动。请关闭 CS2，再点击“关闭插件”恢复普通环境。": "The plugin restoration monitor could not start. Close CS2, then click \"Disable plugins\" to restore normal CS2.",
+    "普通 CS2 环境已保留，本地开赛时自动开启插件。": "Normal CS2 is preserved. Local plugins are enabled automatically when starting a local match.",
+    "已从本地安装%s（%s 个文件），无需联网。普通 CS2 环境已保留，本地开赛时自动开启插件。安装前备份：%s": "Installed %s locally (%s files), without connecting online. Normal CS2 is preserved; local plugins are enabled when starting a local match. Pre-install backup: %s",
+    "插件切换未完成。请确认 CS2 已关闭、游戏目录可写，再刷新状态重试。": "The plugin switch did not complete. Make sure CS2 is closed and the game folder is writable, then refresh and try again.",
+    "插件加载入口已关闭。": "Plugin loading is disabled.",
+    "插件加载入口已关闭。\n%s": "Plugin loading is disabled.\n%s",
+    "Steam 的 CS2 启动选项仍含 -insecure；请在 Steam → CS2 → 属性 → 启动选项中移除后再打排位。": "CS2's Steam launch options still contain -insecure. Remove it under Steam → CS2 → Properties → Launch Options before playing ranked.",
+    "暂时无法确认 Steam 的 CS2 启动选项，请在 Steam 属性中检查。": "CS2's Steam launch options could not be confirmed. Check them in Steam Properties.",
     "自定义房间已关闭；没有计算积分或生涯奖励。": "Custom lobby closed; no rating points or career rewards awarded.",
     "比赛已结束。": "Match finished.",
     "人机增强": "Bot Improver",
@@ -3901,6 +4007,17 @@
       "prefix": ""
     },
     {
+      "source": "已从本地安装%s（%s 个文件），无需联网。普通 CS2 环境已保留，本地开赛时自动开启插件。安装前备份：%s",
+      "pattern": "^已从本地安装([\\s\\S]+?)（([\\s\\S]+?)\\ 个文件），无需联网。普通\\ CS2\\ 环境已保留，本地开赛时自动开启插件。安装前备份：([\\s\\S]+?)$",
+      "replacement": "Installed {0} locally ({1} files), without connecting online. Normal CS2 is preserved; local plugins are enabled when starting a local match. Pre-install backup: {2}",
+      "keys": [
+        "0",
+        "1",
+        "2"
+      ],
+      "prefix": "已从本地安装"
+    },
+    {
       "source": "{teammate}没有说很多，只认真回了一句谢谢。第二天训练前，他把你常喝的饮料放在桌边：‘昨天那句话，我记着。’",
       "pattern": "^([\\s\\S]+?)没有说很多，只认真回了一句谢谢。第二天训练前，他把你常喝的饮料放在桌边：‘昨天那句话，我记着。’$",
       "replacement": "{teammate} gives you a quiet, sincere thank-you. Before practice the next day, he leaves your usual drink beside your desk. 'I appreciated what you said yesterday.'",
@@ -4167,6 +4284,16 @@
         "3"
       ],
       "prefix": "将用 "
+    },
+    {
+      "source": "已装备 CT 侧 %d 项、T 侧 %d 项；进入比赛时同步。",
+      "pattern": "^已装备\\ CT\\ 侧\\ ([+-]?[\\d,.]+)\\ 项、T\\ 侧\\ ([+-]?[\\d,.]+)\\ 项；进入比赛时同步。$",
+      "replacement": "Equipped: {0} CT items, {1} T items. Synced when entering a match.",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "已装备 CT 侧 "
     },
     {
       "source": "{partner}告诉你：‘今天不需要再逞强，我陪你把这段时间过完。’",
@@ -4512,6 +4639,15 @@
         "total"
       ],
       "prefix": "试训 D20："
+    },
+    {
+      "source": "已保留完成地图，重新进入当前未结束地图。%s",
+      "pattern": "^已保留完成地图，重新进入当前未结束地图。([\\s\\S]+?)$",
+      "replacement": "Completed maps are kept. Re-entering the unfinished map. {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "已保留完成地图，重新进入当前未结束地图。"
     },
     {
       "source": "天梯 Elo %s · %s 胜 / %s 负",
@@ -5287,6 +5423,15 @@
       "prefix": ""
     },
     {
+      "source": "插件加载入口已关闭。\n%s",
+      "pattern": "^插件加载入口已关闭。\\\n([\\s\\S]+?)$",
+      "replacement": "Plugin loading is disabled.\n{0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "插件加载入口已关闭。\n"
+    },
+    {
       "source": "RTS 战绩计数无效：%s",
       "pattern": "^RTS\\ 战绩计数无效：([\\s\\S]+?)$",
       "replacement": "Invalid RTS results count: {0}",
@@ -5623,6 +5768,15 @@
       "prefix": "第 "
     },
     {
+      "source": "本局换肤未同步：{error}",
+      "pattern": "^本局换肤未同步：([\\s\\S]+?)$",
+      "replacement": "The match loadout was not synced: {error}",
+      "keys": [
+        "error"
+      ],
+      "prefix": "本局换肤未同步："
+    },
+    {
       "source": "当前最多能借 $%s。",
       "pattern": "^当前最多能借\\ \\$([\\s\\S]+?)。$",
       "replacement": "You can currently borrow up to ${0}.",
@@ -5843,6 +5997,15 @@
         "1"
       ],
       "prefix": ""
+    },
+    {
+      "source": "本局换肤未同步：%s",
+      "pattern": "^本局换肤未同步：([\\s\\S]+?)$",
+      "replacement": "The match loadout was not synced: {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "本局换肤未同步："
     },
     {
       "source": "%s BP 已保留。",

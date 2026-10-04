@@ -205,7 +205,10 @@ class ExternalInventoryTests(unittest.TestCase):
             copy.assert_called_once_with(self.game)
             disable.assert_not_called()
             self.career.real_skins = False
-            self.assertEqual(2, launch.install_skins_plugin(self.game, self.career))
+            self.assertEqual(3, launch.install_skins_plugin(self.game, self.career))
+            self.assertFalse((self.game / 'addons/counterstrikesharp/gamedata/inventory-simulator.previous.json').exists())
+            self.assertEqual(self.external['addons/counterstrikesharp/configs/plugins/InventorySimulator/inventories.json'],
+                             (self.game / 'addons/counterstrikesharp/configs/plugins/InventorySimulator/inventories.json').read_bytes())
             self.assertEqual(['InventorySimulator', 'InvsimCareer'], [call.args[1] for call in disable.call_args_list])
 
     def test_install_mod_preserves_external_files_and_shared_player_cfgs(self):

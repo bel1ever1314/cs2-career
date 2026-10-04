@@ -32,6 +32,7 @@ var cancel_confirm := ""
 var replaced_finished_room := ""
 var uncertain := false
 var request_status := false
+var command_sender: Callable
 
 func attach(owner) -> void:
 	host = owner
@@ -197,7 +198,8 @@ func command(action: String) -> bool:
 		notice = "地图或控制角色尚未保存，请先保存设置。"; _repaint(); return false
 	pending_action = action
 	notice = ""
-	if not CareerBridge.command(PREFIX + action, body):
+	var accepted: bool = bool(command_sender.call(PREFIX + action, body.duplicate(true))) if command_sender.is_valid() else CareerBridge.command(PREFIX + action, body)
+	if not accepted:
 		pending_action = ""
 		notice = "操作暂未发出，请等当前操作完成后重试。"
 		_repaint(); return false
@@ -381,9 +383,18 @@ func render(parent: Node) -> void:
 			_button(actions, "模拟验证", command.bind("simulate"), "CustomSimulate", uncertain or dirty)
 			UI.primary(_button(actions, "进入 CS2 验证", command.bind("launch"), "CustomLaunch", uncertain or dirty or not bool(status.get("can_launch", false))))
 			_button(actions, "RTS 指挥对局", host.rts_room.open_custom, "CustomRTS", uncertain or dirty or "de_" + str(room.get("map", "")) not in RTSMaps.available_maps(), false)
+		elif str(status.get("status", "")) == "interrupted":
+			host._label(parent, "CS2 已退出，可以继续当前房间。", 16)
+			host._label(parent, "重新进入或切换 RTS 会重开当前未完成地图；模拟使用原来的十人和地图。", 12, UI.MUTED)
+			if bool(status.get("can_resume", false)):
+				UI.primary(_button(actions, "重新进入 CS2 · 重开当前图", command.bind("launch"), "CustomResumeCS2", uncertain))
+			if bool(status.get("can_simulate", false)):
+				_button(actions, "继续模拟本场", command.bind("simulate"), "CustomResumeSimulate", uncertain)
+			if bool(status.get("can_rts", false)):
+				_button(actions, "切换 RTS · 重开当前图", host.rts_room.open_custom, "CustomResumeRTS", uncertain, false)
 		else:
 			host._label(parent, "自定义对局正在启动 / 等待战绩。", 16)
-		if status.get("can_retry", false): _button(parent, "重试进入 CS2", command.bind("launch"), "CustomRetry", uncertain)
+		if status.get("can_retry", false) and str(status.get("status", "")) != "interrupted": _button(parent, "重试进入 CS2", command.bind("launch"), "CustomRetry", uncertain)
 		if status.get("can_collect", false): _button(parent, "录入 / 重试录入战绩", command.bind("collect"), "CustomCollect", uncertain)
 		_button(parent, "刷新房间状态", refresh_status, "CustomRefreshStatus", false, false)
 		if not str(status.get("reason", "")).is_empty(): host._label(parent, str(status["reason"]), 12, UI.MUTED)

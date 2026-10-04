@@ -55,8 +55,16 @@ internal static class TacticalBuyPolicy
         "weapon_ssg08" => 1700, "weapon_awp" => AwpPrice, "weapon_scar20" or "weapon_g3sg1" => 5000,
         "weapon_negev" => 1700, "weapon_m249" => 5200, _ => 0
     };
+    internal static bool PrimaryAllowed(bool ct, string weapon) => PrimaryPrice(weapon) > 0 && (weapon switch {
+        "weapon_famas" or "weapon_m4a1" or "weapon_m4a1_silencer" or "weapon_aug"
+            or "weapon_scar20" or "weapon_mp9" or "weapon_mag7" => ct,
+        "weapon_galilar" or "weapon_ak47" or "weapon_sg556" or "weapon_g3sg1"
+            or "weapon_mac10" or "weapon_sawedoff" => !ct,
+        _ => true
+    });
     internal static bool CanReplace(string duty, string weapon, int money, uint entity, uint bought,
-        bool existedAtStart, int matchingItems, bool refundable) => duty == "awp" && weapon != "weapon_awp"
-        && PrimaryPrice(weapon) > 0 && money >= 0 && money + PrimaryPrice(weapon) >= AwpPrice
+        bool existedAtStart, int matchingItems, bool refundable, int reserve = 0, int maxMoney = 16000) => duty == "awp" && weapon != "weapon_awp"
+        && PrimaryPrice(weapon) > 0 && money >= 0 && reserve >= 0 && maxMoney > 0
+        && Math.Min((long)maxMoney, (long)money + PrimaryPrice(weapon)) >= AwpPrice + (long)reserve
         && entity != 0 && entity == bought && !existedAtStart && matchingItems == 1 && refundable;
 }

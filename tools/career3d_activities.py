@@ -34,6 +34,7 @@ def device_context(state):
     lobby = deepcopy(arena.data.get('lobby'))
     if lobby:
         lobby.pop('request', None)
+        lobby.pop('career3d_retired_sessions', None)
         lobby['turn'] = arena.turn(lobby)
         if lobby.get('result'):
             lobby['result'] = _public_report(lobby['result'])
@@ -69,6 +70,7 @@ def custom_context(state):
     lobby = deepcopy(arena.data.get('lobby'))
     if lobby and lobby.get('mode') == 'custom':
         lobby.pop('request', None)
+        lobby.pop('career3d_retired_sessions', None)
         lobby['turn'] = arena.turn(lobby)
         lobby['observer'] = not bool(lobby.get('human_id'))
         if lobby.get('result'):
@@ -176,6 +178,10 @@ def custom_command(state, action, body):
                 raise ValueError('这场真实 CS2 战绩已录入，不能用模拟覆盖。')
             return {'reason': '自定义对局已结束。', 'result': _public_report(lobby['result']), 'replayed': True}
         arena._guard(body.get('revision'))
+        if lobby['phase'] in ('starting', 'launched'):
+            recovered = recover_arena_cs2(state, body, 'custom', 'simulate')
+            if recovered:
+                return recovered
         if lobby['phase'] != 'ready':
             raise ValueError('自定义房间尚未准备好；待回传的真实比赛不能模拟。')
         a, b = _mix_team(lobby, 'a'), _mix_team(lobby, 'b')
@@ -232,6 +238,10 @@ def _simulate_rank(state, body):
         return {'reason': '比赛已结束。', 'result': deepcopy(lobby['result']), 'replayed': True}
     arena._guard(body.get('revision'))
     arena.require_rank_identity(state)
+    if lobby['phase'] in ('starting', 'launched'):
+        recovered = recover_arena_cs2(state, body, 'rank', 'simulate')
+        if recovered:
+            return recovered
     if lobby['phase'] != 'ready':
         raise ValueError('请先完成房间；正在启动或等待真实回传的比赛不能模拟。')
     a, b = _mix_team(lobby, 'a'), _mix_team(lobby, 'b')
@@ -373,10 +383,12 @@ def config_status():
 
 def settings_context(state):
     from tools.career3d_install import setup_context
+    from tools.career3d_cs2_environment import environment_context
     cfg = read_cs2_config()
     return {**cfg, 'revision': int(state.career.incident_state.get('career3d_service', {}).get('revision', 0)),
             'real_skins': bool(state.career.real_skins), 'steam_id': state.career.steam_id,
-            'config': config_status(), 'setup': setup_context(), 'isolated': True}
+            'config': config_status(), 'setup': setup_context(), 'environment': environment_context(cfg),
+            'loadout_status': _skin_loadout_context(state.career, cfg), 'isolated': True}
 
 
 def settings_command(state, body):
@@ -432,6 +444,15 @@ def _existing_skin_plugin(cfg):
     return bool(cfg.get('csgo_path')) and skins.plugin_installed(Path(cfg['csgo_path']))
 
 
+def _skin_loadout_context(career, cfg):
+    from cs2career.cs2 import launch
+    status = launch.career_loadout_status(career, cfg)
+    installed = _existing_skin_plugin(cfg)
+    if status['state'] == 'ready' and not installed:
+        status = dict(status, state='unavailable', reason='换肤已开启，但游戏内换肤组件尚未安装。')
+    return dict(status, plugin_installed=installed)
+
+
 def _cached_art(skin_id, manifest):
     from tools.career3d_resources import cached_skin_art
     return cached_skin_art(skin_id, manifest)
@@ -441,7 +462,8 @@ def skin_context(state):
     from cs2career.career import skins
     from cs2career.skin_art import manifest
     cfg = read_cs2_config()
-    installed = _existing_skin_plugin(cfg)
+    loadout = _skin_loadout_context(state.career, cfg)
+    installed = loadout['plugin_installed']
     with _scoped_calls([(skins, 'plugin_installed', lambda _csgo=None: installed)]):
         shop = skins.shop_public(deepcopy(state.career))
     # These original desktop catalogs are separate products, not items exposed
@@ -457,9 +479,9 @@ def skin_context(state):
         row['art_path'] = _cached_art(row.get('skin_id') or row['id'], art)
     shop.update(personal_money=state.career.money, real_skins=bool(state.career.real_skins),
                 steam_id=state.career.steam_id, live_sync_deferred=True,
-                integration_ready=bool(installed and state.career.real_skins and state.career.steam_id),
-                integration_reason=('已装备饰品会在进入 CS2 本局时同步。' if installed and state.career.real_skins and state.career.steam_id
-                    else '个人饰品仅保存在独立库存；游戏内换肤需要现有换肤组件与 17 位 SteamID。'))
+                loadout_status=loadout,
+                integration_ready=bool(installed and loadout['state'] in ('ready', 'external')),
+                integration_reason=loadout['reason'])
     return shop
 
 
@@ -621,6 +643,7 @@ def custom_status(state, check_running=True):
 
 def _arena_status(state, mode, check_running=True):
     from cs2career.cs2.result import result_usable
+    from tools.career3d_cs2_lifecycle import recovery_state
     arena, cfg = state.arena, read_cs2_config()
     config = config_status()
     lobby = arena.data.get('lobby') or {}
@@ -635,6 +658,7 @@ def _arena_status(state, mode, check_running=True):
     failure = state.career.incident_state.get('career3d_service', {}).get('custom_failure' if mode == 'custom' else 'ladder_failure') or {}
     failure = failure if failure.get('lobby_id') == lid else {}
     reason, status, result_ready = '', 'idle', False
+    recovery = recovery_state(None, live)
     if not lobby:
         reason = '尚未开始匹配。'
     elif lobby.get('mode') != mode:
@@ -643,11 +667,19 @@ def _arena_status(state, mode, check_running=True):
         status, reason = 'collected', '本场真实战绩已录入。' if (lobby.get('result') or {}).get('map', {}).get('source') == 'cs2' else '这是以前保存的模拟报告。'
     elif phase in ('starting', 'launched'):
         raw = _peek_ladder_result(state, cfg) if check_running else {'status': 'none'}
+        if live is True:
+            state._3d_cs2_seen_nonce = lobby.get('nonce')
+        seen = bool(lobby.get('nonce') and (getattr(state, '_3d_cs2_seen_nonce', None) == lobby.get('nonce') or
+                raw.get('status') == 'in_progress' and raw.get('request_nonce') == lobby.get('nonce')))
         error = result_usable(raw, {'nonce': lobby.get('nonce'), 'map': lobby.get('map'),
             'started_at': lobby.get('started_at'), 'expected_player_ids': list(lobby.get('roster', {}))})
         result_ready = not error and raw.get('map') == 'de_' + lobby.get('map', '') and bool(raw.get('ended_at'))
         status = 'failed' if failure else 'waiting'
         reason = failure.get('reason') or ('真实十人战绩已回传，请录入。' if result_ready else error or '等待当前天梯比赛回传。')
+        recovery = recovery_state({k: v for k, v in lobby.items()
+            if not failure or k not in ('started_at', 'launch_requested_at')}, live, result_ready, seen_running=seen)
+        if recovery['status'] != 'waiting':
+            status, reason = recovery['status'], recovery['reason']
     elif live:
         status, reason = 'blocked', 'CS2 正在运行；请完全退出后再开新天梯，当前配置不会覆盖。'
     elif live is None and phase == 'ready':
@@ -662,8 +694,59 @@ def _arena_status(state, mode, check_running=True):
             'can_launch': phase == 'ready' and lobby.get('mode') == mode and config['ready'] and live is False,
             'can_collect': phase in ('starting', 'launched') and lobby.get('mode') == mode,
             'can_retry': phase == 'starting' and lobby.get('mode') == mode and bool(failure) and config['ready'] and live is False,
+            'can_resume': lobby.get('mode') == mode and bool(lobby.get('nonce')) and recovery['can_resume'] and config['ready'],
+            'can_simulate': lobby.get('mode') == mode and bool(lobby.get('nonce')) and recovery['can_switch'],
+            'can_rts': lobby.get('mode') == mode and bool(lobby.get('nonce')) and recovery['can_switch'],
+            'launch_grace': recovery['launch_grace'],
             'can_cancel': bool(lobby) and lobby.get('mode') == mode and (phase not in ('starting', 'launched') or live is False),
             'result': _public_report(lobby['result']) if lobby.get('result') else None}
+
+
+def recover_arena_cs2(state, body, mode, execution):
+    """Return to the frozen room after exit, or ingest a winning result race."""
+    from cs2career.cs2.result import result_usable
+    from tools.career3d_cs2_lifecycle import recovery_state, retire_session
+    arena = state.arena
+    lobby = arena.data.get('lobby') or {}
+    if lobby.get('mode') != mode or lobby.get('id') != body.get('lobby_id'):
+        raise ValueError('当前对局房间身份已变化，请刷新。')
+    if lobby.get('phase') not in ('starting', 'launched'):
+        return None
+    arena._guard(body.get('revision'))
+    if not lobby.get('nonce') or len(lobby.get('roster') or {}) != 10:
+        raise ValueError('原房间请求身份不完整，不能覆盖待回传比赛。')
+    live = _running_cs2()
+    state._3d_cs2_live = live
+    cfg = read_cs2_config()
+    raw = _peek_ladder_result(state, cfg)
+    expected = dict(nonce=lobby['nonce'], map=lobby['map'], started_at=lobby.get('started_at'),
+                    expected_player_ids=list(lobby['roster']))
+    ready = not result_usable(raw, expected) and raw.get('ended_at') and raw.get('map') == 'de_' + lobby['map']
+    if ready:
+        message = arena.ingest(body, raw)
+        return dict(status='collected', reason=message,
+                    result=_public_report(arena.data['lobby']['result']))
+    failure_key = 'custom_failure' if mode == 'custom' else 'ladder_failure'
+    failure = state.career.incident_state.get('career3d_service', {}).get(failure_key) or {}
+    failed = failure.get('lobby_id') == lobby['id']
+    seen = (getattr(state, '_3d_cs2_seen_nonce', None) == lobby.get('nonce') or
+            raw.get('status') == 'in_progress' and raw.get('request_nonce') == lobby.get('nonce'))
+    recovery = recovery_state({k: v for k, v in lobby.items()
+        if not failed or k not in ('started_at', 'launch_requested_at')}, live, seen_running=seen)
+    if not recovery['can_resume']:
+        raise ValueError(recovery['reason'])
+    if cfg.get('csgo_path'):
+        from cs2career.cs2 import launch
+        launch.deactivate_match_request(Path(cfg['csgo_path']), lobby['nonce'])
+    retire_session(lobby, {key: deepcopy(lobby[key]) for key in
+        ('nonce', 'started_at', 'launch_requested_at', 'request') if key in lobby}, execution)
+    for key in ('nonce', 'started_at', 'launch_requested_at', 'request'):
+        lobby.pop(key, None)
+    lobby['phase'] = 'ready'
+    lobby['career3d_recovering'] = True
+    # The subsequent launch/simulation/RTS operation commits once. Do not bump
+    # its revision here or it would invalidate the user's very same request.
+    return None
 
 
 def _require_existing_plugin(csgo, name):
@@ -702,8 +785,12 @@ def _arena_cs2_command(state, action, body, mode):
         store.pop(failure_key, None)
         return {'reason': message, 'status': 'collected', 'result': _public_report(arena.data['lobby']['result'])}
     arena._guard(body.get('revision'))
-    if action != 'launch' or lobby['phase'] not in ('ready', 'starting'):
+    if action != 'launch' or lobby['phase'] not in ('ready', 'starting', 'launched'):
         raise ValueError('房间尚未准备好，或已有比赛等待回传。')
+    if lobby['phase'] in ('starting', 'launched'):
+        recovered = recover_arena_cs2(state, body, mode, 'cs2')
+        if recovered:
+            return recovered
     if _running_cs2() is not False:
         raise ValueError('CS2 正在运行；请完全退出后再开新对局，当前配置不会覆盖。')
     launch.require_cs2_closed('启动新的 3D 自定义对局' if mode == 'custom' else '启动新的 3D 天梯比赛')
@@ -714,7 +801,7 @@ def _arena_cs2_command(state, action, body, mode):
     wanted = body.get('difficulty', cfg['difficulty'])
     if wanted not in launch.DIFFICULTIES:
         raise ValueError('请选择原有难度 Low、Medium 或 High。')
-    if lobby['phase'] == 'starting' and lobby.get('3d_settings'):
+    if (lobby['phase'] == 'starting' or lobby.get('career3d_recovering')) and lobby.get('3d_settings'):
         cfg = deepcopy(lobby['3d_settings'])
         if 'difficulty' in body and wanted != cfg['difficulty']:
             raise ValueError('重试必须沿用这场已冻结的难度。')
@@ -731,9 +818,7 @@ def _arena_cs2_command(state, action, body, mode):
         kwargs['career'] = cosmetics
         return start(*args, **kwargs)
     def installed_skins(csgo, career=None):
-        if career and career.real_skins and not skins.plugin_installed(Path(csgo)):
-            raise ValueError('现有换肤组件缺失；3D 样板不会安装插件。')
-        return int(bool(career and career.real_skins))
+        return launch.prepare_existing_skins(Path(csgo), career, cfg)
     # Keep the original game preparation, request, profiles and result importer.
     # Only plugin installation is disabled and the isolated cosmetics supplied.
     try:
@@ -748,9 +833,12 @@ def _arena_cs2_command(state, action, body, mode):
         state.persist()
         return {'reason': str(exc), 'status': 'failed', 'connection': connection(state)}
     store.pop(failure_key, None)
+    from tools.career3d_cs2_lifecycle import utc_stamp
+    lobby['launch_requested_at'] = utc_stamp()
+    restarted = bool(lobby.pop('career3d_recovering', False))
     # Only the independent preferences are updated; never write original cs2.json.
     launch.SETTINGS_PATH.write_text(json.dumps(cfg, ensure_ascii=False, indent=2), encoding='utf-8')
-    return {'reason': message, 'status': 'waiting', 'connection': connection(state)}
+    return {'reason': message, 'status': 'waiting', 'connection': connection(state), 'restarted_map': restarted}
 
 
 def scrim_command(state, action, body):

@@ -17,6 +17,7 @@ from cs2career.web.server import create_server
 from tools import career3d_activities as activities
 from tools import career3d_install as install
 from tools import career3d_service as service
+FIXTURE_GI = b'GameInfo { FileSystem { SearchPaths { Game csgo } } }'
 
 
 class Career3DSetupHttpTests(unittest.TestCase):
@@ -34,7 +35,8 @@ class Career3DSetupHttpTests(unittest.TestCase):
         self.steam.write_bytes(b'fixture Steam; not executable')
         self.game = self.steam.parent / 'fixture-install' / 'game' / 'csgo'
         self.game.mkdir(parents=True)
-        (self.game / 'gameinfo.gi').write_bytes(b'fixture original gameinfo')
+        (self.game / 'gameinfo.gi').write_bytes(FIXTURE_GI)
+        (self.game / 'cfg').mkdir()
         self.mod = self.root / 'downloaded release'
         for name in ('addons/metamod', 'addons/counterstrikesharp', 'overrides'):
             (self.mod / name).mkdir(parents=True)
@@ -63,6 +65,7 @@ class Career3DSetupHttpTests(unittest.TestCase):
         # settings/config and ladder status below still use their real code.
         self.start(patch.object(service, 'read_context', side_effect=self.context))
         self.running = self.start(patch.object(activities, '_running_cs2', return_value=False))
+        self.start(patch('cs2career.cs2.process_state.cs2_running', return_value=False))
         self.runtime_prepare = self.start(patch('tools.career3d_runtime_compat.prepare_runtime',
             side_effect=self.prepare_fixture))
         self.mod_install = self.start(patch.object(launch, 'install_mod', side_effect=self.install_fixture))
@@ -242,7 +245,7 @@ class Career3DSetupHttpTests(unittest.TestCase):
         self.assertEqual(2, self.saved)
         backup = Path(result['backup_path'])
         self.assertTrue(backup.is_relative_to(self.data))
-        self.assertEqual(b'fixture original gameinfo',
+        self.assertEqual(FIXTURE_GI,
                          (backup / 'files/gameinfo.gi').read_bytes())
         self.assertEqual('installed', json.loads(
             (backup / 'BACKUP_MANIFEST.json').read_text('utf-8'))['status'])

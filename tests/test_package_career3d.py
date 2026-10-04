@@ -42,6 +42,52 @@ class Package3DTests(unittest.TestCase):
     def test_preview_version_not_stable_release(self):
         self.assertEqual(VERSION, '1.7.0-preview.1')
 
+    def legal_fixture(self, base):
+        engine = base / 'Godot.exe'
+        engine.write_bytes(b'MZ fixture engine')
+        cache = base / 'legal-cache'
+        cache.mkdir()
+        for name in pkg.ENGINE_LEGAL_HASHES:
+            (cache / name).write_bytes(b'Godot fixture ' + name.encode())
+        hashes = {p.name: digest(p) for p in cache.iterdir()}
+        pkg.write_json(cache / 'Godot-version.json', {
+            'version': pkg.ENGINE_VERSION, 'executable_sha256': digest(engine)})
+        return engine, cache, hashes
+
+    def test_matching_offline_engine_licenses_are_copied_without_network(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            engine, cache, hashes = self.legal_fixture(base)
+            target = base / 'output'
+            with patch.object(pkg, 'ENGINE_LEGAL_HASHES', hashes), \
+                    patch.object(pkg.urllib.request, 'urlopen') as network:
+                pkg.copy_engine_legal(engine, target, cache)
+            network.assert_not_called()
+            self.assertEqual({p.name for p in target.iterdir()}, {*hashes, 'Godot-version.json'})
+            for path in target.iterdir():
+                self.assertEqual(path.read_bytes(), (cache / path.name).read_bytes())
+
+    def test_offline_engine_license_mismatch_fails_before_writing(self):
+        for invalid in ('version', 'engine', 'license', 'missing'):
+            with self.subTest(invalid=invalid), tempfile.TemporaryDirectory() as temporary:
+                base = Path(temporary)
+                engine, cache, hashes = self.legal_fixture(base)
+                if invalid == 'version':
+                    pkg.write_json(cache / 'Godot-version.json', {
+                        'version': 'different', 'executable_sha256': digest(engine)})
+                elif invalid == 'engine':
+                    engine.write_bytes(b'another engine')
+                elif invalid == 'license':
+                    (cache / 'Godot-LICENSE.txt').write_bytes(b'tampered')
+                else:
+                    (cache / 'Godot-COPYRIGHT.txt').unlink()
+                with patch.object(pkg, 'ENGINE_LEGAL_HASHES', hashes), \
+                        patch.object(pkg.urllib.request, 'urlopen') as network:
+                    with self.assertRaises((ValueError, FileNotFoundError)):
+                        pkg.copy_engine_legal(engine, base / 'output', cache)
+                network.assert_not_called()
+                self.assertFalse((base / 'output').exists())
+
     def test_final_source_manifest_records_overlays_and_added_license(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -165,12 +211,15 @@ class Package3DTests(unittest.TestCase):
                     patch.object(pkg, 'relative_media', side_effect=self.fake_media), \
                     patch.object(pkg, 'freeze_backend', side_effect=self.fake_freeze) as frozen, \
                     patch.object(pkg, 'download_legal'), \
+                    patch.object(pkg, 'copy_engine_legal') as local_legal, \
                     patch.object(pkg.sys, 'base_prefix', str(python)), \
                     patch.object(pkg.subprocess, 'run', return_value=type('Result', (), {
                         'returncode': 0, 'stdout': '', 'stderr': ''})()), \
                     contextlib.redirect_stdout(io.StringIO()):
                 pkg.main(args + ['--ordinary-only', '--version', '1.7.0-preview.2',
-                                 '--bot-stage', str(unused_bots)])
+                                 '--bot-stage', str(unused_bots), '--engine-legal', str(base / 'legal-cache')])
+            local_legal.assert_called_once_with(base / 'Godot.exe',
+                base / 'output/release/CS2Career-1.7.0-preview.2/legal/Godot', base / 'legal-cache')
             source = base / 'output/build/source'
             frozen.assert_called_once_with(source, base / 'output/build/backend')
             self.assertEqual(stage.call_args.kwargs['version'], '1.7.0-preview.2')

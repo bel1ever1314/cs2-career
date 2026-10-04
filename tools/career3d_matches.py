@@ -287,6 +287,7 @@ def _peek(state, match, cfg):
 
 def match_status(state, ident='', check_running=True):
     from tools.career3d_activities import read_cs2_config, _running_cs2
+    from tools.career3d_cs2_lifecycle import recovery_state
     from cs2career.cs2.result import result_usable
     ev, match = _pair(state, ident)
     preflight = match_preflight(state, ident)
@@ -299,15 +300,28 @@ def match_status(state, ident='', check_running=True):
         state._3d_cs2_live = live
     session = (match or {}).get('cs2_session') or {}
     raw = _peek(state, match, read_cs2_config()) if session else {'status': 'none'}
+    if session and live is True:
+        state._3d_cs2_seen_nonce = session.get('nonce')
+    seen = bool(session and (getattr(state, '_3d_cs2_seen_nonce', None) == session.get('nonce') or
+        raw.get('status') == 'in_progress' and raw.get('request_nonce') == session.get('nonce')))
     result_error = result_usable(raw, session) if session else ''
     ready = bool(session and not result_error and raw.get('ended_at')
         and raw.get('map') == session.get('cs2_map'))
+    recovery = recovery_state(session, live, ready, seen_running=seen)
+    resumable = bool(recovery['can_resume'] and match and _session_return_preflight(state, ev, match)
+                     and not _reason(state, match, ignore_session=True))
+    switchable = resumable
     failure = state.career.incident_state.get('career3d_service', {}).get('match_failure') or {}
     failure = failure if failure.get('match_id') == (match or {}).get('id') else {}
     status = 'collected' if (match or {}).get('played') else 'waiting' if session else 'failed' if failure else preflight['phase']
     reason = ('真实十人战绩已回传，请录入。' if ready else result_error) if session else \
         failure.get('reason') or preflight.get('block_reason') or preflight.get('config', {}).get('reason', '')
     can_launch = bool(preflight.get('can_launch') and live is False and not session)
+    if session and recovery['status'] != 'waiting':
+        status, reason = recovery['status'], recovery['reason']
+    flags = dict(can_resume=resumable, can_simulate=bool(switchable), can_rts=bool(switchable),
+                 launch_grace=recovery['launch_grace'])
+    preflight.update(flags)
     if not session and not (match or {}).get('played') and live is not False:
         reason = error or 'CS2 正在运行，请完全退出后再开下一张地图。' if live else error or '请刷新连接状态以核验 CS2 进程。'
     return {'ok': True, 'match_id': (match or {}).get('id', ''), 'status': status, 'reason': reason,
@@ -315,7 +329,56 @@ def match_status(state, ident='', check_running=True):
         'cs2_running': live, 'process_known': live is not None, 'process_reason': error,
         'result_ready': ready, 'can_launch': can_launch, 'can_collect': bool(session),
         'can_retry': bool(failure and can_launch),
+        **flags,
         'result': _report(state, ev, match) if match and match.get('maps') else None}
+
+
+def recover_cs2_map(state, event, match, mode):
+    """Explicit POST recovery, under the service's lock; GET never resets it.
+
+    A just-finished dump wins the race against changing the execution mode.
+    Retiring an unfinished request preserves the BO series and its fixed BP.
+    A subsequently arriving old-nonce dump cannot settle the replacement map.
+    """
+    from tools.career3d_activities import _running_cs2, read_cs2_config, _scoped_calls
+    from tools.career3d_cs2_lifecycle import recovery_state, retire_session
+    from cs2career.cs2.result import result_usable
+    from cs2career.league import season as season_module
+    session = match.get('cs2_session')
+    if not session:
+        return None
+    if _session_return_preflight(state, event, match) is None:
+        raise ValueError('原比赛身份或阵容已变化，请刷新当前比赛，不能覆盖待回传地图。')
+    # Query the process before the dump: shutdown can write the final result.
+    live = _running_cs2()
+    state._3d_cs2_live = live
+    cfg = read_cs2_config()
+    raw = _peek(state, match, cfg)
+    ready = not result_usable(raw, session) and raw.get('ended_at') and raw.get('map') == session.get('cs2_map')
+    if ready:
+        start = len(match.get('maps') or [])
+        with _scoped_calls([(season_module, 'read_result', lambda request_nonce=None: deepcopy(raw))]):
+            message = state.season.commit_cs2_map(match['id'], raw)
+        out = _result_response(state, event, match, message, start)
+        out['status'] = 'finished' if match.get('played') else 'map_collected'
+        if match.get('played'):
+            match['career3d_result'] = deepcopy(out['result'])
+        return out
+    seen = getattr(state, '_3d_cs2_seen_nonce', None) == session.get('nonce') or (
+        raw.get('status') == 'in_progress' and raw.get('request_nonce') == session.get('nonce'))
+    recovery = recovery_state(session, live, seen_running=seen)
+    if not recovery['can_resume']:
+        raise ValueError(recovery['reason'])
+    reason = _reason(state, match, ignore_session=True)
+    if reason:
+        raise ValueError(reason)
+    if cfg.get('csgo_path'):
+        from cs2career.cs2 import launch
+        launch.deactivate_match_request(Path(cfg['csgo_path']), session['nonce'])
+    retire_session(match, session, mode)
+    match.pop('cs2_session', None)
+    _store(state).pop('match_failure', None)
+    return None
 
 
 def _launch(state, match, body):
@@ -378,9 +441,7 @@ def _launch(state, match, body):
         kwargs['request_override'] = request
         return start_match(*arguments, **kwargs)
     def installed_skins(csgo, career=None):
-        if career and career.real_skins and not skins.plugin_installed(Path(csgo)):
-            raise ValueError('现有换肤组件缺失；请关闭可选换肤后再开赛。')
-        return int(bool(career and career.real_skins))
+        return launch.prepare_existing_skins(Path(csgo), career, cfg)
     # launch_your_map imports start_match/read_result by value. Override those
     # bindings under the same server lock, retaining the core session/importer.
     with _scoped_calls([(launch, 'settings', lambda: deepcopy(cfg)),
@@ -397,6 +458,8 @@ def _launch(state, match, body):
                 'connection': match_status(state, match['id'])}
     _store(state).pop('match_failure', None)
     if match.get('cs2_session'):
+        from tools.career3d_cs2_lifecycle import utc_stamp
+        match['cs2_session']['launch_requested_at'] = utc_stamp()
         event = state.season.find_match(match['id'])[0]
         from tools.career3d_venues import venue_for
         venue = venue_for(state, event, match)
@@ -435,12 +498,27 @@ def match_command(state, action, body):
         return {**deepcopy(prior['result']), 'replayed': True}
     if match.get('played') and action in ('simulate', 'collect'):
         return {**_result_response(state, ev, match), 'replayed': True}
-    if action == 'launch' and match.get('cs2_session'):
-        return {'reason': '这张图已连接 CS2，等待原场回传。', 'status': 'waiting',
-                'connection': match_status(state, match['id']), 'replayed': True}
     if action == 'collect' and not match.get('cs2_session') and match.get('maps') and match['maps'][-1].get('source') == 'cs2':
         return {**_result_response(state, ev, match), 'replayed': True}
     _guard(state, body, optional=action == 'simulate')
+    recovered = False
+    if action in ('launch', 'simulate') and match.get('cs2_session'):
+        # Repeated launch while the process is alive still means the same game,
+        # not a second prepare. A closed game has an explicit restart path.
+        if action == 'launch':
+            connection = match_status(state, match['id'])
+            if not connection.get('can_resume') and not connection.get('result_ready'):
+                return {'reason': connection.get('reason', '等待原场回传。'), 'status': connection.get('status', 'waiting'),
+                        'connection': connection, 'replayed': True}
+            body = dict(body)
+            body.setdefault('side', match['cs2_session'].get('side', 'ct'))
+        out = recover_cs2_map(state, ev, match, 'cs2' if action == 'launch' else 'simulate')
+        if out:
+            if request_id:
+                match['career3d_receipts'] = (receipts + [{'request_id': request_id,
+                    'action': action, 'result': deepcopy(out)}])[-12:]
+            return out
+        recovered = True
     if action == 'attend':
         if not state.season.is_yours(match):
             raise ValueError('这不是你当前队伍的比赛。')
@@ -508,6 +586,9 @@ def match_command(state, action, body):
             if not _veto_public(state, match)['complete']:
                 raise ValueError('请先完成地图 BP，或选择自动 BP。')
             out = _launch(state, match, body)
+            if recovered:
+                out['restarted_map'] = True
+                out['reason'] = '已保留完成地图，重新进入当前未结束地图。' + out.get('reason', '')
         if action in ('preflight', 'veto', 'autoveto'):
             out = {'reason': '比赛准备已保存。', 'status': 'ready' if _veto_public(state, match)['complete'] else 'veto',
                 'preflight': match_preflight(state, match['id'])}

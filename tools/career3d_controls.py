@@ -148,7 +148,6 @@ def _receipt(state, action, body, perform, namespace='controls'):
 
 def _training_launch(state, body):
     from cs2career.cs2 import launch
-    from cs2career.career import skins
     from tools.career3d_activities import read_cs2_config, config_status, _running_cs2, _scoped_calls, _require_existing_plugin
     from cs2career import tactics
     c, s = state.career, state.season
@@ -172,9 +171,7 @@ def _training_launch(state, body):
         raise ValueError(config['reason'])
     cfg = read_cs2_config()
     def installed_skins(csgo, career=None):
-        if career and career.real_skins and not skins.plugin_installed(Path(csgo)):
-            raise ValueError('现有换肤组件缺失，请先关闭可选换肤。')
-        return int(bool(career and career.real_skins))
+        return launch.prepare_existing_skins(Path(csgo), career, cfg)
     with _scoped_calls([(launch, 'settings', lambda: deepcopy(cfg)),
         (launch, '_copy_career_match', lambda csgo, _mod=None: _require_existing_plugin(csgo, 'CareerMatch')),
         (launch, '_copy_botbuy_patch', lambda csgo: _require_existing_plugin(csgo, 'BotBuy')),

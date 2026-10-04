@@ -12,7 +12,7 @@ MOUNTS = ('csgo/overrides/botprofile.vpk', 'csgo/addons/metamod')
 _TOKEN = re.compile(r'//[^\r\n]*|/\*[\s\S]*?\*/|"(?:\\.|[^"\\])*"|[{}]|[^\s{}"]+')
 
 
-def _structure(text: str):
+def _structure(text: str, *, allow_missing=False):
     """Keep token offsets so unrelated Valve settings/comments remain untouched."""
     tokens = []
     end = 0
@@ -45,9 +45,9 @@ def _structure(text: str):
             if index + 1 >= len(tokens) or tokens[index+1][0] in ('{', '}'):
                 raise ValueError('gameinfo.gi 的继承目录无效。')
             layers.append(tokens[index+1][0])
-    if stack or len(blocks) != 1:
+    if stack or len(blocks) > 1 or (not blocks and not allow_missing):
         raise ValueError('gameinfo.gi 缺少唯一的 FileSystem/SearchPaths，请在 Steam 验证游戏文件。')
-    return tokens, blocks[0], layers
+    return tokens, blocks[0] if blocks else None, layers
 
 
 def patched_gameinfo(text: str) -> str:
@@ -70,6 +70,36 @@ def patched_gameinfo(text: str) -> str:
     indent = prefix if not prefix.strip() else '\t\t\t'
     insertion = (newline + indent).join('Game\t' + path for path in missing) + newline + indent
     return text[:at] + insertion + text[at:]
+
+
+def without_career_mounts(text: str, *, optional=False) -> str:
+    """Unmount local Bot runtime without replacing current Valve settings.
+
+    Branch-specific files normally have no SearchPaths. Comments, other mods,
+    unrelated entries and the user's formatting remain intact.
+    """
+    tokens, block, _ = _structure(text, allow_missing=optional)
+    if block is None:
+        return text
+    opening, closing = block
+    entries = tokens[opening+1:closing]
+    if len(entries) % 2 or any(t[0] in ('{', '}') for t in entries):
+        raise ValueError('gameinfo.gi 的 SearchPaths 格式无效。')
+    spans = []
+    known = set(MOUNTS) | {'csgo/overrides'}
+    for key, value in zip(entries[::2], entries[1::2]):
+        if key[0].casefold() != 'game' or value[0].replace('\\', '/').casefold().rstrip('/') not in known:
+            continue
+        start, stop = key[1], value[2]
+        line_start = text.rfind('\n', 0, start)+1
+        newline = text.find('\n', stop)
+        line_stop = len(text) if newline < 0 else newline+1
+        if not text[line_start:start].strip() and not text[stop:line_stop].strip():
+            start, stop = line_start, line_stop
+        spans.append((start, stop))
+    for start, stop in reversed(spans):
+        text = text[:start] + text[stop:]
+    return text
 
 
 def ensure_gameinfo_mounts(csgo: Path) -> bool:

@@ -10,11 +10,11 @@
 
 [下载 1.7.0 3D 预览版](https://github.com/bel1ever1314/cs2-career/releases/latest) · [下载 1.6.0 正式版](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.6.0-hotfix.1) · [更新日志](RELEASE_NOTES.md) · [交流与反馈](https://github.com/bel1ever1314/cs2-career/issues)
 
-当前版本是 **1.7.0-preview.3-hotfix.4，3D 游玩流程修正版**。原来的桌面版 **1.6.0-hotfix.1** 也保留下载。
+当前版本是 **1.7.0-preview.3-hotfix.6，换肤与丢刀修正版**。原来的桌面版 **1.6.0-hotfix.1** 也保留下载。
 
 ### 开始游玩
 
-1. 打开 [最新发布页](https://github.com/bel1ever1314/cs2-career/releases/latest)，下载 `CS2Career-1.7.0-preview.3-hotfix.4-windows.zip`。
+1. 打开 [最新发布页](https://github.com/bel1ever1314/cs2-career/releases/latest)，下载 `CS2Career-1.7.0-preview.3-hotfix.6-windows.zip`。
 2. 完整解压到可写入的文件夹，双击 `开始游戏.cmd` 或 `Launch-CS2Career.cmd`。
 3. 按开局引导创建角色、抽取能力并调整小鸡形象，也可以选择年代接管职业选手。
 4. 进入宿舍后，去电脑前按 `E` 看看今天能做什么，或按 `P` 拿出手机。
@@ -90,11 +90,11 @@ The career now has a 3D world to walk around in. You're a chicken with a dorm ro
 
 [Download the 1.7.0 3D preview](https://github.com/bel1ever1314/cs2-career/releases/latest) · [Download the 1.6.0 desktop release](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.6.0-hotfix.1) · [Changelog — Chinese](RELEASE_NOTES.md) · [Feedback](https://github.com/bel1ever1314/cs2-career/issues)
 
-The current version is **1.7.0-preview.3-hotfix.4, the 3D play-flow update**. The **1.6.0-hotfix.1** desktop version remains available separately.
+The current version is **1.7.0-preview.3-hotfix.6, the cosmetic and knife-dropping update**. The **1.6.0-hotfix.1** desktop version remains available separately.
 
 ### Getting started
 
-1. Open the [latest release](https://github.com/bel1ever1314/cs2-career/releases/latest) and download `CS2Career-1.7.0-preview.3-hotfix.4-windows.zip`.
+1. Open the [latest release](https://github.com/bel1ever1314/cs2-career/releases/latest) and download `CS2Career-1.7.0-preview.3-hotfix.6-windows.zip`.
 2. Extract the entire archive into a writable folder. Run `Launch-CS2Career.cmd` or `开始游戏.cmd`.
 3. Follow the opening flow to create a player, draft abilities, and customize your chicken, or choose an era and take over a professional player.
 4. In your dorm, walk to the computer and press `E`, or press `P` to take out your phone.

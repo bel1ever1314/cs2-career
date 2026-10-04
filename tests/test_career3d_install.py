@@ -13,6 +13,7 @@ from tools import career3d_install as install
 
 
 QA_ROOT = Path('E:/CS2CareerTools/Career3DInstallerChecks-20261002/qa')
+FIXTURE_GI = b'GameInfo { FileSystem { SearchPaths { Game csgo } } }'
 
 
 class BundledInstallTests(unittest.TestCase):
@@ -28,8 +29,9 @@ class BundledInstallTests(unittest.TestCase):
         self.source.write_bytes(b'fixture new runtime')
         self.game = self.root / 'fixture-steam/game/csgo'
         self.game.mkdir(parents=True)
-        (self.game / 'gameinfo.gi').write_bytes(b'fixture gameinfo before')
-        (self.game / 'gameinfo_branchspecific.gi').write_bytes(b'fixture branch before')
+        (self.game / 'gameinfo.gi').write_bytes(FIXTURE_GI)
+        (self.game / 'gameinfo_branchspecific.gi').write_bytes(b'GameInfo { FileSystem { SteamAppId 730 } }')
+        (self.game / 'cfg').mkdir()
         self.data = self.root / 'tester/game/runtime/career'
         self.save = self.data / 'save'
         self.save.mkdir(parents=True)
@@ -46,6 +48,7 @@ class BundledInstallTests(unittest.TestCase):
             incident_state={'career3d_service':{'revision':7}}, training_session=None, real_skins=False),
             arena=SimpleNamespace(pending=None), season=SimpleNamespace(events=[]))
         self.running = self.start(patch.object(activities, '_running_cs2', return_value=False))
+        self.start(patch('cs2career.cs2.process_state.cs2_running', return_value=False))
         self.runtime_prepare = self.start(patch('tools.career3d_runtime_compat.prepare_runtime',
             side_effect=lambda root, mod, game: {'mod_dir':str(mod), 'origin_mod_dir':str(mod),
                 'revision':'fixture-compatible-1', 'components':{'fixture':'1'}}))
@@ -291,6 +294,24 @@ class BundledInstallTests(unittest.TestCase):
         first = install.install_bundle(self.state, self.body)
         second = install.install_bundle(self.state, self.body)
         self.assertNotEqual(first['backup_path'], second['backup_path'])
+
+    def test_explicit_install_leaves_normal_mounts_but_keeps_plugin_files(self):
+        from cs2career.cs2 import gameinfo
+        plugin = self.write('addons/metamod/runtime.dll', b'fixture installed runtime')
+        rules = self.write('cfg/career_rules.cfg', b'bot_difficulty 3\n')
+        mode = self.write('cfg/gamemode_competitive.cfg', b'echo Valve\n')
+        def installer(game, mod):
+            gi = game / 'gameinfo.gi'
+            gi.write_text(gameinfo.patched_gameinfo(gi.read_text('utf-8')), 'utf-8')
+            mode.write_bytes(b'echo Valve\nexec career_rules.cfg\n')
+            return {'ok':True, 'files':2}
+        self.mod_install.side_effect = installer
+        result = install.install_bundle(self.state, self.body)
+        self.assertIn('普通 CS2 环境已保留', result['reason'])
+        self.assertNotIn('metamod', (self.game / 'gameinfo.gi').read_text('utf-8'))
+        self.assertEqual(b'echo Valve\n', mode.read_bytes())
+        self.assertEqual(b'fixture installed runtime', plugin.read_bytes())
+        self.assertEqual(b'bot_difficulty 3\n', rules.read_bytes())
 
     def test_reparse_in_bundle_or_target_is_rejected_before_installer(self):
         original = install._is_reparse

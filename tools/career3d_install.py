@@ -324,6 +324,10 @@ def install_bundle(state, body: dict) -> dict:
                 if not skins.get('ok', False):
                     raise RuntimeError(str(skins.get('msg', '可选换肤组件安装未完成。')))
                 skin_files = int(skins.get('files', 0))
+        # Installing files is not permission to leave ordinary Steam launches
+        # modded. Match handoff enables the mounts and arms its exit watcher.
+        from cs2career.cs2.environment import switch_environment
+        switch_environment(game, 'normal')
         # All later match launches must reuse the compatible cache instead of
         # restoring the old native DLLs from the originally selected release.
         with launch._SETTINGS_LOCK:
@@ -337,7 +341,7 @@ def install_bundle(state, body: dict) -> dict:
     (backup / 'BACKUP_MANIFEST.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), 'utf-8')
     total = int(result.get('files', 0)) + skin_files
     installed_name = '设置中的人机增强' if source == 'external' else '随包人机增强'
-    return {'reason': f'已从本地安装{installed_name}（{total} 个文件），无需联网。安装前备份：{backup}',
+    return {'reason': f'已从本地安装{installed_name}（{total} 个文件），无需联网。普通 CS2 环境已保留，本地开赛时自动开启插件。安装前备份：{backup}',
             'backup_path': str(backup), 'files': total, 'skin_files': skin_files,
             'source': source, 'setup': setup_context(), 'runtime': runtime,
             'reused_components': deepcopy(prepared.get('reused_components', [])),

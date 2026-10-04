@@ -66,6 +66,7 @@ var selected_date := ""
 var calendar_month := ""
 var cs2_status: Dictionary = {}
 var cs2_poll := 0.0
+var ladder_command_sender: Callable
 var skin_textures: Dictionary = {}
 var detail_intent_serial := 0
 var pending_detail_intent := -1
@@ -1222,9 +1223,20 @@ func _ladder() -> void:
 				_button(content, "离开当前匹配房间", _ladder_command.bind("cancel", {}))
 	if not cs2_status.is_empty():
 		var game_status := str(cs2_status.get("status", ""))
-		if game_status in ["waiting", "failed", "blocked"]:
+		if game_status in ["waiting", "failed", "blocked", "interrupted", "starting"]:
 			_label(content, str(cs2_status.get("reason", "等待 CS2 比赛结果。")), 14, MUTED)
-		if cs2_status.get("can_retry", false):
+		if game_status == "interrupted":
+			_label(content, "重新进入或切换 RTS 会重开当前未完成地图；原名单、地图 BP 和天梯身份保留。", 13, MUTED)
+			if cs2_status.get("can_resume", false):
+				var resume := _button(content, "重新进入 CS2 · 重开当前图", _ladder_command.bind("launch", {"lobby_id":cs2_status.get("lobby_id", "")}))
+				resume.name = "LadderResumeCS2"
+			if cs2_status.get("can_simulate", false):
+				var simulate := _button(content, "继续模拟这场天梯", _ladder_command.bind("simulate", {"lobby_id":cs2_status.get("lobby_id", "")}))
+				simulate.name = "LadderResumeSimulate"
+			if cs2_status.get("can_rts", false):
+				var rts := _button(content, "切换 RTS · 重开当前图", Callable(rts_room, "open_ladder"), false)
+				rts.name = "LadderResumeCS2RTS"
+		if cs2_status.get("can_retry", false) and game_status != "interrupted":
 			var retry := _button(content, "重试进入 CS2", _ladder_command.bind("launch", {"lobby_id":cs2_status.get("lobby_id", "")}))
 			retry.name = "ComputerLadderRetryCS2"
 		if cs2_status.get("can_collect", false):
@@ -1273,7 +1285,9 @@ func _ladder_command(action: String, extra: Dictionary) -> bool:
 	body["revision"] = int(_ladder_state().get("revision", 0))
 	notice = ""
 	# Automatic captain turns and CS2 launch already have their own visible flow.
-	var accepted: bool = CareerBridge.command("/api/3d/ladder/" + action, body) if action in ["advance", "launch", "collect"] else _command("/api/3d/ladder/" + action, body)
+	var accepted: bool
+	if ladder_command_sender.is_valid(): accepted = bool(ladder_command_sender.call("/api/3d/ladder/" + action, body.duplicate(true)))
+	else: accepted = CareerBridge.command("/api/3d/ladder/" + action, body) if action in ["advance", "launch", "collect"] else _command("/api/3d/ladder/" + action, body)
 	if not accepted:
 		notice = "操作暂未发出，请等当前操作完成后重试。"
 		_update_status()
@@ -1783,7 +1797,7 @@ func _process(delta: float) -> void:
 			tactics.fetch()
 		clock.text = CareerBridge.clock_text()
 		cs2_poll -= delta
-		if active_page == "ladder" and cs2_poll <= 0 and (cs2_status.is_empty() or str(cs2_status.get("status", "")) in ["waiting", "failed", "blocked"]):
+		if active_page == "ladder" and cs2_poll <= 0 and (cs2_status.is_empty() or str(cs2_status.get("status", "")) in ["waiting", "failed", "blocked", "interrupted", "starting"]):
 			_poll_cs2_status()
 
 func _input(event: InputEvent) -> void:

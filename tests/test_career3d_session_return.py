@@ -225,12 +225,18 @@ class CareerSessionReturnTests(unittest.TestCase):
 
     def test_other_actions_keep_their_existing_session_gate(self):
         before = deepcopy(self.m)
-        for action in ('simulate', 'veto', 'autoveto'):
+        for action in ('veto', 'autoveto'):
             with self.subTest(action=action):
                 out = self.command(action)
                 self.assertEqual('paused', out['status'])
                 self.assertFalse(out.get('resume_only', False))
                 self.assertEqual(before, self.m)
+        # Exiting now permits an explicit switch, but a live game never does.
+        with patch('tools.career3d_activities._running_cs2', return_value=True), \
+             patch('tools.career3d_matches._peek', return_value={'status': 'none'}):
+            with self.assertRaisesRegex(ValueError, 'CS2 正在运行'):
+                self.command('simulate')
+        self.assertEqual(before, self.m)
         with patch('tools.career3d_matches.match_status', return_value=dict(status='waiting')) as status, \
              patch('tools.career3d_matches._launch') as launch:
             out = self.command('launch')

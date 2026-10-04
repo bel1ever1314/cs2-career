@@ -61,7 +61,7 @@ def arena_rts_command(state, action, body):
     from tools.career3d_matches import career_cs2_pending
     arena = state.arena
     lobby = arena.data.get('lobby') or {}
-    if lobby.get('id') != body.get('lobby_id') or lobby.get('mode') not in ('rank', 'fpl'):
+    if lobby.get('id') != body.get('lobby_id') or lobby.get('mode') not in ('rank', 'fpl', 'custom'):
         raise ValueError('当前天梯房间已变化。')
     arena.guard_rank_action(state, 'ingest' if action == 'arena_submit' else 'cancel' if action == 'arena_cancel' else 'launch')
     if action == 'arena_submit' and lobby.get('phase') == 'finished':
@@ -73,8 +73,17 @@ def arena_rts_command(state, action, body):
     arena._guard(body.get('arena_revision'))
     session = lobby.get('rts_session') or {}
     if action == 'arena_start':
+        commanded_side = body.get('commanded_side')
+        if commanded_side is not None and (lobby['mode'] != 'custom' or commanded_side not in ('ct', 't')):
+            raise ValueError('只有自定义 RTS 可选择指挥侧，请选择 CT 或 T。')
         if session:
             return {'status':'rts_pending', 'reason':'继续这场未结算的 RTS 天梯。', 'rts_session':deepcopy(session), 'replayed':True}
+        if lobby.get('phase') in ('starting', 'launched'):
+            from tools.career3d_activities import recover_arena_cs2
+            restored = recover_arena_cs2(state, dict(body, revision=body['arena_revision']),
+                                        lobby['mode'], 'rts')
+            if restored:
+                return restored
         if lobby.get('phase') != 'ready':
             raise ValueError('先完成选人、地图 BP 与选边，再开始 RTS。')
         if state.career.training_session or career_cs2_pending(state):
@@ -84,11 +93,14 @@ def arena_rts_command(state, action, body):
         if row.get('status') != 'playable' or not row.get('career_ready', False):
             raise ValueError(_map_reason(code, row))
         roster = _arena_rosters(lobby)
-        session = {'kind':'arena', 'lobby_id':lobby['id'], 'map':code, 'nonce':uuid4().hex,
+        session = {'kind':'arena', 'mode':lobby['mode'], 'lobby_id':lobby['id'], 'map':code, 'nonce':uuid4().hex,
                    'rosters':roster, 'roster_hash':_hash(roster), 'player_id':lobby['human_id'],
-                   'commanded_side':'ct' if lobby['human_id'] in lobby[lobby['ct']] else 't'}
+                   'commanded_side':'ct' if not lobby['human_id'] or lobby['human_id'] in lobby[lobby['ct']] else 't'}
+        if commanded_side is not None:
+            session['commanded_side'] = commanded_side
         session['seed'] = int(session['nonce'][:8], 16) % 2147483647
         lobby.update(phase='rts', nonce=session['nonce'], rts_session=session)
+        lobby.pop('career3d_recovering', None)
         arena._commit()
         return {'status':'rts_pending', 'reason':'天梯 RTS 名单与地图已冻结，胜负只影响本地天梯。',
                 'rts_session':deepcopy(session)}
@@ -264,6 +276,11 @@ def rts_command(state, action, body):
         if session:
             return {'status': 'rts_pending', 'reason': '该图已在等待 RTS 战绩；可以重新开始未结算的对局。',
                     'rts_session': deepcopy(session), 'replayed': True}
+        if match.get('cs2_session'):
+            from tools.career3d_matches import recover_cs2_map
+            restored = recover_cs2_map(state, ev, match, 'rts')
+            if restored:
+                return restored
         state.season._require_yours(match['id'])
         reason = _reason(state, match) or state.career.gate_match(state.season, match['id'])
         if reason or state.career.story_queue:

@@ -24,6 +24,10 @@ ROOT = Path(__file__).resolve().parents[1]
 VERSION = '1.7.0-preview.1'
 MODELS = ('cozy_room.glb', 'chicken_club.glb', 'player_chicken.glb', 'major_walk.glb')
 ENGINE_VERSION = '4.7.2-stable'
+ENGINE_LEGAL_HASHES = {
+    'Godot-LICENSE.txt': 'b0435e3b3e4e55238f05f4b306f30524a1b2e20147810d436eaa554fa6855c80',
+    'Godot-COPYRIGHT.txt': 'cb1980c88089573bcacd7221d777c689bb8bbd778799f24c27fca0fe5f774d6d',
+}
 RUNTIME_VENDOR_FILES = (
     'CareerMatch/CareerMatch.dll', 'CareerMatch/CareerMatch.deps.json',
     'BotBuy/BotBuy.dll', 'BotBuy/BotBuy.deps.json',
@@ -120,6 +124,21 @@ def download_legal(engine, destination):
         'version': ENGINE_VERSION, 'executable_sha256': digest(engine),
         'source': f'https://github.com/godotengine/godot/tree/{ENGINE_VERSION}',
         'distribution': 'official Windows editor binary used as portable project runner'})
+
+
+def copy_engine_legal(engine, destination, cache):
+    """Reuse verified license texts for the exact engine, without networking."""
+    cache, destination = Path(cache), Path(destination)
+    metadata = json.loads((cache / 'Godot-version.json').read_text('utf-8-sig'))
+    if metadata.get('version') != ENGINE_VERSION or metadata.get('executable_sha256') != digest(engine):
+        raise ValueError('Cached Godot licenses do not match the selected engine')
+    for name, expected in ENGINE_LEGAL_HASHES.items():
+        if digest(cache / name) != expected:
+            raise ValueError('Cached Godot license checksum mismatch: ' + name)
+    # Validate the complete cache before creating any output.
+    destination.mkdir(parents=True, exist_ok=False)
+    for name in (*ENGINE_LEGAL_HASHES, 'Godot-version.json'):
+        shutil.copy2(cache / name, destination / name)
 
 
 def stage_runtime_vendor(source, destination):
@@ -314,6 +333,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--engine', type=Path, required=True)
+    parser.add_argument('--engine-legal', type=Path, help='Reuse verified local Godot license files instead of downloading them')
     parser.add_argument('--assets', type=Path, required=True)
     parser.add_argument('--fonts', type=Path, required=True)
     parser.add_argument('--media-config', type=Path, required=True)
@@ -379,7 +399,10 @@ def main(argv=None):
     shutil.copytree(backend, package / 'backend')
     package.joinpath('engine').mkdir()
     shutil.copy2(args.engine, package / 'engine/Godot.exe')
-    download_legal(args.engine, package / 'legal/Godot')
+    if args.engine_legal:
+        copy_engine_legal(args.engine, package / 'legal/Godot', args.engine_legal)
+    else:
+        download_legal(args.engine, package / 'legal/Godot')
     shutil.copytree(source / 'licenses', package / 'licenses')
     python_license = Path(sys.base_prefix) / 'LICENSE.txt'
     if not python_license.is_file():

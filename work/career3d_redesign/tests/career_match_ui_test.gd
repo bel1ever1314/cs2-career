@@ -268,6 +268,8 @@ func run() -> void:
 	check(commands[-1].path == "/api/3d/settings" and commands[-1].body.settings.mod_source_path == "D:/FixtureImprover" and commands[-1].body.settings.difficulty == "High", "settings submit the configured external Bot Improver path and difficulty")
 	check(commands[-1].body.settings.skins_inventory_mode == "external" and commands[-1].body.real_skins and commands[-1].body.steam_id == "76561198000000000", "optional skin source and account use backend settings fields")
 	Computer.device_settings.saving = false
+	# Model a late GET explicitly, rather than leaving the previous POST pending.
+	Computer.device_settings.pending_read = true
 	Computer.device_settings.set_value("mod_source_path", "D:/UnsavedDraft")
 	Computer.device_settings.finished("/api/3d/settings", {"ok":true, "settings":CareerBridge.context.settings})
 	check(Computer.device_settings.dirty and Computer.device_settings.draft.mod_source_path == "D:/UnsavedDraft", "late read-only settings response preserves the user's unsaved draft")

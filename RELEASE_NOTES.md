@@ -1,3 +1,45 @@
+# 1.7.0-preview.3-hotfix.6（换肤与丢刀修复，2026-10-04）
+
+- 更新游戏内换肤签名，继续使用玩家已经装备的 CT／T 饰品。
+- 将旧签名备份移出自动加载目录，开赛时避免旧缓存覆盖兼容签名；安装和开赛不需要联网。
+- 本地比赛补回丢刀设置，换肤仍需在设置中手动开启。
+- 保留插件一键切换、退出恢复、比赛接续和此前的买枪调整。
+
+## English
+
+- Updated in-game cosmetic signatures for your equipped CT/T loadouts.
+- Kept old signature backups out of the automatic loader and prevented stale caches from replacing compatible signatures. Installation and match preparation remain offline.
+- Restored knife dropping in local matches. Cosmetic switching remains opt-in.
+- Retained plugin switching, automatic recovery, match resumption and the purchasing improvements.
+
+---
+
+# 1.7.0-preview.3-hotfix.5（插件切换与购买调整，2026-10-04）
+
+这次把退出比赛、插件切换和人机买枪一起整理好了。
+
+- 设置里可以一键开启插件或恢复普通 CS2 环境，从生涯程序进入对局后，退出 CS2 会自动恢复。
+- 中途退出可以继续原来的比赛，也可以改用逐图模拟或 RTS，不需要重新安排名单和地图。
+- 补齐瞄准方式、道具频率、人机身份显示和局内对话选项，保留原来的难度设置。
+- 经济足够时优先购买 AK／M4，经济不足时仍可选择 FAMAS、加利尔等主枪；保枪与捡枪不强换，狙位和队友配枪继续保留。
+- 修正拿刀时被误判没有主枪，以及赠送装备花掉自己必要预算的问题。
+
+完整解压 Windows 包，运行 `开始游戏.cmd`。继续旧生涯时，保留原来的 `game/runtime/career/save/`。
+
+## English
+
+This update brings together match recovery, plugin switching and bot purchasing.
+
+- Enable local plugins or restore normal CS2 with one click. Career also restores the normal environment after its CS2 match exits.
+- Resume an interrupted match with the existing roster and maps, or finish it through map-by-map simulation or RTS.
+- Added separate aim, utility, identity and match-chat settings alongside difficulty.
+- Bots prefer AK/M4 purchases when affordable, keep economical alternatives, and preserve carried weapons, pickups, sniper roles and team drops.
+- Fixed primary-weapon detection while holding a knife and kept essential personal equipment budgets out of teammate gifts.
+
+Extract the complete Windows archive and run `Launch-CS2Career.cmd`. Keep your previous `game/runtime/career/save/` to continue your career.
+
+---
+
 # 1.7.0-preview.3-hotfix.4（3D 游玩流程修正版，2026-10-03）
 
 这次把朋友试玩时遇到的安装、鼠标和进场馆问题一起整理了一下。

@@ -24,6 +24,7 @@ func _ready() -> void:
 	var parent := VBoxContainer.new()
 	add_child(parent)
 	settings.render(self, parent)
+	check(parent.find_child("DeviceSkinLoadoutStatus", true, false) == null, "legacy settings can omit diagnostics")
 	var skin_toggle = parent.find_child("DeviceSkinEnabled", true, false)
 	check(skin_toggle is CheckBox and not skin_toggle.button_pressed, "in-game skins default disabled")
 	var toggle = parent.find_child("DeviceSkinToolsEnabled", true, false)
@@ -46,6 +47,7 @@ func _ready() -> void:
 	parent.free()
 	CareerBridge.context.settings.skin_tools_enabled = true
 	CareerBridge.context.settings.real_skins = true
+	CareerBridge.context.settings.loadout_status = {"state":"ready", "equipped_ct":2, "equipped_t":3, "reason":"本局已装备饰品会同步到 CS2。"}
 	settings = Settings.new()
 	parent = VBoxContainer.new()
 	add_child(parent)
@@ -55,6 +57,8 @@ func _ready() -> void:
 	toggle = parent.find_child("DeviceSkinToolsEnabled", true, false)
 	check(toggle.button_pressed, "phone compact form reads configured opt-in")
 	check(not settings.dirty, "existing opt-in does not dirty form")
+	var loadout_label = parent.find_child("DeviceSkinLoadoutStatus", true, false)
+	check(loadout_label is Label and "CT 侧 2 项" in loadout_label.text and "T 侧 3 项" in loadout_label.text, "equipped counts visible without enabling a preference")
 	parent.free()
 	print("Skin tools settings: %d checks; %d failures" % [checks, failures.size()])
 	for failure in failures: push_error(failure)

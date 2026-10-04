@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+import mmap
 import os
 import re
 import shutil
@@ -22,6 +23,7 @@ import threading
 import urllib.error
 import urllib.request
 import uuid
+from functools import lru_cache
 from pathlib import Path
 
 from ..paths import frozen, io_path, logo_dir, save_file, save_root, static_dir, vendor_root
@@ -507,19 +509,33 @@ def skins_gamedata_override(*, create: bool = True) -> Path:
     return path
 
 
-def _skins_gamedata(root: Path) -> Path | None:
-    override = skins_gamedata_override()
-    if override.is_file():
-        return override
-    for cand in (
+def _skin_gamedata_candidates(root: Path, csgo: Path | None = None) -> list[Path]:
+    candidates = [skins_gamedata_override(create=False),
         root / "gamedata" / "inventory-simulator.json",
         root / "addons" / "counterstrikesharp" / "gamedata" / "inventory-simulator.json",
-    ):
-        if cand.is_file():
-            return cand
-    bundled = vendor_root() / "InventorySimulator" / "gamedata" / "inventory-simulator.json"
-    if bundled.is_file():
-        return bundled
+        vendor_root() / "InventorySimulator" / "gamedata" / "inventory-simulator.json"]
+    if csgo is not None:
+        candidates.append(csgo / "addons/counterstrikesharp/gamedata/inventory-simulator.json")
+    return candidates
+
+
+def _skins_gamedata(root: Path, csgo: Path | None = None) -> Path | None:
+    """Choose a usable local candidate, including an offline bundled fallback."""
+    rejected, seen = [], set()
+    for candidate in _skin_gamedata_candidates(root, csgo):
+        key = str(candidate.absolute()).casefold()
+        if key in seen or not candidate.is_file():
+            continue
+        seen.add(key)
+        try:
+            data = _validate_gamedata(candidate.read_bytes())
+            if csgo is not None:
+                _check_skin_signatures(csgo, data)
+            return candidate
+        except (OSError, ValueError) as exc:
+            rejected.append(str(exc))
+    if rejected:
+        raise ValueError("本机换肤签名不兼容；未覆盖现有文件。" + rejected[-1])
     return None
 
 
@@ -561,6 +577,160 @@ def _validate_gamedata(blob: bytes) -> dict:
     return data
 
 
+@lru_cache(maxsize=256)
+def _skin_signature_count(binary: str, size: int, modified_ns: int, signature: str) -> int:
+    """Scan only during setup/preparation; cache by the binary's identity."""
+    tokens = signature.split()
+    if not tokens or any(not re.fullmatch(r"[0-9a-fA-F]{2}|\?{1,2}", token) for token in tokens):
+        raise ValueError("Windows 换肤签名格式不正确。")
+    pattern = b"".join(b"." if token.startswith("?") else re.escape(bytes([int(token, 16)]))
+                       for token in tokens)
+    if not size:
+        return 0
+    with Path(binary).open("rb") as stream, mmap.mmap(stream.fileno(), 0, access=mmap.ACCESS_READ) as mapped:
+        matcher = re.compile(pattern, re.DOTALL)
+        # Two matches already make the signature ambiguous. Account for
+        # overlapping matches too, since Source's signature scan allows them.
+        first = matcher.search(mapped)
+        count = 0 if first is None else (2 if matcher.search(mapped, first.start() + 1) else 1)
+    current = Path(binary).stat()
+    if current.st_size != size or current.st_mtime_ns != modified_ns:
+        raise ValueError("游戏组件在校验期间发生变化，请关闭 CS2 后重试。")
+    return count
+
+
+def _check_skin_signatures(csgo: Path, data: dict) -> None:
+    if sys.platform != "win32":
+        return
+    binaries = {"server": csgo / "bin/win64/server.dll",
+                "engine2": csgo.parent / "bin/win64/engine2.dll"}
+    # Non-game fixtures can still exercise the JSON/cfg handoff. A partially
+    # present real installation must pass every signature rather than skip it.
+    if not any(io_path(path).is_file() for path in binaries.values()):
+        return
+    for key, row in data.items():
+        node = row.get("signatures")
+        if node is None:
+            continue
+        binary = binaries.get(node["library"])
+        if binary is None or not io_path(binary).is_file():
+            raise ValueError(f"{key} 缺少对应游戏组件。")
+        binary = io_path(binary)
+        info = binary.stat()
+        count = _skin_signature_count(str(binary), info.st_size, info.st_mtime_ns, node["windows"])
+        if count != 1:
+            raise ValueError(f"{key} 在当前游戏中匹配 {count} 处，需要唯一匹配。")
+
+
+def _skin_binary_identity(csgo: Path) -> dict:
+    identity = {"platform": sys.platform}
+    for library, binary in (("server", csgo / "bin/win64/server.dll"),
+                            ("engine2", csgo.parent / "bin/win64/engine2.dll")):
+        binary = io_path(binary)
+        info = binary.stat() if binary.is_file() else None
+        identity[library] = {"path": str(binary.absolute()), "size": info.st_size if info else None,
+                             "modified_ns": info.st_mtime_ns if info else None}
+    return identity
+
+
+def _skin_selection_receipt(csgo: Path) -> Path:
+    return io_path(csgo / "addons/counterstrikesharp/gamedata_backups/InventorySimulator/selection.json")
+
+
+def _record_skin_selection(csgo: Path, root: Path, source: Path, selected_hash: str) -> None:
+    """Persist a derived result so status polling never scans game binaries."""
+    pending = None
+    try:
+        cache = skins_gamedata_override(create=False)
+        bundled = vendor_root() / "InventorySimulator/gamedata/inventory-simulator.json"
+        installed = csgo / "addons/counterstrikesharp/gamedata/inventory-simulator.json"
+        selected_source = ("official-cache" if source == cache else "bundled" if source == bundled
+                           else "installed" if source == installed else "custom")
+        receipt = {"schema_version": 1, "binary_identity": _skin_binary_identity(csgo),
+                   "configured_source": str(settings().get("skins_source_path") or ""),
+                   "source": selected_source, "selected_sha256": selected_hash,
+                   "cache_sha256": _sha256(cache), "bundled_sha256": _sha256(bundled),
+                   "cached_rejected": cache.is_file() and selected_source != "official-cache",
+                   "candidates": {str(candidate.absolute()): _sha256(candidate)
+                                  for candidate in _skin_gamedata_candidates(root)
+                                  if candidate != installed}}
+        if selected_source == "installed":
+            receipt["candidates"][str(installed.absolute())] = selected_hash
+        path = _skin_selection_receipt(csgo)
+        try:
+            if path.is_file() and json.loads(path.read_text("utf-8")) == receipt:
+                return
+        except ValueError:
+            pass
+        path.parent.mkdir(parents=True, exist_ok=True)
+        handle, pending = tempfile.mkstemp(prefix=".skin-selection-", suffix=".tmp", dir=path.parent)
+        with os.fdopen(handle, "wb") as stream:
+            stream.write(json.dumps(receipt, ensure_ascii=False, indent=2).encode("utf-8"))
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(pending, path)
+    except (OSError, ValueError):
+        # The compatibility result is diagnostic metadata, not a prerequisite
+        # for using a successfully installed and validated gamedata file.
+        pass
+    finally:
+        try:
+            if pending is not None and Path(pending).exists():
+                os.unlink(pending)
+        except OSError:
+            pass
+
+
+def _skin_gamedata_backup(csgo: Path, source: Path) -> Path:
+    """CSS auto-loads all gamedata/*.json; backups must live outside it."""
+    folder = csgo / "addons/counterstrikesharp/gamedata_backups/InventorySimulator"
+    backup = io_path(folder / f"{source.stem}.{_sha256(source)[:16]}{source.suffix}.bak")
+    if backup.exists() and _sha256(backup) != _sha256(source):
+        backup = io_path(folder / f"{source.stem}.{uuid.uuid4().hex}{source.suffix}.bak")
+    return backup
+
+
+def _retire_legacy_skin_gamedata(csgo: Path, cfg: dict | None = None) -> int:
+    if skins_inventory_mode(cfg) == "external":
+        return 0
+    previous = csgo / "addons/counterstrikesharp/gamedata/inventory-simulator.previous.json"
+    if not previous.exists():
+        return 0
+    if not previous.is_file():
+        raise ValueError("旧换肤签名备份位置被目录占用，未移动。")
+    require_cs2_closed("移出重复加载的换肤签名备份")
+    backup = _skin_gamedata_backup(csgo, previous)
+    backup.parent.mkdir(parents=True, exist_ok=True)
+    expected = _sha256(previous)
+    shutil.copy2(previous, backup)
+    if _sha256(backup) != expected or _sha256(previous) != expected:
+        raise ValueError("旧换肤签名备份校验失败，原文件未移动。")
+    require_cs2_closed("移出重复加载的换肤签名备份")
+    os.replace(previous, backup)
+    return 1
+
+
+def _install_skin_gamedata(csgo: Path, root: Path, cfg: dict | None = None) -> int:
+    if skins_inventory_mode(cfg) == "external":
+        return 0
+    source = _skins_gamedata(root, csgo)
+    changed = 0
+    if source is not None:
+        blob = source.read_bytes()
+        data = _validate_gamedata(blob)
+        _check_skin_signatures(csgo, data)
+        destination = csgo / "addons/counterstrikesharp/gamedata/inventory-simulator.json"
+        if _sha256(destination) != hashlib.sha256(blob).hexdigest():
+            require_cs2_closed("更新本机兼容的换肤签名")
+            backup = _skin_gamedata_backup(csgo, destination) if destination.is_file() else None
+            _atomic_replace(destination, blob, backup)
+            changed = 1
+    changed += _retire_legacy_skin_gamedata(csgo, cfg)
+    if source is not None:
+        _record_skin_selection(csgo, root, source, hashlib.sha256(blob).hexdigest())
+    return changed
+
+
 def _sha256(path: Path) -> str:
     path = io_path(path)
     if not path.is_file():
@@ -579,6 +749,7 @@ def _atomic_replace(path: Path, blob: bytes, backup: Path | None = None) -> None
             os.fsync(stream.fileno())
         _validate_gamedata(Path(raw).read_bytes())
         if backup is not None and path.is_file():
+            backup.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(path, backup)
         os.replace(raw, path)
     except BaseException:
@@ -590,8 +761,12 @@ def _atomic_replace(path: Path, blob: bytes, backup: Path | None = None) -> None
 
 
 def _gamedata_info(path: Path, source: str) -> dict:
-    return {"source": source, "path": str(path), "exists": path.is_file(),
-            "sha256": _sha256(path), "time": path.stat().st_mtime if path.is_file() else 0}
+    try:
+        return {"source": source, "path": str(path), "exists": path.is_file(),
+                "sha256": _sha256(path), "time": path.stat().st_mtime if path.is_file() else 0}
+    except OSError as exc:
+        return {"source": source, "path": str(path), "exists": True,
+                "sha256": "", "time": 0, "error": str(exc)}
 
 
 def gamedata_status(csgo: Path | None = None) -> dict:
@@ -599,8 +774,29 @@ def gamedata_status(csgo: Path | None = None) -> dict:
     built = vendor_root() / "InventorySimulator" / "gamedata" / "inventory-simulator.json"
     cache = skins_gamedata_override(create=False)
     game = csgo / "addons" / "counterstrikesharp" / "gamedata" / "inventory-simulator.json"
-    return {"bundled": _gamedata_info(built, "bundled"), "cached": _gamedata_info(cache, "official-cache"),
-            "installed": _gamedata_info(game, "game"), "pending_install": cache.is_file() and _sha256(cache) != _sha256(game)}
+    result = {"bundled": _gamedata_info(built, "bundled"), "cached": _gamedata_info(cache, "official-cache"),
+              "installed": _gamedata_info(game, "game"), "pending_install": False,
+              "selection_verified": False, "cached_rejected": None, "selected_source": "unchecked",
+              "cache_needs_check": False}
+    result["cache_needs_check"] = result["cached"]["exists"]
+    if skins_inventory_mode() == "external":
+        return dict(result, selected_source="external", cache_needs_check=False)
+    try:
+        receipt = json.loads(_skin_selection_receipt(csgo).read_text("utf-8"))
+        if (receipt.get("schema_version") != 1
+                or receipt.get("binary_identity") != _skin_binary_identity(csgo)
+                or receipt.get("configured_source") != str(settings().get("skins_source_path") or "")
+                or receipt.get("cache_sha256") != result["cached"]["sha256"]
+                or receipt.get("bundled_sha256") != result["bundled"]["sha256"]
+                or not receipt.get("selected_sha256") or not isinstance(receipt.get("candidates"), dict)
+                or any(_sha256(Path(path)) != digest for path, digest in receipt["candidates"].items())):
+            return result
+        result.update(selection_verified=True, cached_rejected=receipt["cached_rejected"],
+                      selected_source=receipt["source"], cache_needs_check=False,
+                      pending_install=receipt["selected_sha256"] != result["installed"]["sha256"])
+    except (OSError, ValueError, TypeError, AttributeError, KeyError):
+        pass
+    return result
 
 
 def update_skins_gamedata() -> dict:
@@ -625,11 +821,18 @@ def update_skins_gamedata() -> dict:
             last_err = exc
             blob = b""
     if not blob:
-        fallback = dest if dest.is_file() else _skins_gamedata(vendor_root() / "InventorySimulator")
-        message = (
-            f"下载或校验失败（{last_err}）。仍保留最后一份有效签名。"
-            if fallback is not None else f"下载换肤签名失败：{last_err}。"
-        )
+        csgo = Path(settings().get("csgo_path") or "")
+        try:
+            if csgo.is_dir() and not cs2_is_live():
+                fallback = _skins_gamedata(vendor_root() / "InventorySimulator", csgo)
+                if fallback is not None:
+                    _install_skin_gamedata(csgo, vendor_root() / "InventorySimulator")
+                    return {"ok": True, "status": "offline_fallback",
+                            "msg": f"下载未完成（{last_err}）。已采用匹配本机的离线换肤签名。完全退出 CS2 再开生效。",
+                            "versions": gamedata_status()}
+        except (OSError, ValueError) as exc:
+            last_err = exc
+        message = f"下载或本机校验失败（{last_err}）。现有签名与缓存保留。"
         return {"ok": False, "status": "rejected", "msg": message, "versions": gamedata_status()}
     new_hash = hashlib.sha256(blob).hexdigest()
     cache_changed = not dest.is_file() or _sha256(dest) != new_hash
@@ -639,26 +842,30 @@ def update_skins_gamedata() -> dict:
         _atomic_replace(dest, blob, dest.with_name("inventory-simulator.previous.json"))
         status_name = "cached"
     copied = False
+    install_error = ""
     try:
         csgo = Path(settings().get("csgo_path") or "")
         if csgo.is_dir() and not cs2_is_live():
             gdest = csgo / "addons" / "counterstrikesharp" / "gamedata" / "inventory-simulator.json"
-            game_changed = _sha256(gdest) != new_hash
-            if game_changed:
-                _atomic_replace(gdest, blob, gdest.with_name("inventory-simulator.previous.json"))
-            copied = True
-            status_name = "installed" if game_changed else status_name
+            game_changed = _install_skin_gamedata(csgo, vendor_root() / "InventorySimulator")
+            copied = _sha256(gdest) == new_hash
+            status_name = ("installed" if game_changed else status_name) if copied else "offline_fallback"
         elif csgo.is_dir() and cs2_is_live() and _sha256(
             csgo / "addons" / "counterstrikesharp" / "gamedata" / "inventory-simulator.json"
         ) != new_hash:
             status_name = "cached"
-    except OSError:
+    except (OSError, ValueError) as exc:
         copied = False
+        install_error = str(exc)
     msg = "已保存最新换肤签名。"
     if copied:
         msg += "并写入了游戏目录。完全退出 CS2 再开才会生效。"
     else:
         msg += "下次点「把换肤插件装进游戏」时会用这份。"
+    if status_name == "offline_fallback":
+        msg = "最新签名已缓存；游戏目录采用匹配本机的离线签名。完全退出 CS2 再开生效。"
+    elif install_error:
+        msg += f"游戏目录暂未更新：{install_error}"
     return {"ok": True, "status": status_name, "sha256": new_hash, "msg": msg,
             "versions": gamedata_status()}
 
@@ -675,6 +882,84 @@ def skins_wanted(career=None, cfg: dict | None = None) -> bool:
         return bool(json.loads(path.read_text(encoding="utf-8")).get("real_skins"))
     except (OSError, ValueError):
         return False
+
+
+def career_loadout_status(career=None, cfg: dict | None = None) -> dict:
+    """Describe the selected loadout, without installing or choosing cosmetics.
+
+    The toggle enables exporting *equipped* items; owning a case, a skin or a
+    professional bundle is not an instruction to equip it. Do not expose the
+    account ID in this diagnostic (it is included only in the plugin export).
+    """
+    mode = skins_inventory_mode(cfg)
+    enabled = skins_wanted(career, cfg)
+    status = {"inventory_mode": mode, "enabled": enabled,
+              "equipped_ct": 0, "equipped_t": 0}
+    if mode == "external":
+        return dict(status, state="external", reason="本局使用玩家配置的外部配装。")
+    if not enabled:
+        return dict(status, state="disabled", reason="游戏内换肤未开启。")
+    if career is None:
+        return dict(status, state="unavailable", reason="未提供本局角色配装。")
+    if not re.fullmatch(r"\d{17}", str(getattr(career, "steam_id", "") or "")):
+        return dict(status, state="missing_account", reason="换肤已开启，请先在设置中填写 Steam 账号。")
+    inventory_ids = {item.get("id") for item in (getattr(career, "inventory", []) or [])
+                     if isinstance(item, dict) and item.get("id")}
+    for side in ("ct", "t"):
+        equipment = getattr(career, f"equipped_{side}", {}) or {}
+        status[f"equipped_{side}"] = sum(item in inventory_ids for item in equipment.values())
+    if not status["equipped_ct"] and not status["equipped_t"]:
+        return dict(status, state="not_equipped",
+                    reason="换肤已开启，但 CT／T 配装为空；请在饰品市场装备饰品后进入比赛。")
+    return dict(status, state="ready", reason="本局已装备饰品会同步到 CS2。")
+
+
+def _prepare_match_skins(csgo: Path, career=None) -> dict:
+    """Refresh each local match's loadout even when no DLL was copied.
+
+    Installation counts are not a freshness signal. In particular, the 3D
+    launcher can reuse an installed plugin and preparation can happen again
+    after quitting CS2. Always export the current consented loadout, and report
+    a missing/failed optional export rather than silently claiming it worked.
+    External inventory retirement errors remain blockers: do not seize an
+    external provider's files after a failed ownership switch.
+    """
+    state = career_loadout_status(career)
+    if state["inventory_mode"] == "external":
+        install_skins_plugin(csgo, career)
+        return state
+    # This also restores BotRandomizer, so installer/compatibility failures
+    # are not merely cosmetic and must retain their original blocking meaning.
+    install_skins_plugin(csgo, career)
+    try:
+        if not state["enabled"]:
+            return state
+        from ..career import skins as skinmod
+        if not skinmod.plugin_installed(csgo):
+            return dict(state, state="unavailable", reason="换肤已开启，但游戏内换肤组件尚未安装。")
+        if state["state"] == "missing_account" or career is None:
+            return state
+        # Do not gate on the installer return value: zero files copied can be
+        # a fully installed, unchanged runtime whose inventory still changed.
+        skinmod.sync_live(career)
+        expected = skinmod.equipped_payload(
+            career.inventory, getattr(career, "equipped_ct", None) or {},
+            career.steam_id, getattr(career, "equipped_t", None) or {})
+        inventory_path = (csgo / "addons" / "counterstrikesharp" / "configs"
+                          / "plugins" / "InventorySimulator" / "inventories.json")
+        exported = json.loads(inventory_path.read_text(encoding="utf-8-sig"))
+        owner = (inventory_path.parent / "owner.txt").read_text(encoding="ascii").strip()
+        cfg_text = (csgo / "cfg" / "invsim_career.cfg").read_text(encoding="utf-8-sig")
+        file_arg = str(inventory_path).replace("\\", "/")
+        config_ready = (f'invsim_file "{file_arg}"' in cfg_text.splitlines()
+                        and f"invsim_only_steamid {career.steam_id}" in cfg_text.splitlines())
+        if exported != expected or owner != str(career.steam_id) or not config_ready:
+            return dict(state, state="unavailable", reason="本局配装未同步完成，请检查游戏目录权限后重试。")
+        return state
+    except (OSError, ValueError, TypeError, AttributeError) as exc:
+        # Missing optional skins must not strand a playable match; the caller
+        # displays this status and it is also preserved in match_request.json.
+        return dict(state, state="unavailable", reason=f"本局换肤未同步：{exc}")
 
 
 def _plugin_live(csgo: Path, name: str) -> Path:
@@ -700,22 +985,92 @@ def _copy_tree(src: Path, dst: Path) -> int:
     return copied
 
 
-def _remove_plugin(csgo: Path, name: str) -> None:
+_SKIN_DISABLED_RECEIPT = ".career-disabled.json"
+
+
+def _remove_plugin(csgo: Path, name: str) -> int:
+    return _park_managed_plugin(csgo, name)
+
+
+def _park_managed_plugin(csgo: Path, name: str, reason: str = "career-disabled") -> int:
     """Park a live plugin so the next CS2 boot will not load it."""
     live = _plugin_live(csgo, name)
     if not live.is_dir():
-        return
+        return 0
     parked = _plugin_parked(csgo, name)
     parked.parent.mkdir(parents=True, exist_ok=True)
+    if parked.exists():
+        parked = parked.with_name(f"{name}.{reason}-{time.time_ns()}")
+    # Keep every previous parked copy recoverable. A failed move must surface:
+    # deleting a loaded plugin as a fallback neither preserves the user's files
+    # nor proves that the optional feature has been disabled for the next boot.
+    receipt = {"schema_version": 1, "plugin": name, "disabled_at_ns": time.time_ns(),
+               "files": {file: _sha256(live / file) for file in (f"{name}.dll", f"{name}.deps.json")
+                         if (live / file).is_file()}}
+    shutil.move(str(live), str(parked))
     try:
-        if parked.exists():
-            shutil.rmtree(parked)
-        shutil.move(str(live), str(parked))
+        (parked / _SKIN_DISABLED_RECEIPT).write_text(json.dumps(receipt), encoding="utf-8")
     except OSError:
+        # Do not strand an unmarked directory after a failed opt-out: only
+        # marked copies may later be restored by the local checkbox flow.
+        if not live.exists():
+            shutil.move(str(parked), str(live))
+        raise
+    return 1
+
+
+def _restore_disabled_skin_plugin(csgo: Path, name: str) -> int:
+    """Restore the latest app-parked copy, keeping the copy as a backup.
+
+    Unmarked/manual parked folders and modified DLLs are not restore sources.
+    An existing live folder is never merged or overwritten, even if incomplete.
+    """
+    live = _plugin_live(csgo, name)
+    if live.exists():
+        return 0
+    off = _plugin_parked(csgo, name).parent
+    if not off.is_dir():
+        return 0
+    candidates = []
+    for folder in off.iterdir():
+        if not folder.is_dir() or not (folder.name == name or folder.name.startswith(name + ".career-")):
+            continue
+        marker = folder / _SKIN_DISABLED_RECEIPT
+        if not marker.is_file():
+            continue
         try:
-            shutil.rmtree(live)
-        except OSError:
-            pass
+            receipt = json.loads(marker.read_text("utf-8"))
+            files = receipt.get("files") or {}
+            timestamp = receipt.get("disabled_at_ns")
+            if (receipt.get("schema_version") != 1 or receipt.get("plugin") != name
+                    or type(timestamp) is not int or timestamp < 0
+                    or not files.get(f"{name}.dll")
+                    or any(file not in (f"{name}.dll", f"{name}.deps.json") for file in files)
+                    or any(_sha256(folder / file) != digest for file, digest in files.items())):
+                continue
+            candidates.append((timestamp, folder, files))
+        except (OSError, ValueError, TypeError, AttributeError):
+            continue
+    if not candidates:
+        return 0
+    _, source, files = max(candidates, key=lambda row: row[0])
+    require_cs2_closed("恢复已停用的本地换肤组件")
+    live.parent.mkdir(parents=True, exist_ok=True)
+    pending = Path(tempfile.mkdtemp(prefix=".career-skin-restore-", dir=live.parent))
+    try:
+        # Source remains parked and recoverable. The new target becomes visible
+        # atomically only after its DLL hashes and process state are rechecked.
+        shutil.copytree(source, pending, dirs_exist_ok=True)
+        if any(_sha256(pending / file) != digest for file, digest in files.items()):
+            raise ValueError("已停用的换肤组件复制校验失败，原副本保留。")
+        require_cs2_closed("恢复已停用的本地换肤组件")
+        if live.exists():
+            raise ValueError("游戏内换肤组件位置已变化，未覆盖现有插件；请刷新后重试。")
+        os.rename(pending, live)
+        return 1
+    finally:
+        if pending.is_dir():
+            shutil.rmtree(pending)
 
 
 def restore_bot_randomizer(csgo: Path) -> int:
@@ -775,12 +1130,36 @@ def install_skins_plugin(csgo: Path, career=None) -> int:
     elif skins_wanted(career, cfg):
         copied = _copy_skins_into(csgo)
     else:
+        copied = _retire_legacy_skin_gamedata(csgo, cfg)
         _remove_plugin(csgo, "InventorySimulator")
         _remove_plugin(csgo, "InvsimCareer")
-        copied = 0
     # Always last: entering a match used to park this, which stripped bot paints.
     copied += restore_bot_randomizer(csgo)
     return copied
+
+
+def prepare_existing_skins(csgo: Path, career=None, cfg: dict | None = None) -> int:
+    """Apply consent/provider ownership using only already-installed files.
+
+    The 3D launchers use this instead of an installer stub. It never downloads,
+    copies a DLL from a package or changes an external user's inventory. Off is
+    an actual next-boot opt-out, not just skipping this launch's JSON export.
+    """
+    cfg = settings() if cfg is None else cfg
+    csgo = resolve_csgo_path(csgo)
+    if skins_inventory_mode(cfg) == "external":
+        return _prepare_external_skins(csgo)
+    if skins_wanted(career, cfg):
+        restored = _restore_disabled_skin_plugin(csgo, "InventorySimulator")
+        if not (_plugin_live(csgo, "InventorySimulator") / "InventorySimulator.dll").is_file():
+            raise ValueError("现有换肤组件缺失；请安装可选换肤组件，或关闭游戏内换肤后开赛。")
+        restored += _restore_disabled_skin_plugin(csgo, "InvsimCareer")
+        return restored + _install_skin_gamedata(csgo, vendor_root() / "InventorySimulator", cfg)
+    require_cs2_closed("停用游戏内换肤")
+    # Only our precise cfg hook and helper bridge are removed first. The chosen
+    # career provider's plugin is then parked, with its files fully recoverable.
+    changed = _retire_legacy_skin_gamedata(csgo, cfg) + _prepare_external_skins(csgo)
+    return changed + _remove_plugin(csgo, "InventorySimulator")
 
 
 def _copy_skins_into(csgo: Path) -> int:
@@ -790,15 +1169,10 @@ def _copy_skins_into(csgo: Path) -> int:
     plugin_src = _skins_plugin_dir(src)
     if plugin_src is None:
         return 0
+    # Resolve/validate signatures before copying any plugin component.
+    gamedata_files = _install_skin_gamedata(csgo, src)
     copied = _copy_tree(plugin_src, _plugin_live(csgo, "InventorySimulator"))
-    gamedata = _skins_gamedata(src)
-    if gamedata is not None:
-        dest = csgo / "addons" / "counterstrikesharp" / "gamedata" / "inventory-simulator.json"
-        blob = gamedata.read_bytes()
-        _validate_gamedata(blob)
-        if _sha256(dest) != hashlib.sha256(blob).hexdigest():
-            _atomic_replace(dest, blob, dest.with_name("inventory-simulator.previous.json"))
-        copied += 1
+    copied += gamedata_files
     helper = vendor_root() / "InvsimCareer"
     if (helper / "InvsimCareer.dll").is_file():
         copied += _copy_tree(helper, _plugin_live(csgo, "InvsimCareer"))
@@ -811,12 +1185,9 @@ def _prepare_external_skins(csgo: Path) -> int:
     changed = 0
     bridge = _plugin_live(csgo, "InvsimCareer")
     if bridge.is_dir():
-        parked = _plugin_parked(csgo, "InvsimCareer")
-        if parked.exists():
-            parked = parked.with_name(f"InvsimCareer.career-external-{time.time_ns()}")
-        parked.parent.mkdir(parents=True, exist_ok=True)
-        shutil.move(str(bridge), str(parked))
-        changed += 1
+        # Unlike the career-provider disabling path, external mode is permitted
+        # to park only this owned bridge, never the user's InventorySimulator.
+        changed += _park_managed_plugin(csgo, "InvsimCareer", reason="career-external")
     # These exact standalone lines were inserted by write_invsim_cfg. Do not
     # remove a player's invsim commands, custom exec files, or exported data.
     pattern = rb"(?mi)^[\t ]*exec[\t ]+invsim_career\.cfg[\t ]*(?:\r?\n|$)"
@@ -946,6 +1317,8 @@ def install_mod(csgo: Path | None = None, mod: Path | None = None) -> dict:
         if not mod_runtime_file(rel):
             continue
         rel_key = "/".join(part.lower() for part in rel.parts)
+        if rel_key == "addons/counterstrikesharp/gamedata/inventory-simulator.previous.json":
+            continue  # Managed legacy backup must never re-enter CSS auto-load.
         if skins_inventory_mode(cfg) == "external" and external_inventory_file(rel_key):
             continue
         if skins_inventory_mode(cfg) == "external" and rel_key.startswith("cfg/"):
@@ -976,6 +1349,8 @@ def install_mod(csgo: Path | None = None, mod: Path | None = None) -> dict:
     files += _copy_botbuy_patch(csgo)
     if skins_inventory_mode(cfg) == "external":
         files += _prepare_external_skins(csgo)
+    else:
+        files += _retire_legacy_skin_gamedata(csgo, cfg)
     hook_competitive_cfg(csgo)
     apply_bothider_config(csgo, cfg["bot_identity"])
     return {
@@ -1227,6 +1602,7 @@ def write_career_cfg(csgo: Path, match: dict, opts: dict | None = None) -> None:
         "mp_autoteambalance 0",
         "mp_limitteams 0",
         "mp_autokick 0",
+        "mp_drop_knife_enable 1",
         "bot_auto_vacate 0",
         "bot_join_after_player 0",
         "bot_ignore_radio 0",
@@ -1287,7 +1663,9 @@ def write_invsim_cfg(csgo: Path | None = None, steam_id: str = "") -> None:
     # Forward slashes so Source cfg never sees // (comment).
     file_arg = str(inv_file).replace("\\", "/")
     body = "\n".join([f'invsim_file "{file_arg}"', *invsim_lines(steam_id), ""])
-    (cfg_dir / "invsim_career.cfg").write_text(body, encoding="ascii")
+    # Steam libraries may have non-ASCII directory names; Source cfg already
+    # accepts UTF-8 team labels and must not drop skins just because of a path.
+    (cfg_dir / "invsim_career.cfg").write_text(body, encoding="utf-8")
     for name in ("listenserver.cfg", "server.cfg"):
         path = cfg_dir / name
         existing = path.read_text(encoding="utf-8", errors="ignore") if path.exists() else ""
@@ -1629,6 +2007,58 @@ def blank_result(map_code: str) -> dict:
     }
 
 
+def deactivate_match_request(csgo: Path, nonce: str) -> bool:
+    """Release only this unfinished local request before simulation or RTS.
+
+    Leave all score files and inventory data alone. A different request may
+    belong to a newly prepared match, so it is never retired by an old session.
+    Both process checks fail closed; no result or session should be relinquished
+    after a failed permission check. The original request remains recoverable.
+    """
+    if not isinstance(nonce, str) or not nonce:
+        return False
+    csgo = resolve_csgo_path(csgo)
+    if not is_csgo_dir(csgo):
+        return False
+    target = plugin_dir(csgo) / "match_request.json"
+    try:
+        original = target.read_bytes()
+    except FileNotFoundError:
+        return False
+    request = json.loads(original.decode("utf-8-sig"))
+    if not isinstance(request, dict) or request.get("nonce") != nonce or request.get("active") is not True:
+        return False
+
+    def guard():
+        if cs2_is_live_strict() is not False:
+            raise ValueError("请完全退出 CS2，再切换当前地图的执行方式。")
+        if target.read_bytes() != original:
+            raise ValueError("当前游戏请求已变化，未停用其他比赛；请刷新后重试。")
+
+    guard()
+    request["active"] = False
+    request["career3d_deactivated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    blob = json.dumps(request, indent=2, ensure_ascii=False).encode("utf-8")
+    handle, pending = tempfile.mkstemp(prefix=".match-request-retire-", suffix=".tmp", dir=target.parent)
+    try:
+        with os.fdopen(handle, "wb") as stream:
+            stream.write(blob)
+            stream.flush()
+            os.fsync(stream.fileno())
+        digest = hashlib.sha256(nonce.encode("utf-8")).hexdigest()[:16]
+        backup = target.with_name(f"match_request.retired-{digest}-{time.time_ns()}.json")
+        # Copy the observed bytes, not a possibly changed request from disk.
+        with backup.open("xb") as stream:
+            stream.write(original)
+            stream.flush()
+            os.fsync(stream.fileno())
+        guard()
+        os.replace(pending, target)
+        return True
+    finally:
+        Path(pending).unlink(missing_ok=True)
+
+
 def prepare_game(
     csgo: Path,
     mod_source: Path,
@@ -1668,19 +2098,7 @@ def prepare_game(
     if not manifest.get("manifest_hash") or manifest.get("count") != count:
         raise ValueError("本场 BotProfile 清单校验失败，已阻止开赛")
     install_match_identities(csgo, match)
-    if skins_inventory_mode() == "external":
-        # Do not swallow a failed bridge/config retirement and let the career
-        # bridge seize the external user's configuration at the next boot.
-        install_skins_plugin(csgo, career)
-    else:
-        try:
-            n = install_skins_plugin(csgo, career)
-            if skins_wanted(career) and n:
-                from ..career import skins as skinmod
-
-                skinmod.sync_live(career)
-        except OSError:
-            pass
+    match["skin_status"] = _prepare_match_skins(csgo, career)
 
     dst = plugin_dir(csgo)
     dst.mkdir(parents=True, exist_ok=True)
@@ -1726,6 +2144,26 @@ IDENTITY_LABEL = {"player": "真人身份", "bot": "显示 BOT"}
 MOVEMENT_LABEL = {"classic": "原版增强", "natural": "自然"}
 
 
+def _arm_cs2_environment(csgo: Path) -> str:
+    """Keep the environment transaction injectable for isolated launch tests."""
+    from .environment import switch_environment
+    view = switch_environment(csgo, 'enhanced', watch_mode='dispatch', owner_pid=os.getpid())
+    generation = view.get('generation') or (view.get('environment') or {}).get('generation')
+    if not isinstance(generation, str) or not generation:
+        raise RuntimeError('增强环境没有生成有效的自动还原记录。')
+    return generation
+
+
+def _spawn_cs2_environment_watch(csgo: Path, generation: str):
+    from tools.career3d_cs2_watchdog import spawn_watch
+    return spawn_watch(csgo, generation, mode='dispatch', owner_pid=os.getpid())
+
+
+def _finish_cs2_environment(csgo: Path, generation: str):
+    from .environment import finish_watch
+    return finish_watch(csgo, generation)
+
+
 def start_match(
     my_team: dict,
     opp: dict,
@@ -1740,15 +2178,32 @@ def start_match(
     if not Path(cfg['steam_exe']).is_file():
         raise FileNotFoundError("找不到 steam.exe，请先在游戏设置保存有效路径。")
     match = request_override if request_override is not None else build_request(my_team, opp, player_name, map_code, side)
-    prepare_game(
-        Path(cfg["csgo_path"]),
-        Path(cfg["mod_source_path"]),
-        match,
-        cfg,
-        teams if teams is not None else [my_team, opp],
-        career,
-    )
-    state = launch_cs2(cfg["steam_exe"])
+    csgo = Path(cfg['csgo_path'])
+    generation = _arm_cs2_environment(csgo)
+    try:
+        prepare_game(
+            csgo,
+            Path(cfg["mod_source_path"]),
+            match,
+            cfg,
+            teams if teams is not None else [my_team, opp],
+            career,
+        )
+        state = launch_cs2(cfg["steam_exe"])
+        _spawn_cs2_environment_watch(csgo, generation)
+    except BaseException:
+        try:
+            _finish_cs2_environment(csgo, generation)
+        except (OSError, ValueError, RuntimeError):
+            # A partially successful Steam dispatch may already own a running
+            # CS2. Never rewrite its mounts; let a detached watcher finish once
+            # that process exits, even though this handoff itself failed.
+            try:
+                _spawn_cs2_environment_watch(csgo, generation)
+            except (OSError, ValueError, RuntimeError):
+                pass  # Preserve the original launch failure for the player.
+        raise
+    match['environment_generation'] = generation
     if purpose == "training" and career is not None:
         career.remember_training(match)
     you_side = "CT" if match["human_team"] == "ct" else "T"
@@ -1763,12 +2218,16 @@ def start_match(
     )
     tip = f"CS2 正在启动。进游戏后选：与机器人游戏 → 竞技 → {map_code}。"
     fallback = str(match.get("movement_style", {}).get("fallback_reason") or "")
+    skin_state = match.get("skin_status") or {}
+    skin_tip = skin_state.get("reason", "") if skin_state.get("state") in (
+        "not_equipped", "missing_account", "unavailable") else ""
     return {
         "ok": True,
         "match": match,
         "already_running": state == "already_running",
         "msg": (
-            f"{tip} {identity_tip} {my_team['name']} vs {opp['name']}。{tune}。{(' ' + fallback) if fallback else ''}"
+            f"{tip} {identity_tip} {my_team['name']} vs {opp['name']}。{tune}。"
+            f"{(' ' + fallback) if fallback else ''}{(' ' + skin_tip) if skin_tip else ''}"
         ),
     }
 

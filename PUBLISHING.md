@@ -1,6 +1,6 @@
 # 构建与 GitHub 发布
 
-## 1.7.0-preview.3-hotfix.4 · 3D 版
+## 1.7.0-preview.3-hotfix.6 · 3D 版
 
 本版发布普通 Windows 包与对应源码，按作者要求设置为 GitHub Latest。
 名称保留 3D 预览版；GitHub 的 Latest 使用非 draft、非 prerelease 发布。
@@ -8,7 +8,7 @@
 
 3D 后台入口是 `tools/career3d_backend_main.py`，Godot 项目在
 `work/career3d_redesign`。源码运行见 `SOURCE_BUILD.md`。
-使用 `tools/package_career3d.py --ordinary-only --version 1.7.0-preview.3-hotfix.4`
+使用 `tools/package_career3d.py --ordinary-only --version 1.7.0-preview.3-hotfix.6`
 重新冻结当前源码并生成普通运行包；不复用旧版后台 EXE。
 朋友测试整合包通过 `tools/package_career3d_friends.py` 从这个干净运行包派生，
 单独附加已核对的人机增强、许可与对应来源资料，不复制个人存档或游戏目录。

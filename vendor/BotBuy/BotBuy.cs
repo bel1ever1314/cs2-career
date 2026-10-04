@@ -14,7 +14,7 @@ namespace BotBuyPatch;
 public sealed partial class BotBuyPatch : BasePlugin
 {
     public override string ModuleName        => "BotBuyPatch";
-    public override string ModuleVersion => "1.0.12-career.3";
+    public override string ModuleVersion => "1.0.12-career.4";
     public override string ModuleAuthor      => "ed0ard";
     public override string ModuleDescription => "Enable bots to take more buy options";
 
@@ -25,6 +25,7 @@ public sealed partial class BotBuyPatch : BasePlugin
     private readonly Dictionary<int, uint> _roundPawns = new();
     private readonly Dictionary<int, HashSet<uint>> _roundStartWeapons = new();
     private readonly Dictionary<int, Dictionary<string, uint>> _purchasedWeapons = new();
+    private readonly HashSet<uint> _refundingWeapons = new();
 
     // Read once per round, not once per item. Synthetic Steam IDs from the
     // generated match request survive BotHider renaming; nicknames never bind jobs.
@@ -109,19 +110,19 @@ public sealed partial class BotBuyPatch : BasePlugin
                 .Select(h => h.Value).Where(w => w is { IsValid: true } && w.DesignerName == weapon).ToArray();
             if (weapons is not { Length: 1 }) return;
             var entity = weapons[0]!.EntityHandle.Raw;
-            if (!_roundStartWeapons.TryGetValue(player.Slot, out var old) || old.Contains(entity)) return;
+            if (!_roundStartWeapons.TryGetValue(player.Slot, out var old) || old.Contains(entity)
+                || _refundingWeapons.Contains(entity)) return;
             if (!_purchasedWeapons.TryGetValue(player.Slot, out var bought))
                 _purchasedWeapons[player.Slot] = bought = new();
             bought[weapon] = entity;
-            NormalizePurchasedWeapons(player);
-            ApplyTacticalPurchase(player);
+            ApplyCareerPurchases(player);
         });
         return HookResult.Continue;
     }
 
     private void NormalizePurchasedWeapons(CCSPlayerController player)
     {
-        if (!CanModify(player) || !_purchasedWeapons.TryGetValue(player.Slot, out var purchases)
+        if (!CanCareerPurchase(player) || !_purchasedWeapons.TryGetValue(player.Slot, out var purchases)
             || !_roundStartWeapons.TryGetValue(player.Slot, out var old)) return;
         foreach (var purchase in purchases.ToArray())
         {
@@ -187,7 +188,7 @@ public sealed partial class BotBuyPatch : BasePlugin
     public HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)
     {
         _roundGeneration++; _roundMap = Server.MapName; _purchasePhase = true; _tacticalDuties.Clear();
-        RefreshCareerContext(); _roundPawns.Clear(); _roundStartWeapons.Clear(); _purchasedWeapons.Clear();
+        RefreshCareerContext(); _roundPawns.Clear(); _roundStartWeapons.Clear(); _purchasedWeapons.Clear(); _refundingWeapons.Clear();
         // Don't Buy on Aim_Rush
         if (Server.MapName == "aim_rush") return HookResult.Continue;
 
@@ -240,6 +241,12 @@ public sealed partial class BotBuyPatch : BasePlugin
         {
             return HookResult.Continue;
         }
+        if (_careerActive)
+            foreach (var delay in new[] { .9f, 1.8f, 3.2f })
+                AddRoundTimer(delay, () => {
+                    foreach (var player in Utilities.FindAllEntitiesByDesignerName<CCSPlayerController>("cs_player_controller"))
+                        ApplyCareerPurchases(player);
+                });
         // Swap HKP2000
         foreach (var player in allPlayers.Where(CanModify))
         {
@@ -609,7 +616,8 @@ public sealed partial class BotBuyPatch : BasePlugin
                     poor = poor.Where(p => p.IsValid && p.InGameMoneyServices != null
                         && (!_careerActive || CanModify(p))).ToList();
 
-                    var richBots = allPlayers.Where(p => CanModify(p) && p.Team == team && p.InGameMoneyServices?.Account >= 2900).ToList();
+                    var richBots = allPlayers.Where(p => CanModify(p) && p.Team == team && p.InGameMoneyServices?.Account >= 2900
+                        && (!_careerActive || (CanCareerPurchase(p) && HasPrimaryWeapon(p)))).ToList();
 
                     if (poor.Count == 0 || richBots.Count == 0) continue;
 
@@ -624,9 +632,10 @@ public sealed partial class BotBuyPatch : BasePlugin
                         if (!CanModify(rich) || rich.InGameMoneyServices == null) continue;
 
                         int richMoney = rich.InGameMoneyServices.Account;
-                        int price = team == CsTeam.CounterTerrorist ? 2900 : 2700;
+                        int price = CareerTactics.TacticalBuyPolicy.PrimaryPrice(CareerWeaponPolicy.Rifle(team == CsTeam.CounterTerrorist, .25f));
+                        int reserve = _careerActive ? PurchaseReserve(rich) : 0;
 
-                        int maxGive = richMoney / price;
+                        int maxGive = Math.Max(0, richMoney - reserve) / price;
                         if (maxGive > 3) maxGive = 3;
                         if (maxGive <= 0) continue;
 
@@ -636,13 +645,14 @@ public sealed partial class BotBuyPatch : BasePlugin
                             var poorPlayer = shuffledPoor[poorIndex];
                             poorIndex++;
 
-                            if (!poorPlayer.IsValid || giftedPoor.Contains(poorPlayer)
-                                || (_careerActive && !CanModify(poorPlayer))) continue;
+                            if (!poorPlayer.IsValid || giftedPoor.Contains(poorPlayer) || HasPrimaryWeapon(poorPlayer)
+                                || (_careerActive && !CanCareerPurchase(poorPlayer))) continue;
 
                             string gun = team == CsTeam.CounterTerrorist
                                 ? (Random.Shared.Next(2) == 0 ? "weapon_m4a1_silencer" : "weapon_m4a1")
                                 : "weapon_ak47";
-                            poorPlayer.GiveNamedItem(gun);
+                            var givenHandle = poorPlayer.GiveNamedItem(gun);
+                            if (givenHandle == IntPtr.Zero || !new CEntityInstance(givenHandle).IsValid) continue;
                             giftedPoor.Add(poorPlayer);
 
                             rich.InGameMoneyServices.Account -= price;
@@ -669,6 +679,7 @@ public sealed partial class BotBuyPatch : BasePlugin
                 {
                     var needArmor = allPlayers
                         .Where(p => CanModify(p) && p.Team == team
+                            && (!_careerActive || CanCareerPurchase(p))
                             && HasPrimaryWeapon(p)
                             && (p.PlayerPawn.Value?.ArmorValue ?? 1) == 0)
                         .ToList();
@@ -678,7 +689,9 @@ public sealed partial class BotBuyPatch : BasePlugin
                     var buyer = allPlayers
                         .Where(p => CanModify(p) && p.Team == team
                             && !poorSet.Contains(p)
-                            && p.InGameMoneyServices?.Account >= 650)
+                            && p.InGameMoneyServices?.Account >= 650
+                            && (!_careerActive || (CanCareerPurchase(p) && HasPrimaryWeapon(p)
+                                && p.InGameMoneyServices.Account >= PurchaseReserve(p) + (team == CsTeam.Terrorist ? 1000 : 650))))
                         .OrderByDescending(p => p.InGameMoneyServices!.Account)
                         .FirstOrDefault();
                     // No one has enough money anymore
@@ -688,10 +701,13 @@ public sealed partial class BotBuyPatch : BasePlugin
                     if (!CanModify(target) || !CanModify(buyer)) continue;
 
                     int buyerMoney = buyer.InGameMoneyServices!.Account;
+                    int spendableMoney = _careerActive ? buyerMoney - PurchaseReserve(buyer) : buyerMoney;
                     // Terrorist bots only buy full armor
-                    if (team == CsTeam.Terrorist && buyerMoney < 1000) break;
-                    string item = buyerMoney >= 1000 ? "item_assaultsuit" : "item_kevlar";
-                    int price   = buyerMoney >= 1000 ? 1000 : 650;
+                    if (team == CsTeam.Terrorist && spendableMoney < 1000) break;
+                    int price = CareerWeaponPolicy.GiftArmorPrice(team == CsTeam.CounterTerrorist,
+                        buyerMoney, _careerActive ? PurchaseReserve(buyer) : 0);
+                    if (price == 0) break;
+                    string item = price == 1000 ? "item_assaultsuit" : "item_kevlar";
 
                     target.GiveNamedItem(item);
                     buyer.InGameMoneyServices.Account -= price;
@@ -707,8 +723,6 @@ public sealed partial class BotBuyPatch : BasePlugin
     {
         if (_careerActive)
         {
-            foreach (var player in Utilities.FindAllEntitiesByDesignerName<CCSPlayerController>("cs_player_controller"))
-                NormalizePurchasedWeapons(player);
             _purchasePhase = false;
         }
         ConVar? botLoadout = ConVar.Find("bot_loadout");
@@ -754,37 +768,15 @@ public sealed partial class BotBuyPatch : BasePlugin
         if (pawn.WeaponServices == null)
             return false;
 
-        var activeWeapon = pawn.WeaponServices.ActiveWeapon;
-        if (!activeWeapon.IsValid || activeWeapon.Value == null)
-            return false;
-
-        var weaponName = activeWeapon.Value.DesignerName;
-        if (string.IsNullOrEmpty(weaponName)) return false;
-
-        return weaponName.StartsWith("weapon_ak") ||
-            weaponName.StartsWith("weapon_m4") ||
-            weaponName.StartsWith("weapon_aug") ||
-            weaponName.StartsWith("weapon_galilar") ||
-            weaponName.StartsWith("weapon_famas") ||
-            weaponName.StartsWith("weapon_awp") ||
-            weaponName.StartsWith("weapon_ssg08") ||
-            weaponName.StartsWith("weapon_mp") ||
-            weaponName.StartsWith("weapon_ump") ||
-            weaponName.StartsWith("weapon_p90") ||
-            weaponName.StartsWith("weapon_bizon") ||
-            weaponName.StartsWith("weapon_nova") ||
-            weaponName.StartsWith("weapon_mag7") ||
-            weaponName.StartsWith("weapon_sawedoff") ||
-            weaponName.StartsWith("weapon_xm1014") ||
-            weaponName.StartsWith("weapon_negev") ||
-            weaponName.StartsWith("weapon_m249");
+        return CareerWeaponPolicy.HasPrimary(pawn.WeaponServices.MyWeapons
+            .Select(h => h.Value).Where(w => w is { IsValid: true }).Select(w => w!.DesignerName));
     }
 
 //----------------------------------------------------------------------------------------------
-    private bool Buy(CCSPlayerController player, string itemName)
+    private bool Buy(CCSPlayerController player, string itemName, bool restoringOriginal = false)
     {
         if (!CanModify(player) || player.InGameMoneyServices == null
-            || !CareerWeaponPolicy.CanBuy(_careerActive, itemName, PurchaseRole(player)))
+            || !CareerWeaponPolicy.CanBuy(_careerActive, itemName, PurchaseRole(player), restoringOriginal))
             return false;
 
         var pawn = player.PlayerPawn.Value;
@@ -817,36 +809,10 @@ public sealed partial class BotBuyPatch : BasePlugin
             case "weapon_cz75a":             price = 500;  break;
             case "weapon_revolver":          price = 600;  break;
 
-            case "weapon_mac10":             price = 1050; canBuy = isT; break;
-            case "weapon_mp9":               price = 1250; canBuy = isCT; break;
-            case "weapon_mp7":               price = 1500; break;
-            case "weapon_mp5sd":             price = 1500; break;
-            case "weapon_ump45":             price = 1200; break;
-            case "weapon_bizon":             price = 1400; break;   
-            case "weapon_p90":               price = 2350; break;
-
-            case "weapon_nova":              price = 1050; break;
-            case "weapon_xm1014":           price = 2000; break;
-            case "weapon_sawedoff":          price = 1100; canBuy = isT; break;
-            case "weapon_mag7":              price = 1300; canBuy = isCT; break;
-
-            case "weapon_galilar":           price = 1800; canBuy = isT; break;
-            case "weapon_ak47":              price = 2700; canBuy = isT; break;
-            case "weapon_sg556":             price = 3000; canBuy = isT; break;
-            case "weapon_famas":             price = 1950; canBuy = isCT; break;
-            case "weapon_m4a1":              price = 2900; canBuy = isCT; break;
-            case "weapon_m4a1_silencer":     price = 2900; canBuy = isCT; break;
-            case "weapon_aug":               price = 3300; canBuy = isCT; break;
-
-            case "weapon_ssg08":             price = 1700; break;
-            case "weapon_awp":               price = 4750; break;
-            case "weapon_scar20":            price = 5000; canBuy = isCT; break;
-            case "weapon_g3sg1":             price = 5000; canBuy = isT; break;
-
-            case "weapon_negev":             price = 1700; break;
-            case "weapon_m249":              price = 5200; break;
-
-            default: canBuy = false; break;
+            default:
+                price = CareerTactics.TacticalBuyPolicy.PrimaryPrice(itemName);
+                canBuy = (isCT || isT) && CareerTactics.TacticalBuyPolicy.PrimaryAllowed(isCT, itemName);
+                break;
         }
 
         if (!canBuy)
@@ -923,36 +889,10 @@ public sealed partial class BotBuyPatch : BasePlugin
             case "weapon_cz75a":             price = 500;  break;
             case "weapon_revolver":          price = 600;  break;
 
-            case "weapon_mac10":             price = 1050; canRefund = isT; break;
-            case "weapon_mp9":               price = 1250; canRefund = isCT; break;
-            case "weapon_mp7":               price = 1500; break;
-            case "weapon_mp5sd":             price = 1500; break;
-            case "weapon_ump45":             price = 1200; break;
-            case "weapon_bizon":             price = 1400; break;
-            case "weapon_p90":               price = 2350; break;
-
-            case "weapon_nova":              price = 1050; break;
-            case "weapon_xm1014":            price = 2000; break;
-            case "weapon_sawedoff":          price = 1100; canRefund = isT; break;
-            case "weapon_mag7":              price = 1300; canRefund = isCT; break;
-
-            case "weapon_galilar":           price = 1800; canRefund = isT; break;
-            case "weapon_ak47":              price = 2700; canRefund = isT; break;
-            case "weapon_sg556":             price = 3000; canRefund = isT; break;
-            case "weapon_famas":             price = 1950; canRefund = isCT; break;
-            case "weapon_m4a1":              price = 2900; canRefund = isCT; break;
-            case "weapon_m4a1_silencer":     price = 2900; canRefund = isCT; break;
-            case "weapon_aug":               price = 3300; canRefund = isCT; break;
-
-            case "weapon_ssg08":             price = 1700; break;
-            case "weapon_awp":               price = 4750; break;
-            case "weapon_scar20":            price = 5000; canRefund = isCT; break;
-            case "weapon_g3sg1":             price = 5000; canRefund = isT; break;
-
-            case "weapon_negev":             price = 1700; break;
-            case "weapon_m249":              price = 5200; break;
-
-            default: return false;
+            default:
+                price = CareerTactics.TacticalBuyPolicy.PrimaryPrice(itemName);
+                canRefund = (isCT || isT) && CareerTactics.TacticalBuyPolicy.PrimaryAllowed(isCT, itemName);
+                break;
         }
 
         if (!canRefund)
@@ -960,7 +900,15 @@ public sealed partial class BotBuyPatch : BasePlugin
         
         if (itemName.StartsWith("weapon_"))
         {
-            player.RemoveItemByDesignerName(itemName);
+            var removed = pawn.WeaponServices!.MyWeapons.Select(h => h.Value)
+                .Where(w => w is { IsValid: true } && w.DesignerName == itemName)
+                .Select(w => w!.EntityHandle.Raw).ToHashSet();
+            // CSS 1.0.371 queues Kill after 0.1s; the old entity is still in
+            // MyWeapons now. Accept the API's result, then invalidate its buy
+            // proof immediately so this pending removal cannot refund twice.
+            if (!player.RemoveItemByDesignerName(itemName)) return false;
+            _refundingWeapons.UnionWith(removed);
+            _purchasedWeapons.GetValueOrDefault(player.Slot)?.Remove(itemName);
         }
         else if (itemName == "item_assaultsuit" || itemName == "item_kevlar")
         {
@@ -983,6 +931,19 @@ public sealed partial class BotBuyPatch : BasePlugin
         if (!CanModify(player))
             return false;
 
+        if (_careerActive && CareerTactics.TacticalBuyPolicy.PrimaryPrice(itemName) > 0)
+        {
+            if (!CanCareerPurchase(player)) return false;
+            var weapons = player.PlayerPawn.Value!.WeaponServices?.MyWeapons.Select(h => h.Value)
+                .Where(w => w is { IsValid: true } && w.DesignerName == itemName).ToArray();
+            if (weapons is not { Length: 1 }) return false;
+            uint entity = weapons[0]!.EntityHandle.Raw;
+            return _roundStartWeapons.TryGetValue(player.Slot, out var old)
+                && CareerWeaponPolicy.ConfirmedNewPrimary(entity,
+                    _purchasedWeapons.GetValueOrDefault(player.Slot)?.GetValueOrDefault(itemName) ?? 0,
+                    old.Contains(entity), weapons.Length, _refundingWeapons.Contains(entity));
+        }
+
         if (IsFirstRoundOfHalf()) 
             return true;
 
@@ -1001,12 +962,27 @@ public sealed partial class BotBuyPatch : BasePlugin
         if (pawn == null || !pawn.IsValid)
             return false;
 
+        int primaryPrice = CareerTactics.TacticalBuyPolicy.PrimaryPrice(newItem);
+        if (primaryPrice > 0 && (!CareerTactics.TacticalBuyPolicy.PrimaryAllowed(player.TeamNum == 3, newItem)
+            || Math.Min((long)(ConVar.Find("mp_maxmoney")?.GetPrimitiveValue<int>() ?? 16000),
+                (long)player.InGameMoneyServices.Account + CareerTactics.TacticalBuyPolicy.PrimaryPrice(oldItem)) < primaryPrice))
+            return false; // Do not remove the old gun for an unaffordable or wrong-side replacement.
+
+        int originalMoney = player.InGameMoneyServices.Account;
         if (!Refund(player, oldItem))
             return false;
 
         if (!Buy(player, newItem))
         {
-            Buy(player, oldItem);
+            // This restores a verified existing purchase, not a new permission
+            // to buy AUG or a second sniper. Restore its original balance too.
+            if (Buy(player, oldItem, restoringOriginal: true))
+            {
+                player.InGameMoneyServices.Account = originalMoney;
+                Utilities.SetStateChanged(player, "CCSPlayerController", "m_pInGameMoneyServices");
+            }
+            else
+                Server.PrintToConsole("[BotBuy] Replacement and original weapon restore failed; refund retained.");
             return false;
         }
         return true;
