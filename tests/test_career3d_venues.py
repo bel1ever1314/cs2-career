@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 """Career venue scenes, sourced names and read-only legacy projections."""
 from copy import deepcopy
 from types import SimpleNamespace
@@ -18,7 +19,7 @@ class CareerVenuePolicyTests(unittest.TestCase):
             is_yours=lambda match: 'Team0' in (match['team_a'], match['team_b']),
             yours_ready=lambda match: not match.get('played'),
             your_team_name=lambda: 'Team0')
-        self.state = SimpleNamespace(season=self.season,
+        self.state = ApplicationDouble(season=self.season,
             career=SimpleNamespace(my_team=lambda teams: teams[0]),
             arena=SimpleNamespace(career_player_id=lambda state: 'p0_0'))
 

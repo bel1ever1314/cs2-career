@@ -159,6 +159,7 @@ static func map_texture(map_name: String) -> Texture2D:
 static func map_banner(parent: Node, map_name: String, subtitle: String = "", height: int = 120) -> VBoxContainer:
 	var panel := PanelContainer.new()
 	panel.name = "MatchMapPhoto"
+	panel.clip_contents = true
 	panel.custom_minimum_size.y = height
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.add_theme_stylebox_override("panel", UI.style(UI.GREEN, 14, 10))

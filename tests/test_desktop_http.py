@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 import json
 import tempfile
 import threading
@@ -14,7 +15,7 @@ from cs2career.career import Career, skins
 class HttpSessionTests(unittest.TestCase):
     def setUp(self):
         self.saved = 0
-        state = SimpleNamespace(career=SimpleNamespace(keep_drop=lambda: 'kept'), persist=self.persist,
+        state = ApplicationDouble(career=SimpleNamespace(keep_drop=lambda: 'kept'), persist=self.persist,
                                 payload=lambda msg='': {'ok': True, 'msg': msg, 'state': {}})
         self.server = create_server(state)
         self.server.preview = True

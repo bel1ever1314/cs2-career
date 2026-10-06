@@ -245,6 +245,11 @@ func finished(path: String, result: Dictionary) -> bool:
 			page = "welcome"
 			host.reset_career_views()
 			Phone.reset_career_views()
+			if result.get("result_summary", false):
+				# Reconnected acknowledgement refreshes the welcome page; it must
+				# not replay the original creation travel/clock transition.
+				if host.screen.visible and host.active_page == "start": host._rebuild()
+				return true
 			host.close_computer()
 			CareerBridge.clock_minutes = 480
 			CareerBridge.clock_held = false

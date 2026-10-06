@@ -150,7 +150,7 @@ def item_context(state, item_id):
 def apply_stickers(state, body):
     """Validate a complete optimistic edit, then commit only the inventory copy."""
     cfg = _config()
-    if not isinstance(body, dict) or set(body) != _BODY_FIELDS:
+    if not isinstance(body, dict) or set(body) - {'request_id'} != _BODY_FIELDS:
         raise ValueError('贴纸编辑需要 schema_version、id、expected_hash、revision 和 stickers。')
     if type(body['schema_version']) is not int or body['schema_version'] != SCHEMA_VERSION:
         raise ValueError('饰品工具只支持 schema_version 1。')

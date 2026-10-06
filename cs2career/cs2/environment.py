@@ -187,13 +187,15 @@ def _write_mode(csgo, mode, *, watch_mode='manual', owner_pid=None):
     return state
 
 
-def switch_environment(csgo, mode, *, watch_mode='manual', owner_pid=None):
+def switch_environment(csgo, mode, *, watch_mode='manual', owner_pid=None, before_effect=None):
     if mode not in ('normal', 'enhanced') or watch_mode not in ('manual', 'dispatch'):
         raise ValueError('请选择开启本地插件或恢复普通 CS2。')
     if owner_pid is not None and (type(owner_pid) is not int or owner_pid <= 0):
         raise ValueError('本地插件恢复进程身份无效。')
     _closed()  # A refused switch must not even create its coordination file.
     with _lock(csgo):
+        if before_effect is not None:
+            before_effect()
         state = _write_mode(csgo, mode, watch_mode=watch_mode, owner_pid=owner_pid)
     return {**snapshot(csgo), 'lease': state}
 

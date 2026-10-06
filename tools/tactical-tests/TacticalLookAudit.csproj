@@ -6,6 +6,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../vendor/CareerMatch/TacticalFeatureAudit.cs" />
+    <Compile Include="../../vendor/CareerMatch/TacticalServer927.cs" />
+    <Compile Include="Server927Regression.cs" />
     <Compile Include="../../vendor/CareerMatch/TacticalNativeLook.cs" />
     <Compile Include="TacticalNativeLookRegression.cs" />
     <Compile Include="FeatureProfileRegression.cs" />

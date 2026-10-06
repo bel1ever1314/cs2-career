@@ -1,0 +1,22 @@
+{
+ "schema_version": 1,
+ "id": "major_final",
+ "title": "决赛开场",
+ "bpm": 128,
+ "beat_seconds": 0.46875,
+ "hold_start": 15.0,
+ "hold_end": 16.875,
+ "gate": 18.28125,
+ "drop": 18.75,
+ "hits": [
+  26.25,
+  33.75
+ ],
+ "final": 39.375,
+ "length": 43.885,
+ "stems": {
+  "music": "major_final_music.ogg",
+  "crowd": "major_final_crowd.ogg"
+ },
+ "note": "Original composition; music and crowd are separate synchronized stems."
+}

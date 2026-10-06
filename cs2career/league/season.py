@@ -436,6 +436,13 @@ class Season:
         return None
 
     def your_series(self) -> tuple[dict, dict] | None:
+        pair = self.find_your_series()
+        if pair:
+            self.open_your_series(*pair)
+        return pair
+
+    def find_your_series(self) -> tuple[dict, dict] | None:
+        """Read pending identity without choosing maps or consuming randomness."""
         from ..career.incidents import competition_paused
         if competition_paused(self.career, self.date):
             return None
@@ -456,9 +463,7 @@ class Season:
         if not rows:
             return None
         rows.sort(key=lambda item: (item[1]["date"], item[1]["id"]))
-        ev, match = rows[0]
-        self.open_your_series(ev, match)
-        return ev, match
+        return rows[0]
 
     def yours_ready(self, match: dict) -> bool:
         from ..career.incidents import competition_paused
@@ -527,7 +532,7 @@ class Season:
             self.career.on_series_done(self)
             self.career.watch(self)
 
-    def try_ingest_pending_cs2(self) -> str:
+    def try_ingest_pending_cs2(self, *, result_reader=None) -> str:
         """Commit a finished CS2 dump even if the match page is not open."""
         import os
         if os.environ.get('CS2CAREER_NO_GAME') == '1':
@@ -536,33 +541,36 @@ class Season:
             for match in ev.get("matches") or []:
                 if match.get("played") or not match.get("cs2_session"):
                     continue
-                raw = read_result(request_nonce=match["cs2_session"].get("nonce"))
+                reader = result_reader or read_result
+                raw = reader(request_nonce=match["cs2_session"].get("nonce"))
                 if result_usable(raw, match["cs2_session"]) != "":
                     return ""
                 try:
-                    return self.commit_cs2_map(match["id"], raw)
+                    return self.commit_cs2_map(match["id"], raw, result_reader=reader)
                 except ValueError:
                     return ""
         return ""
 
-    def launch_your_map(self, match_id: str, side: str = "ct") -> str:
+    def launch_your_map(self, match_id: str, side: str = "ct", *, result_reader=None, launcher=None) -> str:
+        from .outcomes import MatchPaused
+        reader, launch = result_reader or read_result, launcher or start_match
         ev, match = self._require_yours(match_id)
         if match.get('played'):
             raise ValueError('这场已经打完了')
         if self.career:
             block = self.career.gate_match(self, match_id)
             if block:
-                raise ValueError(block)
+                raise MatchPaused(block)
         self.open_your_series(ev, match)
         if match.get("played"):
             raise ValueError("这场已经打完了")
         if self._phase_gate(ev, match):
             self.save()
-            raise ValueError('请先处理比赛阶段事件，再进入这张地图。')
+            raise MatchPaused('请先处理比赛阶段事件，再进入这张地图。')
         session = match.get("cs2_session")
-        raw = read_result(request_nonce=(session or {}).get("nonce"))
+        raw = reader(request_nonce=(session or {}).get("nonce"))
         if session and result_usable(raw, session) == "":
-            msg = self.commit_cs2_map(match_id, raw)
+            msg = self.commit_cs2_map(match_id, raw, result_reader=reader)
             if match.get("played"):
                 return msg
         pending = match.get("pending_map")
@@ -584,30 +592,33 @@ class Season:
             "opp": opp["name"],
             "map_index": len(match.get("maps") or []),
         }
-        out = start_match(
+        out = launch(
             mine, opp, self.career.player_name, to_cs2_map(pending), side, self.teams, self.career
         )
         # Do not leave a phantom waiting-for-result session if preparation fails.
         match["cs2_session"] = new_session
         match["cs2_session"]["nonce"] = out["match"]["nonce"]
+        from ..engine.sessions import stamp
+        stamp(match['cs2_session'], 'cs2')
         from ..world.eras import player_id
         match['cs2_session']['role_by_id'] = {p.get('player_id') or player_id(p['name']):p.get('role','')
             for t in (mine,opp) for p in t['players']}
         match["cs2_session"]["expected_player_ids"] = [
             out["match"]["human_player_id"],
-            *[bot["player_id"] for bot in out["match"].get("bots", [])],
+            *[bot["player_id"] for bot in out["match"].get("bots",
+                out["match"].get('ct', {}).get('players', []) + out["match"].get('t', {}).get('players', []))],
         ]
         n = match["cs2_session"]["map_index"] + 1
         return f"第 {n} 图 {pending}。{out['msg']}"
 
-    def commit_cs2_map(self, match_id: str, raw: dict | None = None) -> str:
+    def commit_cs2_map(self, match_id: str, raw: dict | None = None, *, result_reader=None) -> str:
         ev, match = self._require_yours(match_id)
         if match.get("played"):
             raise ValueError("这场已经打完了")
         session = match.get("cs2_session")
         if not session:
             raise ValueError("还没有进入当场比赛")
-        file_res = read_result(request_nonce=session.get("nonce"))
+        file_res = (result_reader or read_result)(request_nonce=session.get("nonce"))
         candidates = [raw, file_res]
         if session.get("nonce"):
             candidates = [r for r in candidates if r and r.get("request_nonce") == session["nonce"]]
@@ -643,14 +654,17 @@ class Season:
         nxt = match.get("pending_map")
         return f"第 {n} 图结束 {box['score']}。下一张：{nxt}。"
 
-    def skip_your_series(self, match_id: str) -> str:
+    def skip_your_series(self, match_id: str, *, max_maps: int | None = None) -> str:
+        from .outcomes import MatchPaused
+        if max_maps is not None and (type(max_maps) is not int or max_maps < 1):
+            raise ValueError('max_maps must be a positive integer')
         ev, match = self._require_yours(match_id)
         if match.get('played'):
             raise ValueError('这场已经打完了')
         if self.career:
             block = self.career.gate_match(self, match_id)
             if block:
-                raise ValueError(block)
+                raise MatchPaused(block)
         if match.get("played"):
             raise ValueError("这场已经打完了")
         self.open_your_series(ev, match)
@@ -658,6 +672,7 @@ class Season:
         b = _find(self.teams, match["team_b"])
         need = match.get("best_of", 3) // 2 + 1
         maps = match.setdefault("maps", [])
+        initial_maps = len(maps)
         kept = sum(1 for mp in maps if mp.get("source") == "cs2")
         wa, wb = self._map_wins(match)
         wins = {a["name"]: wa, b["name"]: wb}
@@ -668,6 +683,8 @@ class Season:
             if self._phase_gate(ev, match):
                 return '比赛阶段事件已暂停模拟，请先作出选择。'
             box = play_map(a, b, map_name)
+            from ..engine.sessions import stamp_simulation
+            stamp_simulation(box, 'career', self.year, ev['id'], match['id'], len(maps))
             box["source"] = "sim"
             maps.append(box)
             wins[box["winner"]] = wins.get(box["winner"], 0) + 1
@@ -677,6 +694,9 @@ class Season:
             if max(wins.values()) < need and self.career and pending(self.career):
                 self.open_your_series(ev, match)
                 return '地图已保存；阶段事件已暂停模拟，请先作出选择。'
+            if max(wins.values()) < need and max_maps is not None and len(maps) - initial_maps >= max_maps:
+                self.open_your_series(ev, match)
+                return f"第 {len(maps)} 图结束 {box['score']}。下一张：{match['pending_map']}。"
         self._finalize_human(ev, match)
         if kept:
             return f"前 {kept} 图保留你打的战绩，剩余按数值结算：{match['series']}。"
@@ -739,6 +759,9 @@ class Season:
         match["winner"] = series["winner"]
         match["series"] = series["series"]
         match["maps"] = series["maps"]
+        from ..engine.sessions import stamp_simulation
+        for index, box in enumerate(match['maps']):
+            stamp_simulation(box, 'career', self.year, ev['id'], match['id'], index)
         match["veto"] = series["veto"]
         match["ratings"] = series["ratings"]
         self._book_stats(ev, match, a, b)
@@ -813,7 +836,9 @@ class Season:
         return bool(self.career and self.career.assist.get('quick_mode') and self.events
                     and all(ev.get('status') == 'done' for ev in self.events))
 
-    def next_stage(self, *, stop_at_season_end: bool = False) -> str:
+    def next_stage(self, *, stop_at_season_end: bool = False, until: str | None = None) -> str:
+        if until is not None and (_d(until).isoformat() != until or until < self.date or _d(until).year != self.year):
+            raise ValueError('Calendar boundary must be in the current season and not before today')
         calendar_pause = self._calendar_pause()
         if calendar_pause:
             return calendar_pause
@@ -834,6 +859,10 @@ class Season:
         jumped = False
         if not self.due_matches():
             nxt = self._next_busy_day()
+            if until is not None:
+                nxt = min(nxt, until) if nxt else until
+                occasion = self.career.next_calendar_day(self, nxt) if self.career else None
+                nxt = min(nxt, occasion) if occasion else nxt
             if not nxt:
                 if stop_at_season_end or self._await_quick_season_choice():
                     return f"{self.year} 赛季的全部赛程已完成。请选择下一赛季的模式。"
@@ -975,7 +1004,8 @@ class Season:
                 self.top20_dates = {}
             self.top20_dates[str(self.year)] = self.date
             notify_on_roll = True
-        self.history += finished
+        from ..storage.immutable import freeze
+        self.history.extend(freeze(record) for record in finished)
 
         best = table[0]["player"] if table else "—"
         old = self.year
@@ -1101,7 +1131,7 @@ class Season:
     # ---------------------------------------------------------------- payload
 
     def _your_match_public(self) -> dict | None:
-        pair = self.your_series()
+        pair = self.find_your_series()
         if not pair:
             return None
         ev, m = pair
@@ -1252,9 +1282,14 @@ class Season:
     # ---------------------------------------------------------------- storage
 
     def save(self) -> None:
+        from ..storage.transaction import save
+        from ..storage.history import pack
+        from ..json_bytes import encode
+        save(STATE_PATH, lambda: encode(pack(STATE_PATH.parent, self.to_json())))
+
+    def to_json(self) -> dict:
         from ..random_state import capture
-        STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        blob = {
+        return {
             "schema_version": 2,
             "random_state": capture(),
             "date": self.date,
@@ -1271,19 +1306,19 @@ class Season:
             "top20_dates": getattr(self, 'top20_dates', {}),
             "log": self.log,
         }
-        pending = STATE_PATH.with_suffix('.pending')
-        from ..json_bytes import encode
-        pending.write_bytes(encode(blob))
-        pending.replace(STATE_PATH)
 
     @classmethod
     def load_or_new(cls) -> "Season":
+        from ..storage.transaction import recover
+        recover(STATE_PATH.parent)
         if not STATE_PATH.exists():
             s = cls()
             s.save()
             return s
         try:
             blob = json.loads(STATE_PATH.read_text(encoding="utf-8"))
+            from ..storage.history import expand
+            blob = expand(STATE_PATH.parent, blob)
             if int(blob.get("schema_version") or 0) != 2:
                 backup = STATE_PATH.with_name("season.v1.4-backup.json")
                 if not backup.exists():
@@ -1300,7 +1335,8 @@ class Season:
             s.qualified = blob.get("qualified", {})
             s.player_all = blob.get("player_all", {})
             s.player_event = blob.get("player_event", {})
-            s.history = blob.get("history", [])
+            from ..storage.immutable import freeze
+            s.history = [freeze(record) for record in blob.get("history", [])]
             s.top20 = blob.get("top20", {})
             s.top20_dates = blob.get("top20_dates", {})
             s.log = blob.get("log", [])

@@ -15,11 +15,12 @@ func evaluate(app) -> Array[Dictionary]:
 	checks.append({"ok": crowd["batches"] <= 5 and crowd["spectator_physics"] == 0, "label": "whole crowd uses five shared batches and no spectator physics"})
 	checks.append({"ok": arena["face_keys"] == 2 and arena["stage_spots"] >= 5, "label": "stage and player faces have dedicated key lighting"})
 	checks.append({"ok": arena["screens"] == 3 and not arena["strobe"], "label": "three entrance graphics with no strobe"})
-	checks.append({"ok": arena["entrance_bpm"] == 112.0, "label": "choreography uses original music's 112 BPM clock"})
-	checks.append({"ok": arena["entrance_duration"] >= 16.0 and arena["entrance_duration"] <= 24.0, "label": "original entrance cue lasts between sixteen and twenty-four seconds"})
-	var on_beat: Dictionary = app.atmosphere.beat_state(8.0 * 60.0 / 112.0)
-	var between: Dictionary = app.atmosphere.beat_state(8.5 * 60.0 / 112.0)
-	var settled: Dictionary = app.atmosphere.beat_state(23.0)
+	checks.append({"ok": arena["entrance_bpm"] == 128.0 and arena["cue"] == "major_final", "label": "free visit choreography uses the new 128 BPM opener"})
+	checks.append({"ok": absf(arena["entrance_duration"] - float(app.atmosphere.cue["length"])) < .1, "label": "new entrance cue matches the authored duration"})
+	var drop: float = app.atmosphere.cue["drop"]
+	var on_beat: Dictionary = app.atmosphere.beat_state(drop)
+	var between: Dictionary = app.atmosphere.beat_state(drop + 0.5 * 60.0 / 128.0)
+	var settled: Dictionary = app.atmosphere.beat_state(float(app.atmosphere.cue["length"]))
 	checks.append({"ok": on_beat["pulse"] > 0.95 and between["pulse"] < 0.01, "label": "soft accent follows beat then releases"})
 	checks.append({"ok": settled["phrase"] == 0.0 and settled["pulse"] == 0.0, "label": "entrance lighting settles after one phrase"})
 	var level_ok := true

@@ -11,6 +11,7 @@ var narrow := false
 var map_index := -1
 var body: VBoxContainer
 var tables: GridContainer
+var scoreboards: Array[Control] = []
 
 static func mount(parent: Node, match_data: Dictionary, event_data: Dictionary, player_id: String, callback: Callable, phone: bool = false) -> VBoxContainer:
 	var report = load("res://scripts/career_match_report.gd").new()
@@ -75,6 +76,7 @@ func rows_for_map(map_row: Dictionary) -> Array:
 
 func paint() -> void:
 	UI.clear(body)
+	scoreboards.clear()
 	var maps: Array = game.get("maps", [])
 	var rows: Array = game.get("totals", []).duplicate(true)
 	if map_index < 0 and rows.is_empty(): map_index = 0
@@ -96,20 +98,22 @@ func paint() -> void:
 		for row in rows:
 			if str(row.get("team", "")) == team: team_rows.append(row)
 		if team_rows.is_empty(): continue
-		var parent: Node = tables
-		if narrow:
-			var scrolling := ScrollContainer.new()
-			scrolling.name = "MatchReportStatsScroll_" + team.validate_node_name()
-			scrolling.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-			scrolling.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-			scrolling.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			tables.add_child(scrolling)
-			parent = scrolling
-		Scoreboard.mount(parent, team_rows, [team], own_id, selected, "选手", true)
+		# Keep table minimum widths local. Otherwise two roomy scoreboards
+		# expand the whole report (including its header and map) off the monitor.
+		var scrolling := ScrollContainer.new()
+		scrolling.name = "MatchReportStatsScroll_" + team.validate_node_name()
+		scrolling.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		scrolling.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+		scrolling.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tables.add_child(scrolling)
+		scoreboards.append(Scoreboard.mount(scrolling, team_rows, [team], own_id, selected, "选手", true))
 		if team_rows.size() != 5: UI.label(body, "%s · 已保存 %s 人" % [team, team_rows.size()], 12, UI.MUTED)
 	if narrow: UI.label(body, "左右滑动查看完整战绩。", 12, UI.MUTED)
 	if not resized.is_connected(fit_tables): resized.connect(fit_tables)
 	fit_tables()
 
 func fit_tables() -> void:
-	if is_instance_valid(tables): tables.columns = 2 if not narrow and size.x >= 1000 else 1
+	if not is_instance_valid(tables): return
+	var required := float(tables.get_theme_constant("h_separation"))
+	for board in scoreboards: required += board.get_combined_minimum_size().x
+	tables.columns = 2 if not narrow and scoreboards.size() == 2 and size.x >= maxf(1000.0, required) else 1

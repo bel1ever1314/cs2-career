@@ -163,9 +163,17 @@ static func _major_shell(parent: Node3D, model: Node3D, capacity: int = 10000) -
 				if body:
 					if not body.has_meta("tier_original_layer"): body.set_meta("tier_original_layer",body.collision_layer)
 					body.collision_layer = 0
+	# The floor crowd's two block colliders leave with the crowd: no
+	# invisible walls on an empty floor.
+	for side in ["-1","1"]:
+		var block := parent.get_node_or_null("Solid_FloorAudience"+side) as CollisionObject3D
+		if block:
+			if not block.has_meta("tier_original_layer"): block.set_meta("tier_original_layer",block.collision_layer)
+			block.collision_layer = int(block.get_meta("tier_original_layer")) if bowl_tiers > 0 else 0
 	var audience := parent.get_node_or_null("SeatedChickenAudience") as Node3D
 	if audience:
 		audience.visible = bowl_tiers > 0
+		audience.process_mode = Node.PROCESS_MODE_INHERIT if bowl_tiers > 0 else Node.PROCESS_MODE_DISABLED
 		# Upper-tier spectators leave with their tier (tier 2 tops out at 8.4 m).
 		if bowl_tiers == 2 and audience.has_method("limit_height"): audience.limit_height(8.9)
 

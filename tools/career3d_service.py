@@ -7,7 +7,6 @@ The adapter owns one state and uses its existing rules and shared server lock.
 from __future__ import annotations
 
 import argparse
-from contextlib import contextmanager
 from datetime import date
 import hashlib
 import json
@@ -18,7 +17,6 @@ import signal
 import sys
 import threading
 from urllib.parse import parse_qs, urlparse
-from uuid import UUID
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -45,7 +43,7 @@ def _import_skin_owner(state) -> None:
             owner = owner_file.read_text('ascii').strip()
             if len(owner) == 17 and owner.isdigit() and _existing_skin_plugin(cfg):
                 state.career.steam_id = owner
-                state.persist()
+                state.settle()
         except (OSError, ValueError):
             pass
 
@@ -106,18 +104,7 @@ def _player(row: dict) -> dict:
             "age": row.get("age", 0)}
 
 
-def _player_matches(state):
-    """Read fixtures without your_series(), which opens a veto and mutates state."""
-    s = state.season
-    return sorted(((ev, match) for ev in s.events if ev.get("status") == "live"
-                   for match in ev.get("matches", [])
-                   if not match.get("played") and s.is_yours(match)),
-                  key=lambda pair: (pair[1]["date"], pair[1]["id"]))
-
-
-def _due_player_match(state):
-    return next(((ev, m) for ev, m in _player_matches(state)
-                 if m["date"] <= state.season.date or m.get("cs2_session") or m.get('career3d_rts')), None)
+from cs2career.services.match_queries import player_matches as _player_matches, due_player_match as _due_player_match
 
 
 def _store(state) -> dict:
@@ -139,7 +126,7 @@ def read_context(state, display_hour=8) -> dict:
     nextmatch = None
     if pairs:
         ev, m = pairs[0]
-        from tools.career3d_venues import attendance_for
+        from cs2career.services.venues import attendance_for
         attendance = attendance_for(state, ev, m)
         nextmatch = {"id": m["id"], "event_id": ev["id"], "event": ev["name"],
                      "date": m["date"], "opponent": m["team_b"] if m["team_a"] == mine.get("name") else m["team_a"],
@@ -158,7 +145,7 @@ def read_context(state, display_hour=8) -> dict:
                             for ch in r.get("choices", [])]}
                for r in story_rows if r.get("id")]
     event_lookup = {e["id"]: e for e in s.events}
-    from tools.career3d_business import inbox_rows, mail_actions
+    from cs2career.services.business import inbox_rows, mail_actions
     inbox = [{"id": r["id"], "kind": r.get("kind", ""), "title": r.get("title", ""),
               "body": r.get("body", ""), "date": r.get("date", ""), "status": r.get("status", ""),
               "event_id": r.get("event_id", ""), "read": bool(r.get("read")),
@@ -183,15 +170,15 @@ def read_context(state, display_hour=8) -> dict:
     mode = season_mode(c, s)
     from tools.career3d_activities import device_context
     from tools.career3d_activities import settings_context
-    from tools.career3d_matches import match_preflight, quick_context, ceremony_context
+    from cs2career.services.matches import match_preflight, quick_context, ceremony_context
     from tools.career3d_resources import resource_context
     from tools.career3d_start import startup_context
     from tools.career3d_rts import rts_context
-    from tools.career3d_social import social_context
+    from cs2career.services.social import social_context
     awards = ceremony_context(state)
-    from tools.career3d_feedback import feedback_context
+    from cs2career.services.feedback import feedback_context
     from tools.career3d_trophies import trophy_context
-    from tools.career3d_environment import environment_context
+    from cs2career.services.environment import environment_context
     return {"ok": True, "protocol_version": PROTOCOL_VERSION, "isolated": True,
             "player": _player(you), "team": {"id": mine.get("id", ""), "name": mine.get("name", ""),
               "region": mine.get("region", ""), "rank": ranking, "money": mine.get("money", 0),
@@ -228,38 +215,11 @@ def _pause(state):
         return "story" if state.career.story_queue else "business", reason
     pair = _due_player_match(state)
     if pair:
-        from tools.career3d_venues import attendance_for
+        from cs2career.services.venues import attendance_for
         attendance = attendance_for(state, *pair)
         message = attendance['instruction'] if attendance['planned'] else '轮到你上场：可以模拟，或亲自前往比赛。'
         return "player_match", message
     return "", ""
-
-
-@contextmanager
-def _bounded_calendar(season, target: str):
-    """Adapt the next-stage command's busy-day query under the shared lock.
-
-    next_stage remains responsible for all date changes, ticks, finances,
-    birthdays and match scheduling. The method is restored before releasing
-    the lock, including after exceptions. No copied calendar rules or date
-    assignment is introduced into the demo service.
-    """
-    original = season._next_busy_day
-    had_override = "_next_busy_day" in season.__dict__
-    def capped_day():
-        real = original()
-        candidate = min(real, target) if real else target
-        # Also retain roster birthdays when no world fixture exists before the cap.
-        occasion = season.career.next_calendar_day(season, candidate) if season.career else None
-        return min(candidate, occasion) if occasion else candidate
-    season._next_busy_day = capped_day
-    try:
-        yield
-    finally:
-        if had_override:
-            season._next_busy_day = original
-        else:
-            del season._next_busy_day
 
 
 def advance_calendar(state, body: dict) -> dict:
@@ -301,19 +261,18 @@ def advance_calendar(state, body: dict) -> dict:
             status, reason, reason_code = "season_done", "本赛季已结束，请明确选择下一赛季模式。", "season_complete"
             break
         before = (s.date, sum(bool(m.get("played")) for e in s.events for m in e.get("matches", [])))
-        with _bounded_calendar(s, target):
-            from tools.career3d_venues import attendance_for
-            upcoming = next(iter(_player_matches(state)), None)
-            personal = bool(upcoming and attendance_for(state, *upcoming)['planned'])
-            if c.assist.get("quick_mode") and not personal:
-                token = "3d:" + hashlib.sha256(f"{request_id}:{steps}".encode()).hexdigest()
-                result = step(c, s, token, int(c.assist.get("step_counter") or 0))
-                reason = result.get("msg", "")
-            else:
-                result = None
-                reason = s.next_stage(stop_at_season_end=True)
+        from cs2career.services.venues import attendance_for
+        upcoming = next(iter(_player_matches(state)), None)
+        personal = bool(upcoming and attendance_for(state, *upcoming)['planned'])
+        if c.assist.get("quick_mode") and not personal:
+            token = "3d:" + hashlib.sha256(f"{request_id}:{steps}".encode()).hexdigest()
+            result = step(c, s, token, int(c.assist.get("step_counter") or 0), until=target)
+            reason = result.get("msg", "")
+        else:
+            result = None
+            reason = s.next_stage(stop_at_season_end=True, until=target)
         steps += 1
-        state.persist()
+        state.settle()
         if s.date > target or s.year != target_day.year:
             raise RuntimeError("The bounded domain calendar crossed its target")
         reason_code, pause_reason = _pause(state)
@@ -337,20 +296,41 @@ def advance_calendar(state, body: dict) -> dict:
     store["revision"] += 1
     receipt = {"ok": True, "actualdate": s.date, "status": status, "reason": reason,
                "reason_code": reason_code, "steps": steps, "revision": store["revision"]}
-    store["receipts"].append({"request_id": request_id, "target_date": target, "result": receipt})
+    from cs2career.storage.receipts import needs_legacy_receipt
+    if needs_legacy_receipt(request_id):
+        store["receipts"].append({"request_id": request_id, "target_date": target, "result": receipt})
     store["receipts"] = store["receipts"][-32:]
-    state.persist()
+    state.settle()
     return receipt
 
 
 def handler_class():
     from cs2career.web.server import Handler
+    from cs2career.storage.transaction import CommitPending
+    from cs2career.league.outcomes import MatchPaused
     class Career3DHandler(Handler):
+        def _replay_result(self, result):
+            return dict(result, context=read_context(self.state, self.server.display_hour))
+
         def _json(self, obj, code=200):
             from tools.career3d_locale import localize_projection
-            super()._json(localize_projection(obj), code)
+            if isinstance(obj, dict):
+                obj = dict(obj, state_revision=_revision(self.state))
+            recovering = (isinstance(obj, dict) and obj.get('error_code') == 'storage_recovery_required'
+                          and not getattr(self, '_buffer_response', False))
+            try:
+                super()._json(localize_projection(obj), code)
+            finally:
+                # Only the desktop-owned service exits automatically. The
+                # parent can restart it after the old process releases its lock.
+                # Shutdown must happen even if the client lost this response.
+                if recovering and getattr(self.server, 'restart_on_storage_failure', False):
+                    threading.Thread(target=self.server.shutdown, daemon=True).start()
 
         def do_GET(self):
+            if urlparse(self.path).path == '/api/3d/requests':
+                super().do_GET()
+                return
             if urlparse(self.path).path == '/api/3d/settings/updates':
                 if not self._allowed():
                     self._json({'ok': False, 'msg': '会话已过期，请重新打开程序。'}, 403)
@@ -371,10 +351,16 @@ def handler_class():
 
         def _get(self):
             url = urlparse(self.path)
+            if url.path == '/api/3d/requests':
+                from cs2career.services.requests import request_result
+                from tools.career3d_attribute_draw import receipt_results
+                request_id = (parse_qs(url.query).get('id') or [''])[0]
+                self._json(request_result(self.state, request_id, independent_receipts=receipt_results))
+                return
             if url.path == "/api/3d/context":
                 self._json(read_context(self.state, self.server.display_hour))
             elif url.path == '/api/3d/environment':
-                from tools.career3d_environment import environment_context
+                from cs2career.services.environment import environment_context
                 self._json({'ok': True, 'environment': environment_context(self.state)})
             elif url.path in ('/api/3d/skin-tools', '/api/3d/skin-tools/item'):
                 from tools.career3d_skin_tools import tools_context, item_context
@@ -391,7 +377,7 @@ def handler_class():
                 except (ValueError, OSError) as exc:
                     self._json({'ok': False, 'msg': str(exc)}, 400)
             elif url.path == '/api/3d/saves':
-                from tools.career3d_saves import saves_context
+                from cs2career.services.saves import saves_context
                 try:
                     self._json(saves_context(self.state))
                 except (ValueError, OSError) as exc:
@@ -410,7 +396,7 @@ def handler_class():
                 except ValueError as exc:
                     self._json({'ok': False, 'msg': str(exc)}, 400)
             elif url.path.startswith('/api/3d/controls/'):
-                from tools.career3d_controls import controls_context
+                from cs2career.services.controls import controls_context
                 query = parse_qs(url.query)
                 try:
                     options = {}
@@ -423,7 +409,7 @@ def handler_class():
                 except ValueError as exc:
                     self._json({'ok': False, 'msg': str(exc)}, 400)
             elif url.path in ('/api/3d/match/preflight', '/api/3d/match/status'):
-                from tools.career3d_matches import match_preflight, match_status
+                from cs2career.services.matches import match_preflight, match_status
                 ident = (parse_qs(url.query).get('id') or [''])[0]
                 if url.path.endswith('/status'):
                     self._json(match_status(self.state, ident))
@@ -439,7 +425,7 @@ def handler_class():
                 from tools.career3d_install import detect_machine_paths
                 self._json(detect_machine_paths())
             elif url.path in ('/api/3d/tactics', '/api/3d/ceremony'):
-                from tools.career3d_matches import tactics_context, ceremony_context
+                from cs2career.services.matches import tactics_context, ceremony_context
                 query = parse_qs(url.query)
                 try:
                     if url.path.endswith('/tactics'):
@@ -466,7 +452,7 @@ def handler_class():
                 except ValueError as exc:
                     self._json({'ok': False, 'msg': str(exc)}, 400)
             elif url.path == "/api/3d/news":
-                from tools.career3d_business import news_detail, news_page
+                from cs2career.services.business import news_detail, news_page
                 query = parse_qs(url.query)
                 key = (query.get('id') or [''])[0]
                 try:
@@ -480,13 +466,13 @@ def handler_class():
                 except ValueError as exc:
                     self._json({'ok': False, 'msg': str(exc)}, 400)
             elif url.path == '/api/3d/mail':
-                from tools.career3d_business import mail_detail
+                from cs2career.services.business import mail_detail
                 query = parse_qs(url.query)
                 detail = mail_detail(self.state, (query.get('id') or [''])[0])
                 self._json({'ok': True, 'detail': detail} if detail else {'ok': False, 'msg': '没有找到这封邮件。'},
                            200 if detail else 404)
             elif url.path == '/api/3d/players':
-                from tools.career3d_business import players_page
+                from cs2career.services.business import players_page
                 query = parse_qs(url.query)
                 try:
                     self._json(players_page(self.state, (query.get('span') or ['season'])[0],
@@ -511,7 +497,7 @@ def handler_class():
                         raise ValueError('资料范围应为 season、all 或 30d，页码必须是正整数。')
                     detail = event_detail(self.state, key) if kind == "event" else inspect(self.state, kind, key, span=span, page=page)
                     if kind == 'player':
-                        from tools.career3d_business import player_detail_projection
+                        from cs2career.services.business import player_detail_projection
                         detail = player_detail_projection(self.state, detail)
                 except ValueError as exc:
                     self._json({'ok': False, 'msg': str(exc)}, 400)
@@ -539,6 +525,37 @@ def handler_class():
                 from cs2career.paths import save_root
                 if (save_root() / 'manual-load.pending.json').exists():
                     raise ValueError('存档恢复事务尚未完成，请重新启动完成恢复后再操作。')
+                from cs2career.services.activity_launch import PATHS as ACTIVITY_LAUNCH_PATHS
+                from cs2career.services.external_commands import PATHS as EXTERNAL_PATHS
+                if path in EXTERNAL_PATHS:
+                    from cs2career.services.external_commands import command
+                    if 'request_id' not in body and self.headers.get('X-Career-Request-ID'):
+                        body = dict(body, request_id=self.headers['X-Career-Request-ID'])
+                    activity = command(self.state, path, body)
+                    self._json({'ok': True, **activity, 'context': read_context(self.state, self.server.display_hour)})
+                    return
+                if path in ACTIVITY_LAUNCH_PATHS:
+                    from cs2career.services.activity_launch import command
+                    if 'request_id' not in body and self.headers.get('X-Career-Request-ID'):
+                        body = dict(body, request_id=self.headers['X-Career-Request-ID'])
+                    activity = command(self.state, path, body)
+                    self._json({'ok': True, **activity, 'context': read_context(self.state, self.server.display_hour)})
+                    return
+                if path in ('/api/3d/match/launch', '/api/3d/match/simulate', '/api/3d/season/run'):
+                    if path.endswith('/launch'):
+                        from cs2career.services.match_launch import command
+                    elif path.endswith('/run'):
+                        from cs2career.services.season_run import command
+                    else:
+                        from cs2career.services.match_simulation import command
+                    if 'request_id' not in body and self.headers.get('X-Career-Request-ID'):
+                        body = dict(body, request_id=self.headers['X-Career-Request-ID'])
+                    # These coordinators own their checkpoint commits. Never
+                    # wrap a multi-map series or Steam handoff in one batch.
+                    activity = command(self.state, body)
+                    self._json({'ok': True, **activity, 'actualdate': self.state.season.date,
+                                'context': read_context(self.state, self.server.display_hour)})
+                    return
                 if path == "/api/3d/calendar":
                     hour = body.get("display_hour", 8)
                     if type(hour) is not int or not 0 <= hour <= 23:
@@ -554,7 +571,7 @@ def handler_class():
                     self._json({'ok': True, **draw_command(self.state, body.get('action'), body)})
                     return
                 if path.startswith('/api/3d/saves/'):
-                    from tools.career3d_saves import saves_command, saves_context
+                    from cs2career.services.saves import saves_command, saves_context
                     activity = saves_command(self.state, path.rsplit('/', 1)[1], body)
                     # The slot adapter owns commit/recovery and guard counters.
                     # Do not persist again through the old c/s local references.
@@ -566,7 +583,7 @@ def handler_class():
                                 'context': read_context(self.state, self.server.display_hour)})
                     return
                 if path.startswith('/api/3d/environment/'):
-                    from tools.career3d_environment import environment_command
+                    from cs2career.services.environment import environment_command
                     activity = environment_command(self.state, path.rsplit('/', 1)[1], body)
                     self._json({'ok': True, **activity,
                                 'context': read_context(self.state, self.server.display_hour)})
@@ -577,7 +594,7 @@ def handler_class():
                     # This adapter exchanges cosmetic data only. Do not return
                     # the full career context or run a renderer/game sync here.
                     _store(self.state)['revision'] += 1
-                    self.state.persist()
+                    self.state.settle()
                     self._json({'ok': True, **activity, 'revision': _store(self.state)['revision']})
                     return
                 activity = {}
@@ -587,15 +604,15 @@ def handler_class():
                     message = activity['reason']
                     c, s = self.state.career, self.state.season
                 elif path == '/api/3d/feedback/ack':
-                    from tools.career3d_feedback import acknowledge_feedback
+                    from cs2career.services.feedback import acknowledge_feedback
                     activity = acknowledge_feedback(self.state, body)
                     message = activity['reason']
                 elif path.startswith('/api/3d/controls/'):
-                    from tools.career3d_controls import controls_command
+                    from cs2career.services.controls import controls_command
                     activity = controls_command(self.state, path.removeprefix('/api/3d/controls/'), body)
                     message = activity['reason']
                 elif path.startswith('/api/3d/match/'):
-                    from tools.career3d_matches import match_command
+                    from cs2career.services.matches import match_command
                     activity = match_command(self.state, path.rsplit('/', 1)[1], body)
                     message = activity['reason']
                 elif path.startswith('/api/3d/rts/'):
@@ -603,11 +620,11 @@ def handler_class():
                     activity = rts_command(self.state, path.rsplit('/', 1)[1], body)
                     message = activity['reason']
                 elif path == '/api/3d/social/send':
-                    from tools.career3d_social import social_command
+                    from cs2career.services.social import social_command
                     activity = social_command(self.state, body)
                     message = activity['reason']
                 elif path.startswith('/api/3d/season/'):
-                    from tools.career3d_matches import season_command
+                    from cs2career.services.matches import season_command
                     activity = season_command(self.state, path.rsplit('/', 1)[1], body)
                     message = activity['reason']
                 elif path == '/api/3d/settings':
@@ -627,17 +644,17 @@ def handler_class():
                     message = activity['reason']
                 elif path.startswith('/api/3d/tactics/'):
                     if path == '/api/3d/tactics/import':
-                        from tools.career3d_controls import tactics_import
+                        from cs2career.services.controls import tactics_import
                         activity = tactics_import(self.state, body)
                     else:
-                        from tools.career3d_matches import tactics_command
+                        from cs2career.services.matches import tactics_command
                         activity = tactics_command(self.state, path.rsplit('/', 1)[1], body)
                     message = activity['reason']
                 elif path.startswith('/api/3d/ops/') or path.startswith('/api/3d/transfers/'):
-                    from tools.career3d_matches import career_cs2_pending
+                    from cs2career.services.matches import career_cs2_pending
                     if career_cs2_pending(self.state):
                         raise ValueError('职业比赛等待真实回传，请先录入后再改变生涯事务。')
-                    from tools.career3d_business import operations_command, transfer_command
+                    from cs2career.services.business import operations_command, transfer_command
                     command = operations_command if path.startswith('/api/3d/ops/') else transfer_command
                     activity = command(self.state, path.rsplit('/', 1)[1], body)
                     message = activity['reason']
@@ -670,10 +687,10 @@ def handler_class():
                         self._json({"ok": True, **activity, "context": read_context(self.state, self.server.display_hour)})
                         return
                 elif path == "/api/3d/story":
-                    from tools.career3d_matches import career_cs2_pending
+                    from cs2career.services.matches import career_cs2_pending
                     if career_cs2_pending(self.state):
                         raise ValueError('职业比赛等待真实回传，请先录入后再作生涯选择。')
-                    from tools.career3d_business import guard_roster
+                    from cs2career.services.business import guard_roster
                     guard_roster(self.state)
                     story_id, choice = str(body.get("id") or ""), str(body.get("choice") or "")
                     row = next((r for r in c.story_queue if r.get("id") == story_id), None)
@@ -682,7 +699,7 @@ def handler_class():
                     if row.get("choices") and choice not in {r["id"] for r in row["choices"]}:
                         raise ValueError("请选择这段剧情提供的有效选项")
                     from cs2career.career.arcs import changes_world
-                    from tools.career3d_social import before_story_choice, after_story_choice
+                    from cs2career.services.social import before_story_choice, after_story_choice
                     social_capture = before_story_choice(self.state, row, choice)
                     if row.get("kind") == "transfer" or (row.get("arc") and changes_world(row, choice)):
                         if self.state.arena.pending:
@@ -693,7 +710,7 @@ def handler_class():
                     activity.update(after_story_choice(self.state, social_capture))
                     message = "剧情选择已保存。"
                 elif path in ("/api/3d/mail/accept", "/api/3d/mail/decline"):
-                    from tools.career3d_business import mail_command
+                    from cs2career.services.business import mail_command
                     activity = mail_command(self.state, path.rsplit('/', 1)[1], body)
                     message = activity['reason']
                 else:
@@ -703,27 +720,30 @@ def handler_class():
                     self._json({'ok': True, **activity, 'context': read_context(self.state, self.server.display_hour)})
                     return
                 _store(self.state)["revision"] += 1
-                self.state.persist()
+                self.state.settle()
                 reason_code, reason = _pause(self.state)
                 self._json({"ok": True, "actualdate": s.date, "status": "paused" if reason else "saved",
                             "reason": reason or message, "reason_code": reason_code,
                             **activity,
                             "context": read_context(self.state, self.server.display_hour)})
+            except MatchPaused as exc:
+                # Only an explicit domain pause can save a newly queued
+                # decision. An unrelated validation error with an existing
+                # story must not become a partially successful command.
+                _store(self.state)["revision"] += 1
+                self.state.settle()
+                self._json({"ok": True, "actualdate": self.state.season.date, "status": "paused",
+                            "reason": str(exc), "reason_code": "match_gate",
+                            "context": read_context(self.state, self.server.display_hour)})
             except ValueError as exc:
                 c, s = self.state.career, self.state.season
-                if path.startswith('/api/3d/skin-tools/'):
+                if path.startswith('/api/3d/skin-tools/') or path in ('/api/3d/match/launch', '/api/3d/match/simulate', '/api/3d/season/run'):
                     self._json({'ok': False, 'msg': str(exc)}, 400)
-                    return
-                # A match gate can legitimately queue a decision before refusing.
-                if path == "/api/3d/match/simulate" and c.story_queue:
-                    _store(self.state)["revision"] += 1
-                    self.state.persist()
-                    self._json({"ok": True, "actualdate": s.date, "status": "paused",
-                                "reason": str(exc), "reason_code": "story",
-                                "context": read_context(self.state, self.server.display_hour)})
                     return
                 self._json({"ok": False, "msg": str(exc), "actualdate": s.date,
                             "context": read_context(self.state, self.server.display_hour)}, 400)
+            except CommitPending:
+                raise
             except Exception as exc:
                 error = {"ok": False, "msg": f"{type(exc).__name__}: {exc}"}
                 if path.startswith('/api/3d/saves/'):
@@ -835,8 +855,6 @@ def main(argv=None) -> int:
         parser.error(str(exc))
     sys.path.insert(0, str(ROOT))
     from cs2career.application import ApplicationState
-    from cs2career.career import arcs
-    from cs2career.career.fast_mode import configure_season
     from cs2career.engine.match import RNG
     from cs2career.web.server import create_server
     from cs2career.paths import save_root, extension_root
@@ -846,6 +864,15 @@ def main(argv=None) -> int:
             or STATE_PATH != data_dir / "save" / "season.json"
             or CAREER_PATH != data_dir / "save" / "career.json"):
         raise RuntimeError("Business modules were imported before demo isolation")
+    # Recover before *any* configuration import/autofill can overwrite a
+    # partially replaced cs2.json belonging to a committed settings request.
+    from cs2career.storage.transaction import recover
+    from cs2career.manual_saves import recover as recover_manual_load
+    from cs2career.services.environment import recover_environment
+    recover(save_root())
+    recover(data_dir)  # Independent, durable character-draw metadata.
+    recover_manual_load(save_root())
+    recover_environment(save_root())
     if not args.no_cs2_config and args.cs2_config.is_file():
         from cs2career.cs2 import launch
         try:
@@ -867,27 +894,22 @@ def main(argv=None) -> int:
         auto_prepare_config()
     random.seed(DEMO_SEED)
     RNG.seed(DEMO_SEED)
-    from cs2career.manual_saves import recover as recover_manual_load
-    recover_manual_load(save_root())
-    from tools.career3d_environment import recover_environment
-    recover_environment(save_root())
     state = ApplicationState()
+    from tools.career3d_start import recover_creation
+    recover_creation(state)
+    from cs2career.services.external_effects import drain
+    drain(state)  # Only idempotent, nonce-guarded file work; never launch/install.
     if not state.career.exists:
-        original_uuid = arcs.uuid4
-        arcs.uuid4 = lambda: UUID(int=DEMO_SEED)
-        try:
-            state.create_career({"era": "2026", "mode": "create", "origin": "academy",
-                                 "name": "Career3D", "org": "Morning Academy", "region": "AS", "role": "rifle"},
-                                start_metadata={'career3d_start': {'schema_version': 1, 'pending': True}})
-        finally:
-            arcs.uuid4 = original_uuid
-        configure_season(state.career, state.season, args.mode == "quick", state.season.year)
-        state.persist()
+        state.create_career({"era": "2026", "mode": "create", "origin": "academy",
+                             "name": "Career3D", "org": "Morning Academy", "region": "AS", "role": "rifle"},
+                            start_metadata={'career3d_start': {'schema_version': 1, 'pending': True}},
+                            story_seed=f'{DEMO_SEED:032x}', quick_mode=args.mode == 'quick')
     # An installed plugin identifies an account, not consent to enable skins.
     if not args.no_cs2_config:
         _import_skin_owner(state)
     server = create_server(state, port=args.port)
     server.RequestHandlerClass = handler_class()
+    server.restart_on_storage_failure = bool(args.parent_pid)
     server.game_disabled = True
     server.display_hour = 8
     ready = {"ready": True, "protocol_version": PROTOCOL_VERSION, "host": "127.0.0.1",
@@ -929,7 +951,8 @@ def main(argv=None) -> int:
         try:
             server.server_close()
             with server.state_lock:
-                state.persist()
+                if not getattr(state, '_storage_failed', False):
+                    state.persist()
         finally:
             if args.ready_file and args.ready_file.exists():
                 try:

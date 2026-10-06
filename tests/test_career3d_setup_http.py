@@ -1,3 +1,5 @@
+from application_double import ApplicationDouble
+from unittest.mock import ANY
 """Saved-path setup over authenticated HTTP; all game files are QA fixtures."""
 from copy import deepcopy
 import json
@@ -44,7 +46,7 @@ class Career3DSetupHttpTests(unittest.TestCase):
         self.effective_mod = self.data / 'runtime-cache/fixture-compatible/mod'
 
         self.saved = 0
-        self.state = SimpleNamespace(
+        self.state = ApplicationDouble(
             career=SimpleNamespace(
                 incident_state={'career3d_service': {'revision': 7, 'receipts': []}},
                 training_session=None, real_skins=False, steam_id=''),
@@ -104,7 +106,7 @@ class Career3DSetupHttpTests(unittest.TestCase):
         return {'calendar': {'revision': service._revision(state)},
                 'settings': activities.settings_context(state)}
 
-    def install_fixture(self, game, mod):
+    def install_fixture(self, game, mod, *, config):
         self.assertTrue(self.server.state_lock._is_owned())
         self.assertEqual(game, self.game.resolve())
         self.assertEqual(mod, self.effective_mod.resolve())
@@ -118,7 +120,9 @@ class Career3DSetupHttpTests(unittest.TestCase):
             target = game / 'addons/counterstrikesharp/plugins' / component
             target.mkdir(parents=True)
             for suffix in ('.dll', '.deps.json'):
-                (target / (component + suffix)).write_bytes(b'fixture component')
+                # The status adapter verifies the bundled DLL, not just existence.
+                source = Path(__file__).resolve().parents[1] / 'vendor' / component / (component + suffix)
+                (target / (component + suffix)).write_bytes(source.read_bytes() if source.is_file() else b'fixture component')
         return {'ok': True, 'files': 4}
 
     def prepare_fixture(self, root, source, game):
@@ -236,13 +240,13 @@ class Career3DSetupHttpTests(unittest.TestCase):
         self.assertEqual('external', result['source'])
         self.assertEqual(9, result['context']['calendar']['revision'])
         self.assertTrue(result['context']['settings']['config']['ready'])
-        self.mod_install.assert_called_once_with(self.game.resolve(), self.effective_mod.resolve())
+        self.mod_install.assert_called_once_with(self.game.resolve(), self.effective_mod.resolve(), config=ANY)
         self.assertEqual(str(self.effective_mod.resolve()),
                          result['context']['settings']['mod_source_path'])
         self.assertEqual(b'fixture runtime', (self.mod / 'addons/metamod/runtime.dll').read_bytes())
         self.assertEqual('fixture-compatible-1', result['runtime']['compatibility_revision'])
         self.skin_install.assert_not_called()
-        self.assertEqual(2, self.saved)
+        self.assertEqual(4, self.saved)  # Settings, external intent, adapter state, acknowledgement.
         backup = Path(result['backup_path'])
         self.assertTrue(backup.is_relative_to(self.data))
         self.assertEqual(FIXTURE_GI,
@@ -284,7 +288,10 @@ class Career3DSetupHttpTests(unittest.TestCase):
                 status, response = self.save_paths(revision)
                 self.assertEqual(400, status)
                 self.assertFalse(response['ok'])
-                self.assertEqual(7, response['context']['calendar']['revision'])
+                # Rejected operations omit the pre-rollback projection. A
+                # fresh read supplies the authoritative revision instead.
+                self.assertNotIn('context', response)
+                self.assertEqual(7, self.request('/api/3d/settings')[1]['settings']['revision'])
         self.assertFalse(launch.SETTINGS_PATH.exists())
         self.assertEqual(before, self.files())
         self.assertEqual(0, self.saved)

@@ -1,4 +1,9 @@
 # Complete authored 3D phrases and printf templates. Chinese<TAB>English.
+本地请求没有发出，正在重新连接……	The request was not sent. Reconnecting…
+连接中断，正在重连；已发送的操作不会自动重发。	Connection lost. Reconnecting without resending actions.
+操作未发出：等待后台重新连接后再试。	Action not sent. Try again after reconnection.
+已重新连接，刚才的操作已保存。	Reconnected. Your last action was saved.
+已重新连接。刚才的操作结果尚不能确认，请先查看当前进度。	Reconnected. Please check your progress before repeating the last action.
 同步当前对局	Sync current match
 正在同步当前对局战术…	Syncing current match tactics…
 本场战术快照（%s）：%s\n%s	Match tactics snapshot (%s): %s\n%s
@@ -321,6 +326,7 @@ BEST FIVE  /  最佳阵容	BEST FIVE  /  Team of the tournament
 %s · 能力 %s	%s · Ability %s
 本赛季 · %s 张地图	This season · %s maps
 KAST %s   ·   状态 %+d	KAST %s   ·   Form %+d
+KAST %s   ·   状态 %s	KAST %s   ·   Form %s
 还没有已保存的个人比赛数据。天梯与职业赛事分别记录。	No personal match statistics saved yet. Ladder and career records are separate.
 天梯 Elo %s · %s 胜 / %s 负	Ladder Elo %s · %s W / %s L
 我的战队	My team
@@ -1766,3 +1772,27 @@ E 跳过倒数，直接揭晓前三	E Skip countdown to the top three
 进入 CS2 打这场比赛	Play this match in CS2
 队友已入座 · 到你的空位按 E	Teammates seated · press E at your seat
 模拟比赛	Simulate
+上一项操作结果正在确认，请稍候。	Checking the outcome of the last action. Please wait.
+正在恢复已提交的进度，完成后会自动重新连接。	Recovering saved progress. The connection will resume automatically.
+存档需要恢复，请重新启动外部后台；操作不会自动重发。	Save recovery is required. Restart the external service; the action will not be resent.
+操作未发出：恢复完成后再试。	Action not sent. Try again after recovery finishes.
+这项操作已保存。已刷新当前进度，完整战绩可在比赛记录查看。	This action was saved. Progress has been refreshed; full results are in match history.
+这项操作已保存，请查看当前进度。	This action was saved. Check your current progress.
+操作已保存，请查看当前进度。	Action saved. Check your current progress.
+操作已保存，请查看比赛记录。	Action saved. Check your match history.
+操作已保存，请确认当前阵容后继续选人 / BP。	Action saved. Check the current lineup before continuing the draft or map veto.
+存档已提交，正在重新载入以完成恢复；请勿重复操作。	The save was committed. Reloading to finish recovery; do not repeat the action.
+操作回执元数据过大。	The action receipt metadata is too large.
+另有训练对局等待核验，请先到训练与成长页面完成或取消。	Another practice is awaiting verification. Finish or cancel it on Training & Growth first.
+请先完成 CS2 设置。	Set up CS2 first.
+训练赛身份已变化，请刷新后再操作。	The practice session has changed. Refresh before trying again.
+请完全退出 CS2，再重开或取消这场训练赛。	Close CS2 completely before restarting or cancelling this practice.
+切换训练赛	Switching practice session
+训练赛未录入：	Practice report not collected:
+训练地图不匹配，未录入战报。	The practice map does not match. No report was recorded.
+训练赛战报已录入。	Practice report saved.
+这场训练赛不存在。	This practice booking does not exist.
+请确认结束本次 CS2 训练，返回预约。	Confirm ending this CS2 practice session and returning to the booking.
+已返回训练赛预约，可以重新进入 CS2 或模拟。	Returned to the booking. You can re-enter CS2 or simulate.
+没有这个训练赛操作。	Unknown practice action.
+还没到约定日期。	The booked date has not arrived yet.

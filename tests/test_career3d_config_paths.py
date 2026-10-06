@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 """Settings/status fixtures do not search for or install into a real CS2 tree."""
 from copy import deepcopy
 import json
@@ -36,7 +37,7 @@ class Career3DConfigPathTests(unittest.TestCase):
         self.start(patch.object(launch, 'install_mod', side_effect=AssertionError('no implicit install')))
         self.start(patch.object(launch, 'career_match_current', return_value=True))
         self.process = self.start(patch.object(activities, '_running_cs2', return_value=False))
-        self.state = SimpleNamespace(career=SimpleNamespace(
+        self.state = ApplicationDouble(career=SimpleNamespace(
             incident_state={'career3d_service': {'revision': 7}},
             training_session=None, real_skins=False, steam_id=''),
             arena=SimpleNamespace(pending=None), season=SimpleNamespace(events=[]))

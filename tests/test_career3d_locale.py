@@ -9,6 +9,28 @@ from tools.career3d_locale import english, localize_projection
 
 
 class Career3DLocaleTests(unittest.TestCase):
+    def test_stable_device_messages_have_both_languages_and_matching_slots(self):
+        messages = json.loads((TARGET.parent/'ui_messages.json').read_text('utf-8'))['messages']
+        self.assertGreaterEqual(len(messages), 30)
+        for key, value in messages.items():
+            self.assertRegex(key, r'^[a-z][a-z0-9_.]+$')
+            self.assertEqual({'zh', 'en'}, set(value), key)
+            self.assertTrue(value['zh'] and value['en'], key)
+            self.assertFalse(re.search(r'[\u3400-\u9fff]', value['en']), key)
+            self.assertEqual(sorted(re.findall(r'\{([^}]+)\}', value['zh'])),
+                             sorted(re.findall(r'\{([^}]+)\}', value['en'])), key)
+            printf = r'%(?:[-+0 #]*\d*(?:\.\d+)?)?[sdf]'
+            self.assertEqual(re.findall(printf, value['zh']), re.findall(printf, value['en']), key)
+
+    def test_device_hosts_use_stable_copy_ids(self):
+        messages = json.loads((TARGET.parent/'ui_messages.json').read_text('utf-8'))['messages']
+        for name in ('career_phone.gd', 'career_computer.gd', 'device_pages.gd'):
+            source = (TARGET.parent.parent/'scripts'/name).read_text('utf-8')
+            for key in re.findall(r'Locale\.(?:message|source)\("([a-z0-9_.]+)"\)', source):
+                self.assertIn(key, messages, (name, key))
+            strings = re.findall(r'"((?:[^"\\]|\\.)*)"', source)
+            self.assertFalse(any(re.search(r'[\u3400-\u9fff]', text) for text in strings), name)
+
     def test_catalogue_is_reproducible_and_covers_native_ui_and_rts(self):
         expected = compile_catalogue()
         self.assertEqual(expected, json.loads(TARGET.read_text('utf-8')))

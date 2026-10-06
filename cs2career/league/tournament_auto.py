@@ -71,7 +71,7 @@ def resolve(c, s, row, choice):
                             'approval':key(s,ev,match) if choice=='simulate' else ''}
 
 
-def step(c, s, eid, token, expected=None):
+def step(c, s, eid, token, expected=None, *, until=None, max_maps=None):
     if not isinstance(token,str) or not 8<=len(token)<=100:
         raise ValueError('缺少有效的单步请求编号。')
     if '::' in eid:
@@ -111,17 +111,19 @@ def step(c, s, eid, token, expected=None):
         # Freeze the career identity before post-match stories can change teams.
         player_id=(c.my_player(s.teams) or {}).get('player_id')
         player_team=s.your_team_name()
-        message=s.skip_your_series(match['id'])
+        message=s.skip_your_series(match['id'], **({'max_maps': max_maps} if max_maps is not None else {}))
         if match.get('played'):
             c.assist['tournament']={'event_id':eid,'choice':'running','approval':''}
         from ..career.quick_report import series_report
         # Saved totals accompany winners; the client reveals them only at the
         # end. No invented intermediate kills or extra result-fetch required.
-        return finish('played' if match.get('played') else 'paused',message,match={'id':match['id'],'team_a':match['team_a'],'team_b':match['team_b'],
+        continuing = (max_maps is not None and not match.get('played')
+                      and len(match.get('maps') or []) > start and match.get('pending_map') and not c.story_queue)
+        return finish('played' if match.get('played') else 'map_played' if continuing else 'paused',message,match={'id':match['id'],'team_a':match['team_a'],'team_b':match['team_b'],
             'best_of':match['best_of'],'start':start,'result_id':f'{s.year}:{eid}:{match["id"]}',
             'date':match.get('date') or s.date,'winners':[m.get('winner') for m in match.get('maps') or []],
             **series_report(match,player_id,player_team)})
-    s.next_stage()
+    s.next_stage(**({'until': until, 'stop_at_season_end': True} if until is not None else {}))
     reason=blocker(c,s)
     return finish('paused' if reason else 'done' if ev.get('status')=='done' else 'progress',
                   reason or ('赛事已结束。' if ev.get('status')=='done' else '赛程已推进。'))

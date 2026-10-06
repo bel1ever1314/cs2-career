@@ -152,7 +152,7 @@ class WorkerEntryTests(unittest.TestCase):
         self.assertEqual(sys.executable, command[0])
         self.assertIn('--generation', command)
         self.assertEqual('g-one', command[-1])
-        self.assertIn('career3d_cs2_watchdog.py', command[2])
+        self.assertEqual(Path(watchdog.__file__).resolve(), Path(command[2]).resolve())
         self.assertTrue(options['close_fds'])
         for stream in ('stdin', 'stdout', 'stderr'):
             self.assertEqual(subprocess.DEVNULL, options[stream])
@@ -252,6 +252,7 @@ class NativeProcessProbeTests(unittest.TestCase):
         def first(_handle, entry):
             entry._obj.szExeFile = 'cs2.exe'
             entry._obj.th32ProcessID = 123
+            entry._obj.cntThreads = 1
             return True
         for probe, expected in ((False, False), (None, None), (True, True)):
             with self.subTest(probe=probe):
@@ -263,6 +264,37 @@ class NativeProcessProbeTests(unittest.TestCase):
                      patch.object(process_state, '_windows_process_running', return_value=probe):
                     self.assertIs(expected, process_state._windows_cs2_running())
                 kernel.CloseHandle.assert_called_once_with(25)
+
+    def test_access_denied_zero_thread_residue_does_not_block_restart(self):
+        def first(_handle, entry):
+            entry._obj.szExeFile = 'cs2.exe'
+            entry._obj.th32ProcessID = 123
+            entry._obj.cntThreads = 0
+            return True
+        for probe, expected in ((None, False), (True, True), (False, False)):
+            with self.subTest(probe=probe):
+                kernel = SimpleNamespace(CreateToolhelp32Snapshot=Mock(return_value=25),
+                    Process32FirstW=Mock(side_effect=first), Process32NextW=Mock(return_value=False),
+                    CloseHandle=Mock(return_value=True))
+                with patch.object(ctypes, 'WinDLL', return_value=kernel, create=True), \
+                     patch.object(ctypes, 'get_last_error', return_value=18, create=True), \
+                     patch.object(process_state, '_windows_process_running', return_value=probe):
+                    self.assertIs(expected, process_state._windows_cs2_running())
+
+    def test_ui_sync_and_exit_watch_share_one_process_result(self):
+        from cs2career.cs2 import launch, environment
+        from cs2career.services.activities import _running_cs2
+        for running in (False, True, None):
+            with self.subTest(running=running), patch.object(process_state, 'cs2_running', return_value=running):
+                for probe in (_running_cs2, launch.cs2_is_live_strict):
+                    if running is None:
+                        with self.assertRaises(RuntimeError): probe()
+                    else:
+                        self.assertIs(running, probe())
+                if running is False:
+                    environment._closed()
+                else:
+                    with self.assertRaises(ValueError): environment._closed()
 
     def test_snapshot_errors_are_not_an_empty_process_list(self):
         kernel = SimpleNamespace(CreateToolhelp32Snapshot=Mock(return_value=ctypes.c_void_p(-1).value),
@@ -352,9 +384,25 @@ class MatchEnvironmentDispatchTests(unittest.TestCase):
             context.start()
             self.addCleanup(context.stop)
 
-    def start(self):
+    def start(self, **kwargs):
         return self.launch.start_match(dict(name='A'), dict(name='B'), 'Player', 'de_dust2', 'ct',
-                                       request_override=deepcopy(self.request))
+                                       request_override=deepcopy(self.request), **kwargs)
+
+    def test_durable_dispatch_hook_runs_after_preparation_before_steam(self):
+        def checkpoint():
+            self.launch.prepare_game.assert_called_once()
+            self.launch.launch_cs2.assert_not_called()
+        hook = Mock(side_effect=checkpoint)
+        self.start(before_dispatch=hook)
+        hook.assert_called_once()
+        self.launch.launch_cs2.assert_called_once()
+
+    def test_failed_durable_dispatch_hook_never_starts_game_and_restores_lease(self):
+        from cs2career.storage.transaction import CommitPending
+        with self.assertRaises(CommitPending):
+            self.start(before_dispatch=Mock(side_effect=CommitPending('saved; recover first')))
+        self.launch.launch_cs2.assert_not_called()
+        self.launch._finish_cs2_environment.assert_called_once_with(self.csgo, 'lease-one')
 
     def test_dispatch_arms_prepares_launches_then_spawns_one_worker(self):
         out = self.start()

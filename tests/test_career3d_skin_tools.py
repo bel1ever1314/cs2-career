@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 """Local optional adapter contracts, with memory-only careers and blocked I/O."""
 from copy import deepcopy
 import json
@@ -61,7 +62,7 @@ class SkinToolsTests(unittest.TestCase):
         for active in (self.catalog_patch, self.known_patch, self.cfg_patch, self.sync_patch, self.net_patch):
             self.addCleanup(active.stop)
         self.career = MemoryCareer()
-        self.state = SimpleNamespace(career=self.career,
+        self.state = ApplicationDouble(career=self.career,
                                      persist=lambda: self.fail('No service persistence'))
 
     def snapshot(self):

@@ -15,6 +15,28 @@ from tools.package_career3d import archive, launch_cmd, seal_source_manifest, di
 
 
 class Package3DTests(unittest.TestCase):
+    def test_runtime_audio_excludes_retired_entrance_but_keeps_new_stems(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            project = base / 'source/work/career3d_redesign'
+            (project / 'data').mkdir(parents=True)
+            audio = project / 'assets/audio'
+            audio.mkdir(parents=True)
+            (project / 'assets/fixture.glb').write_bytes(b'fixture model')
+            names = ('arena_entrance.ogg', 'arena_entrance_composition.json',
+                     'major_final_music.ogg', 'major_final_crowd.ogg',
+                     'major_final_cue.json', 'music_club_day.ogg', 'GeneralUser-GS-LICENSE.txt')
+            for name in names:
+                (audio / name).write_bytes(b'fixture')
+            (project / 'project.godot').write_text('config_version=5', encoding='utf-8')
+            with patch.object(pkg, 'MODELS', ('fixture.glb',)), patch.object(pkg.subprocess, 'run') as run:
+                run.return_value.returncode = 0
+                run.return_value.stdout = run.return_value.stderr = ''
+                pkg.stage_game(base / 'source', base / 'game', base / 'Godot.exe', {})
+            self.assertEqual({p.name for p in (base / 'game/assets/audio').iterdir()},
+                             {name for name in names if not name.startswith('arena_entrance')})
+            self.assertTrue((audio / 'arena_entrance.ogg').exists())
+
     def test_launchers_are_relative_and_quote_paths(self):
         plain = launch_cmd()
         bundle = launch_cmd(bundled=True)

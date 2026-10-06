@@ -35,7 +35,8 @@ def run(state=None, *, preview=False, browser=False):
         server.shutdown()
         worker.join(timeout=5)
         with server.state_lock:
-            server.state.persist()
+            if not getattr(server.state, '_storage_failed', False):
+                server.state.persist()
         server.server_close()
         if bridge:
             bridge.shutdown()

@@ -158,6 +158,14 @@ func received(path: String, result: Dictionary) -> void:
 	if not path.begins_with("/api/3d/rts/"): return
 	var action := pending_action; pending_action = ""
 	notice = str(result.get("reason", result.get("msg", "")))
+	if result.get("result_summary", false):
+		# A confirmed submission is not an invitation to submit the same map
+		# again when closing the local RTS screen. Fresh context owns resuming.
+		if path.get_slice("/", 4) in ["submit", "arena_submit", "cancel", "arena_cancel"]:
+			frozen.clear()
+			remove_session()
+		host._rebuild()
+		return
 	if not result.get("ok", false):
 		if is_instance_valid(session):
 			var dialog := AcceptDialog.new(); session.add_child(dialog)
@@ -226,6 +234,7 @@ func completed(report: Dictionary) -> void:
 	if not frozen.is_empty(): submit_report()
 
 func submit_report() -> void:
+	last_report["session_id"] = str(frozen.get("session_id", frozen.get("nonce", "")))
 	if frozen.get("kind", "") == "arena":
 		command("arena_submit", {"lobby_id":frozen.lobby_id, "nonce":frozen.nonce, "report":last_report})
 	else: command("submit", {"match_id":frozen.match_id,"nonce":frozen.nonce,"report":last_report})

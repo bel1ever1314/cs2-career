@@ -7,6 +7,7 @@
   </PropertyGroup>
   <ItemGroup><Compile Include="../../vendor/CareerMatch/IdentityBindings.cs" Link="IdentityBindings.cs" /></ItemGroup>
   <ItemGroup><Compile Include="../../vendor/CareerMatch/SessionHealth.cs" Link="SessionHealth.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../../vendor/CareerMatch/AvatarDelivery.cs" Link="AvatarDelivery.cs" /></ItemGroup>
   <ItemGroup>
     <Compile Include="../../vendor/CareerMatch/NaturalMotion.cs" Link="NaturalMotion.cs" />
     <Compile Include="../../vendor/CareerMatch/MotionClip.cs" Link="MotionClip.cs" />

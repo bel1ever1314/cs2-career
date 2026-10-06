@@ -28,7 +28,7 @@ internal static class TacticalNativeLookRegression
             !TacticalNativeLook.IsAuditedServerHash(TacticalNativeLook.AuditedServerSha256.ToLowerInvariant()),
             "unreviewed and non-exact build hashes refuse");
         Check(audit is { LookRva: 0x2dda40, ClearRva: 0x2fc1d0, ConsumerRva: 0x2e6d30,
-            LookBytes: 347, ClearBytes: 20, ConsumerBytes: 1500 } && audit.Sha256 == TacticalNativeLook.AuditedServerSha256,
+            LookBytes: 347, ClearBytes: 20, ConsumerBytes: 1500 } && TacticalNativeLook.IsAuditedServerHash(audit.Sha256),
             "complete function identities");
         Check(!TacticalNativeLook.TryAuditFile(serverPath + ".missing", out _, out _), "missing server refuses");
         // The already-present CSS managed assembly is an unaudited file. This
@@ -181,11 +181,13 @@ internal static class TacticalNativeLookRegression
             Check(!lease.Update(0, 0, out _) && api.SetCalls == 0, "zero heading rejected");
             Check(!lease.Update(float.MaxValue, 0, out _) && api.SetCalls == 0, "overflowing heading rejected");
         }
-        FeatureProfileRegression.Run(serverPath, observation: true, bytes =>
+        Func<byte[], (bool, string)> verify = bytes =>
         {
             bool passed = TacticalNativeLook.TryAuditBytes(bytes, out _, out _, out var why);
             return (passed, why);
-        });
+        };
+        if (audit!.Sha256 == TacticalServer927.Sha256) Server927Regression.Run(serverPath, verify);
+        else FeatureProfileRegression.Run(serverPath, observation: true, verify);
         Console.WriteLine($"{_checks} native-look file/lease checks passed. No server module loaded or executed; live aim is not tested.");
     }
 

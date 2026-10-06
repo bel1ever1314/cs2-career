@@ -1,14 +1,17 @@
 extends Node3D
 ## Closed sports bowl: dark audience, bright stage, readable access routes.
-## A single doorway cue unfolds on the original music's 112 BPM grid.
+## Free visits and team walk-outs share the authored 128 BPM final opener.
 
 const SAMPLE_RATE := 12000
 const TAU_F := PI * 2.0
-const ENTRANCE_BPM := 112.0
-const ENTRANCE_BEAT := 60.0 / ENTRANCE_BPM
-const ENTRANCE_PHRASE_SECONDS := ENTRANCE_BEAT * 32.0
-const CompetitiveCue = preload("res://scripts/arena_competitive_cue.gd")
+const ENTRANCE_BPM := 128.0
+const Audio = preload("res://scripts/audio_assets.gd")
+const PORTAL_Z := 18.0
+## Distance (m) still to walk when the build reaches the hold bar: farther than
+## this and the bar repeats, so the drop lands as the team leaves the tunnel.
+const HOLD_REACH := 8.0
 var competitive := false
+var entrance_enabled := true
 var entrance_bpm := ENTRANCE_BPM
 var portal_landed := false
 var entrance_duck := 1.0
@@ -41,12 +44,31 @@ var layer_gains: Dictionary = {}
 var config: Dictionary = {}
 var shell_segments := 0
 var synthesised_frames := 0
+## Arena entrance: original final opener, music and crowd as separate
+## synchronized stems, with cue timings in assets/audio/major_final_cue.json.
+var cue: Dictionary = {}
+var capacity := 10000
+var crowd_stem_gain := 1.0
+var ambience_gain := 1.0
+var excitement := 0.25
+var hold_loops := 0
+var hold_seconds := 0.0
+var settled := false
+var drop_flash := 0.0
+var drop_seen := false
 
 func setup(environment: Environment, daylight: DirectionalLight3D, options: Dictionary = {}) -> void:
 	name = "ArenaAtmosphere"
 	config = options
 	competitive = bool(options.get("competitive", false))
-	entrance_bpm = CompetitiveCue.BPM if competitive else ENTRANCE_BPM
+	entrance_bpm = ENTRANCE_BPM
+	capacity = int(options.get("capacity", 10000))
+	entrance_enabled = capacity >= 1000
+	# A 100-seat event must not sound like a full bowl.
+	crowd_stem_gain = 1.0 if capacity >= 10000 else (0.55 if capacity >= 1000 else 0.2)
+	ambience_gain = 1.0 if capacity >= 10000 else (0.7 if capacity >= 1000 else 0.35)
+	cue = Audio.cue("major_final") if entrance_enabled else {}
+	if not cue.is_empty(): entrance_bpm = float(cue.get("bpm", entrance_bpm))
 	venue_environment = environment
 	venue_sun = daylight
 	master_volume = clampf(float(options.get("master_volume", 0.7)), 0.0, 1.0)
@@ -308,6 +330,7 @@ void fragment() {
 	add_child(subtitle)
 
 func beat_state(at_time: float) -> Dictionary:
+	if not cue.is_empty(): return _cue_beat_state(at_time)
 	var cue_beat := 60.0 / entrance_bpm
 	var phrase_seconds := cue_beat * 32.0
 	var beats := maxf(at_time, 0.0) / cue_beat + 0.00001
@@ -320,29 +343,71 @@ func beat_state(at_time: float) -> Dictionary:
 	return {"beat": beat_index, "phase": phase, "pulse": bump * phrase,
 		"phrase": phrase, "progress": clampf(at_time / phrase_seconds, 0.0, 1.0)}
 
+func _cue_beat_state(at_time: float) -> Dictionary:
+	var beat := float(cue["beat_seconds"])
+	var final := float(cue["final"])
+	var drop := float(cue["drop"])
+	var beats := maxf(at_time, 0.0) / beat + 0.00001
+	var phase := fposmod(beats, 1.0)
+	var bump := (1.0 + cos(PI * minf(1.0, phase / 0.36))) * 0.5
+	var phrase := smoothstep(0.0, beat * 4.0, at_time) * (1.0 - smoothstep(final + 0.8, final + 3.0, at_time))
+	# Soft pulse through the build, lights hold their breath on the silent beat,
+	# full accents once the drop lands.
+	var weight := 0.35 if at_time < float(cue["gate"]) else (0.0 if at_time < drop else 1.0)
+	return {"beat": int(floor(beats)), "phase": phase, "pulse": bump * phrase * weight,
+		"phrase": phrase, "progress": clampf(at_time / final, 0.0, 1.0), "dropped": at_time >= drop}
+
+## Crowd energy implied by the cue: murmur, a short swell after each braam,
+## rising tension into the drop, peaks on the hits, then a slow settle.
+func _cue_excitement(at_time: float) -> float:
+	var drop := float(cue["drop"])
+	if at_time < float(cue["gate"]):
+		return lerpf(0.25, 0.6, smoothstep(drop * 0.55, drop, at_time))
+	if at_time < drop: return 0.75
+	var value := 0.82 + 0.18 * exp(-(at_time - drop) / 1.5)
+	for hit in cue.get("hits", []):
+		if at_time >= float(hit): value += 0.12 * exp(-(at_time - float(hit)) / 1.2)
+	if at_time >= float(cue["final"]):
+		value = 0.6 + 0.4 * exp(-(at_time - float(cue["final"])) / 2.2)
+	return clampf(value, 0.0, 1.0)
+
+func uses_cue() -> bool:
+	return not cue.is_empty()
+
+func crowd_reaction() -> float:
+	return maxf(entrance_envelope * 0.6, excitement - 0.25) if uses_cue() else entrance_envelope
+
 func _update_stage(delta: float) -> void:
 	var entrance: AudioStreamPlayer = audio_layers.get("entrance")
 	if entrance_triggered and not paused and entrance.playing:
 		entrance_elapsed = entrance.get_playback_position()
-	var cue := beat_state(entrance_elapsed) if entrance_triggered and entrance.playing else {"phrase": 0.0, "pulse": 0.0, "progress": 1.0}
-	entrance_envelope = lerpf(entrance_envelope, float(cue["phrase"]), 1.0 - exp(-3.5 * delta))
-	beat_envelope = lerpf(beat_envelope, float(cue["pulse"]), 1.0 - exp(-16.0 * delta))
+	var beat_info := beat_state(entrance_elapsed) if entrance_triggered and entrance.playing else {"phrase": 0.0, "pulse": 0.0, "progress": 1.0}
+	var target_excitement := (0.12 if settled else 0.3)
+	if uses_cue() and entrance_triggered and entrance.playing: target_excitement = _cue_excitement(entrance_elapsed)
+	excitement = lerpf(excitement, target_excitement, 1.0 - exp(-(4.0 if target_excitement > excitement else 0.08) * delta))
+	entrance_envelope = lerpf(entrance_envelope, float(beat_info["phrase"]), 1.0 - exp(-3.5 * delta))
+	beat_envelope = lerpf(beat_envelope, float(beat_info["pulse"]), 1.0 - exp(-16.0 * delta))
+	var in_gate := uses_cue() and entrance_triggered and entrance.playing and entrance_elapsed >= float(cue["gate"]) and entrance_elapsed < float(cue["drop"])
+	if uses_cue() and bool(beat_info.get("dropped", false)) and not drop_seen:
+		drop_seen = true; drop_flash = 1.0
+	drop_flash = move_toward(drop_flash, 0.0, delta / 0.7)
+	var accent := 0.22 if uses_cue() else 0.10
 	for light in stage_lights:
-		light.light_energy = (8.2 if showtime else 7.4) * (1.0 + beat_envelope * 0.10)
+		light.light_energy = (8.2 if showtime else 7.4) * (1.0 + beat_envelope * accent + drop_flash * 0.6) * (0.35 if in_gate else 1.0)
 	for light in face_lights:
 		light.light_energy = 4.0
 	for light in bowl_lights:
-		light.light_energy = 1.3 if light.position.z > 50.0 else (0.30 if showtime else 0.43)
+		light.light_energy = 1.3 if light.position.z > 50.0 else (0.30 if showtime else 0.43) * (0.4 if in_gate else 1.0)
 	for i in range(entrance_accents.size()):
 		var light := entrance_accents[i]
 		light.light_energy = 1.2 + entrance_envelope * (2.0 + beat_envelope * 0.45)
 		var side := signf(light.position.x)
-		var target_x := lerpf(side * 3.0, side * 15.0, float(cue["progress"]))
+		var target_x := lerpf(side * 3.0, side * 15.0, float(beat_info["progress"]))
 		light.look_at(Vector3(target_x, 0.9, -4.0), Vector3.UP)
 	if screen_material:
 		screen_material.set_shader_parameter("arrival", entrance_envelope)
 		screen_material.set_shader_parameter("pulse", beat_envelope)
-		screen_material.set_shader_parameter("progress", cue["progress"])
+		screen_material.set_shader_parameter("progress", beat_info["progress"])
 
 func _pcm_stream(kind: String, seconds: float, looped: bool) -> AudioStreamWAV:
 	var frames := int(seconds * SAMPLE_RATE)
@@ -352,7 +417,6 @@ func _pcm_stream(kind: String, seconds: float, looped: bool) -> AudioStreamWAV:
 	random.seed = 290941 + kind.hash()
 	var filtered := 0.0
 	var slow := 0.0
-	var notes := [62, 65, 69, 70, 69, 65, 69, 72, 77, 76, 74, 72]
 	for i in range(frames):
 		var t := float(i) / SAMPLE_RATE
 		var noise := random.randf_range(-1.0, 1.0)
@@ -369,27 +433,6 @@ func _pcm_stream(kind: String, seconds: float, looped: bool) -> AudioStreamWAV:
 				var clap := fmod(t, 0.71)
 				if clap < 0.028:
 					sample += noise * 0.09 * exp(-clap * 105.0)
-			"entrance":
-				# Portable emergency cue follows the same original orchestral
-				# harmony/grid; normal builds use the authored GM stereo render.
-				var beat := ENTRANCE_BEAT
-				var step := int(t / beat)
-				var phase := fmod(t, beat)
-				var bar := int(step / 4) % 4
-				var roots := [50, 46, 41, 48]
-				var root: int = roots[bar]
-				var root_hz := 440.0 * pow(2.0, (root - 69.0) / 12.0)
-				var ostinato := [0, 7, 3 if bar < 2 else 4, 7]
-				var string_note: int = root + 12 + int(ostinato[int(t / (beat * 0.5)) % 4])
-				var string_hz := 440.0 * pow(2.0, (string_note - 69.0) / 12.0)
-				var string_phase := fmod(t, beat * 0.5)
-				var strings := (sin(TAU_F * string_hz * t) + 0.25 * sin(TAU_F * string_hz * 2.0 * t)) * minf(1.0, string_phase / 0.035) * exp(-string_phase * 5.0)
-				var horn_hz := 440.0 * pow(2.0, (float(notes[int(step / 2) % notes.size()]) - 69.0) / 12.0)
-				var horn := (sin(TAU_F * horn_hz * t) + 0.4 * sin(TAU_F * horn_hz * 2.0 * t) + 0.12 * sin(TAU_F * horn_hz * 3.0 * t)) * (0.65 + 0.35 * sin(PI * phase / beat))
-				var bass := sin(TAU_F * root_hz * 0.5 * t) * 0.15
-				var drum := sin(TAU_F * (46.0 * phase + 0.7 * (1.0 - exp(-phase * 25.0)))) * exp(-phase * 13.0) * 0.3 if step % 2 == 0 else filtered * exp(-phase * 28.0) * 0.22
-				var fade := minf(1.0, t / 0.08) * minf(1.0, (seconds - t) / 1.7)
-				sample = (strings * 0.09 + horn * 0.105 + bass + drum) * fade
 			"cheer":
 				var attack := minf(1.0, t / 0.65)
 				var decay := minf(1.0, (seconds - t) / 2.0)
@@ -409,26 +452,48 @@ func _pcm_stream(kind: String, seconds: float, looped: bool) -> AudioStreamWAV:
 	return stream
 
 func _build_audio() -> void:
-	for spec in [["passage", 6.0, true], ["crowd", 8.0, true], ["entrance", 20.44, false], ["cheer", 6.0, false]]:
+	var specs := [["passage", 6.0, true], ["crowd", 8.0, true], ["entrance", 20.44, false]]
+	if entrance_enabled and not uses_cue(): specs.append(["cheer", 6.0, false])
+	for spec in specs:
 		var layer := AudioStreamPlayer.new()
 		var key: String = spec[0]
 		layer.name = "OriginalArena_" + key
-		if key == "entrance" and competitive:
-			layer.stream = CompetitiveCue.stream()
-			audio_source = "original 136 BPM competitive sting: percussion, driven bass, riser and impacts; no external recordings"
-		elif key == "entrance" and FileAccess.file_exists("res://assets/audio/arena_entrance.ogg"):
-			layer.stream = AudioStreamOggVorbis.load_from_file("res://assets/audio/arena_entrance.ogg")
-			audio_source = "original 112 BPM GM orchestral arrangement: drums, timpani, strings, horns, trombones"
-		if layer.stream == null:
+		if key == "entrance" and uses_cue():
+			var stems: Dictionary = cue.get("stems", {})
+			var synced := Audio.synchronized([stems.get("music", ""), stems.get("crowd", "")])
+			if synced != null:
+				synced.set_sync_stream_volume(1, Audio.db(crowd_stem_gain))
+				layer.stream = synced
+				audio_source = "original 128 BPM final opener; music and crowd as synchronized stems"
+		if layer.stream == null and key == "entrance" and entrance_enabled:
+			# A missing crowd stem can still use the same authored music. Never
+			# bring back either retired entrance track as a fallback.
+			layer.stream = Audio.stream("major_final_music.ogg")
+			if layer.stream != null:
+				audio_source = "original 128 BPM final opener; music only"
+			else:
+				cue = {}
+				audio_source = "final opener unavailable; ambience only"
+				push_warning("Arena entrance music is missing: major_final_music.ogg")
+		if key == "entrance" and not entrance_enabled:
+			audio_source = "small venue; ambience only"
+		if key == "crowd":
+			# Pre-rendered seamless crowd beds; the old in-memory noise is only a fallback.
+			layer.stream = Audio.stream("crowd_arena_murmur.ogg", true)
+		if layer.stream == null and key != "entrance":
 			layer.stream = _pcm_stream(key, float(spec[1]), bool(spec[2]))
-			if key == "entrance":
-				audio_source = "original layered synthesis fallback; render compose_arena_entrance.py for orchestral instruments"
 		layer.volume_db = -80.0
 		add_child(layer)
 		audio_layers[key] = layer
 		layer_gains[key] = 0.0
 		if bool(spec[2]):
-			layer.play()
+			layer.play(randf() * maxf(0.0, layer.stream.get_length() - 1.0) if key == "crowd" else 0.0)
+	var active := Audio.stream("crowd_arena_active.ogg", true)
+	if active != null:
+		var layer := AudioStreamPlayer.new(); layer.name = "OriginalArena_crowd_active"
+		layer.stream = active; layer.volume_db = -80.0; add_child(layer)
+		audio_layers["crowd_active"] = layer; layer_gains["crowd_active"] = 0.0
+		layer.play(randf() * maxf(0.0, active.get_length() - 1.0))
 	print("ARENA_AUDIO source=", audio_source, " layers=", audio_layers.size(), " local_soundscape_frames=", synthesised_frames)
 
 func set_master_volume(value: float) -> void:
@@ -444,6 +509,7 @@ func set_showtime(value: bool) -> void:
 
 func start_entrance() -> void:
 	if entrance_triggered or paused: return
+	if (audio_layers["entrance"] as AudioStreamPlayer).stream == null: return
 	entrance_triggered = true; entrance_count += 1
 	(audio_layers["entrance"] as AudioStreamPlayer).play()
 
@@ -452,14 +518,20 @@ func portal_impact() -> void:
 	portal_landed = true
 	start_entrance()
 	var layer: AudioStreamPlayer = audio_layers["entrance"]
-	if competitive and layer.get_playback_position() < CompetitiveCue.BEAT * 8.0:
-		layer.play(CompetitiveCue.BEAT * 8.0)
-	(audio_layers["cheer"] as AudioStreamPlayer).play()
+	if uses_cue():
+		# Land the drop on the threshold: skip what is left of the build to the
+		# one silent beat; never rewind if the drop already happened.
+		if layer.get_playback_position() < float(cue["gate"]):
+			layer.play(float(cue["gate"]))
+		entrance_duck = 1.0
+		return
+	if audio_layers.has("cheer"): (audio_layers["cheer"] as AudioStreamPlayer).play()
 
 func settle_competition() -> void:
 	# Do not keep a walk-in track looping behind the seated match controls.
 	var layer: AudioStreamPlayer = audio_layers["entrance"]
 	if stage_subtitle: stage_subtitle.text="赛前准备"
+	settled = true
 	var tween := create_tween(); tween.tween_property(self,"entrance_duck",0.0,.8)
 	tween.finished.connect(func(): layer.stop())
 
@@ -487,14 +559,37 @@ func update_visitor(at: Vector3, delta: float, allow_entrance: bool = true) -> v
 	venue_environment.ambient_light_color = Color("8b9fba")
 	venue_environment.ambient_light_energy = lerpf(0.065, 0.19 if not showtime else 0.15, exposure_mix)
 	venue_sun.light_energy = 0.025
+	_hold_for_walkout(at, delta)
+	# Ambience: murmur always, an active cheering bed rises with crowd energy.
+	var energy := clampf((excitement - 0.25) / 0.75, 0.0, 1.0) * (1.0 if capacity >= 1000 else 0.35)
 	layer_gains["passage"] = lerpf(0.60, 0.055, interior_mix)
-	layer_gains["crowd"] = lerpf(0.055, 0.48, interior_mix)
+	layer_gains["crowd"] = lerpf(0.07, 0.55, interior_mix) * ambience_gain * (1.0 - 0.5 * energy)
+	layer_gains["crowd_active"] = lerpf(0.02, 0.6, interior_mix) * ambience_gain * energy
 	layer_gains["entrance"] = 0.90 * entrance_duck
 	layer_gains["cheer"] = lerpf(0.03, 0.54, interior_mix)
-	if allow_entrance and not paused and at.z < 18.0 and not entrance_triggered:
-		start_entrance(); portal_impact()
+	if allow_entrance and not paused:
+		# Free visits get the build while entering the tunnel, just like the
+		# team walk-out. Crossing into the bowl lands the same musical drop.
+		if at.z < 50.7 and not entrance_triggered: start_entrance()
+		if at.z < PORTAL_Z: portal_impact()
 	_update_stage(delta)
 	_apply_audio_levels()
+
+## Keep the build going until the walk-out is close to the tunnel mouth: the
+## hold bar repeats on its own downbeat (seamless), and a long wait lowers it.
+func _hold_for_walkout(at: Vector3, delta: float) -> void:
+	if not uses_cue() or portal_landed or not entrance_triggered or paused: return
+	var layer: AudioStreamPlayer = audio_layers["entrance"]
+	if not layer.playing: return
+	var position := layer.get_playback_position()
+	var hold_start := float(cue["hold_start"]); var hold_end := float(cue["hold_end"])
+	var far := at.z - PORTAL_Z > HOLD_REACH
+	if position >= hold_end - 0.02 and position < float(cue["gate"]) and far:
+		layer.seek(hold_start + maxf(0.0, position - hold_end))
+		hold_loops += 1
+	if far and position >= hold_start: hold_seconds += delta
+	elif not far: hold_seconds = 0.0
+	entrance_duck = move_toward(entrance_duck, 0.45 if hold_seconds > 20.0 else 1.0, delta * 0.4)
 
 func diagnostic_snapshot() -> Dictionary:
 	var volumes: Dictionary = {}
@@ -510,8 +605,10 @@ func diagnostic_snapshot() -> Dictionary:
 		"entrance_count": entrance_count, "audio_source": audio_source,
 		"audio_layers": volumes, "synthesised_frames": synthesised_frames,
 		"stage_spots": stage_lights.size(), "face_keys": face_lights.size(), "house_lights": bowl_lights.size(),
-		"entrance_bpm": entrance_bpm, "competitive":competitive, "portal_landed":portal_landed, "entrance_elapsed": entrance_elapsed,
-		"entrance_duration": entrance.stream.get_length(),
+		"cue": str(cue.get("id", "")), "capacity": capacity, "crowd_stem_gain": crowd_stem_gain,
+		"excitement": excitement, "hold_loops": hold_loops, "settled": settled,
+		"entrance_bpm": entrance_bpm, "entrance_enabled": entrance_enabled, "competitive":competitive, "portal_landed":portal_landed, "entrance_elapsed": entrance_elapsed,
+		"entrance_duration": entrance.stream.get_length() if entrance.stream != null else 0.0,
 		"entrance_envelope": entrance_envelope, "beat_envelope": beat_envelope,
 		"screens": screen_count, "screen_mode": "original entrance graphic", "strobe": false,
 		"daily_lighting": "steady stage, dim bowl, continuous guide lights"}

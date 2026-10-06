@@ -7,6 +7,7 @@ import math
 from datetime import datetime, timezone
 
 from ..engine.rating import career_rating, skill_tier
+from ..engine.rules import COMPETITIVE
 from .profiles import stable_player_id
 from ..world import MAPS
 
@@ -82,6 +83,10 @@ def result_usable(result: dict | None, session: dict) -> str:
         return "战绩仍是旧格式，CareerMatch 1.5 尚未加载"
     if session.get("nonce") and result.get("request_nonce") != session.get("nonce"):
         return "战绩 nonce 与当前比赛不匹配"
+    from ..engine.sessions import rules_error
+    reason = rules_error(result, session)
+    if reason:
+        return reason
     if not result.get("complete"):
         return result.get("validation_error") or "十人战绩不完整，已阻止录入"
     players = result.get("players") or []
@@ -104,8 +109,9 @@ def result_usable(result: dict | None, session: dict) -> str:
     empty_map = raw_map.lower() in ("", "<empty>", "empty")
     if want and got and got != want and not empty_map:
         return f"读到的是 {got}，当前这张是 {want}"
-    ct = int(result.get("ct_score") or 0)
-    t_score = int(result.get("t_score") or 0)
+    ct, t_score = result.get('ct_score'), result.get('t_score')
+    if type(ct) is not int or type(t_score) is not int or min(ct, t_score) < 0:
+        return '战绩比分不是有效的非负整数，未结算。'
     finished = result.get("status") == "finished"
     if not finished:
         return "比赛还没正常结束，等待 CareerMatch 确认终场；加时中不会提前录入。"
@@ -113,6 +119,8 @@ def result_usable(result: dict | None, session: dict) -> str:
         return "比分是平局，不像正常结束"
     if max(ct, t_score) < 13:
         return "比分还没到 13，不像正常结束"
+    if not COMPETITIVE.final_score(ct, t_score):
+        return '比分不符合本场 MR12／MR3 终场规则，未结算。'
     rounds = ct + t_score
     for row in players:
         try:
@@ -238,6 +246,8 @@ def cs2_to_map(result: dict, session: dict, team_a: dict, team_b: dict, human_na
         "rounds": rounds,
         "winner": winner,
         "source": "cs2",
+        "session_id": session.get('session_id', session.get('nonce', '')),
+        "rules_id": session.get('rules_id', COMPETITIVE.id),
         "players": {
             team_a["name"]: _side_lines(
                 team_a, "ct" if team_a["name"] == ct_team else "t", raw, human_name, rounds, session.get('role_by_id',{})

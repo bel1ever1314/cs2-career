@@ -98,6 +98,8 @@ def arena_rts_command(state, action, body):
                    'commanded_side':'ct' if not lobby['human_id'] or lobby['human_id'] in lobby[lobby['ct']] else 't'}
         if commanded_side is not None:
             session['commanded_side'] = commanded_side
+        from cs2career.engine.sessions import stamp
+        stamp(session, 'rts')
         session['seed'] = int(session['nonce'][:8], 16) % 2147483647
         lobby.update(phase='rts', nonce=session['nonce'], rts_session=session)
         lobby.pop('career3d_recovering', None)
@@ -160,6 +162,10 @@ def map_box(report, session, match):
         raise ValueError('RTS 地图尚未正式结束，不能录入。')
     if report.get('map') != session['map'] or report.get('seed') != session['seed']:
         raise ValueError('RTS 地图或本场种子不一致。')
+    from cs2career.engine.sessions import rules_error
+    reason = rules_error(report, session)
+    if reason:
+        raise ValueError(reason)
     history = report.get('round_history')
     if not isinstance(history, list) or not 13 <= len(history) <= 240:
         raise ValueError('RTS 正式回合记录不完整。')
@@ -222,16 +228,14 @@ def map_box(report, session, match):
                        'reason': str(rd.get('reason', '')), 'score': dict(score)})
         # MR12 followed by repeated MR3. A map cannot append rounds after it
         # already won, even when a client sends a plausible final score.
-        total_before = sum(before.values())
-        target_before = 13 if total_before < 24 else 16 + ((total_before - 24) // 6) * 3
-        if max(before.values()) >= target_before:
+        from cs2career.engine.rules import COMPETITIVE
+        if COMPETITIVE.decided(before['ct'], before['t']):
             raise ValueError('RTS 在终场后仍有额外回合。')
     if report.get('score') != score or score['ct'] == score['t']:
         raise ValueError('RTS 终场比分不一致或仍是平局。')
     n = len(history)
-    winning_target = 13 if n <= 24 else 16 + ((n - 25) // 6) * 3
     winner_side = max(score, key=score.get)
-    if max(score.values()) != winning_target or report.get('winner') != winner_side:
+    if not COMPETITIVE.final_score(score['ct'], score['t']) or report.get('winner') != winner_side:
         raise ValueError('RTS 未到达正式终场条件。')
     lines = report.get('players') or []
     if not isinstance(lines, list) or len(lines) != 10 or not all(isinstance(p, dict) for p in lines) or {p.get('id') for p in lines} != set(expected):
@@ -254,7 +258,8 @@ def map_box(report, session, match):
     return {'map': session['map'].removeprefix('de_'), 'score': f"{score[a_side]}-{score[b_side]}", 'rounds': n,
             'winner': session['rosters']['team_names'][winner_side], 'players': grouped, 'events': events,
             'rts_round_history': rounds, 'schema_version': 2, 'source': 'rts', 'request_nonce': session['nonce'],
-            'simulation_model': 'RTS simplified local rules', 'seed': session['seed']}
+            'simulation_model': 'RTS simplified local rules', 'seed': session['seed'],
+            'rules_id': session.get('rules_id', COMPETITIVE.id), 'session_id': session.get('session_id', session['nonce'])}
 
 
 def rts_command(state, action, body):
@@ -304,6 +309,8 @@ def rts_command(state, action, body):
         session = {'nonce': uuid4().hex, 'match_id': match['id'], 'map': 'de_' + name,
                    'map_index': len(match.get('maps') or []), 'rosters': rosters, 'roster_hash': _hash(rosters),
                    'commanded_side': 'ct' if ct_team == mine else 't', 'player_id': match['career3d_identity']['player_id']}
+        from cs2career.engine.sessions import stamp
+        stamp(session, 'rts')
         session['seed'] = int(session['nonce'][:8], 16) % 2147483647
         match['career3d_rts'] = session
         return {'status': 'rts_pending', 'reason': 'RTS 阵容与地图已冻结。', 'rts_session': deepcopy(session)}

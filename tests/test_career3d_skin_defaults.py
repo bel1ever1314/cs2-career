@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 """Skin ownership discovery is not consent to enable optional cosmetics.
 
 All game paths are disposable fixtures; no real CS2 tree or save is inspected.
@@ -25,7 +26,7 @@ class Career3DSkinDefaultsTests(unittest.TestCase):
         self.owner.parent.mkdir(parents=True)
         self.owner.write_text('76561198000000000', encoding='ascii')
         self.cfg = {**launch.DEFAULTS, 'csgo_path': str(self.game)}
-        self.state = SimpleNamespace(
+        self.state = ApplicationDouble(
             career=SimpleNamespace(steam_id='', real_skins=False), persist=Mock())
         self.config_reader = self._patch(patch.object(
             activities, 'read_cs2_config', side_effect=lambda: dict(self.cfg)))

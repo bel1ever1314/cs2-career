@@ -184,6 +184,21 @@ class CareerRTSArenaTests(unittest.TestCase):
         self.assertEqual(session['roster_hash'], new_session['roster_hash'])
         self.assertEqual(session['map'], new_session['map'])
 
+    def test_explicit_rule_or_session_mismatch_cannot_settle(self):
+        from cs2career.engine.rules import COMPETITIVE
+        session = self.start()
+        self.assertEqual(COMPETITIVE.id, session['rules_id'])
+        self.assertEqual(session['nonce'], session['session_id'])
+        before = deepcopy(self.arena.data)
+        for key, value in [('session_id', 'old-session'), ('rules_id', 'unsupported')]:
+            report = completed_report(session)
+            report[key] = value
+            with self.assertRaises(ValueError): self.submit(session, report)
+            self.assertEqual(before, self.arena.data)
+        report = completed_report(session)
+        report.update(session_id=session['session_id'], rules_id=COMPETITIVE.id)
+        self.assertEqual('finished', self.submit(session, report)['status'])
+
     def test_cancel_old_identity_is_allowed_but_new_start_cannot_use_alt(self):
         session = self.start()
         self.state.career.you_card = deepcopy(self.state.season.teams[1]['players'][0])
@@ -297,7 +312,7 @@ class CareerRTSArenaTests(unittest.TestCase):
     def test_settlement_save_failure_preserves_elo_and_pending_ledger(self):
         session = self.start()
         before = deepcopy(self.arena.data)
-        with patch('cs2career.arena.os.replace', side_effect=OSError('isolated disk failure')):
+        with patch('cs2career.storage.transaction._durable_write', side_effect=OSError('isolated disk failure')):
             with self.assertRaises(OSError):
                 self.submit(session)
         self.assertEqual(before, self.arena.data)

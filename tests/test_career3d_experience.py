@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 """Isolated invitations, frozen venues/honours and completed-season feedback."""
 from copy import deepcopy
 import json
@@ -47,7 +48,7 @@ class Career3DExperienceTests(unittest.TestCase):
                                                if match['id'] == ident), (None, None))
         self.s._live_series = lambda match: match.get('series')
         self.c._remember_you(self.s)
-        self.state = SimpleNamespace(career=self.c, season=self.s,
+        self.state = ApplicationDouble(career=self.c, season=self.s,
             arena=SimpleNamespace(pending=False, career_player_id=lambda state: 'p0_0'), persist=Mock())
         self.state.personal_command = Mock(side_effect=lambda fn: fn(self.c, self.s))
 
@@ -317,8 +318,8 @@ class Career3DExperienceTests(unittest.TestCase):
         def start(*args, **kwargs):
             captured.append(deepcopy(kwargs['request_override']))
             return dict(match=kwargs['request_override'], msg='Mock game not started')
-        def launch_map(ident, side):
-            value = season_module.start_match(self.s.teams[0], self.s.teams[1], self.c.player_name,
+        def launch_map(ident, side, *, launcher, result_reader):
+            value = launcher(self.s.teams[0], self.s.teams[1], self.c.player_name,
                 'de_dust2', side, self.s.teams, self.c)
             match['cs2_session'] = dict(nonce=value['match']['nonce'], cs2_map='de_dust2')
             return value['msg']

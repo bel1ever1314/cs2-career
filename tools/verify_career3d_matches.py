@@ -11,6 +11,7 @@ import hashlib
 import json
 from pathlib import Path
 import random
+import shutil
 import sys
 import threading
 from urllib.error import HTTPError
@@ -60,8 +61,8 @@ def run(folder):
     for name in ('CareerMatch', 'BotBuy'):
         plugin = csgo / 'addons' / 'counterstrikesharp' / 'plugins' / name
         plugin.mkdir(parents=True)
-        (plugin / (name + '.dll')).write_bytes(b'test plugin, never loaded')
-        (plugin / (name + '.deps.json')).write_text('{}', encoding='utf-8')
+        for suffix in ('.dll', '.deps.json'):
+            shutil.copyfile(ROOT / 'vendor' / name / (name + suffix), plugin / (name + suffix))
     server = create_server(state, port=0)
     server.RequestHandlerClass, server.game_disabled, server.display_hour = handler_class(), True, 8
     server.RequestHandlerClass.log_message = lambda *_args: None
@@ -128,14 +129,17 @@ def run(folder):
                 return response['preflight']
         raise AssertionError('Match preflight stayed gated')
     def start(*args, **kwargs):
-        cfg = launch.settings()
-        launch._copy_career_match(csgo, mod)
-        launch._copy_botbuy_patch(csgo)
-        launch.install_skins_plugin(csgo, args[6] if len(args) > 6 else kwargs.get('career'))
-        request = launch.build_request(*args[:5])
+        cfg = kwargs['config']
+        assert kwargs['existing_plugins'] is True
+        launch.require_existing_plugin(csgo, 'CareerMatch')
+        launch.require_existing_plugin(csgo, 'BotBuy')
+        launch.prepare_existing_skins(csgo, args[6] if len(args) > 6 else kwargs.get('career'), cfg)
+        request = deepcopy(kwargs['request_override'])
         # prepare_game's normal profile generation publishes these same nine
         # identities; the start boundary replacement performs no VPK writes.
         request['bots'] = deepcopy(request['ct']['players'] + request['t']['players'])
+        if kwargs.get('before_dispatch'):
+            kwargs['before_dispatch']()
         starts.append({'request': deepcopy(request), 'settings': deepcopy(cfg)})
         return {'msg': 'Mock CS2 start; no game launched.', 'match': request}
     def closed(*_args):
@@ -255,8 +259,11 @@ def run(folder):
                 roster_rejection = api('/api/3d/transfers/release', {'revision': context()['calendar']['revision'],
                     'player_id': context()['team']['roster'][1]['id']}, expected=400)
                 assert '回传' in roster_rejection['msg']
+                launch_count = len(starts)
                 replay_launch = command('match/launch', match_id=ident, side='ct')
-                assert replay_launch['status'] == 'waiting' and replay_launch['replayed']
+                assert replay_launch['status'] in ('waiting', 'starting') and replay_launch['replayed']
+                assert len(starts) == launch_count  # Dispatch grace must not launch twice.
+                ev, match = state.season.find_match(ident)  # A rejected command can restore state objects.
                 teams = [state.career.my_team(state.season.teams), next(t for t in state.season.teams if t['name'] == session['opp'])]
                 players = [{'player_id': p['player_id'], 'name': p['name'], 'team': 'ct' if n == 0 else 't',
                             'kills': 10, 'deaths': 10, 'assists': 2, 'damage': 1300, 'kast': .65,
@@ -281,7 +288,12 @@ def run(folder):
                 assert all(row['source'] == 'cs2' for row in collected['result']['maps'])
                 before = hashes()
                 replay = api('/api/3d/match/collect', {'match_id': ident, 'request_id': rid, 'revision': -1})
-                assert replay['replayed'] and replay['result'] == collected['result'] and hashes() == before
+                assert replay['replayed'] and hashes() == before
+                if replay.get('result_summary'):
+                    assert replay['ok'] and replay['status'] == collected['status']
+                    assert matches._report(state, ev, match) == collected['result']
+                else:
+                    assert replay['result'] == collected['result']
                 recovered = api('/api/3d/match/collect', {'match_id': ident, 'revision': -1})
                 assert recovered['replayed'] and recovered['result'] == collected['result'] and hashes() == before
                 if match.get('played'):
@@ -303,7 +315,11 @@ def run(folder):
                 result = command('season/run', request_id=rid, max_steps=1)
                 before = hashes()
                 replay = api('/api/3d/season/run', {'revision': -1, 'request_id': rid, 'max_steps': 1})
-                assert replay['replayed'] and replay.get('auto_step') == result.get('auto_step') and hashes() == before
+                assert replay['replayed'] and hashes() == before
+                if replay.get('result_summary'):
+                    assert replay['ok'] and replay['status'] == result['status']
+                else:
+                    assert replay.get('auto_step') == result.get('auto_step')
                 assert state.season.year == initial_year
                 if result.get('result', {}).get('played'):
                     assert result['result']['data_complete'] and result['reveal']['match_id'] == result['result']['match_id']
@@ -319,7 +335,7 @@ def run(folder):
                 key = 'verification-break:' + str(initial_year)
                 state.career.incident_state.setdefault('story_timing', {})['windows'] = [
                     {'key': key, 'event': 'Resume verification', 'start': state.season.date, 'until': state.season.date}]
-                state.persist()
+                state.settle()
             ack()
             held_date = state.season.date
             held = command('season/run', request_id=uuid4().hex, max_steps=24)
@@ -341,7 +357,7 @@ def run(folder):
                 ev, match = state.season.find_match(ident)
                 match['stage'] = 'GF'
                 state.career.assist['tournament'] = {}
-                state.persist()
+                state.settle()
             ack()
             decision = command('season/run', request_id=uuid4().hex, max_steps=24)
             assert decision['status'] == 'decision' and not match.get('played') and not match.get('maps')
@@ -352,7 +368,7 @@ def run(folder):
             with server.state_lock:
                 state.career.story_queue.clear()
                 state.season.roll_year()
-                state.persist()
+                state.settle()
             annual = api('/api/3d/ceremony?year=' + str(initial_year))['awards']
             assert annual['finalized'] and annual['top3'] == [{**row, 'name': row.get('player', ''),
                 'player_id': row.get('player_id') or next((p['player_id'] for t in state.season.teams for p in t['players'] if p['name'] == row['player']), '')}
@@ -370,7 +386,7 @@ def run(folder):
             server.shutdown()
             thread.join(3)
             server.server_close()
-            state.persist()
+            state.settle()
     return {'ok': True, 'actual_cs2_started': False, 'actual_plugins_modified': False,
             'official_saves_accessed': False, 'mocked_boundaries': ['CS2 process discovery', 'start_match', 'result-file provider'],
             'fixtures': ['promoted due fixture stage to GF to verify final gate', 'synthetic ten-player raw CS2 return',

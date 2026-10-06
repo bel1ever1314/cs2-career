@@ -210,6 +210,8 @@ def stage_game(source, target, engine, media_config, *, version=VERSION):
         target.joinpath('assets').mkdir(exist_ok=True)
         shutil.copy2(project / 'assets' / name, target / 'assets' / name)
     for item in (project / 'assets/audio').iterdir():
+        if item.name.startswith('arena_entrance'):
+            continue  # Retired cue stays in authoring history, never runtime audio.
         if item.suffix in ('.ogg', '.json', '.txt', '.md'):
             target.joinpath('assets/audio').mkdir(exist_ok=True)
             shutil.copy2(item, target / 'assets/audio' / item.name)

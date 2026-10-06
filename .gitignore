@@ -13,6 +13,11 @@ __pycache__/
 *.pdb
 .cursor/
 .vscode/
+.godot/
+runtime/
+source-snapshots/
+work/career3d_redesign/temp/
+*.import
 *.dll
 !vendor/CareerMatch/CareerMatch.dll
 !vendor/InventorySimulator/plugins/InventorySimulator/InventorySimulator.dll

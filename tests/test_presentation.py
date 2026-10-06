@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 """Regression tests for the read-only desktop detail contract."""
 import unittest
 from copy import deepcopy
@@ -16,7 +17,7 @@ class PresentationTests(unittest.TestCase):
                            'events': [{'round': 1, 'type': 'kill', 'killer': 'a0', 'victim': 'b0'}, {'round': 1, 'type': 'round_end', 'winner': 'a'}]}]}
         event = {'id': 'old-event', 'name': 'Old Cup', 'matches': [match], 'dates': ['2026-02-01'], 'type': 't1'}
         season = SimpleNamespace(events=[], history=[event], is_yours=lambda m: False)
-        state = SimpleNamespace(season=season)
+        state = ApplicationDouble(season=season)
         return state, match
 
     def test_archived_match_is_readable_and_never_mutated(self):
@@ -66,10 +67,12 @@ class PresentationTests(unittest.TestCase):
 
     def test_design_fixture_really_contains_all_three_formats(self):
         from cs2career.design_preview import fixture
-        from cs2career.career import Career
+        from cs2career.storage import transaction
         # This fixture creates no files; prevent writes if its implementation changes.
-        with patch.object(Career, 'save'):
+        with patch.object(transaction, 'commit', side_effect=AssertionError('Preview must not write')):
             state = fixture()
+        self.assertNotIn('save', state.career.__dict__)
+        self.assertNotIn('try_ingest_pending_cs2', state.season.__dict__)
         for ev in state.season.events[:3]:
             self.assertEqual(ev['format'], ev['resolved_format'])
             stages = {m['stage'] for m in ev['matches']}

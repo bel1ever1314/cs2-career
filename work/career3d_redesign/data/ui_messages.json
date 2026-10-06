@@ -1,0 +1,1589 @@
+{
+  "schema_version": 1,
+  "messages": {
+    "mail.inbox": {
+      "zh": "收件箱",
+      "en": "Inbox"
+    },
+    "mail.empty": {
+      "zh": "收件箱很安静",
+      "en": "Your inbox is quiet"
+    },
+    "mail.empty_hint": {
+      "zh": "新的赛事邀请会出现在这里。",
+      "en": "New tournament invitations will appear here."
+    },
+    "mail.open": {
+      "zh": "待回复",
+      "en": "Awaiting reply"
+    },
+    "mail.accepted": {
+      "zh": "已接受",
+      "en": "Accepted"
+    },
+    "mail.declined": {
+      "zh": "已婉拒",
+      "en": "Declined"
+    },
+    "mail.read": {
+      "zh": "已读",
+      "en": "Read"
+    },
+    "mail.filed": {
+      "zh": "已收阅",
+      "en": "Filed"
+    },
+    "mail.expired": {
+      "zh": "已过期",
+      "en": "Expired"
+    },
+    "mail.coach": {
+      "zh": "教练",
+      "en": "Coach"
+    },
+    "mail.club": {
+      "zh": "俱乐部",
+      "en": "Club"
+    },
+    "mail.title": {
+      "zh": "邮件",
+      "en": "Mail"
+    },
+    "mail.join_subject": {
+      "zh": "{team} · 加盟邀请",
+      "en": "{team} · Contract invitation"
+    },
+    "mail.invite_hint": {
+      "zh": "这场赛事的邀请到了。看一下赛程，咱们要不要报名？",
+      "en": "We have a tournament invitation. Take a look at the schedule—shall we enter?"
+    },
+    "mail.enter": {
+      "zh": "参加这场赛事",
+      "en": "Enter tournament"
+    },
+    "mail.skip": {
+      "zh": "这次先不报名",
+      "en": "Skip this one"
+    },
+    "mail.join_continue": {
+      "zh": "继续加盟决定",
+      "en": "Continue contract decision"
+    },
+    "mail.join_view": {
+      "zh": "查看加盟机会",
+      "en": "View contract offer"
+    },
+    "mail.accept": {
+      "zh": "接受邀请",
+      "en": "Accept invitation"
+    },
+    "mail.decline": {
+      "zh": "婉拒邀请",
+      "en": "Decline invitation"
+    },
+    "mail.contract_hint": {
+      "zh": "接受后进入加盟决定，最终是否转会仍由你确认。",
+      "en": "Accepting opens the contract decision. You still decide whether to transfer."
+    },
+    "growth.points": {
+      "zh": "自由属性点 · {count}",
+      "en": "Attribute points · {count}"
+    },
+    "growth.commit": {
+      "zh": "确认加点",
+      "en": "Confirm allocation"
+    },
+    "growth.clear": {
+      "zh": "撤销本次分配",
+      "en": "Clear allocation"
+    },
+    "growth.shared_hint": {
+      "zh": "手机与电脑共用同一份属性点。确认前可以调整。",
+      "en": "Phone and computer share the same points. Adjust them before confirming."
+    },
+    "matches.empty": {
+      "zh": "暂无",
+      "en": "Nothing yet"
+    },
+    "calendar.sun": {
+      "zh": "日",
+      "en": "Sun"
+    },
+    "calendar.mon": {
+      "zh": "一",
+      "en": "Mon"
+    },
+    "calendar.tue": {
+      "zh": "二",
+      "en": "Tue"
+    },
+    "calendar.wed": {
+      "zh": "三",
+      "en": "Wed"
+    },
+    "calendar.thu": {
+      "zh": "四",
+      "en": "Thu"
+    },
+    "calendar.fri": {
+      "zh": "五",
+      "en": "Fri"
+    },
+    "calendar.sat": {
+      "zh": "六",
+      "en": "Sat"
+    },
+    "calendar.title": {
+      "zh": "日历",
+      "en": "Calendar"
+    },
+    "calendar.hint": {
+      "zh": "选一天，在那天的早晨醒来。",
+      "en": "Choose a day and wake up that morning."
+    },
+    "calendar.wake": {
+      "zh": "醒来：{day} 08:00",
+      "en": "Wake up: {day} 08:00"
+    },
+    "calendar.sleep_selected": {
+      "zh": "睡到这一天早上",
+      "en": "Sleep until this morning"
+    },
+    "calendar.sleep_tomorrow": {
+      "zh": "睡到明早",
+      "en": "Sleep until tomorrow morning"
+    },
+    "calendar.resume": {
+      "zh": "继续到 {day}",
+      "en": "Continue to {day}"
+    },
+    "calendar.pause_hint": {
+      "zh": "比赛和待处理事件会让日历暂停。",
+      "en": "Matches and pending decisions will pause the calendar."
+    },
+    "calendar.month_events": {
+      "zh": "这个月开始的赛事",
+      "en": "Tournaments starting this month"
+    },
+    "calendar.no_events": {
+      "zh": "这个月没有赛事开赛",
+      "en": "No tournaments start this month"
+    },
+    "calendar.registered": {
+      "zh": "已报名",
+      "en": "Registered"
+    },
+    "calendar.starts": {
+      "zh": "{day} 开赛",
+      "en": "Starts {day}"
+    },
+    "mail.waiting": {
+      "zh": "{count} 封待回复",
+      "en": "{count} awaiting reply"
+    },
+    "mail.done": {
+      "zh": "全部已处理",
+      "en": "All handled"
+    },
+    "profile.match_stats": {
+      "zh": "比赛数据 · {count} 张地图",
+      "en": "Match stats · {count} maps"
+    },
+    "profile.summary": {
+      "zh": "Rating {rating} · ADR {adr} · KAST {kast} · {maps} 图 / {rounds} 回合",
+      "en": "Rating {rating} · ADR {adr} · KAST {kast} · {maps} maps / {rounds} rounds"
+    },
+    "profile.kda": {
+      "zh": "击杀 {k} / 死亡 {d} / 助攻 {a}",
+      "en": "Kills {k} / Deaths {d} / Assists {a}"
+    },
+    "profile.no_stats": {
+      "zh": "这个范围还没有已保存的职业比赛数据。",
+      "en": "No saved career match data in this range yet."
+    },
+    "profile.partial_stats": {
+      "zh": "部分历史数据不完整，缺失统计不补零。",
+      "en": "Some historical stats are incomplete. Missing values are not filled with zeros."
+    },
+    "profile.honours": {
+      "zh": "荣誉",
+      "en": "Honours"
+    },
+    "profile.title": {
+      "zh": "冠军",
+      "en": "Titles"
+    },
+    "profile.top20": {
+      "zh": "年度 Top20",
+      "en": "Annual Top 20"
+    },
+    "profile.no_honours": {
+      "zh": "暂无记录。",
+      "en": "No records yet."
+    },
+    "profile.top20_record": {
+      "zh": "{year} 年 · #{rank} · Rating {rating}",
+      "en": "{year} · #{rank} · Rating {rating}"
+    },
+    "role.rifle": {
+      "zh": "步枪手",
+      "en": "Rifler"
+    },
+    "role.awp": {
+      "zh": "主狙",
+      "en": "AWPer"
+    },
+    "role.entry": {
+      "zh": "突破手",
+      "en": "Entry"
+    },
+    "role.lurk": {
+      "zh": "自由人",
+      "en": "Lurker"
+    },
+    "role.igl": {
+      "zh": "指挥",
+      "en": "IGL"
+    },
+    "role.support": {
+      "zh": "辅助",
+      "en": "Support"
+    },
+    "page.home": {
+      "zh": "主屏",
+      "en": "Home"
+    },
+    "page.desktop": {
+      "zh": "桌面",
+      "en": "Desktop"
+    },
+    "page.chat": {
+      "zh": "聊天",
+      "en": "Chat"
+    },
+    "page.match": {
+      "zh": "赛事",
+      "en": "Matches"
+    },
+    "page.quick": {
+      "zh": "快速赛季",
+      "en": "Quick season"
+    },
+    "page.profile": {
+      "zh": "我的",
+      "en": "Me"
+    },
+    "page.settings": {
+      "zh": "设置",
+      "en": "Settings"
+    },
+    "page.team": {
+      "zh": "战队",
+      "en": "Team"
+    },
+    "page.stories": {
+      "zh": "队内事件",
+      "en": "Team events"
+    },
+    "page.player": {
+      "zh": "选手",
+      "en": "Player"
+    },
+    "page.event": {
+      "zh": "赛事资料",
+      "en": "Tournament details"
+    },
+    "page.news": {
+      "zh": "赛事新闻",
+      "en": "Esports news"
+    },
+    "page.battle": {
+      "zh": "对战中心",
+      "en": "Match centre"
+    },
+    "page.career_match": {
+      "zh": "职业比赛",
+      "en": "Career match"
+    },
+    "page.tactics": {
+      "zh": "战术室",
+      "en": "Tactics room"
+    },
+    "page.ladder": {
+      "zh": "本地天梯",
+      "en": "Local ladder"
+    },
+    "page.custom": {
+      "zh": "自定义对局",
+      "en": "Custom match"
+    },
+    "page.rts": {
+      "zh": "战术模拟",
+      "en": "Tactical simulation"
+    },
+    "page.scrim": {
+      "zh": "训练赛",
+      "en": "Scrims"
+    },
+    "page.events": {
+      "zh": "赛事中心",
+      "en": "Tournament centre"
+    },
+    "page.team_details": {
+      "zh": "战队资料",
+      "en": "Team details"
+    },
+    "page.player_details": {
+      "zh": "选手资料",
+      "en": "Player details"
+    },
+    "page.match_report": {
+      "zh": "比赛战报",
+      "en": "Match report"
+    },
+    "page.market": {
+      "zh": "饰品市场",
+      "en": "Skin market"
+    },
+    "page.career": {
+      "zh": "我的生涯",
+      "en": "My career"
+    },
+    "page.operations": {
+      "zh": "经营",
+      "en": "Operations"
+    },
+    "page.transfers": {
+      "zh": "转会",
+      "en": "Transfers"
+    },
+    "page.management": {
+      "zh": "阵容与合同",
+      "en": "Roster and contracts"
+    },
+    "page.training": {
+      "zh": "训练与成长",
+      "en": "Training and growth"
+    },
+    "page.assistance": {
+      "zh": "自动安排",
+      "en": "Auto planning"
+    },
+    "page.rankings": {
+      "zh": "职业榜单",
+      "en": "Pro rankings"
+    },
+    "page.workshop": {
+      "zh": "扩展工坊",
+      "en": "Workshop"
+    },
+    "page.start": {
+      "zh": "开始与继续",
+      "en": "Start and continue"
+    },
+    "page.appearance": {
+      "zh": "我的形象",
+      "en": "My appearance"
+    },
+    "page.saves": {
+      "zh": "存档管理",
+      "en": "Save manager"
+    },
+    "device.back": {
+      "zh": "返回",
+      "en": "Back"
+    },
+    "device.put_phone_away": {
+      "zh": "放下手机",
+      "en": "Put phone away"
+    },
+    "device.home": {
+      "zh": "返回主屏",
+      "en": "Home"
+    },
+    "device.career_loading_open_this_app_again_shortly": {
+      "zh": "生涯正在载入。稍后再打开这个 App。",
+      "en": "Career loading. Open this app again shortly."
+    },
+    "device.good_morning": {
+      "zh": "早上好",
+      "en": "Good morning"
+    },
+    "device.good_afternoon": {
+      "zh": "下午好",
+      "en": "Good afternoon"
+    },
+    "device.good_evening": {
+      "zh": "晚上好",
+      "en": "Good evening"
+    },
+    "device.sunday": {
+      "zh": "星期日",
+      "en": "Sunday"
+    },
+    "device.monday": {
+      "zh": "星期一",
+      "en": "Monday"
+    },
+    "device.tuesday": {
+      "zh": "星期二",
+      "en": "Tuesday"
+    },
+    "device.wednesday": {
+      "zh": "星期三",
+      "en": "Wednesday"
+    },
+    "device.thursday": {
+      "zh": "星期四",
+      "en": "Thursday"
+    },
+    "device.friday": {
+      "zh": "星期五",
+      "en": "Friday"
+    },
+    "device.saturday": {
+      "zh": "星期六",
+      "en": "Saturday"
+    },
+    "device.morning": {
+      "zh": " · 上午",
+      "en": " · Morning"
+    },
+    "device.afternoon": {
+      "zh": " · 下午",
+      "en": " · Afternoon"
+    },
+    "device.evening": {
+      "zh": " · 晚上",
+      "en": " · Evening"
+    },
+    "device.next_valuevalue": {
+      "zh": "下一场 · %s%s",
+      "en": "Next · %s%s"
+    },
+    "device.today": {
+      "zh": " · 今天",
+      "en": " · Today"
+    },
+    "device.tbd": {
+      "zh": "待定",
+      "en": "TBD"
+    },
+    "device.next_match": {
+      "zh": "下一场比赛",
+      "en": "Next match"
+    },
+    "device.no_matches_scheduled": {
+      "zh": "还没有排定的比赛",
+      "en": "No matches scheduled"
+    },
+    "device.personal_balance": {
+      "zh": "个人余额",
+      "en": "Personal balance"
+    },
+    "device.value_mails": {
+      "zh": "%d 封",
+      "en": "%d mails"
+    },
+    "device.ability": {
+      "zh": "能力",
+      "en": "Ability"
+    },
+    "device.today_s_match": {
+      "zh": "今天的比赛",
+      "en": "Today's match"
+    },
+    "device.value_value_vs_value": {
+      "zh": "%s · %s\n对阵 %s",
+      "en": "%s · %s\nvs %s"
+    },
+    "device.play_in_person": {
+      "zh": "亲自参赛",
+      "en": "Play in person"
+    },
+    "device.play_in_person_sleep_until_match_day": {
+      "zh": "亲自参赛 · 睡到比赛日",
+      "en": "Play in person · Sleep until match day"
+    },
+    "device.chicken_appearance": {
+      "zh": "小鸡形象",
+      "en": "Chicken appearance"
+    },
+    "device.value_ability_value": {
+      "zh": "%s · 能力 %s",
+      "en": "%s · Ability %s"
+    },
+    "device.overview": {
+      "zh": "概览",
+      "en": "Overview"
+    },
+    "device.match_statistics": {
+      "zh": "比赛数据",
+      "en": "Match statistics"
+    },
+    "device.attribute_training": {
+      "zh": "属性培养",
+      "en": "Attribute training"
+    },
+    "device.this_season_value_maps": {
+      "zh": "本赛季 · %s 张地图",
+      "en": "This season · %s maps"
+    },
+    "device.kast_value_form_value": {
+      "zh": "KAST %s   ·   状态 %s",
+      "en": "KAST %s   ·   Form %s"
+    },
+    "device.no_match_data_yet": {
+      "zh": "还没有比赛数据",
+      "en": "No match data yet"
+    },
+    "device.ladder_elo_value_value_w_value_l": {
+      "zh": "天梯 Elo %s · %s 胜 / %s 负",
+      "en": "Ladder Elo %s · %s W / %s L"
+    },
+    "device.my_team": {
+      "zh": "我的战队",
+      "en": "My team"
+    },
+    "device.team_roster": {
+      "zh": "战队阵容",
+      "en": "Team roster"
+    },
+    "device.recent_matches_and_reports": {
+      "zh": "最近比赛与战报",
+      "en": "Recent matches and reports"
+    },
+    "device.view_career_match_history": {
+      "zh": "查看职业赛事记录",
+      "en": "View career match history"
+    },
+    "device.personal_funds": {
+      "zh": "个人余额 ",
+      "en": "Personal funds "
+    },
+    "device.club_funds": {
+      "zh": "俱乐部资金 ",
+      "en": "Club funds "
+    },
+    "device.region_value_rank_value": {
+      "zh": "赛区 %s · 排名 %s",
+      "en": "Region %s · Rank %s"
+    },
+    "device.you": {
+      "zh": " · 你",
+      "en": " · You"
+    },
+    "device.age": {
+      "zh": "年龄",
+      "en": "Age"
+    },
+    "device.nationality": {
+      "zh": "国籍",
+      "en": "Nationality"
+    },
+    "device.potential": {
+      "zh": "潜力",
+      "en": "Potential"
+    },
+    "device.ladder_rating": {
+      "zh": "天梯积分",
+      "en": "Ladder rating"
+    },
+    "device.recent_form_value": {
+      "zh": "近期状态 %+.1f",
+      "en": "Recent form %+.1f"
+    },
+    "device.30_days": {
+      "zh": "30 天",
+      "en": "30 days"
+    },
+    "device.this_season": {
+      "zh": "本赛季",
+      "en": "This season"
+    },
+    "device.all": {
+      "zh": "全部",
+      "en": "All"
+    },
+    "device.match_history": {
+      "zh": "比赛记录",
+      "en": "Match history"
+    },
+    "device.match": {
+      "zh": "比赛",
+      "en": "Match"
+    },
+    "device.value_vs_value_value": {
+      "zh": "%s · 对阵 %s\n%s",
+      "en": "%s · vs %s\n%s"
+    },
+    "device.previous": {
+      "zh": "上一页",
+      "en": "Previous"
+    },
+    "device.next": {
+      "zh": "下一页",
+      "en": "Next"
+    },
+    "device.page_value_value_maps_total": {
+      "zh": "第 %d 页 · 共 %d 张地图",
+      "en": "Page %d · %d maps total"
+    },
+    "device.date": {
+      "zh": "日期",
+      "en": "Date"
+    },
+    "device.start": {
+      "zh": "开始",
+      "en": "Start"
+    },
+    "device.finished": {
+      "zh": "结束",
+      "en": "Finished"
+    },
+    "device.tier": {
+      "zh": "级别",
+      "en": "Tier"
+    },
+    "device.format": {
+      "zh": "赛制",
+      "en": "Format"
+    },
+    "device.prize_money": {
+      "zh": "奖金",
+      "en": "Prize money"
+    },
+    "device.region": {
+      "zh": "赛区",
+      "en": "Region"
+    },
+    "device.everything_is_resolved_enjoy_the_rest_of_your_day": {
+      "zh": "事情都处理好了。继续你的一天吧。",
+      "en": "Everything is resolved. Enjoy the rest of your day."
+    },
+    "device.choose": {
+      "zh": "选择",
+      "en": "Choose"
+    },
+    "device.got_it": {
+      "zh": "我知道了",
+      "en": "Got it"
+    },
+    "device.value_pending_events": {
+      "zh": "还有 %d 件待处理",
+      "en": "%d pending events"
+    },
+    "device.tournament_news": {
+      "zh": "赛事新闻 ›",
+      "en": "Tournament news ›"
+    },
+    "device.quick_season": {
+      "zh": "快速赛季 ›",
+      "en": "Quick season ›"
+    },
+    "device.next_match_2": {
+      "zh": "下一场",
+      "en": "Next match"
+    },
+    "device.go_to_the_match_pc_simulate_or_play": {
+      "zh": "去比赛电脑 · 模拟或上场",
+      "en": "Go to the match PC · simulate or play"
+    },
+    "device.play_in_cs2": {
+      "zh": "自己去 CS2 打",
+      "en": "Play in CS2"
+    },
+    "device.advance_to_match_day": {
+      "zh": "只推进到比赛日",
+      "en": "Advance to match day"
+    },
+    "device.accept_event_invitations_and_the_schedule_appears_here": {
+      "zh": "确认赛事邀请后，赛程会出现在这里。",
+      "en": "Accept event invitations and the schedule appears here."
+    },
+    "device.view_tournament_invitations": {
+      "zh": "查看赛事邀请",
+      "en": "View tournament invitations"
+    },
+    "device.recent_matches": {
+      "zh": "最近比赛",
+      "en": "Recent matches"
+    },
+    "device.tournament_schedule": {
+      "zh": "赛事日程",
+      "en": "Tournament schedule"
+    },
+    "device.value_live_or_upcoming": {
+      "zh": "%d 项进行中或即将开始",
+      "en": "%d live or upcoming"
+    },
+    "device.finished_2": {
+      "zh": "已结束",
+      "en": "Finished"
+    },
+    "device.match_venue": {
+      "zh": "比赛地点 · ",
+      "en": "Match venue · "
+    },
+    "device.match_list": {
+      "zh": "‹ 比赛列表",
+      "en": "‹ Match list"
+    },
+    "device.value_season_value": {
+      "zh": "%s 赛季 · %s",
+      "en": "%s season · %s"
+    },
+    "device.quick_mode": {
+      "zh": "快速模式",
+      "en": "Quick mode"
+    },
+    "device.normal_mode": {
+      "zh": "正常模式",
+      "en": "Normal mode"
+    },
+    "device.next_season": {
+      "zh": "下赛季",
+      "en": "Next season"
+    },
+    "device.use_quick_mode": {
+      "zh": "使用快速模式",
+      "en": "Use quick mode"
+    },
+    "device.normal_pace": {
+      "zh": "正常进行",
+      "en": "Normal pace"
+    },
+    "device.open_quick_season_and_match_reports": {
+      "zh": "打开快速赛季与逐场战报",
+      "en": "Open quick season and match reports"
+    },
+    "device.resolve_team_events": {
+      "zh": "处理队内事件",
+      "en": "Resolve team events"
+    },
+    "device.career_setup": {
+      "zh": "开局选择",
+      "en": "Career setup"
+    },
+    "device.rounded_font": {
+      "zh": "圆润字体",
+      "en": "Rounded font"
+    },
+    "device.system_sans_serif": {
+      "zh": "系统黑体",
+      "en": "System sans-serif"
+    },
+    "device.sound": {
+      "zh": "声音",
+      "en": "Sound"
+    },
+    "device.mute": {
+      "zh": "静音",
+      "en": "Mute"
+    },
+    "device.music": {
+      "zh": "音乐",
+      "en": "Music"
+    },
+    "device.tab_to_navigate_enter_to_confirm_p_esc_to_close_home_for_the_home_screen": {
+      "zh": "Tab 切换，Enter 确认。\nP / Esc 收起，Home 回到主屏。",
+      "en": "Tab to navigate, Enter to confirm.\nP / Esc to close, Home for the home screen."
+    },
+    "device.save_and_quit": {
+      "zh": "保存并退出",
+      "en": "Save and quit"
+    },
+    "device.action_saved_check_your_current_progress": {
+      "zh": "操作已保存，请查看当前进度。",
+      "en": "Action saved. Check your current progress."
+    },
+    "device.this_operation_did_not_complete": {
+      "zh": "这次操作没有完成。",
+      "en": "This operation did not complete."
+    },
+    "device.synchronizing": {
+      "zh": "同步中……",
+      "en": "Synchronizing…"
+    },
+    "device.club_workstation": {
+      "zh": "俱乐部电脑",
+      "en": "Club workstation"
+    },
+    "device.leave_computer_e_esc": {
+      "zh": "离开电脑  [E / Esc]",
+      "en": "Leave computer  [E / Esc]"
+    },
+    "device.back_2": {
+      "zh": "‹ 返回",
+      "en": "‹ Back"
+    },
+    "device.my_phone": {
+      "zh": "我的手机",
+      "en": "My phone"
+    },
+    "device.lan_player_computer": {
+      "zh": "LAN 选手电脑",
+      "en": "LAN player computer"
+    },
+    "device.tournament_player_computer": {
+      "zh": "赛事选手电脑",
+      "en": "Tournament player computer"
+    },
+    "device.home_computer": {
+      "zh": "宿舍电脑",
+      "en": "Home computer"
+    },
+    "device.loading_your_career_this_page_will_be_available_once_connected": {
+      "zh": "生涯正在载入。连接完成后即可使用。",
+      "en": "Loading your career. This page will be available once connected."
+    },
+    "device.tactical_simulation_is_not_available_yet": {
+      "zh": "战术模拟模块尚未接入。",
+      "en": "Tactical simulation is not available yet."
+    },
+    "device.interface_font": {
+      "zh": "界面字体",
+      "en": "Interface font"
+    },
+    "device.rounded_font_2": {
+      "zh": "圆润字体 · 寒蝉全圆体",
+      "en": "Rounded font"
+    },
+    "device.system_sans_serif_2": {
+      "zh": "清晰字体 · 系统黑体",
+      "en": "System sans-serif"
+    },
+    "device.fonts_are_provided_offline_changing_the_font_only_affects_display": {
+      "zh": "字体随样板离线提供；仅改变显示，不影响生涯。",
+      "en": "Fonts are provided offline. Changing the font only affects display."
+    },
+    "device.world_rank_value": {
+      "zh": "世界排名 #%s",
+      "en": "World rank #%s"
+    },
+    "device.accept_event_invitations_in_your_mail_and_the_schedule_appears_here": {
+      "zh": "在邮件里确认赛事邀请后，赛程会出现在这里。",
+      "en": "Accept event invitations in your mail and the schedule appears here."
+    },
+    "device.view_invitations": {
+      "zh": "查看邀请",
+      "en": "View invitations"
+    },
+    "device.next_match_valuevalue": {
+      "zh": "下一场比赛 · %s%s",
+      "en": "Next match · %s%s"
+    },
+    "device.quarterfinal": {
+      "zh": "四分之一决赛",
+      "en": "Quarterfinal"
+    },
+    "device.semifinal": {
+      "zh": "半决赛",
+      "en": "Semifinal"
+    },
+    "device.final": {
+      "zh": "决赛",
+      "en": "Final"
+    },
+    "device.round_of_16": {
+      "zh": "十六强",
+      "en": "Round of 16"
+    },
+    "device.event_schedule": {
+      "zh": "参赛安排",
+      "en": "Event schedule"
+    },
+    "device.next_month": {
+      "zh": "下月 ",
+      "en": "Next month "
+    },
+    "device.club_funds_2": {
+      "zh": "俱乐部资金",
+      "en": "Club funds"
+    },
+    "device.current_ability": {
+      "zh": "当前能力",
+      "en": "Current ability"
+    },
+    "device.value_points_to_assign": {
+      "zh": "%s 点可分配",
+      "en": "%s points to assign"
+    },
+    "device.form_value": {
+      "zh": "状态 %s",
+      "en": "Form %s"
+    },
+    "device.mail_awaiting_reply": {
+      "zh": "待回复邮件",
+      "en": "Mail awaiting reply"
+    },
+    "device.value_in_total": {
+      "zh": "共 %d 封",
+      "en": "%d in total"
+    },
+    "device.event_news": {
+      "zh": "赛事新闻：",
+      "en": "Event news: "
+    },
+    "device.latest": {
+      "zh": "最新报道 · ",
+      "en": "Latest · "
+    },
+    "device.news": {
+      "zh": "新闻",
+      "en": "News"
+    },
+    "device.today_s_agenda": {
+      "zh": "今日安排",
+      "en": "Today's agenda"
+    },
+    "device.match_venue_2": {
+      "zh": "比赛场馆",
+      "en": "Match venue"
+    },
+    "device.view_match_arrangements": {
+      "zh": "查看参赛安排",
+      "en": "View match arrangements"
+    },
+    "device.training_and_setup_value_available_attribute_points": {
+      "zh": "调整与培养 · %s 点自由属性",
+      "en": "Training and setup · %s available attribute points"
+    },
+    "device.training_and_matches": {
+      "zh": "训练与对战",
+      "en": "Training and matches"
+    },
+    "device.value_messages": {
+      "zh": "%d 封邮件",
+      "en": "%d messages"
+    },
+    "device.open_calendar": {
+      "zh": "看看日历",
+      "en": "Open calendar"
+    },
+    "device.cs2_and_skin_settings": {
+      "zh": "CS2 与换肤设置",
+      "en": "CS2 and skin settings"
+    },
+    "device.start_with_a_good_match": {
+      "zh": "从一场好好打的比赛开始。",
+      "en": "Start with a good match."
+    },
+    "device.career_character_ten_players_captain_picks_map_veto": {
+      "zh": "当前生涯角色 · 十人匹配 · 队长选人 · 地图 BP",
+      "en": "Career character · Ten players · Captain picks · Map veto"
+    },
+    "device.open_ladder": {
+      "zh": "打开天梯",
+      "en": "Open ladder"
+    },
+    "device.arrange_a_scrim_practise_teamwork_and_review_the_match_together": {
+      "zh": "约对手、练配合，打完一起看战报。",
+      "en": "Arrange a scrim, practise teamwork and review the match together."
+    },
+    "device.arrange_a_scrim": {
+      "zh": "约一场训练赛",
+      "en": "Arrange a scrim"
+    },
+    "device.arrange_a_scrim_at_the_club_workstation": {
+      "zh": "到俱乐部电脑安排训练赛。",
+      "en": "Arrange a scrim at the club workstation."
+    },
+    "device.custom_match_test_tactics": {
+      "zh": "自定义对局 · 战术验证",
+      "en": "Custom match · Test tactics"
+    },
+    "device.choose_both_five_player_squads_map_and_starting_side_play_as_one_player_or_obser": {
+      "zh": "自行选择双方各五名选手、地图与开场阵营；可控制一名选手或观察十名 BOT，不计天梯积分。",
+      "en": "Choose both five-player squads, map and starting side. Play as one player or observe ten bots. Ladder points are unaffected."
+    },
+    "device.open_custom_match": {
+      "zh": "打开自定义对局",
+      "en": "Open custom match"
+    },
+    "device.rts_command_match": {
+      "zh": "RTS 指挥对局",
+      "en": "RTS command match"
+    },
+    "device.career_tournaments": {
+      "zh": "职业赛事",
+      "en": "Career tournaments"
+    },
+    "device.view_tournament_schedule": {
+      "zh": "查看赛事日程",
+      "en": "View tournament schedule"
+    },
+    "device.value_age_value_role_ability_value_form_value": {
+      "zh": "%s · %s 岁 · 当前位置能力 %s · 状态 %s",
+      "en": "%s · Age %s · Role ability %s · Form %s"
+    },
+    "device.map": {
+      "zh": "地图",
+      "en": "Map"
+    },
+    "device.current_team": {
+      "zh": "所属战队",
+      "en": "Current team"
+    },
+    "device.recent_career_matches": {
+      "zh": "最近职业比赛",
+      "en": "Recent career matches"
+    },
+    "device.allocate_attribute_points": {
+      "zh": "分配自由属性点",
+      "en": "Allocate attribute points"
+    },
+    "device.consumer_grade": {
+      "zh": "消费级",
+      "en": "Consumer Grade"
+    },
+    "device.industrial_grade": {
+      "zh": "工业级",
+      "en": "Industrial Grade"
+    },
+    "device.mil_spec": {
+      "zh": "军规级",
+      "en": "Mil-Spec"
+    },
+    "device.restricted": {
+      "zh": "受限",
+      "en": "Restricted"
+    },
+    "device.classified": {
+      "zh": "保密",
+      "en": "Classified"
+    },
+    "device.covert": {
+      "zh": "隐秘",
+      "en": "Covert"
+    },
+    "device.rare_special_item": {
+      "zh": "罕见特殊",
+      "en": "Rare special item"
+    },
+    "device.extraordinary": {
+      "zh": "非凡",
+      "en": "Extraordinary"
+    },
+    "device.image_unavailable": {
+      "zh": "图片暂缺 · ",
+      "en": "Image unavailable · "
+    },
+    "device.value_game_coins": {
+      "zh": "%d 游戏币",
+      "en": "%d game coins"
+    },
+    "device.market": {
+      "zh": "市场",
+      "en": "Market"
+    },
+    "device.my_inventory": {
+      "zh": "我的库存",
+      "en": "My inventory"
+    },
+    "device.cases": {
+      "zh": "武器箱",
+      "en": "Cases"
+    },
+    "device.pro_loadouts": {
+      "zh": "职业配装",
+      "en": "Pro loadouts"
+    },
+    "device.loading_item_details": {
+      "zh": "饰品资料正在载入。",
+      "en": "Loading item details."
+    },
+    "device.opening_case": {
+      "zh": "正在开箱……",
+      "en": "Opening case…"
+    },
+    "device.the_result_is_saved_manage_the_item_after_the_animation": {
+      "zh": "结果已保存，轮播结束后可处理饰品。",
+      "en": "The result is saved. Manage the item after the animation."
+    },
+    "device.case_result": {
+      "zh": "开箱结果 · ",
+      "en": "Case result · "
+    },
+    "device.skin": {
+      "zh": "饰品",
+      "en": "Skin"
+    },
+    "device.the_result_is_saved_closing_this_window_will_not_reroll_it": {
+      "zh": "结果已保存，关闭窗口也不会重新抽取。",
+      "en": "The result is saved. Closing this window will not reroll it."
+    },
+    "device.keep_in_inventory": {
+      "zh": "放入库存",
+      "en": "Keep in inventory"
+    },
+    "device.sell_now_value": {
+      "zh": "立即出售 · %s",
+      "en": "Sell now · %s"
+    },
+    "device.back_to_list": {
+      "zh": "‹ 返回列表",
+      "en": "‹ Back to list"
+    },
+    "device.wear": {
+      "zh": "磨损",
+      "en": "Wear"
+    },
+    "device.unequip": {
+      "zh": "卸下 ",
+      "en": "Unequip "
+    },
+    "device.equip": {
+      "zh": "装备 ",
+      "en": "Equip "
+    },
+    "device.sell_value": {
+      "zh": "出售 · %s",
+      "en": "Sell · %s"
+    },
+    "device.buy_and_add_to_inventory": {
+      "zh": "购买并入库",
+      "en": "Buy and add to inventory"
+    },
+    "device.case_and_key_value": {
+      "zh": "武器箱与钥匙 · %s",
+      "en": "Case and key · %s"
+    },
+    "device.open_case": {
+      "zh": "开箱",
+      "en": "Open case"
+    },
+    "device.your_inventory_is_empty": {
+      "zh": "库存还没有饰品。",
+      "en": "Your inventory is empty."
+    },
+    "device.resolve_current_transfer_decision": {
+      "zh": "处理当前加盟决定",
+      "en": "Resolve current transfer decision"
+    },
+    "device.ladder_data_has_not_loaded_yet": {
+      "zh": "天梯资料还没有载入。",
+      "en": "Ladder data has not loaded yet."
+    },
+    "device.value_elo_value_value_w_value_l": {
+      "zh": "%s  ·  Elo %s  ·  %s 胜 / %s 负",
+      "en": "%s  ·  Elo %s  ·  %s W / %s L"
+    },
+    "device.separate_ladder_rating_simulate_or_play_in_cs2": {
+      "zh": "独立天梯积分 · 可模拟比赛，也可进入 CS2 亲自打",
+      "en": "Separate ladder rating · Simulate or play in CS2"
+    },
+    "device.w_l": {
+      "zh": "胜 / 负",
+      "en": "W / L"
+    },
+    "device.win_rate": {
+      "zh": "胜率",
+      "en": "Win rate"
+    },
+    "device.a_custom_match_room_is_active_finish_or_close_it_before_playing_ladder": {
+      "zh": "当前共享房间是自定义对局；天梯身份不变，先处理该房间。",
+      "en": "A custom match room is active. Finish or close it before playing ladder."
+    },
+    "device.open_custom_room": {
+      "zh": "打开自定义房间",
+      "en": "Open custom room"
+    },
+    "device.find_ladder_match": {
+      "zh": "开始天梯匹配",
+      "en": "Find ladder match"
+    },
+    "device.find_match": {
+      "zh": "开始匹配",
+      "en": "Find match"
+    },
+    "device.open_match_report": {
+      "zh": "打开本场战报",
+      "en": "Open match report"
+    },
+    "device.find_next_match": {
+      "zh": "开始下一场匹配",
+      "en": "Find next match"
+    },
+    "device.choose_starting_side": {
+      "zh": " · 选择开场阵营",
+      "en": " · Choose starting side"
+    },
+    "device.ct_defenders": {
+      "zh": "CT · 防守方",
+      "en": "CT · Defenders"
+    },
+    "device.t_attackers": {
+      "zh": "T · 进攻方",
+      "en": "T · Attackers"
+    },
+    "device.map_2": {
+      "zh": "地图：",
+      "en": "Map: "
+    },
+    "device.starting_sides_team_value_ct_team_value_t": {
+      "zh": "开场：%s 队 CT · %s 队 T",
+      "en": "Starting sides: Team %s CT · Team %s T"
+    },
+    "device.simulate_ladder_match": {
+      "zh": "模拟这场天梯比赛",
+      "en": "Simulate ladder match"
+    },
+    "device.play_in_cs2_2": {
+      "zh": "进入 CS2",
+      "en": "Play in CS2"
+    },
+    "device.command_ladder_match_in_rts": {
+      "zh": "RTS 指挥这场天梯",
+      "en": "Command ladder match in RTS"
+    },
+    "device.rts_is_unavailable_for_this_map_simulate_or_play_in_cs2": {
+      "zh": "本图暂不支持 RTS，可以模拟或进入 CS2。",
+      "en": "RTS is unavailable for this map. Simulate or play in CS2."
+    },
+    "device.checking_cs2_setup": {
+      "zh": "正在检查 CS2 环境。",
+      "en": "Checking CS2 setup."
+    },
+    "device.rts_match_pending": {
+      "zh": "RTS 对局待完成",
+      "en": "RTS match pending"
+    },
+    "device.resume_rts_ladder_match": {
+      "zh": "继续这场 RTS 天梯",
+      "en": "Resume RTS ladder match"
+    },
+    "device.preparing_cs2_match": {
+      "zh": "正在准备 CS2 对局。",
+      "en": "Preparing CS2 match."
+    },
+    "device.waiting_for_cs2_match_results": {
+      "zh": "等待 CS2 对局战绩回传。",
+      "en": "Waiting for CS2 match results."
+    },
+    "device.cs2_match_launch_did_not_finish": {
+      "zh": "CS2 对局启动未完成。",
+      "en": "CS2 match launch did not finish."
+    },
+    "device.this_match_is_being_played_in_cs2": {
+      "zh": "正在 CS2 中进行这场比赛。",
+      "en": "This match is being played in CS2."
+    },
+    "device.this_room_cannot_resume_on_this_computer_close_it_before_matching_again": {
+      "zh": "当前房间无法在这台电脑继续，请结束原房间后再匹配。",
+      "en": "This room cannot resume on this computer. Close it before matching again."
+    },
+    "device.leave_current_room": {
+      "zh": "离开当前匹配房间",
+      "en": "Leave current room"
+    },
+    "device.waiting_for_cs2_results": {
+      "zh": "等待 CS2 比赛结果。",
+      "en": "Waiting for CS2 results."
+    },
+    "device.re_entering_or_switching_to_rts_restarts_the_unfinished_map_your_roster_map_veto": {
+      "zh": "重新进入或切换 RTS 会重开当前未完成地图；原名单、地图 BP 和天梯身份保留。",
+      "en": "Re-entering or switching to RTS restarts the unfinished map. Your roster, map veto and ladder identity are kept."
+    },
+    "device.re_enter_cs2_restart_this_map": {
+      "zh": "重新进入 CS2 · 重开当前图",
+      "en": "Re-enter CS2 · Restart this map"
+    },
+    "device.simulate_this_ladder_match": {
+      "zh": "继续模拟这场天梯",
+      "en": "Simulate this ladder match"
+    },
+    "device.switch_to_rts_restart_this_map": {
+      "zh": "切换 RTS · 重开当前图",
+      "en": "Switch to RTS · Restart this map"
+    },
+    "device.retry_cs2_launch": {
+      "zh": "重试进入 CS2",
+      "en": "Retry CS2 launch"
+    },
+    "device.import_result": {
+      "zh": "录入战绩",
+      "en": "Import result"
+    },
+    "device.retry_result_import": {
+      "zh": "重试录入战绩",
+      "en": "Retry result import"
+    },
+    "device.abandon_this_ladder_match": {
+      "zh": "放弃这场天梯？",
+      "en": "Abandon this ladder match?"
+    },
+    "device.close_this_room_without_recording_a_win_loss_or_rating_change_results_cannot_be": {
+      "zh": "关闭这个未录入房间，不计算胜负或天梯积分。之后不能再为这场录入战绩。",
+      "en": "Close this room without recording a win, loss or rating change. Results cannot be imported afterwards."
+    },
+    "device.confirm_abandon_no_rating_change": {
+      "zh": "确认放弃，不计分",
+      "en": "Confirm abandon · No rating change"
+    },
+    "device.keep_waiting": {
+      "zh": "继续等待",
+      "en": "Keep waiting"
+    },
+    "device.abandon_ladder_match": {
+      "zh": "放弃本场天梯",
+      "en": "Abandon ladder match"
+    },
+    "device.recent_ladder_matches": {
+      "zh": "最近天梯比赛",
+      "en": "Recent ladder matches"
+    },
+    "device.no_ladder_record_yet": {
+      "zh": "还没有天梯战绩",
+      "en": "No ladder record yet"
+    },
+    "device.start_matchmaking_and_every_finished_match_will_be_kept_here": {
+      "zh": "开始匹配后，打完的每一场都会留在这里。",
+      "en": "Start matchmaking and every finished match will be kept here."
+    },
+    "device.team_value_captain_value": {
+      "zh": "%s 队 · 队长 %s",
+      "en": "Team %s · Captain %s"
+    },
+    "device.value_awaiting_draft": {
+      "zh": "%d · 等待选人",
+      "en": "%d · Awaiting draft"
+    },
+    "device.you_2": {
+      "zh": " ★ 你",
+      "en": " ★ You"
+    },
+    "device.request_not_sent_wait_for_the_current_operation_then_retry": {
+      "zh": "操作暂未发出，请等当前操作完成后重试。",
+      "en": "Request not sent. Wait for the current operation, then retry."
+    },
+    "device.close_cs2_and_verify_its_process_has_stopped_before_abandoning": {
+      "zh": "请先退出 CS2，核验进程状态后再放弃本场。",
+      "en": "Close CS2 and verify its process has stopped before abandoning."
+    },
+    "device.arrange_scrims_at_the_club_workstation": {
+      "zh": "请到俱乐部工作站约训练赛。",
+      "en": "Arrange scrims at the club workstation."
+    },
+    "device.local_simulated_scrim_reports_are_saved_career_prizes_rankings_and_ability_rewar": {
+      "zh": "本地模拟训练赛。比赛保存战报，不计职业赛事奖金、排名或能力奖励。",
+      "en": "Local simulated scrim. Reports are saved; career prizes, rankings and ability rewards are unaffected."
+    },
+    "device.no_scrim_opponents_available": {
+      "zh": "暂时没有可约的对手。",
+      "en": "No scrim opponents available."
+    },
+    "device.opponent": {
+      "zh": "对手",
+      "en": "Opponent"
+    },
+    "device.today_2": {
+      "zh": "今天",
+      "en": "Today"
+    },
+    "device.tomorrow": {
+      "zh": "明天",
+      "en": "Tomorrow"
+    },
+    "device.confirm_scrim_booking": {
+      "zh": "确认预约训练赛",
+      "en": "Confirm scrim booking"
+    },
+    "device.booked_scrims": {
+      "zh": "已约训练赛",
+      "en": "Booked scrims"
+    },
+    "device.simulate_scrim": {
+      "zh": "开始模拟训练赛",
+      "en": "Simulate scrim"
+    },
+    "device.the_match_starts_on_the_booked_date": {
+      "zh": "到约定日期后可开赛。",
+      "en": "The match starts on the booked date."
+    },
+    "device.no_scrims_booked_yet": {
+      "zh": "还没有约好的训练赛。",
+      "en": "No scrims booked yet."
+    },
+    "device.scrim_reports": {
+      "zh": "训练赛战报",
+      "en": "Scrim reports"
+    },
+    "device.your_ladder_rating_value": {
+      "zh": "你的天梯积分：%+d",
+      "en": "Your ladder rating: %+d"
+    },
+    "device.schedule_and_reports": {
+      "zh": "赛程与战报",
+      "en": "Schedule and reports"
+    },
+    "device.player_stats": {
+      "zh": "选手数据",
+      "en": "Player stats"
+    },
+    "device.europe": {
+      "zh": "欧洲",
+      "en": "Europe"
+    },
+    "device.americas": {
+      "zh": "美洲",
+      "en": "Americas"
+    },
+    "device.asia": {
+      "zh": "亚洲",
+      "en": "Asia"
+    },
+    "device.value_live_or_upcoming_value_finished": {
+      "zh": "进行中与即将开始 %d 项 · 已结束 %d 项",
+      "en": "%d live or upcoming · %d finished"
+    },
+    "device.no_events_yet": {
+      "zh": "暂无赛事",
+      "en": "No events yet"
+    },
+    "device.events_you_register_for_appear_here_after_accepting_invitations": {
+      "zh": "确认邀请后，报名的赛事会出现在这里。",
+      "en": "Events you register for appear here after accepting invitations."
+    },
+    "device.live": {
+      "zh": "进行中",
+      "en": "Live"
+    },
+    "device.registered": {
+      "zh": " · 已报名",
+      "en": " · Registered"
+    },
+    "device.no_match_records_yet": {
+      "zh": "还没有比赛记录",
+      "en": "No match records yet"
+    },
+    "device.match_reports_appear_here_after_your_first_pro_match": {
+      "zh": "打完第一场职业比赛后，战报会出现在这里。",
+      "en": "Match reports appear here after your first pro match."
+    },
+    "device.season_player_statistics": {
+      "zh": "本赛季选手数据",
+      "en": "Season player statistics"
+    },
+    "device.this_season_vs_vrs_top30": {
+      "zh": "本赛季 · 对 VRS Top30",
+      "en": "This season · vs VRS Top30"
+    },
+    "device.player_or_team_name": {
+      "zh": "选手或战队名称",
+      "en": "Player or team name"
+    },
+    "device.search": {
+      "zh": "搜索",
+      "en": "Search"
+    },
+    "device.rating_value_adr_value_kast_value_value_maps_value_value_value": {
+      "zh": "Rating %s · ADR %s · KAST %s · %s 图 · %s / %s / %s",
+      "en": "Rating %s · ADR %s · KAST %s · %s maps · %s / %s / %s"
+    },
+    "device.loading_player_statistics": {
+      "zh": "正在读取选手数据……",
+      "en": "Loading player statistics…"
+    },
+    "device.no_recorded_players_match_these_filters": {
+      "zh": "没有符合条件的已记录选手。",
+      "en": "No recorded players match these filters."
+    },
+    "device.rank": {
+      "zh": "排名",
+      "en": "Rank"
+    },
+    "device.funds": {
+      "zh": "资金",
+      "en": "Funds"
+    },
+    "device.value_value_ability_value": {
+      "zh": "%s · %s · 能力 %s",
+      "en": "%s · %s · Ability %s"
+    },
+    "device.historical_profile": {
+      "zh": " · 历史资料",
+      "en": " · Historical profile"
+    },
+    "device.form": {
+      "zh": "状态",
+      "en": "Form"
+    },
+    "device.statistics_range": {
+      "zh": "统计范围",
+      "en": "Statistics range"
+    },
+    "device.last_30_days": {
+      "zh": "最近30天",
+      "en": "Last 30 days"
+    },
+    "device.all_saved_history": {
+      "zh": "全部历史",
+      "en": "All saved history"
+    },
+    "device.value_saved_maps_missing_data_is_not_reconstructed": {
+      "zh": "%s 张已保存地图 · 不补造缺失数据",
+      "en": "%s saved maps · Missing data is not reconstructed"
+    },
+    "device.attributes_for_current_role": {
+      "zh": "实际位置属性",
+      "en": "Attributes for current role"
+    },
+    "device.aim": {
+      "zh": "枪法",
+      "en": "Aim"
+    },
+    "device.entry": {
+      "zh": "突破",
+      "en": "Entry"
+    },
+    "device.trading": {
+      "zh": "补枪",
+      "en": "Trading"
+    },
+    "device.opening": {
+      "zh": "首杀",
+      "en": "Opening"
+    },
+    "device.clutching": {
+      "zh": "残局",
+      "en": "Clutching"
+    },
+    "device.sniping": {
+      "zh": "狙击",
+      "en": "Sniping"
+    },
+    "device.utility": {
+      "zh": "道具",
+      "en": "Utility"
+    },
+    "device.last_10_maps": {
+      "zh": "最近10图",
+      "en": "Last 10 maps"
+    },
+    "device.no_saved_maps_in_this_range": {
+      "zh": "这个范围内没有已保存的地图记录。",
+      "en": "No saved maps in this range."
+    },
+    "device.processing": {
+      "zh": "正在处理……",
+      "en": "Processing…"
+    },
+    "scrim.play_options": {
+      "zh": "选择自己进 CS2 打，或直接模拟。战报会保存在这里，不计赛事积分、奖金或属性奖励。",
+      "en": "Play in CS2 or simulate. Reports are saved here without tournament points, prizes or attribute rewards."
+    },
+    "scrim.open_settings": {"zh":"打开 CS2 设置","en":"Open CS2 settings"},
+    "scrim.waiting": {"zh":"打完后读取战报。中途退出可重新进入，或返回预约后改用模拟。","en":"Collect the report when finished. After exiting early, restart the map or return to the booking to simulate."},
+    "scrim.collect": {"zh":"读取 CS2 战报","en":"Collect CS2 report"},
+    "scrim.start_ct": {"zh":"开局 CT 防守方","en":"Start as CT"},
+    "scrim.start_t": {"zh":"开局 T 进攻方","en":"Start as T"},
+    "scrim.launch": {"zh":"自己进 CS2 打","en":"Play in CS2"},
+    "scrim.restart": {"zh":"重新进入 CS2 · 重开本图","en":"Re-enter CS2 · restart map"},
+    "scrim.cancel": {"zh":"结束本次 CS2，返回预约","en":"End this CS2 session and return to booking"},
+    "device.synchronizing_2": {
+      "zh": "同步资料中……",
+      "en": "Synchronizing…"
+    }
+  }
+}

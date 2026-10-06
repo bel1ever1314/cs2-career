@@ -1,0 +1,5 @@
+# Service-layer messages, including interrupted operations.
+这个请求编号已经用于其他操作。	This request ID has already been used for another operation.
+存档提交等待恢复，请重启后台完成恢复后继续。	The save commit needs recovery. Restart the backend before continuing.
+第 %s 图 %s。%s	Map %s: %s. %s
+操作编号格式不正确。	The operation ID format is invalid.

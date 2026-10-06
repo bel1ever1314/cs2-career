@@ -69,13 +69,15 @@ PRIVATE_FILENAMES = frozenset({
 })
 TOOL_FILES = frozenset({
     "build_plugins.ps1", "build_skin_art.py", "build_team_avatars.py",
+    "build_team_logo_avatars.gd",
     "build_inspect_catalog.py", "run_tests.py", "Launch-CS2Career.cmd",
     "sync_career_rts.ps1", "deploy_career_rts.ps1", "deploy_career3d_redesign.ps1",
     "godot_source_snapshots.gdignore", "transfer_ui_fixture.py", "career_matrix.py",
     "flow_evidence.py", "compare_player_flows.py", "playthrough.py",
+    "benchmark_save_boundary.py", "verify_backend_restart.py",
     "promote_calibration_pack.py", "repair_cs2_runtime.py", "install_tactical_commands.py",
 })
-TOOL_TEST_DIRS = ("tools/identity-tests", "tools/botbuy-tests", "tools/botbuy-runtime-tests", "tools/tactical-tests", "tools/tactical-safety-tests")
+TOOL_TEST_DIRS = ("tools/identity-tests", "tools/avatar-tests", "tools/botbuy-tests", "tools/botbuy-runtime-tests", "tools/tactical-tests", "tools/tactical-safety-tests")
 PRIVATE_HOME = re.compile(
     r"(?P<drive>[A-Z]:)(?P<separator>[/\\]+)Users[/\\]+(?P<user>[^/\\\s\"'<>]+)", re.I)
 CREDENTIAL = re.compile(
@@ -193,6 +195,8 @@ def source_files(root: Path) -> list[Path]:
                    "vendor/CareerMatch", "vendor/BotBuy", "vendor/InvsimCareer", "vendor/InventorySimulator",
                    *TOOL_TEST_DIRS):
         selected.extend(_walk(root, folder))
+    selected.extend(_walk(root, "tools/audio", frozenset({".py", ".md", ".txt", ".json"})))
+    selected.extend(_walk(root, PROJECT + "/assets/audio", frozenset({".ogg", ".wav", ".mid", ".json", ".txt", ".md"})))
     extension_readme = root / "extensions/README.md"
     if extension_readme.exists():
         _check_file(extension_readme, "extensions/README.md", root)
@@ -378,8 +382,9 @@ def stage_sources(root: Path, destination: Path, asset_root: Path | None = None,
         resources[PROJECT + "/assets/chicken_source.blend"] = asset_root / "chicken_source.blend"
     audio_root = asset_root / "audio"
     for name in sorted(AUDIO_NAMES):
-        if (audio_root / name).is_file():
-            resources[PROJECT + "/assets/audio/" + name] = audio_root / name
+        relative = PROJECT + "/assets/audio/" + name
+        if relative not in inputs and (audio_root / name).is_file():
+            resources[relative] = audio_root / name
     external = dict(EXTERNAL_AUTHORING_SOURCES) if include_external_authoring else {}
     for relative, path in external.items():
         if path.is_file() and relative not in inputs:

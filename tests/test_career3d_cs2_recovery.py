@@ -173,7 +173,8 @@ class CareerRecoveryTests(unittest.TestCase):
                 kills=10, deaths=10, assists=3, damage=1000, kast=.7, survived_rounds=9)
                 for i, pid in enumerate(session['expected_player_ids'])])
         self.peek_mock.return_value = raw
-        def commit(ident, result):
+        def commit(ident, result, *, result_reader):
+            self.assertEqual(result, result_reader(request_nonce=result['request_nonce']))
             self.m['maps'].append(dict(source='cs2', request_nonce=result['request_nonce']))
             self.m.pop('cs2_session')
             return 'collected old map'
@@ -194,9 +195,14 @@ class CareerRecoveryTests(unittest.TestCase):
         self.m.pop('cs2_session')
         self.m.pop('career3d_launch')
         self.c.real_skins = True
-        def start(ident, side):
-            launch.install_skins_plugin(Path('X:/offline-fixture'), career=self.c)
-            return 'fixture started'
+        def start(ident, side, *, launcher, result_reader):
+            result = launcher(self.s.teams[0], self.s.teams[1], self.c.player_name,
+                              'de_dust2', side, self.s.teams, self.c)
+            return result['msg']
+        def dispatch(*args, **kwargs):
+            self.assertTrue(kwargs['existing_plugins'])
+            launch.prepare_existing_skins(Path('X:/offline-fixture'), args[6], kwargs['config'])
+            return dict(match=kwargs['request_override'], msg='fixture started')
         self.s.launch_your_map = Mock(side_effect=start)
         cfg = dict(launch.DEFAULTS, skins_inventory_mode='external', csgo_path='X:/offline-fixture')
         for error in (None, PermissionError('handoff denied')):
@@ -205,6 +211,7 @@ class CareerRecoveryTests(unittest.TestCase):
                  patch('tools.career3d_activities.read_cs2_config', return_value=cfg), \
                  patch('tools.career3d_matches.match_status', return_value={}), \
                  patch('cs2career.cs2.launch.require_cs2_closed'), \
+                 patch('cs2career.cs2.launch.start_match', side_effect=dispatch), \
                  patch('cs2career.cs2.launch._prepare_external_skins', return_value=0, side_effect=error) as handoff, \
                  patch('cs2career.career.skins.plugin_installed', return_value=False) as plugin:
                 result = _launch(self.state, self.m, dict(side='ct'))
@@ -341,13 +348,14 @@ class ArenaRecoveryTests(unittest.TestCase):
         captured = []
         def dispatch(*args, **kwargs):
             captured.append(deepcopy(kwargs['request_override']))
-            launch.install_skins_plugin(Path('X:/offline-fixture'), career=kwargs['career'])
-            self.assertEqual('Medium', launch.settings()['difficulty'])
+            self.assertTrue(kwargs['existing_plugins'])
+            launch.prepare_existing_skins(Path('X:/offline-fixture'), kwargs['career'], kwargs['config'])
+            self.assertEqual('Medium', kwargs['config']['difficulty'])
             return dict(msg='fixture prepared')
         with patch('tools.career3d_activities.read_cs2_config', return_value=dict(launch.DEFAULTS, csgo_path='X:/offline-fixture')), \
              patch('cs2career.cs2.launch.require_cs2_closed'), \
              patch('cs2career.cs2.launch.start_match', side_effect=dispatch), \
-             patch.object(launch, 'SETTINGS_PATH', Mock()), \
+             patch.object(launch, '_write_settings'), \
              patch('cs2career.cs2.launch._prepare_external_skins', return_value=0) as handoff, \
              patch('cs2career.career.skins.plugin_installed', return_value=False) as plugin:
             out = custom_command(self.state, 'launch', self.body())

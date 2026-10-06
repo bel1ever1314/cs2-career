@@ -56,9 +56,16 @@ static func rank(value: Variant, empty: String = "—") -> String:
 static func rating(value: Variant, empty: String = "—") -> String:
 	return "%.2f" % float(value) if is_number(value) else empty
 
+static func signed(value: Variant, digits: int = 1, empty: String = "—") -> String:
+	if not is_number(value): return empty
+	return ("%+." + str(digits) + "f") % float(value)
+
 static func percent(value: Variant, ratio: bool = true, empty: String = "—") -> String:
 	if not is_number(value): return empty
 	return "%s%%" % score(float(value) * (100.0 if ratio else 1.0))
+
+static func percent_fixed(value: Variant, digits: int = 1, empty: String = "—") -> String:
+	return num(float(value) * 100, digits, empty) + "%" if is_number(value) else empty
 
 ## The career service writes every amount in US dollars.
 static func money(value: Variant, signed: bool = false, empty: String = "—") -> String:

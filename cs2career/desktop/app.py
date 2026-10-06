@@ -7,6 +7,7 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 from ..application import ApplicationState
 from ..paths import save_root
+from ..league.outcomes import MatchPaused
 from .theme import *
 from .widgets import label, button, ScrollPage, Crest
 from .pages import Pages
@@ -41,6 +42,7 @@ class DesktopApp(Pages, tk.Tk):
         self.bind("<Control-s>",lambda _:self.action(self.state.persist))
         self.bind("<F5>",lambda _:self.refresh())
         self._queue_timer = self.after(90,self._drain)
+        self._result_timer = self.after(2000, self._poll_results)
         self._bridge = None
         if not testing:
             from .skin_api import start_skin_api
@@ -152,8 +154,12 @@ class DesktopApp(Pages, tk.Tk):
         if self.busy:
             return
         try:
-            out = func(*args)
-            self.state.persist()
+            with self.state.operation():
+                try:
+                    out = func(*args)
+                except MatchPaused as exc:
+                    out = str(exc)
+                self.state.settle()
             self.refresh(str(out.get("msg","已完成") if isinstance(out,dict) else out or "已保存"))
         except Exception as exc:
             messagebox.showerror("操作未完成",str(exc),parent=self)
@@ -168,7 +174,13 @@ class DesktopApp(Pages, tk.Tk):
         self.status.configure(text="正在处理，请稍候…",fg=ACCENT)
         def work():
             try:
-                self.messages.put((True,func()))
+                with self.state.operation():
+                    try:
+                        result = func()
+                    except MatchPaused as exc:
+                        result = str(exc)
+                    self.state.settle()
+                self.messages.put((True,result))
             except Exception as exc:
                 self.messages.put((False,str(exc)))
         threading.Thread(target=work,daemon=True).start()
@@ -181,12 +193,21 @@ class DesktopApp(Pages, tk.Tk):
         else:
             self.busy = False
             if ok:
-                self.state.persist()
                 self.refresh(out.get("msg","已完成") if isinstance(out,dict) else str(out or "已完成"))
             else:
                 self.refresh()
                 messagebox.showerror("操作未完成",out,parent=self)
         self._queue_timer = self.after(90,self._drain)
+
+    def _poll_results(self):
+        if not self.testing and not self.busy:
+            try:
+                message = self.state.poll_results()
+                if message:
+                    self.refresh(message)
+            except Exception as exc:
+                self.status.configure(text=str(exc), fg=ACCENT)
+        self._result_timer = self.after(2000, self._poll_results)
 
     def next_stage(self):
         if self.state.career.over():
@@ -302,8 +323,9 @@ class DesktopApp(Pages, tk.Tk):
         actions = tk.Frame(dialog,bg=BG)
         actions.pack(fill="x",padx=30,pady=(0,24))
         def ack(choice=""):
-            self.state.career.ack_story(str(row.get("id") or ""),choice,self.state.season)
-            self.state.persist()
+            with self.state.operation():
+                self.state.career.ack_story(str(row.get("id") or ""),choice,self.state.season)
+                self.state.settle()
             self._story_showing = False
             dialog.destroy()
             self.refresh()
@@ -322,11 +344,13 @@ class DesktopApp(Pages, tk.Tk):
         if self.busy:
             self.status.configure(text="操作仍在进行，完成后即可关闭。",fg=ACCENT)
             return
-        self.state.persist()
+        if not getattr(self.state, '_storage_failed', False):
+            self.state.persist()
         if self._bridge:
             self._bridge.shutdown()
             self._bridge.server_close()
         self.after_cancel(self._queue_timer)
+        self.after_cancel(self._result_timer)
         self.destroy()
 
     def report_callback_exception(self,kind,value,tb):

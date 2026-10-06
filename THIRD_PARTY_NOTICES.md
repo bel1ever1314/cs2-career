@@ -43,6 +43,8 @@
 - 3D 版真实队标来自 Juknum/counter-strike-icons，固定提交
   85ec43bd170d0622db8eadf160e666c161976375；逐项来源和哈希保存在
   media/teams/team-media.json，原始声明见 licenses/counter-strike-icons-LICENSE.txt。
+  CS2 Bot 头像的 64×64 PNG 由同一批 SVG 转换，来源及转换后哈希保存在
+  cs2career/data/team_logo_avatars/manifest.json，不另行联网获取头像。
   上游 MIT 只覆盖其代码和工具，不覆盖游戏图标；图标及名字的权利仍归
   Valve 及相应权利人。没有队标的条目使用项目生成的字母图案。
 - 地图战术画板使用 Valve 的游戏雷达素材，经 MurkyYT/cs2-map-icons 转为 PNG。

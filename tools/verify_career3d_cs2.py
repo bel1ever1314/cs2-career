@@ -140,7 +140,7 @@ def run(folder):
 
             # Test fixture awards available points only; every allocation uses spend_point.
             state.career.attr_points = 3
-            state.persist()
+            state.settle()
             now = context()
             old_attrs = now['personal']['attributes']
             old_revision = now['calendar']['revision']
@@ -162,7 +162,7 @@ def run(folder):
             checks.append('atomic prevalidation, stale/invalid/overbudget rejection, original spend_point and quick-window gate')
 
             state.career.money = 200_000
-            state.persist()
+            state.settle()
             shop = context()['skins']
             market = min((r for r in shop['market'] if r['slot'] == 'ak47'), key=lambda r: r['spot'])
             pocket, club = state.career.money, context()['club_money']
@@ -296,7 +296,7 @@ def run(folder):
             server.shutdown()
             thread.join(3)
             server.server_close()
-            state.persist()
+            state.settle()
     return dict(ok=True, actual_cs2_started=False, actual_plugins_modified=False, official_saves_accessed=False,
                 mocked_boundaries=['CS2 start_match', 'result file provider for collect', 'process read-only diagnostic'],
                 checks=checks, starts=len(starts), human_id=initial['player']['id'], axes=list(ALL_AXES))

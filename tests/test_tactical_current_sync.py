@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 """Current-session publication fixtures: E: isolation, never real CS2 or saves."""
 from copy import deepcopy
 import json
@@ -37,7 +38,7 @@ class CurrentTacticSyncTests(unittest.TestCase):
                             t=dict(players=[dict(player_id='p' + str(n)) for n in range(5, 10)]))
         self.session = dict(nonce=self.request['nonce'], cs2_map='de_dust2', map='dust2',
                             expected_player_ids=['p' + str(n) for n in range(10)], started_at='fixture-preserved')
-        self.state = SimpleNamespace(career=SimpleNamespace(training_session=None,
+        self.state = ApplicationDouble(career=SimpleNamespace(training_session=None,
             incident_state={'career3d_service': {'revision': 7}}),
             season=SimpleNamespace(events=[dict(matches=[dict(played=False, cs2_session=self.session)])]),
             arena=SimpleNamespace(data={'lobby': None}, pending=False))
@@ -198,27 +199,27 @@ class CurrentTacticSyncTests(unittest.TestCase):
         self.assertFalse(list(self.folder.glob('*.tmp')))
 
     def test_underlying_process_discovery_failure_cannot_look_like_closed(self):
-        for failure in (subprocess.CalledProcessError(1, 'fixture-powershell'), FileNotFoundError('fixture'), OSError('fixture')):
+        for failure in (RuntimeError('fixture snapshot'), OSError('fixture')):
             with self.subTest(failure=type(failure).__name__):
                 before = self.snapshot()
                 with patch.object(launch, 'cs2_is_live_strict', side_effect=STRICT_PROCESS), \
-                     patch.object(launch.subprocess, 'check_output', side_effect=failure):
+                     patch('cs2career.cs2.process_state.cs2_running', side_effect=failure):
                     value = self.publish(sync=True)
                 self.assertEqual('sync_error', value['status'])
                 self.assertFalse(value['can_sync'])
                 self.unchanged(before)
 
     def test_strict_process_sentinel_and_commit_query_failure(self):
-        for output, expected in (('ok:', False), ('ok:123,456', True)):
-            with patch.object(launch.subprocess, 'check_output', return_value=output):
+        for output, expected in ((False, False), (True, True)):
+            with patch('cs2career.cs2.process_state.cs2_running', return_value=output):
                 self.assertEqual(expected, STRICT_PROCESS())
-        for output in ('', '123', 'ok:garbage', 'warning\nok:', 'ok:'):
+        for output in (None, True):
             with self.subTest(output=output):
                 before = self.snapshot()
                 # Failure/unknown at the FINAL query must leave the old snapshot.
-                values = ['ok:', 'ok:', output] if output != 'ok:' else ['ok:', 'ok:', '']
+                values = [False, False, output]
                 with patch.object(launch, 'cs2_is_live_strict', side_effect=STRICT_PROCESS), \
-                     patch.object(launch.subprocess, 'check_output', side_effect=values):
+                     patch('cs2career.cs2.process_state.cs2_running', side_effect=values):
                     value = self.publish(sync=True)
                 self.assertEqual('sync_error', value['status'])
                 self.unchanged(before)

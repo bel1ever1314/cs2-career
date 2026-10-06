@@ -358,6 +358,7 @@ func pop_events() -> Array[Dictionary]:
 func report() -> Dictionary:
 	var state := snapshot(true)
 	return {"schema_version": 2, "map": _map.get("map", ""), "map_schema_version": _map.get("schema_version", 1),
+		"rules_id": preload("res://scripts/match_rules.gd").definition().id,
 		"map_source": _map.get("source", {}).duplicate(true), "map_limitations": _map.get("limitations", []).duplicate(),
 		"finished": state["finished"], "winner": state["winner"], "score": state["score"],
 		"players": state["players"], "round_history": state["round_history"], "seed": _seed,
@@ -1614,12 +1615,7 @@ func _end_round(side: String, reason: String) -> void:
 
 
 func _match_decided() -> bool:
-	if _round < 24: return _score["ct"] >= 13 or _score["t"] >= 13
-	if not _allow_overtime: return true
-	if _round == 24: return _score["ct"] != _score["t"]
-	var overtime_block := floori(float(_round - 25) / 6.0)
-	var needed := 16 + overtime_block * 3
-	return _score["ct"] >= needed or _score["t"] >= needed
+	return preload("res://scripts/match_rules.gd").decided(_score["ct"], _score["t"], _allow_overtime)
 
 
 func _finish_match() -> void:

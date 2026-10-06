@@ -1,14 +1,15 @@
-"""Lossless, streaming safety snapshots. Never prune old player backups.
+"""Lossless, portable safety snapshots. Never prune old player backups.
 
-Active saves stay ordinary schema-v2 JSON. New snapshots contain .json.gz plus
-SHA-256/size metadata; legacy .json snapshots remain readable. Restore stages
-and validates the entire pair before replacing either active file.
+Snapshots flatten archived histories into independent schema-v2 JSON. They
+contain .json.gz plus SHA-256/size metadata; legacy .json snapshots remain
+readable. Restore validates and transactionally replaces the entire pair.
 """
 from contextlib import contextmanager
 from datetime import datetime
 import gzip
 import hashlib
 import json
+from io import BytesIO
 from pathlib import Path
 from uuid import uuid4
 
@@ -57,11 +58,15 @@ def verify(folder,expected=None):
 
 def create(root):
     root=Path(root).resolve()
+    from .storage.transaction import recover
+    from .storage.history import portable_bytes
+    recover(root)
     files=[root/name for name in NAMES if (root/name).is_file()]
     if not files:return None
     expected={}
+    payloads={file.name:portable_bytes(file) for file in files}
     for file in files:
-        with file.open('rb') as stream:expected[file.name]=digest(stream)
+        expected[file.name]=digest(BytesIO(payloads[file.name]))
     parent=root/'backups';parent.mkdir(parents=True,exist_ok=True)
     # Only our complete, committed snapshots qualify for reuse. Old backups
     # are left completely untouched, not compressed/migrated as a side effect.
@@ -75,7 +80,7 @@ def create(root):
     folder.mkdir()
     for file in files:
         target=folder/(file.name+'.gz');pending=target.with_suffix('.writing')
-        with file.open('rb') as src,pending.open('wb') as dst:
+        with BytesIO(payloads[file.name]) as src,pending.open('wb') as dst:
             with gzip.GzipFile(filename='',fileobj=dst,mode='wb',compresslevel=1,mtime=0) as archive:
                 actual=digest(src,archive)
         if actual!=expected[file.name]:raise ValueError('备份期间存档发生变化，请关闭其他生涯窗口后重试')
@@ -93,12 +98,13 @@ def restore(root,folder,*,require_pair=True):
         raise ValueError('备份恢复路径必须位于当前存档的backups子目录')
     expected=metadata(folder)
     names=NAMES if require_pair or expected is None else tuple(expected)
-    staged=[]
+    payloads={}
     for name in names:
-        pending=root/(name+'.transfer-restore')
-        with open_member(folder,name) as src,pending.open('wb') as dst:
+        with open_member(folder,name) as src, BytesIO() as dst:
             actual=digest(src,dst)
+            raw=dst.getvalue()
         if expected is not None and actual!=expected.get(name):
             raise ValueError('备份校验失败，当前存档未替换：'+name)
-        staged.append((pending,root/name))
-    for pending,target in staged:pending.replace(target)
+        payloads[root/name]=raw
+    from .storage.transaction import commit
+    commit(payloads)

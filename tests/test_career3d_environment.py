@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 """Purchases, decor and crash recovery run on temporary saves only."""
 from copy import deepcopy
 import json
@@ -28,19 +29,22 @@ class EnvironmentTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.addCleanup(patch.stopall)
         patch.object(env, 'save_root', return_value=self.root).start()
-        self.state = SimpleNamespace(
+        self.state = ApplicationDouble(
             career=Career(incident_state={'career3d_service': {'revision': 7}},
                 money=10000, team_id='a', mode='join', exists=True, retired=False,
                 banned=False, unsigned=False, training_session=None, cashflow=[]),
             season=SimpleNamespace(teams=[dict(id='a', name='Local Club', money=900000)],
-                events=[], date='2026-10-03'), arena=SimpleNamespace(pending=None))
+                events=[], history=[], date='2026-10-03'), arena=SimpleNamespace(pending=None))
         self.state.persist = self.persist
+        from cs2career.operations import operation
+        self.state.operation = lambda: operation(self.state)
         self.persist()
 
     def persist(self):
         for name, obj in [('season.json', self.state.season), ('career.json', self.state.career)]:
             data = {k:v for k,v in vars(obj).items() if k != 'career'}
-            (self.root/name).write_text(json.dumps(data), encoding='utf-8')
+            from cs2career.storage.transaction import save
+            save(self.root/name, lambda data=data: json.dumps(data).encode('utf-8'))
 
     def body(self, request_id='op', **kw):
         return dict(request_id=request_id,
@@ -122,7 +126,8 @@ class EnvironmentTests(unittest.TestCase):
         old_files={n:(self.root/n).read_bytes() for n in env.NAMES}
         old_money=self.state.career.money
         def fail():
-            (self.root/'season.json').write_text('partial write',encoding='utf-8')
+            from cs2career.storage.transaction import save
+            save(self.root/'season.json', lambda: b'partial write')
             raise OSError('fixture disk failure')
         self.state.persist=fail
         with self.assertRaises(OSError): self.buy('plant')

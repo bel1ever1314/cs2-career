@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 """Local ladders and spectator hand-off: isolated data, never a live game."""
 from copy import deepcopy
 from pathlib import Path
@@ -21,7 +22,7 @@ from test_v15_core import fake_team
 def fixture_state():
     teams=[fake_team('A',80),fake_team('B',88),fake_team('C',95)]
     for i,p in enumerate(p for t in teams for p in t['players']):p['ability']=60+i*2
-    return SimpleNamespace(season=SimpleNamespace(teams=teams,events=[],date='2026-01-01'),
+    return ApplicationDouble(season=SimpleNamespace(teams=teams,events=[],date='2026-01-01'),
                           career=SimpleNamespace(exists=True,you_card=deepcopy(teams[0]['players'][0]),
                                                  free=[],money=123,training_session=None))
 
@@ -164,7 +165,7 @@ class ArenaTests(unittest.TestCase):
 
     def test_save_failure_rolls_back_memory_as_well_as_disk(self):
         self.ready('custom');before=deepcopy(self.arena.data)
-        with patch('cs2career.arena.os.replace',side_effect=OSError('disk full')):
+        with patch('cs2career.storage.transaction._durable_write',side_effect=OSError('disk full')):
             with self.assertRaises(OSError):self.arena.configure(self.body(map='nuke',ct='b'))
         self.assertEqual(before,self.arena.data)
         self.assertEqual(before,Arena(self.arena.path).data)
@@ -290,7 +291,7 @@ class ArenaTests(unittest.TestCase):
 
     def test_matchmaking_save_failure_preserves_previous_ladder(self):
         self.arena.save();before=deepcopy(self.arena.data)
-        with patch('cs2career.arena.os.replace',side_effect=OSError('full')):
+        with patch('cs2career.storage.transaction._durable_write',side_effect=OSError('full')):
             with self.assertRaises(OSError):self.arena.matchmake(self.state,self.body(human_id=self.ids[0]))
         self.assertEqual(before,self.arena.data);self.assertEqual(before,Arena(self.arena.path).data)
 

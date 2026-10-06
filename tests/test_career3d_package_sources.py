@@ -16,6 +16,31 @@ spec.loader.exec_module(pkg)
 
 
 class Career3DSourcePackageTests(unittest.TestCase):
+    def test_canonical_audio_and_builders_are_shipped_without_import_cache(self):
+        with tempfile.TemporaryDirectory() as folder:
+            base = Path(folder)
+            root, assets, fonts, hashes = self.fixture(base)
+            audio = root / pkg.PROJECT / 'assets/audio'
+            audio.mkdir(parents=True)
+            (audio / 'music_club_day.ogg').write_bytes(b'OggS canonical track')
+            (audio / 'major_final_cue.json').write_text('{}', encoding='utf-8')
+            (audio / 'README.md').write_text('current audio attribution', encoding='utf-8')
+            (audio / 'music_club_day.ogg.import').write_text('local import cache', encoding='utf-8')
+            (assets / 'audio').mkdir()
+            (assets / 'audio/README.md').write_text('stale runtime copy', encoding='utf-8')
+            build = root / 'tools/audio'
+            build.mkdir(parents=True)
+            (build / 'build_game_audio.py').write_text('# reproducible builder', encoding='utf-8')
+            (build / 'GeneralUser.sf2').write_bytes(b'unrequested soundfont binary')
+            output = base / 'public-source'
+            self.stage(root, output, assets, fonts, hashes)
+            self.assertEqual((output / pkg.PROJECT / 'assets/audio/music_club_day.ogg').read_bytes(), b'OggS canonical track')
+            self.assertEqual((output / pkg.PROJECT / 'assets/audio/README.md').read_text('utf-8'), 'current audio attribution')
+            self.assertTrue((output / pkg.PROJECT / 'assets/audio/major_final_cue.json').is_file())
+            self.assertTrue((output / 'tools/audio/build_game_audio.py').is_file())
+            self.assertFalse((output / 'tools/audio/GeneralUser.sf2').exists())
+            self.assertFalse((output / pkg.PROJECT / 'assets/audio/music_club_day.ogg.import').exists())
+
     def test_tactical_safety_production_harness_is_in_public_source(self):
         root = Path(__file__).resolve().parents[1]
         selected = {path.relative_to(root).as_posix() for path in pkg.source_files(root)}

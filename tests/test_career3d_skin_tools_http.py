@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 """Opt-in cosmetic bridge over real authenticated HTTP, using memory only."""
 from copy import deepcopy
 import json
@@ -46,7 +47,7 @@ def memory_state(persist=lambda: None):
         training_session=None, inbox=[{'body': 'PRIVATE_CAREER_MAIL'}],
         log=['PRIVATE_CAREER_LOG'], skin_seq=2,
     )
-    return SimpleNamespace(career=career, season=SimpleNamespace(date='2026-10-02', events=[]),
+    return ApplicationDouble(career=career, season=SimpleNamespace(date='2026-10-02', events=[]),
                            arena=SimpleNamespace(pending=None), persist=persist)
 
 
@@ -304,6 +305,8 @@ class SkinToolsSettingsTests(unittest.TestCase):
         self.state = memory_state()
         for context in (
             patch.object(launch, 'SETTINGS_PATH', self.path),
+            patch('cs2career.storage.transaction.read_bytes',
+                  side_effect=lambda path: json.dumps(self.config).encode('utf-8')),
             patch.object(launch, '_autofill', side_effect=lambda cfg: cfg),
             patch.object(launch, '_write_settings', side_effect=self.write_settings),
             patch.object(launch, 'cs2_is_live', return_value=False),

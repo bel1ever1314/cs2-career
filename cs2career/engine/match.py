@@ -11,6 +11,7 @@ import math
 import random
 
 from .morale import after_series, mentality_mult
+from .rules import COMPETITIVE
 from .rating import career_rating, clamp, expected_dpr, expected_rating, skill_tier
 from ..world.ability import playing_ability, effective_form_delta
 
@@ -179,13 +180,8 @@ def play_round_event_stream(rows_a: list[dict], rows_b: list[dict], p_a: float) 
                 stats[row["name"]]["kast_rounds"] += 1
         events.append({"round": number, "type": "round_end", "winner": "a" if a_wins else "b"})
 
-    while score_a < 13 and score_b < 13:
+    while not COMPETITIVE.decided(score_a, score_b):
         one_round(score_a + score_b + 1)
-        if score_a + score_b >= 24:
-            break
-    while score_a == score_b:
-        for _ in range(6):
-            one_round(score_a + score_b + 1)
     return score_a, score_b, events, stats
 
 
@@ -251,6 +247,7 @@ def play_map(team_a: dict, team_b: dict, map_name: str) -> dict:
     rounds = s_a + s_b
     return {
         "source": "sim",
+        "rules_id": COMPETITIVE.id,
         "map": map_name,
         "score": f"{s_a}-{s_b}",
         "rounds": rounds,

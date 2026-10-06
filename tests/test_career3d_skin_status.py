@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 """Device diagnostics must reflect effective equipment, not just a toggle."""
 from copy import deepcopy
 from types import SimpleNamespace
@@ -15,7 +16,7 @@ class Career3DSkinStatusTests(unittest.TestCase):
             real_skins=True, steam_id='76561198000000000', money=100,
             inventory=[{'id': 'owned-rifle', 'skin_id': 'fixture-skin'}],
             equipped_ct={}, equipped_t={'ak47': 'owned-rifle'}, incident_state={})
-        self.state = SimpleNamespace(career=self.career)
+        self.state = ApplicationDouble(career=self.career)
         self._patch(patch.object(activities, 'read_cs2_config', return_value=self.cfg))
         self.installed = self._patch(patch.object(activities, '_existing_skin_plugin', return_value=True))
 

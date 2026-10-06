@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 """Isolated format/reveal checks; no user season or game is advanced."""
 import random
 import unittest
@@ -111,7 +112,7 @@ class MajorSpectatorTests(unittest.TestCase):
                 region='EU',dates=[season.date],prize=0,vrs_weight=1,status='live')
         ev['matches']=formats.open_event(ev,[mine,opponent]);season.events=[ev]
         match=ev['matches'][0];saved=[];responses=[]
-        state=SimpleNamespace(season=season,persist=lambda:saved.append(deepcopy(match)),
+        state=ApplicationDouble(season=season,persist=lambda:saved.append(deepcopy(match)),
                               payload=lambda msg:{'ok':True,'msg':msg})
         handler=SimpleNamespace(state=state,_body=lambda:{'match_id':match['id'],'reveal':True},
                                 _json=lambda payload:responses.append((len(saved),payload)))

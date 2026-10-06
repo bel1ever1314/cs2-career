@@ -9,6 +9,7 @@ config/features=PackedStringArray("4.0", "Forward Plus")
 Locale="*res://scripts/career_locale.gd"
 CareerBridge="*res://scripts/career_bridge.gd"
 Travel="*res://scripts/travel.gd"
+Music="*res://scripts/music_director.gd"
 Phone="*res://scripts/career_phone.gd"
 Computer="*res://scripts/career_computer.gd"
 StartGate="*res://scripts/career_start_gate.gd"

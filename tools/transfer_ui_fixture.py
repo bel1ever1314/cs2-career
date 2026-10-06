@@ -26,7 +26,7 @@ if __name__ == '__main__':
                 pt.apply(app.career,app.season,target['team_id'],target['role'])
             row=next(r for r in app.career.story_queue if r.get('when')=='transfer_decision')
             app.career.ack_story(row['id'],'accept',app.season)
-        app.persist()
+        app.settle()
         server=create_server(app)
         print(f'http://127.0.0.1:{server.server_port}/?token={server.token}',flush=True)
         try: server.serve_forever()

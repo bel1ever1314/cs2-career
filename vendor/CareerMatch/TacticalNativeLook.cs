@@ -47,7 +47,7 @@ internal sealed class TacticalNativeLook : ITacticalLookApi
     internal const string AuditedServerSha256 = "098D4DDD57E2FBE9A73623A2BF68EBAFF86F7B6342DDB3D5A0F69CD6335B31CC";
     internal const string PreviousServerSha256 = "3541E46A3193FCF1151E97CE19CD4DAF86C5FDB2889033C2BAB1D4CC7F555B9C";
     internal static bool IsAuditedServerHash(string hash) =>
-        hash is AuditedServerSha256 or PreviousServerSha256;
+        hash is AuditedServerSha256 or PreviousServerSha256 or TacticalServer927.Sha256;
     // The new file was separately disassembled: request fields, argument
     // widths, priority/near-spot branches, alignment state and drift calls
     // retain the audited layout. Pin all three complete new bodies too.
@@ -81,7 +81,8 @@ internal sealed class TacticalNativeLook : ITacticalLookApi
         int LookBytes, int ClearBytes, int ConsumerBytes, int ImageSize)
     {
         internal TacticalFeatureAudit.Snapshot? Dependencies { get; init; }
-        public string CompatibilityProfile => Dependencies is null ? "reviewed_whole_file" : "current_stable_rva_features";
+        public string CompatibilityProfile => Sha256 == TacticalServer927.Sha256 ? "reviewed_2000927"
+            : Dependencies is null ? "reviewed_whole_file" : "current_stable_rva_features";
     }
     private readonly nint _module;
     private readonly int _gameThread;
@@ -138,7 +139,9 @@ internal sealed class TacticalNativeLook : ITacticalLookApi
             if (textRva < 0 || textRaw < 0 || textLength <= 0 || (long)textRaw + textLength > bytes.Length)
                 throw new InvalidDataException("look_text_bounds");
             var text = bytes.AsSpan(textRaw, textLength);
-            int look = UniqueIndex(text, LookPrefix), clear = UniqueIndex(text, ClearBytes), consumer = UniqueIndex(text, ConsumerPrefix);
+            var current = hash == TacticalServer927.Sha256;
+            int look = UniqueIndex(text, LookPrefix), clear = UniqueIndex(text, ClearBytes),
+                consumer = UniqueIndex(text, current ? TacticalServer927.ConsumerPrefix : ConsumerPrefix);
             if (look < 0 || clear < 0 || consumer < 0) throw new InvalidDataException("look_signature_not_unique");
             if (textRva + look != 0x2dda40 || textRva + clear != 0x2fc1d0 || textRva + consumer != 0x2e6d30)
                 throw new InvalidDataException("look_function_identity_mismatch");
@@ -151,7 +154,7 @@ internal sealed class TacticalNativeLook : ITacticalLookApi
             // Every other file MUST use all three pinned current complete bodies.
             if (hash != PreviousServerSha256)
                 for (int i = 0; i < code.Length; i++)
-                    if (Convert.ToHexString(SHA256.HashData(code[i])) != CurrentBodyHashes[i])
+                    if (Convert.ToHexString(SHA256.HashData(code[i])) != (current ? TacticalServer927.LookHashes[i] : CurrentBodyHashes[i]))
                         throw new InvalidDataException("look_complete_body_mismatch:" + i);
             if (code.Any(c => c[^1] != 0xc3)) throw new InvalidDataException("look_function_end_mismatch");
             if (!code[2].AsSpan(CosOffset, 5).SequenceEqual(CosCall) || !code[2].AsSpan(SinOffset, 5).SequenceEqual(SinCall))

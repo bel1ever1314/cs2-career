@@ -1277,6 +1277,11 @@
     "浅橡木地板": "Light oak floor",
     "胡桃木地板": "Walnut floor",
     "浅色石砖": "Light stone tiles",
+    "本地请求没有发出，正在重新连接……": "The request was not sent. Reconnecting…",
+    "连接中断，正在重连；已发送的操作不会自动重发。": "Connection lost. Reconnecting without resending actions.",
+    "操作未发出：等待后台重新连接后再试。": "Action not sent. Try again after reconnection.",
+    "已重新连接，刚才的操作已保存。": "Reconnected. Your last action was saved.",
+    "已重新连接。刚才的操作结果尚不能确认，请先查看当前进度。": "Reconnected. Please check your progress before repeating the last action.",
     "同步当前对局": "Sync current match",
     "正在同步当前对局战术…": "Syncing current match tactics…",
     "本场战术快照（%s）：%s\n%s": "Match tactics snapshot (%s): %s\n%s",
@@ -1598,6 +1603,7 @@
     "%s · 能力 %s": "%s · Ability %s",
     "本赛季 · %s 张地图": "This season · %s maps",
     "KAST %s   ·   状态 %+d": "KAST %s   ·   Form %+d",
+    "KAST %s   ·   状态 %s": "KAST %s   ·   Form %s",
     "还没有已保存的个人比赛数据。天梯与职业赛事分别记录。": "No personal match statistics saved yet. Ladder and career records are separate.",
     "天梯 Elo %s · %s 胜 / %s 负": "Ladder Elo %s · %s W / %s L",
     "我的战队": "My team",
@@ -3040,6 +3046,30 @@
     "还没有比赛数据": "No match data yet",
     "进入 CS2 打这场比赛": "Play this match in CS2",
     "队友已入座 · 到你的空位按 E": "Teammates seated · press E at your seat",
+    "上一项操作结果正在确认，请稍候。": "Checking the outcome of the last action. Please wait.",
+    "正在恢复已提交的进度，完成后会自动重新连接。": "Recovering saved progress. The connection will resume automatically.",
+    "存档需要恢复，请重新启动外部后台；操作不会自动重发。": "Save recovery is required. Restart the external service; the action will not be resent.",
+    "操作未发出：恢复完成后再试。": "Action not sent. Try again after recovery finishes.",
+    "这项操作已保存。已刷新当前进度，完整战绩可在比赛记录查看。": "This action was saved. Progress has been refreshed; full results are in match history.",
+    "这项操作已保存，请查看当前进度。": "This action was saved. Check your current progress.",
+    "操作已保存，请查看当前进度。": "Action saved. Check your current progress.",
+    "操作已保存，请查看比赛记录。": "Action saved. Check your match history.",
+    "操作已保存，请确认当前阵容后继续选人 / BP。": "Action saved. Check the current lineup before continuing the draft or map veto.",
+    "存档已提交，正在重新载入以完成恢复；请勿重复操作。": "The save was committed. Reloading to finish recovery; do not repeat the action.",
+    "操作回执元数据过大。": "The action receipt metadata is too large.",
+    "另有训练对局等待核验，请先到训练与成长页面完成或取消。": "Another practice is awaiting verification. Finish or cancel it on Training & Growth first.",
+    "请先完成 CS2 设置。": "Set up CS2 first.",
+    "训练赛身份已变化，请刷新后再操作。": "The practice session has changed. Refresh before trying again.",
+    "请完全退出 CS2，再重开或取消这场训练赛。": "Close CS2 completely before restarting or cancelling this practice.",
+    "切换训练赛": "Switching practice session",
+    "训练赛未录入：": "Practice report not collected:",
+    "训练地图不匹配，未录入战报。": "The practice map does not match. No report was recorded.",
+    "训练赛战报已录入。": "Practice report saved.",
+    "这场训练赛不存在。": "This practice booking does not exist.",
+    "请确认结束本次 CS2 训练，返回预约。": "Confirm ending this CS2 practice session and returning to the booking.",
+    "已返回训练赛预约，可以重新进入 CS2 或模拟。": "Returned to the booking. You can re-enter CS2 or simulate.",
+    "没有这个训练赛操作。": "Unknown practice action.",
+    "还没到约定日期。": "The booked date has not arrived yet.",
     "BotProfile 来源": "BotProfile source",
     "生涯能力模板": "Career ability templates",
     "我的 VPK 模板": "My VPK templates",
@@ -3733,6 +3763,10 @@
     "随包人机增强运行文件大小超出范围，未安装。": "The bundled Bot Improver runtime file size is out of range. Nothing was installed.",
     "随包人机增强文件校验失败，未安装：%s": "Bundled Bot Improver file verification failed. Nothing was installed: %s",
     "随包人机增强在复制期间发生变化，未安装。": "The bundled Bot Improver changed during copying. Nothing was installed.",
+    "这个请求编号已经用于其他操作。": "This request ID has already been used for another operation.",
+    "存档提交等待恢复，请重启后台完成恢复后继续。": "The save commit needs recovery. Restart the backend before continuing.",
+    "第 %s 图 %s。%s": "Map %s: %s. %s",
+    "操作编号格式不正确。": "The operation ID format is invalid.",
     "无法核验 CS2 进程状态，未同步当前对局战术": "CS2 process status could not be verified; current match tactics were not synced.",
     "请先完全退出 CS2，再同步当前对局战术。": "Close CS2 completely before syncing current match tactics.",
     "地图战术：分路、到点等待与箭头观察；交火优先原生 AI，下包后 T 守包、CT 回防。仅正式准备阶段选战术，不控制真人。保存后 CS2 关闭时自动同步当前对局；运行时仅保存，退出后点击同步，不需重新准备或重置比赛。": "Map tactics: routes, arrival waits and observation; native AI takes priority in combat, then T hold and CT retake after the plant. Select during freeze time; humans remain manual. Saving auto-syncs the current match when CS2 is closed. While running, only the library is saved; close CS2 and sync without resetting the match.",
@@ -3754,6 +3788,36 @@
     "战术已保存到独立库。": "Tactics saved to the independent library.",
     "战术已从独立库删除。": "Tactics removed from the independent library.",
     "战术已导入独立库。": "Tactics imported to the independent library.",
+    "这次启动的结果尚待确认，请刷新比赛连接状态。": "This launch is not yet confirmed. Refresh the match connection status.",
+    "启动返回的比赛编号与已保存请求不一致。": "The launched match ID does not match the saved request.",
+    "上次操作的结果尚待确认，请刷新安装与插件状态；不会自动再次执行。": "The previous action is not yet confirmed. Refresh the installation and plugin status; the action will not run again automatically.",
+    "存档提交等待恢复，请重新启动后台。": "The save is awaiting recovery. Restart the local service to continue.",
+    "这场比赛的规则版本尚未支持，原战绩已保留。": "This match uses an unsupported rules version. Its original results have been kept.",
+    "回传规则版本与本场比赛不一致，未结算。": "The returned rules version does not match this match. No result was recorded.",
+    "回传会话编号与本场比赛不一致，未结算。": "The returned session ID does not match this match. No result was recorded.",
+    "战绩比分不是有效的非负整数，未结算。": "The returned score must contain nonnegative whole numbers. No result was recorded.",
+    "比分不符合本场 MR12／MR3 终场规则，未结算。": "The score does not meet this match's MR12/MR3 final-score rules. No result was recorded.",
+    "战术已保存，正在同步到游戏目录。": "Tactics saved. Syncing to the game directory.",
+    "现有 %s 组件缺失；请先在设置里安装人机增强。": "The installed %s component is missing. Install Bot Improver from Settings first.",
+    "{team} · 加盟邀请": "{team} · Contract invitation",
+    "自由属性点 · {count}": "Attribute points · {count}",
+    "醒来：{day} 08:00": "Wake up: {day} 08:00",
+    "继续到 {day}": "Continue to {day}",
+    "{day} 开赛": "Starts {day}",
+    "{count} 封待回复": "{count} awaiting reply",
+    "比赛数据 · {count} 张地图": "Match stats · {count} maps",
+    "Rating {rating} · ADR {adr} · KAST {kast} · {maps} 图 / {rounds} 回合": "Rating {rating} · ADR {adr} · KAST {kast} · {maps} maps / {rounds} rounds",
+    "击杀 {k} / 死亡 {d} / 助攻 {a}": "Kills {k} / Deaths {d} / Assists {a}",
+    "{year} 年 · #{rank} · Rating {rating}": "{year} · #{rank} · Rating {rating}",
+    "音乐": "Music",
+    "选择自己进 CS2 打，或直接模拟。战报会保存在这里，不计赛事积分、奖金或属性奖励。": "Play in CS2 or simulate. Reports are saved here without tournament points, prizes or attribute rewards.",
+    "打完后读取战报。中途退出可重新进入，或返回预约后改用模拟。": "Collect the report when finished. After exiting early, restart the map or return to the booking to simulate.",
+    "读取 CS2 战报": "Collect CS2 report",
+    "开局 CT 防守方": "Start as CT",
+    "开局 T 进攻方": "Start as T",
+    "自己进 CS2 打": "Play in CS2",
+    "重新进入 CS2 · 重开本图": "Re-enter CS2 · restart map",
+    "结束本次 CS2，返回预约": "End this CS2 session and return to booking",
     "当前位置 ·": "Current role ·",
     "图片暂缺 ·": "Image unavailable ·",
     "开箱结果 ·": "Case result ·",
@@ -4253,6 +4317,19 @@
       "prefix": "Rating "
     },
     {
+      "source": "Rating {rating} · ADR {adr} · KAST {kast} · {maps} 图 / {rounds} 回合",
+      "pattern": "^Rating\\ ([\\s\\S]+?)\\ ·\\ ADR\\ ([\\s\\S]+?)\\ ·\\ KAST\\ ([\\s\\S]+?)\\ ·\\ ([\\s\\S]+?)\\ 图\\ /\\ ([\\s\\S]+?)\\ 回合$",
+      "replacement": "Rating {rating} · ADR {adr} · KAST {kast} · {maps} maps / {rounds} rounds",
+      "keys": [
+        "rating",
+        "adr",
+        "kast",
+        "maps",
+        "rounds"
+      ],
+      "prefix": "Rating "
+    },
+    {
       "source": "熟悉度 %d / 5（仅本次小样）   ·   点击选项或按 1—4，Esc 结束交谈",
       "pattern": "^熟悉度\\ ([+-]?[\\d,.]+)\\ /\\ 5（仅本次小样）\\ \\ \\ ·\\ \\ \\ 点击选项或按\\ 1—4，Esc\\ 结束交谈$",
       "replacement": "Familiarity {0} / 5 (current visit)   ·   Click or press 1–4; Esc to end conversation",
@@ -4737,6 +4814,15 @@
       "prefix": "贴纸已免费更新；个人资金和饰品售价不变。 "
     },
     {
+      "source": "现有 %s 组件缺失；请先在设置里安装人机增强。",
+      "pattern": "^现有\\ ([\\s\\S]+?)\\ 组件缺失；请先在设置里安装人机增强。$",
+      "replacement": "The installed {0} component is missing. Install Bot Improver from Settings first.",
+      "keys": [
+        "0"
+      ],
+      "prefix": "现有 "
+    },
+    {
       "source": "{head} 结果未知，先刷新房间状态；不会自动重试。",
       "pattern": "^([\\s\\S]+?)\\ 结果未知，先刷新房间状态；不会自动重试。$",
       "replacement": "{head} Result unknown. Refresh room status first; no automatic retry.",
@@ -4814,6 +4900,17 @@
       "prefix": "随包人机增强包含非运行文件或链接，未安装："
     },
     {
+      "source": "{year} 年 · #{rank} · Rating {rating}",
+      "pattern": "^([\\s\\S]+?)\\ 年\\ ·\\ \\#([\\s\\S]+?)\\ ·\\ Rating\\ ([\\s\\S]+?)$",
+      "replacement": "{year} · #{rank} · Rating {rating}",
+      "keys": [
+        "year",
+        "rank",
+        "rating"
+      ],
+      "prefix": ""
+    },
+    {
       "source": "试训 D20：{roll} {modifier} = {total}，通过。",
       "pattern": "^试训\\ D20：([\\s\\S]+?)\\ ([\\s\\S]+?)\\ =\\ ([\\s\\S]+?)，通过。$",
       "replacement": "Trial D20: {roll} {modifier} = {total}. Passed.",
@@ -4832,6 +4929,17 @@
         "0"
       ],
       "prefix": "已保留完成地图，重新进入当前未结束地图。"
+    },
+    {
+      "source": "击杀 {k} / 死亡 {d} / 助攻 {a}",
+      "pattern": "^击杀\\ ([\\s\\S]+?)\\ /\\ 死亡\\ ([\\s\\S]+?)\\ /\\ 助攻\\ ([\\s\\S]+?)$",
+      "replacement": "Kills {k} / Deaths {d} / Assists {a}",
+      "keys": [
+        "k",
+        "d",
+        "a"
+      ],
+      "prefix": "击杀 "
     },
     {
       "source": "天梯 Elo %s · %s 胜 / %s 负",
@@ -5085,6 +5193,16 @@
         "1"
       ],
       "prefix": "开场："
+    },
+    {
+      "source": "KAST %s   ·   状态 %s",
+      "pattern": "^KAST\\ ([\\s\\S]+?)\\ \\ \\ ·\\ \\ \\ 状态\\ ([\\s\\S]+?)$",
+      "replacement": "KAST {0}   ·   Form {1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "KAST "
     },
     {
       "source": "申请冷却至 %s · 加盟锁定至 %s",
@@ -5566,6 +5684,15 @@
       "prefix": "兼容组件缺少必需文件："
     },
     {
+      "source": "比赛数据 · {count} 张地图",
+      "pattern": "^比赛数据\\ ·\\ ([\\s\\S]+?)\\ 张地图$",
+      "replacement": "Match stats · {count} maps",
+      "keys": [
+        "count"
+      ],
+      "prefix": "比赛数据 · "
+    },
+    {
       "source": "{head} · 9 位选手已入座",
       "pattern": "^([\\s\\S]+?)\\ ·\\ 9\\ 位选手已入座$",
       "replacement": "{head} · Nine players seated",
@@ -5868,6 +5995,15 @@
       "prefix": "饰品数据无法读取："
     },
     {
+      "source": "醒来：{day} 08:00",
+      "pattern": "^醒来：([\\s\\S]+?)\\ 08:00$",
+      "replacement": "Wake up: {day} 08:00",
+      "keys": [
+        "day"
+      ],
+      "prefix": "醒来："
+    },
+    {
       "source": "无法切换赛季模式：{tail}",
       "pattern": "^无法切换赛季模式：([\\s\\S]+)$",
       "replacement": "Could not change season mode: {tail}",
@@ -6093,6 +6229,15 @@
       "prefix": ""
     },
     {
+      "source": "自由属性点 · {count}",
+      "pattern": "^自由属性点\\ ·\\ ([\\s\\S]+?)$",
+      "replacement": "Attribute points · {count}",
+      "keys": [
+        "count"
+      ],
+      "prefix": "自由属性点 · "
+    },
+    {
       "source": "100% 保签 {tail}",
       "pattern": "^100%\\ 保签\\ ([\\s\\S]+)$",
       "replacement": "Guaranteed signing {tail}",
@@ -6306,6 +6451,26 @@
       "prefix": ""
     },
     {
+      "source": "第 %s 图 %s。%s",
+      "pattern": "^第\\ ([\\s\\S]+?)\\ 图\\ ([\\s\\S]+?)。([\\s\\S]+?)$",
+      "replacement": "Map {0}: {1}. {2}",
+      "keys": [
+        "0",
+        "1",
+        "2"
+      ],
+      "prefix": "第 "
+    },
+    {
+      "source": "{team} · 加盟邀请",
+      "pattern": "^([\\s\\S]+?)\\ ·\\ 加盟邀请$",
+      "replacement": "{team} · Contract invitation",
+      "keys": [
+        "team"
+      ],
+      "prefix": ""
+    },
+    {
       "source": "真实举办日期：{tail}",
       "pattern": "^真实举办日期：([\\s\\S]+)$",
       "replacement": "Actual dates:{tail}",
@@ -6502,6 +6667,15 @@
         "tail"
       ],
       "prefix": "最新报道 · "
+    },
+    {
+      "source": "训练赛未录入：{tail}",
+      "pattern": "^训练赛未录入：([\\s\\S]+)$",
+      "replacement": "Practice report not collected:{tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "训练赛未录入："
     },
     {
       "source": "已预览「%s」，%s",
@@ -6853,6 +7027,15 @@
       "prefix": ""
     },
     {
+      "source": "{count} 封待回复",
+      "pattern": "^([\\s\\S]+?)\\ 封待回复$",
+      "replacement": "{count} awaiting reply",
+      "keys": [
+        "count"
+      ],
+      "prefix": ""
+    },
+    {
       "source": "本图 · {tail}",
       "pattern": "^本图\\ ·\\ ([\\s\\S]+)$",
       "replacement": "This map · {tail}",
@@ -7106,6 +7289,15 @@
       "prefix": ""
     },
     {
+      "source": "继续到 {day}",
+      "pattern": "^继续到\\ ([\\s\\S]+?)$",
+      "replacement": "Continue to {day}",
+      "keys": [
+        "day"
+      ],
+      "prefix": "继续到 "
+    },
+    {
       "source": "继续到 {tail}",
       "pattern": "^继续到\\ ([\\s\\S]+)$",
       "replacement": "Continue to {tail}",
@@ -7302,6 +7494,15 @@
       "replacement": "{axis} offset",
       "keys": [
         "axis"
+      ],
+      "prefix": ""
+    },
+    {
+      "source": "{day} 开赛",
+      "pattern": "^([\\s\\S]+?)\\ 开赛$",
+      "replacement": "Starts {day}",
+      "keys": [
+        "day"
       ],
       "prefix": ""
     },

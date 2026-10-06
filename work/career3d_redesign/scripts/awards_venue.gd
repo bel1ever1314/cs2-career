@@ -211,6 +211,9 @@ func _build_rig() -> void:
 		var search:=_spot("SearchSpot",Vector3(x,5.42,-4.6),Vector3(x,0,-1.0),Color("f6f1ff"),0.0,9)
 		search.shadow_enabled=false; search.spot_range=18; search.visible=false; Kit.beam(search,2.4); search_spots.append(search)
 
+func _ambience_file() -> String: return "crowd_awards_hall.ogg"
+func _ambience_trim() -> float: return 0.85
+
 func _venue_ready() -> void:
 	_load_awards()
 	_create_guests()
@@ -485,6 +488,8 @@ func _celebrate(rank: int) -> void:
 func _update_venue(delta: float) -> void:
 	show_clock+=delta
 	_update_show_lights(delta)
+	# The hall murmurs before and after; during the show it hushes under the host.
+	if ambience: ambience.set_level(1.0 if ceremony_phase in ["idle","finished"] else 0.3)
 	if paused or CareerBridge.phone_open or Travel.busy:return
 	ceremony_clock+=delta*ceremony_speed
 	match ceremony_phase:

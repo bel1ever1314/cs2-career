@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 """Full switch endpoint uses only synthetic game files and mocked processes."""
 from copy import deepcopy
 import json
@@ -34,7 +35,7 @@ class EnvironmentHttpTests(unittest.TestCase):
         self.start(patch.object(launch, 'SETTINGS_PATH', self.save / 'cs2.json'))
         launch._write_settings(self.cfg)
         self.saved = 0
-        self.state = SimpleNamespace(
+        self.state = ApplicationDouble(
             career=SimpleNamespace(incident_state={'career3d_service':{'revision':7, 'receipts':[]}},
                 real_skins=False, steam_id='', training_session=None),
             season=SimpleNamespace(date='2026-10-04', events=[]),
@@ -148,7 +149,7 @@ class EnvironmentHttpTests(unittest.TestCase):
         self.assertNotIn('overrides', after)
         self.assertEqual(before.decode().split(), after.split())
         self.assertEqual('normal', read_lease(self.game)['mode'])
-        self.assertEqual(0, self.saved)
+        self.assert_pending_effect()
 
     def test_old_exit_watcher_cannot_undo_a_new_enable(self):
         self.assertEqual(200, self.request({'revision':7, 'mode':'enhanced'})[0])
@@ -173,7 +174,16 @@ class EnvironmentHttpTests(unittest.TestCase):
         self.assertIn('游戏目录可写', result['msg'])
         self.assertEqual('normal', result['context']['settings']['environment']['mode'])
         self.assertEqual(before, (self.game / 'gameinfo.gi').read_bytes())
-        self.assertEqual(0, self.saved)
+        self.assert_pending_effect()
+
+    def assert_pending_effect(self):
+        # The effect began, but success was never acknowledged. Reconnect may
+        # inspect this intent; it must not perform another switch automatically.
+        self.assertEqual(1, self.saved)
+        self.assertEqual(7, service._revision(self.state))
+        receipts = self.state.career.incident_state['operation_receipts']
+        self.assertEqual(1, len(receipts))
+        self.assertEqual('pending', receipts[0]['phase'])
 
     def test_old_persistent_insecure_is_reported_after_normal_switch(self):
         warning = 'Steam 的 CS2 启动选项仍含 -insecure；请在 Steam → CS2 → 属性 → 启动选项中移除后再打排位。'

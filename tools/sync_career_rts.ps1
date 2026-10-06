@@ -2,6 +2,7 @@ param([string]$Destination = '')
 $ErrorActionPreference = 'Stop'
 $repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $source = Join-Path $repo 'work\career_rts'
+Copy-Item -LiteralPath (Join-Path $repo 'cs2career\data\match_rules.json') -Destination (Join-Path $source 'data\match_rules.json') -Force
 if (-not $Destination) { $Destination = Join-Path $repo 'work\career3d_redesign\rts' }
 $target = [IO.Path]::GetFullPath($Destination)
 if ([IO.Path]::GetFileName($target) -ne 'rts') { throw 'Shared resource destination must be a dedicated rts folder.' }

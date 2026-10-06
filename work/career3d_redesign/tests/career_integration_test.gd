@@ -107,7 +107,9 @@ func run() -> void:
 		if not recent.is_empty():
 			var serial:=response_serial
 			Phone._load_detail(str(recent[0]["id"]))
-			while response_serial==serial:await get_tree().process_frame
+			var detail_deadline := Time.get_ticks_msec() + 15000
+			while response_serial==serial and Time.get_ticks_msec() < detail_deadline:await get_tree().process_frame
+			check(response_serial != serial, "match detail responds before timeout")
 			var totals: Array=last_result.get("match",{}).get("totals",[])
 			check(totals.size()==10,"ten player report is real backend data")
 			var pid: String=str(CareerBridge.context.get("player",{}).get("id","")); var own:=0

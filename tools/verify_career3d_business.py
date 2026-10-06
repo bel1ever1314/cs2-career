@@ -106,7 +106,7 @@ def run(folder):
             checks.append('query bounds, unknown IDs and token requirements enforced')
 
             state.career.money = 1_000_000  # Explicit isolated fixture funding.
-            state.persist()
+            state.settle()
             before = context()
             for amount in (0, -1, True, '100', 10**12):
                 reject('/api/3d/ops/borrow', amount=amount)
@@ -128,7 +128,7 @@ def run(folder):
             checks.append('borrow/repay/donate call original commands; bank destination, personal repayment, no free refund, no unsupported upgrade')
 
             team['money'] = 20_000_000  # Controlled isolated manager fixture.
-            state.persist()
+            state.settle()
             def buy_body(row, mode='guaranteed'):
                 roster = context()['transfers']['roster']
                 return dict(player_id=row['player_id'], seller_id=row['seller_id'], replace_id=roster[0]['player_id'],
@@ -199,7 +199,7 @@ def run(folder):
             target = next(r for r in context()['player_transfers']['targets'] if not r['blocked'])
             offer = state.career._push_mail('contract', state.season.date, dict(title='隔离测试真实 Offer 格式', body='test offer'),
                 dict(**target, personal_transfer=True, expires=(date.fromisoformat(state.season.date)+timedelta(days=30)).isoformat(), status='open'))
-            state.persist()
+            state.settle()
             assert offer['id'] in {r['id'] for r in context()['player_transfers']['offers']}
             with patch.object(player_transfers, 'draw', side_effect=AssertionError('Offer must not roll D20')):
                 api('/api/3d/mail/accept', dict(id=offer['id']))
@@ -228,7 +228,7 @@ def run(folder):
             state.career.story_queue.append(dict(id='top20.2025', kind='top20', when='top20', year=2025,
                 rows=[dict(rank=1, player=initial['player']['name'], feature=dict(title='保存专栏', sections=[dict(heading='原文', text='不重写的专栏全文')]))]))
             state.career.incident_state['arcs']['history'].append(dict(id='news:future-fixture', date='2099-01-01', publication_key='future-fixture', title='未来不能展示', text='future'))
-            state.persist()
+            state.settle()
             inbox_before = deepcopy(state.career.inbox)
             before = hashes()
             first = api('/api/3d/news')
@@ -299,7 +299,7 @@ def run(folder):
                 dict(**target, personal_transfer=True, expires=(date.fromisoformat(state.season.date)+timedelta(days=30)).isoformat(), status='open'))
             for i in range(45):
                 news.publish(state.career, state.season, f'fixture-old-offer-gap:{i}', '新闻不占手机邮件', 'saved news')
-            state.persist()
+            state.settle()
             before = hashes()
             inbox = context()['inbox']
             assert not any(r['kind'] == 'news' for r in inbox)
@@ -338,7 +338,7 @@ def run(folder):
             server.shutdown()
             thread.join(3)
             server.server_close()
-            state.persist()
+            state.settle()
     return dict(ok=True, checks=checks, initial_context_bytes=context_bytes, actual_cs2_started=False,
                 actual_plugins_modified=False, official_saves_accessed=False,
                 fixture_note='Test-only funding, D20 extremes and saved report payload fixtures exercise original rules; no demo display data was fabricated.')

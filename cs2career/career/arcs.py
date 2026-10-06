@@ -196,9 +196,9 @@ def render(text, context):
     return re.sub(r'\{([a-z_]+)\}', lambda m: str(context.get(m[1], '{'+m[1]+'}')), text)
 
 
-def initialize(c,s,payload=None):
+def initialize(c,s,payload=None, *, seed=None):
     if state(c): return False
-    c.incident_state['arcs'] = dict(enabled=payload is not None, seed=uuid4().hex, started=s.date,
+    c.incident_state['arcs'] = dict(enabled=payload is not None, seed=seed if seed is not None else uuid4().hex, started=s.date,
         series=[], events=[], seen=[], history=[], monthly='', injuries=[], news=[], last_press='',
         last_politics='', romance='waiting', partner='', na='', heat=False)
     if payload is None:

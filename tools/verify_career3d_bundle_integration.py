@@ -45,7 +45,7 @@ def verify(folder):
         assert next(row for row in projected['stories'] if row['id'] == 'qa.saved-final-label')['choices'][0]['label'] == '继续模拟'
         assert json.dumps(state.career.story_queue, ensure_ascii=False) == stored_story
         state.career.story_queue.pop()
-        state.persist()
+        state.settle()
         client = LoggedClient(folder)
         ctx = client.context()
         checks.append('existing saved finals labels project Continue without changing choice or stored story')

@@ -10,7 +10,7 @@ if (!TacticalNativeNavigation.IsAuditedServerHash(audit.Sha256)
     || !TacticalNativeNavigation.IsAuditedServerHash(TacticalNativeNavigation.PreviousServerSha256)
     || TacticalNativeNavigation.IsAuditedServerHash(new string('0', 64))
     || TacticalNativeNavigation.IsAuditedServerHash(TacticalNativeNavigation.AuditedServerSha256.ToLowerInvariant()))
-    throw new Exception("Only the two explicitly reviewed build hashes may identify the legacy exact-file profile.");
+    throw new Exception("Only explicitly reviewed build hashes may identify an exact-file profile.");
 Console.WriteLine("4 exact reviewed-file provenance checks passed.");
 var fixture = Path.Combine(AppContext.BaseDirectory, "wrong-server.fixture");
 try
@@ -24,8 +24,15 @@ try
 finally { File.Delete(fixture); }
 
 TacticalContinuationRegression.Run(args[0]);
-FeatureProfileRegression.Run(args[0], observation: false, bytes =>
+Func<byte[], (bool, string)> verify = bytes =>
 {
-    bool passed = TacticalNativeNavigation.TryAuditBytes(bytes, out _, out _, out var reason);
+    var passed = TacticalNativeNavigation.TryAuditBytes(bytes, out _, out _, out var reason);
     return (passed, reason);
-});
+};
+if (audit.Sha256 == TacticalServer927.Sha256)
+{
+    if (audit.BotVtableRva != 0x17ad950 || audit.MoveToVtableRva != 0x17ad798)
+        throw new Exception("2000927 must select its relocated vtables, not the old release's pointers.");
+    Server927Regression.Run(args[0], verify);
+}
+else FeatureProfileRegression.Run(args[0], observation: false, verify);

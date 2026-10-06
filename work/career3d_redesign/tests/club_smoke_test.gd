@@ -2,6 +2,20 @@ extends Node
 var app
 var failures: Array[String] = []
 var checks := 0
+var deadline := 0
+
+func _process(_delta: float) -> void:
+	if deadline > 0 and Time.get_ticks_msec() > deadline:
+		check(false, "club smoke test timed out")
+		finish()
+
+func close_devices() -> void:
+	# Computer interactions now open a real device. Finish that interaction as
+	# a player would before asking the walking controller to move again.
+	Computer.close_computer()
+	Phone.close_phone()
+	if is_instance_valid(app.club_board): app.club_board.close_board()
+	await frames(2)
 
 func check(ok: bool, label: String) -> void:
 	checks += 1
@@ -39,7 +53,10 @@ func use_item(id: String) -> void:
 	check(app.interactions.available(item),"reachable "+id)
 	var before: Dictionary=app.interactions.values.duplicate()
 	check(app.interactions.start(item),"start "+id)
-	if float(item["seconds"])<=0:return
+	if float(item["seconds"])<=0:
+		await close_devices()
+		check(not app.player.locked, "device releases player " + id)
+		return
 	check(not app.interactions.start(item),"no double start "+id)
 	app.interactions.cancel()
 	check(app.interactions.values==before and not app.player.locked,"cancel without reward "+id)
@@ -47,21 +64,26 @@ func use_item(id: String) -> void:
 	var origin: Vector3=app.player.position
 	check(app.interactions.start(item),"restart "+id)
 	await frames(int(float(item["seconds"])*60)+10)
+	await close_devices()
 	check(app.interactions.active.is_empty() and not app.player.locked,"finish "+id)
 	check(int(app.interactions.completed.get(id,0))==1,"single completion "+id)
-	check(not app.interactions.start(item),"cooldown "+id)
+	if float(item.get("cooldown", 5)) > 1.0:
+		check(not app.interactions.start(item),"cooldown "+id)
+		app.interactions.cancel()
 	check(app.player.position.distance_to(origin)<.15,"restore position "+id)
 
 func run(application) -> void:
 	app=application
+	deadline=Time.get_ticks_msec()+240000
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://temp"))
 	await frames(20)
 	check(app.player.is_on_floor(),"spawn supported")
 	check(app.collision_builder.count>40,"furniture and walls built")
 	await route([[-1.13,3.85]])
 	await use_item("reception")
-	await route([[-3.6,4],[-3.6,-.2],[-6.25,-.2],[-6.25,-2.7],[-3.68,-3.67]])
+	await route([[-3.6,4],[-3.6,-.2],[-6.25,-.2],[-6.25,-2.7],[-2.8,-2.7],[-2.8,-6.55],[-3.45,-6.55]])
 	await use_item("computer")
-	await route([[-6.25,-2.7],[-6.25,-.2],[1,-.2],[1,-2.7],[-1.3,-2.7],[-1.3,-7.1],[1,-7.3]])
+	await route([[-2.8,-6.55],[-2.8,-2.7],[-6.25,-2.7],[-6.25,-.2],[1,-.2],[1,-2.7],[-1.3,-2.7],[-1.3,-7.1],[1,-7.3]])
 	await use_item("whiteboard")
 	await route([[-1.3,-7.1],[-1.3,-2.7],[1,-2.7],[1,-.2],[8.1,-.2],[8.1,-2.6],[10.43,-2.6],[10.43,-6.82]])
 	await use_item("fridge")
@@ -88,7 +110,11 @@ func run(application) -> void:
 	probe["range"]=3.0
 	check(not app.interactions.available(probe),"cannot interact through wall")
 	for value in app.interactions.values.values():check(value>=0 and value<=100,"stat bounds")
+	finish()
+
+func finish() -> void:
+	deadline=0
 	print("CLUB_TEST_RESULT ",JSON.stringify({"checks":checks,"failures":failures,"completed":app.interactions.completed}))
 	var report:=FileAccess.open("res://temp/play_test_report.json",FileAccess.WRITE)
-	report.store_string(JSON.stringify({"checks":checks,"failures":failures,"completed":app.interactions.completed},"  "))
+	if report: report.store_string(JSON.stringify({"checks":checks,"failures":failures,"completed":app.interactions.completed},"  "))
 	get_tree().quit(0 if failures.is_empty() else 1)

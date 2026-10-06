@@ -178,7 +178,11 @@ class ResultTests(unittest.TestCase):
                 if play_series(fake_team("A", 80 + gap), fake_team("B", 80), MAPS[:7], "test", 3)["winner"] == "A":
                     count += 1
             wins[gap] = count
-        self.assertTrue(48 <= wins[0] <= 52, wins)
+        # 100 fair trials have sigma=5; the old +/-2 window encoded one RNG
+        # consumption pattern (including illegal extra overtime rounds).
+        self.assertTrue(abs(wins[0] - 50) <= 3 * math.sqrt(100 * .5 * .5), wins)
+        self.assertLess(wins[0], wins[5])
+        self.assertLess(wins[5], wins[10])
         self.assertTrue(62 <= wins[5] <= 72, wins)
         self.assertTrue(80 <= wins[10] <= 90, wins)
 

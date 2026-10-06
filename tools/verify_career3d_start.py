@@ -55,6 +55,21 @@ def verify(folder):
             checks.append('read-only dated options ' + era)
         before = client.hashes()
         ctx = client.context()
+        assert ctx['start']['creation_required']
+        client.api('/api/3d/avatar', {'revision': ctx['calendar']['revision'],
+                                    'appearance': {}}, expected=400)
+        assert client.hashes() == before
+        # Follow the current onboarding contract before testing avatar edits.
+        options = client.api('/api/3d/start/options?era=2026')
+        team = options['teams'][0]
+        created = client.api('/api/3d/start/create', {
+            'revision': ctx['calendar']['revision'], 'request_id': uuid4().hex, 'confirm_replace': True,
+            'career': {'mode': 'join', 'era': '2026', 'team_id': team['id'],
+                       'player_id': team['players'][0]['player_id'], 'role': 'rifle'}})
+        assert not created['context']['start']['creation_required']
+        checks.append('onboarding blocks avatar edits until character creation')
+        before = client.hashes()
+        ctx = client.context()
         client.api('/api/3d/avatar', {'revision': ctx['calendar']['revision'],
                                     'appearance': {'body_color': 'zzzzzz'}}, expected=400)
         assert client.hashes() == before

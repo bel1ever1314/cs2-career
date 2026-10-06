@@ -11,18 +11,17 @@ from .career import Career
 from .league import Season, formats, awards
 from .engine.match import RNG, play_series
 from .world import MAPS
+from .storage.transaction import discard_writes
 
 
+@discard_writes()
 def fixture():
     random.seed(20260910)
     RNG.seed(20260910)
     season, career = Season(2026, '2026'), Career()
-    # Skip persistent writes until an isolated ApplicationState is assembled.
-    career.save = lambda: None
     team = next(t for t in season.teams if t['name'] == 'Vitality')
     career.create({'era': '2026', 'mode': 'join', 'team_id': team['id'], 'replace': 'ropz', 'role': 'lurk'}, season)
     season.career = career
-    season.try_ingest_pending_cs2 = lambda: ''
     season.date = career.current_date = '2026-02-28'
     selected = [team] + [t for t in season.ranked() if t is not team][:15]
     by_name = {t['name']: t for t in season.teams}
@@ -62,8 +61,6 @@ def fixture():
     career.buy_skin('awp-asiimov')
     state = ApplicationState.__new__(ApplicationState)
     state.season, state.career = season, career
-    # Re-enable persistence only to the save root selected BEFORE imports.
-    del career.save
     return state
 
 

@@ -544,14 +544,14 @@ def plugin_installed(csgo: Path | None = None) -> bool:
     return (csgo / "addons" / "counterstrikesharp" / "plugins" / "InventorySimulator" / "InventorySimulator.dll").is_file()
 
 
-def sync_live(career) -> None:
+def sync_live(career, *, config=None) -> None:
     """Push equipped skins to CS2 as soon as the player changes them."""
     if not getattr(career, "real_skins", False):
         return
     try:
         from ..cs2.launch import settings, skins_inventory_mode, write_invsim_cfg
 
-        cfg = settings()
+        cfg = config if config is not None else settings()
         if skins_inventory_mode(cfg) == "external":
             return
         csgo = Path(cfg["csgo_path"])
@@ -602,9 +602,12 @@ def _decorate_item(career, row: dict) -> dict:
     }
 
 
-def shop_public(career) -> dict:
+def shop_public(career, *, installed=None) -> dict:
     from ..cs2.launch import skin_integration
-
+    from copy import copy
+    # Legacy defaults belong to this projection; opening the shop is not a save.
+    # These helpers replace dictionaries rather than editing the live objects.
+    career = copy(career)
     ensure_economy(career)
     migrate_equipped(career)
     pending = career.pending_drop
@@ -649,5 +652,5 @@ def shop_public(career) -> dict:
         "fee": SELL_FEE,
         "target_return": CASE_TARGET_RETURN,
         "weapons": weapons,
-        "plugin": plugin_installed(),
+        "plugin": plugin_installed() if installed is None else installed,
     }

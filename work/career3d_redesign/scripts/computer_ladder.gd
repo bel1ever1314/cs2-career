@@ -59,6 +59,11 @@ func process(delta: float) -> void:
 			host._rebuild()
 
 func received(path: String, result: Dictionary) -> void:
+	if path.begins_with("/api/3d/ladder/") and result.get("result_summary", false):
+		var current = host._ladder_state().get("lobby")
+		if current is Dictionary: turn_key = _key(current)
+		pause_reason = "操作已保存，请确认当前阵容后继续选人 / BP。"
+		return
 	if path == "/api/3d/ladder/advance" and not result.get("ok", false):
 		# A transport error may have committed the write. Never replay the same
 		# turn automatically; explicit retry still uses Arena's revision guard.

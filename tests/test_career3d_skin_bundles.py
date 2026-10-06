@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 """Pure in-memory purchases with actual pinned recipes; no service/save/game."""
 from copy import deepcopy
 import json
@@ -39,7 +40,7 @@ class SkinBundlesTests(unittest.TestCase):
         self.art_patch.start()
         skins.pro_bundle.cache_clear()
         self.career = MemoryCareer()
-        self.state = SimpleNamespace(career=self.career, season=SimpleNamespace(date='2026-10-02'))
+        self.state = ApplicationDouble(career=self.career, season=SimpleNamespace(date='2026-10-02'))
         self.addCleanup(self.catalog_patch.stop)
         self.addCleanup(self.art_patch.stop)
         self.addCleanup(skins.pro_bundle.cache_clear)

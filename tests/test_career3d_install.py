@@ -1,3 +1,5 @@
+from unittest.mock import ANY
+from application_double import ApplicationDouble
 """Setup tests use only synthetic E: QA files, never the player's game files."""
 from copy import deepcopy
 import json
@@ -44,7 +46,7 @@ class BundledInstallTests(unittest.TestCase):
         self.start(patch.object(launch, 'SETTINGS_PATH', self.save / 'cs2.json'))
         self.cfg = {**launch.DEFAULTS, 'csgo_path':str(self.game), 'mod_source_path':str(self.mod)}
         launch._write_settings(self.cfg)
-        self.state = SimpleNamespace(career=SimpleNamespace(
+        self.state = ApplicationDouble(career=SimpleNamespace(
             incident_state={'career3d_service':{'revision':7}}, training_session=None, real_skins=False),
             arena=SimpleNamespace(pending=None), season=SimpleNamespace(events=[]))
         self.running = self.start(patch.object(activities, '_running_cs2', return_value=False))
@@ -243,7 +245,7 @@ class BundledInstallTests(unittest.TestCase):
         originals = {file.relative_to(self.game).as_posix():file.read_bytes() for file in
                      (runtime, hook, career, bothider, branch, self.game / 'gameinfo.gi')}
 
-        def mock_install(game, mod):
+        def mock_install(game, mod, *, config):
             self.assertEqual(game, self.game.resolve())
             self.assertEqual(mod, self.mod.resolve())
             self.assertTrue(game.is_relative_to(QA_ROOT.resolve()))
@@ -300,7 +302,7 @@ class BundledInstallTests(unittest.TestCase):
         plugin = self.write('addons/metamod/runtime.dll', b'fixture installed runtime')
         rules = self.write('cfg/career_rules.cfg', b'bot_difficulty 3\n')
         mode = self.write('cfg/gamemode_competitive.cfg', b'echo Valve\n')
-        def installer(game, mod):
+        def installer(game, mod, *, config):
             gi = game / 'gameinfo.gi'
             gi.write_text(gameinfo.patched_gameinfo(gi.read_text('utf-8')), 'utf-8')
             mode.write_bytes(b'echo Valve\nexec career_rules.cfg\n')
@@ -330,8 +332,8 @@ class BundledInstallTests(unittest.TestCase):
         external = self.write('addons/counterstrikesharp/plugins/InventorySimulator/InventorySimulator.dll', b'external plugin')
         owner = self.write('addons/counterstrikesharp/configs/plugins/InventorySimulator/owner.txt', b'fixture owner opaque')
 
-        def mock_install(game, mod):
-            cfg = self.launch.settings()
+        def mock_install(game, mod, *, config):
+            cfg = config
             self.assertEqual(cfg['skins_inventory_mode'], 'external')
             self.assertEqual(cfg['mod_source_path'], str(self.mod.resolve()))
             self.assertEqual(external.read_bytes(), b'external plugin')
@@ -354,7 +356,7 @@ class BundledInstallTests(unittest.TestCase):
         self.write('addons/counterstrikesharp/gamedata/inventory-simulator.previous.json', b'old previous fixture')
         with patch.object(self.launch, 'vendor_root', return_value=vendor):
             result = install.install_bundle(self.state, self.body)
-        self.skin_install.assert_called_once_with(self.game.resolve())
+        self.skin_install.assert_called_once_with(self.game.resolve(), config=ANY)
         self.assertEqual(result['skin_files'], 3)
         self.assertEqual(result['files'], 5)
         manifest = json.loads((Path(result['backup_path']) / 'BACKUP_MANIFEST.json').read_text('utf-8'))
@@ -382,7 +384,7 @@ class BundledInstallTests(unittest.TestCase):
         career_before = deepcopy(self.state.career.incident_state)
         with patch.object(install, 'bundle_root', return_value=self.mod.resolve()):
             result = install.install_bundle(self.state, {**self.body, 'source':'external'})
-        self.mod_install.assert_called_once_with(self.game.resolve(), mod.resolve())
+        self.mod_install.assert_called_once_with(self.game.resolve(), mod.resolve(), config=ANY)
         self.assertEqual(result['source'], 'external')
         self.assertIn('设置中的人机增强', result['reason'])
         self.assertEqual(self.launch.SETTINGS_PATH.read_bytes(), cfg_before)
@@ -393,7 +395,7 @@ class BundledInstallTests(unittest.TestCase):
         self.launch._write_settings({**self.cfg, 'mod_source_path':' "' + str(mod) + '" '})
         result = install.install_bundle(self.state, {**self.body, 'source':'external'})
         self.assertEqual(result['source'], 'external')
-        self.mod_install.assert_called_once_with(self.game.resolve(), mod.resolve())
+        self.mod_install.assert_called_once_with(self.game.resolve(), mod.resolve(), config=ANY)
 
     def test_external_install_rejects_missing_relative_and_wrong_directory_levels(self):
         mod = self.external_source()
@@ -471,6 +473,7 @@ class BundledInstallTests(unittest.TestCase):
         from cs2career import tactics
         self.mod_install.side_effect = self.original_install
         with patch.object(self.launch, 'vendor_root', return_value=vendor), \
+                patch.object(self.launch, 'require_cs2_closed'), \
                 patch.object(self.launch, 'ensure_gameinfo_mounts'), \
                 patch.object(tactics, 'load_library', return_value={}), \
                 patch.object(self.launch, '_deploy_tactical_playbook', return_value=0):
@@ -504,9 +507,9 @@ class BundledInstallTests(unittest.TestCase):
             return {'mod_dir':str(cache), 'origin_mod_dir':str(mod),
                     'revision':'fixture-compatible-2', 'components':{'BotController':'fixture-2'}}
 
-        def copy_compatible(game, source):
+        def copy_compatible(game, source, *, config):
             self.assertEqual(source, cache.resolve())
-            self.assertEqual(self.launch.settings()['mod_source_path'], str(cache.resolve()))
+            self.assertEqual(config['mod_source_path'], str(cache.resolve()))
             destination = game / native.relative_to(mod)
             destination.parent.mkdir(parents=True)
             shutil.copy2(source / native.relative_to(mod), destination)
@@ -557,7 +560,7 @@ class BundledInstallTests(unittest.TestCase):
         self.mod_install.return_value = {'ok':False, 'msg':'fixture installer declined before copying'}
         with self.assertRaisesRegex(RuntimeError, 'installer declined'):
             install.install_bundle(self.state, {**self.body, 'source':'external'})
-        self.mod_install.assert_called_once_with(self.game.resolve(), cache.resolve())
+        self.mod_install.assert_called_once_with(self.game.resolve(), cache.resolve(), config=ANY)
         self.assertEqual(before_config, self.launch.SETTINGS_PATH.read_bytes())
         self.assertEqual((mod / 'addons/metamod/runtime.dll').read_bytes(), b'user-selected runtime')
         self.assertFalse((self.game / 'addons').exists())

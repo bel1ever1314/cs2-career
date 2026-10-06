@@ -743,7 +743,8 @@ class BundledCompatibilityCohortTests(unittest.TestCase):
         self.assertEqual(audited_hashes.get(
             '8645168D4BB6A55CE8A8AC4246BCE394496E4EECF4F56C2F2A7932A98EB75D61'), '22')
         self.assertIn('AuditedAbiForHash(hash);', source)
-        self.assertIn('ValidateAbi(hash, Export<VersionFn>("GetVersion")())', source)
+        self.assertIn('CompatibleAbi(hash, Export<VersionFn>("GetVersion")(), exports)', source)
+        self.assertIn('if (AuditedModules.ContainsKey(hash)) return ValidateAbi(hash, actual);', source)
 
 
 if __name__ == '__main__':

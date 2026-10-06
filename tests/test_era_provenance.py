@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 """Data coverage is not historical accuracy; never relabel an old identity."""
 from copy import deepcopy
 import json
@@ -53,12 +54,12 @@ class EraProvenanceTests(unittest.TestCase):
         career = SimpleNamespace(free=[old], inspect_player=Mock(return_value={'name': name}))
         season = SimpleNamespace(teams=[], events=[], history=[], year=2024, date='2024-02-01',
                                  records=lambda **kwargs: [], top20={})
-        out = presentation.inspect(SimpleNamespace(career=career, season=season), 'player', old['player_id'])
+        out = presentation.inspect(ApplicationDouble(career=career, season=season), 'player', old['player_id'])
         self.assertEqual('estimated', out['data_provenance']['status'])
         self.assertEqual(name, out['name'])
         self.assertEqual(original, old)
         self.assertEqual(old['player_id'], out['player_id'])
-        self.assertIsNone(presentation.inspect(SimpleNamespace(career=career, season=season), 'player', player_id('Patsi')))
+        self.assertIsNone(presentation.inspect(ApplicationDouble(career=career, season=season), 'player', player_id('Patsi')))
 
     def test_coverage_does_not_claim_legacy_curated_is_verified(self):
         expected = {'2024': (47, 22), '2025': (41, 28), '2026': (0, 1)}

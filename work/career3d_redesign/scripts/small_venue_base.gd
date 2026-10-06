@@ -12,6 +12,8 @@ var pitch := 0.0
 var body_y := 0.0
 var focused := true
 var paused := false
+const Ambience = preload("res://scripts/venue_ambience.gd")
+var ambience: Node = null
 var booted := false
 var testing := false
 var capturing := false
@@ -52,7 +54,7 @@ func _ready() -> void:
 	camera.fov = 75; camera.near = .05; camera.far = 80
 	camera.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF; add_child(camera)
 	body_y = player.position.y
-	_hud(); _venue_ready(); booted = true
+	_hud(); _venue_ready(); _start_ambience(); booted = true
 	if not testing and not capturing: Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	if testing:
 		var suite = load("res://tests/small_venue_test.gd").new()
@@ -66,6 +68,9 @@ func _ready() -> void:
 		get_tree().quit()
 
 func _destination() -> String: return ""
+## Looping room tone / crowd bed for this venue (assets/audio), "" for none.
+func _ambience_file() -> String: return ""
+func _ambience_trim() -> float: return 1.0
 func _data_path() -> String: return ""
 func _build_venue() -> void: pass
 func _venue_ready() -> void: pass
@@ -239,10 +244,21 @@ func _process(delta: float) -> void:
 	_sync_hint()
 	_update_venue(delta)
 
+func _start_ambience() -> void:
+	if _ambience_file().is_empty(): return
+	ambience = Ambience.new(); add_child(ambience)
+	ambience.setup(_ambience_file(), _ambience_trim())
+
 func set_paused(value: bool) -> void:
 	paused = value; pause_panel.visible = value; player.velocity = Vector3.ZERO
+	if ambience: ambience.paused = value
 	if value: Travel.close_menu()
+	_pause_changed(value)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if value or CareerBridge.phone_open else Input.MOUSE_MODE_CAPTURED
+
+func _pause_changed(_value: bool) -> void: pass
+
+func _look_allowed() -> bool: return true
 
 func before_phone() -> void:
 	Travel.close_menu(); player.velocity = Vector3.ZERO
@@ -260,7 +276,7 @@ func set_device_open(value: bool, kind: String) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not booted or Travel.busy or CareerBridge.phone_open: return
-	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and not paused and not camera_owned:
+	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and not paused and not camera_owned and _look_allowed():
 		yaw -= event.relative.x*.0024; pitch = clampf(pitch-event.relative.y*.0024,-1.35,1.35)
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.physical_keycode == KEY_ESCAPE: set_paused(not paused)

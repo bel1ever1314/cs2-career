@@ -45,6 +45,9 @@ public sealed class MatchRequest
     [JsonPropertyName("nonce")]
     public string Nonce { get; set; } = "";
 
+    [JsonPropertyName("session_id")] public string? SessionId { get; set; }
+    [JsonPropertyName("rules_id")] public string? RulesId { get; set; }
+
     [JsonPropertyName("human_player_id")]
     public string HumanPlayerId { get; set; } = "";
 
@@ -145,6 +148,10 @@ public sealed class PlayerResult
 
 public sealed class MatchResult
 {
+    [JsonPropertyName("session_id"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? SessionId { get; set; }
+    [JsonPropertyName("rules_id"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? RulesId { get; set; }
     [JsonPropertyName("schema_version")]
     public int SchemaVersion { get; set; } = 2;
 
@@ -423,6 +430,11 @@ public sealed partial class CareerMatchPlugin : BasePlugin
         _liveRounds = 0;
         _roundLive = false;
         _contractError = ValidateContract();
+        _avatarDelivery.Reset();
+        _avatarBridge = null;
+        _avatarApiReady = false;
+        _avatarError = "";
+        WriteAvatarStatus();
         _health.StatisticsError = "";
         _identities.Clear();
         _actors.NewMatch();
@@ -806,6 +818,7 @@ public sealed partial class CareerMatchPlugin : BasePlugin
     {
         if (@event.Userid is { } leaving)
         {
+            _avatarDelivery.Forget(leaving.Slot);
             if (_slotIds.TryGetValue(leaving.Slot, out var leavingId))
             {
                 _disconnected.Add(leavingId);
@@ -1044,12 +1057,14 @@ public sealed partial class CareerMatchPlugin : BasePlugin
     {
         if (_request is null || !_health.CanMaintainPresentation(_request.Active)) return;
         BindPlayerSlots();
+        var avatarBridge = ResolveAvatarBridge();
         var configs = _request.Ct.Players.Concat(_request.T.Players)
             .ToDictionary(x => x.PlayerId, StringComparer.Ordinal);
         foreach (var bot in AllSlots())
         {
             if (_slotIds.GetValueOrDefault(bot.Slot) == _request.HumanPlayerId)
             {
+                _avatarDelivery.Forget(bot.Slot);
                 var humanName = SafeCommandText(_request.Player);
                 if (!string.IsNullOrWhiteSpace(humanName) && bot.PlayerName != humanName)
                 {
@@ -1074,14 +1089,11 @@ public sealed partial class CareerMatchPlugin : BasePlugin
             {
                 Server.ExecuteCommand($"bh_setname {bot.Slot} \"{name}\"");
             }
-            // Always override BotHider's synthetic Steam identity. Unknown
-            // teams have a bundled neutral PNG, so no random external Steam
-            // avatar can leak through.
-            if (!namesOnly && TryValidatedAvatarPath(config, out var avatarPath, out _))
-            {
-                Server.ExecuteCommand($"bh_setavatar {bot.Slot} \"{avatarPath}\"");
-            }
+            // Direct plugin API, not an unchecked console command. Confirm
+            // native application on later refreshes; retries are bounded.
+            if (avatarBridge is not null) ApplyBotAvatar(bot.Slot, config, avatarBridge);
         }
+        WriteAvatarStatus();
     }
 
     private int? _openingCtCurrentSide;
@@ -1265,6 +1277,8 @@ public sealed partial class CareerMatchPlugin : BasePlugin
         {
             SchemaVersion = 2,
             RequestNonce = _request?.Nonce ?? "",
+            SessionId = _request?.SessionId,
+            RulesId = _request?.RulesId,
             Status = status,
             Map = mapName,
             Winner = status == "finished" ? winner : "",

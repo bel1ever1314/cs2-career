@@ -1,5 +1,7 @@
 extends CanvasLayer
 ## Desktop workstation. CareerBridge owns all ladder and scrim state.
+const SharedPages = preload("res://scripts/device_pages.gd")
+const SharedData = preload("res://scripts/device_page_data.gd")
 const UI = preload("res://scripts/computer_ui.gd")
 const Visuals = preload("res://scripts/computer_visuals.gd")
 const Business = preload("res://scripts/computer_business.gd")
@@ -25,8 +27,10 @@ const Fmt = preload("res://scripts/ui_format.gd")
 const Kit = preload("res://scripts/ui_kit.gd")
 const LIGHT := UI.INK
 const MUTED := UI.MUTED
-const PAGES := {"desktop":"桌面", "battle":"对战中心", "career_match":"职业比赛", "quick":"快速赛季", "settings":"设置", "tactics":"战术室", "ladder":"本地天梯", "custom":"自定义对局", "rts":"战术模拟", "scrim":"训练赛", "events":"赛事中心", "team":"战队资料", "player":"选手资料", "event":"赛事资料", "match":"比赛战报", "market":"饰品市场", "profile":"我的生涯", "mail":"邮件", "calendar":"日历", "operations":"经营", "transfers":"转会", "news":"赛事新闻", "management":"阵容与合同", "training":"训练与成长", "assistance":"自动安排", "rankings":"职业榜单", "workshop":"扩展工坊", "start":"开始与继续", "appearance":"我的形象", "saves":"存档管理"}
-const APPS := [{"page":"battle", "label":"对战中心", "icon":"match"}, {"page":"events", "label":"赛事中心", "icon":"trophy"}, {"page":"market", "label":"饰品市场", "icon":"clipboard"}, {"page":"operations", "label":"经营", "icon":"finance"}, {"page":"transfers", "label":"转会", "icon":"transfers"}, {"page":"news", "label":"赛事新闻", "icon":"news"}, {"page":"profile", "label":"我的生涯", "icon":"profile"}, {"page":"mail", "label":"邮件", "icon":"mail"}, {"page":"calendar", "label":"日历", "icon":"calendar"}]
+var PAGES: Dictionary:
+	get: return SharedData.page_titles(false)
+var APPS: Array:
+	get: return SharedData.apps(false)
 var screen: Control
 var panel: PanelContainer
 var stand: PanelContainer
@@ -48,6 +52,7 @@ var action_buttons: Array[Button] = []
 var opponent_id := ""
 var scrim_date := ""
 var scrim_map := ""
+var scrim_side := "ct"
 var pending_detail_path := ""
 var rendered_context := ""
 var notice := ""
@@ -147,19 +152,19 @@ func _ready() -> void:
 	menubar.add_theme_constant_override("separation", 12)
 	menu.add_child(menubar)
 	UI.transparent(UI.compact(UI.button(menubar, "Career", _desktop)))
-	var place_label := _label(menubar, "俱乐部电脑", 12, MUTED)
+	var place_label := _label(menubar, Locale.source("device.club_workstation"), 12, MUTED)
 	place_label.name = "ComputerLocation"
 	place_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var close := UI.compact(UI.button(menubar, "离开电脑  [E / Esc]", close_computer))
+	var close := UI.compact(UI.button(menubar, Locale.source("device.leave_computer_e_esc"), close_computer))
 	UI.transparent(close)
 	app_toolbar = HBoxContainer.new()
 	app_toolbar.name = "ComputerAppToolbar"
 	app_toolbar.add_theme_constant_override("separation", 10)
 	layout.add_child(app_toolbar)
-	back_button = UI.compact(UI.button(app_toolbar, "‹ 返回", _back))
+	back_button = UI.compact(UI.button(app_toolbar, Locale.source("device.back_2"), _back))
 	UI.transparent(back_button)
 	back_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	title = _label(app_toolbar, "桌面", 16)
+	title = _label(app_toolbar, Locale.source("page.desktop"), 16)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	var close_app := UI.compact(UI.button(app_toolbar, "×", _desktop))
@@ -203,7 +208,7 @@ func _ready() -> void:
 	utilities.add_theme_constant_override("h_separation", 8)
 	utilities.add_theme_constant_override("v_separation", 8)
 	desktop_shortcuts.add_child(utilities)
-	for item in [["management", "阵容与合同"], ["training", "训练与成长"], ["assistance", "自动安排"], ["rankings", "职业榜单"], ["workshop", "扩展工坊"], ["appearance", "我的形象"], ["start", "开局选择"], ["saves", "存档管理"]]:
+	for item in [["management", Locale.source("page.management")], ["training", Locale.source("page.training")], ["assistance", Locale.source("page.assistance")], ["rankings", Locale.source("page.rankings")], ["workshop", Locale.source("page.workshop")], ["appearance", Locale.source("page.appearance")], ["start", Locale.source("device.career_setup")], ["saves", Locale.source("page.saves")]]:
 		var shortcut := UI.compact(_button(utilities, item[1], _navigate.bind(item[0]), false))
 		shortcut.add_theme_stylebox_override("normal", UI.raised(Color(1, 0.996, 0.973, 0.92), 12, 10))
 	var status_margin := MarginContainer.new()
@@ -222,7 +227,7 @@ func _ready() -> void:
 	taskbar.name = "ComputerTaskbar"
 	taskbar.add_theme_constant_override("separation", 4)
 	taskbar_surface.add_child(taskbar)
-	var home := UI.compact(UI.button(taskbar, "桌面", _desktop))
+	var home := UI.compact(UI.button(taskbar, Locale.source("page.desktop"), _desktop))
 	UI.transparent(home)
 	home.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	for app in APPS:
@@ -230,7 +235,7 @@ func _ready() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	taskbar.add_child(spacer)
-	UI.transparent(UI.compact(UI.button(taskbar, "我的手机", _open_phone)))
+	UI.transparent(UI.compact(UI.button(taskbar, Locale.source("device.my_phone"), _open_phone)))
 	clock = _label(taskbar, "", 12, MUTED)
 	clock.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	clock.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -549,13 +554,13 @@ func _rebuild() -> void:
 	content.add_theme_constant_override("separation", 6 if active_page in ["career_match", "quick", "tactics"] or (active_page == "battle" and match_center.is_presenting()) else 12)
 	action_buttons.clear()
 	built_while_busy = CareerBridge.busy
-	title.text = str(PAGES.get(active_page, "桌面"))
+	title.text = str(PAGES.get(active_page, Locale.source("page.desktop")))
 	app_toolbar.visible = active_page != "desktop"
 	desktop_wallpaper.visible = active_page == "desktop"
 	desktop_shortcuts.visible = active_page == "desktop"
 	var location_label := panel.find_child("ComputerLocation", true, false) as Label
 	if location_label:
-		location_label.text = {"club":"俱乐部电脑", "lan":"LAN 选手电脑", "major":"赛事选手电脑", "bedroom":"宿舍电脑"}.get(location, "宿舍电脑")
+		location_label.text = {"club":Locale.source("device.club_workstation"), "lan":Locale.source("device.lan_player_computer"), "major":Locale.source("device.tournament_player_computer"), "bedroom":Locale.source("device.home_computer")}.get(location, Locale.source("device.home_computer"))
 	back_button.disabled = active_page == "desktop"
 	for page in taskbar_buttons:
 		var task: Button = taskbar_buttons[page]
@@ -565,7 +570,7 @@ func _rebuild() -> void:
 	rendered_context = PageProjection.signature(active_page, CareerBridge.context)
 	_update_status()
 	if CareerBridge.context.is_empty() and active_page != "desktop":
-		_label(content, "生涯正在载入。连接完成后即可使用。")
+		_label(content, Locale.source("device.loading_your_career_this_page_will_be_available_once_connected"))
 	else:
 		match active_page:
 			"desktop": _render_desktop()
@@ -584,7 +589,7 @@ func _rebuild() -> void:
 			"custom": custom_room.render(content)
 			"rts":
 				if rts_render.is_valid(): rts_render.call(content)
-				else: _label(content, "战术模拟模块尚未接入。", 18, MUTED)
+				else: _label(content, Locale.source("device.tactical_simulation_is_not_available_yet"), 18, MUTED)
 			"scrim": _scrim()
 			"events": _events()
 			"team": _team()
@@ -614,18 +619,18 @@ func _seal_actions() -> void:
 
 func _font_settings() -> void:
 	var card := UI.card(content)
-	_label(card, "界面字体", 18)
+	_label(card, Locale.source("device.interface_font"), 18)
 	var picker := OptionButton.new()
 	picker.name = "UIFontChoice"
 	UI.dark_options(picker)
-	picker.add_item("圆润字体 · 寒蝉全圆体")
-	picker.add_item("清晰字体 · 系统黑体")
+	picker.add_item(Locale.source("device.rounded_font_2"))
+	picker.add_item(Locale.source("device.system_sans_serif_2"))
 	picker.select(0 if UI.Base.font_style == "rounded" else 1)
 	card.add_child(picker)
 	picker.item_selected.connect(func(index: int):
 		UI.Base.choose_font("rounded" if index == 0 else "system", get_tree())
 	)
-	_label(card, "字体随样板离线提供；仅改变显示，不影响生涯。", 12, MUTED)
+	_label(card, Locale.source("device.fonts_are_provided_offline_changing_the_font_only_affects_display"), 12, MUTED)
 
 func _render_desktop() -> void:
 	var c := CareerBridge.context
@@ -681,7 +686,7 @@ func _render_desktop() -> void:
 	var player: Dictionary = c.get("player", {}) if c.get("player") is Dictionary else {}
 	var team: Dictionary = c.get("team", {}) if c.get("team") is Dictionary else {}
 	var hour := floori(CareerBridge.clock_minutes / 60)
-	var salutation := "早上好" if hour < 12 else ("下午好" if hour < 18 else "晚上好")
+	var salutation := Locale.source("device.good_morning") if hour < 12 else (Locale.source("device.good_afternoon") if hour < 18 else Locale.source("device.good_evening"))
 	var hello := _label(greeting, salutation + ("，" + str(player.get("name", "")) if not str(player.get("name", "")).is_empty() else ""), 28)
 	hello.autowrap_mode = TextServer.AUTOWRAP_OFF
 	hello.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -693,7 +698,7 @@ func _render_desktop() -> void:
 		var team_line := _label(who, "%s · %s" % [team.get("name", ""), Phone.ROLES.get(str(player.get("role", "")), str(player.get("role", "")))], 14, MUTED)
 		team_line.autowrap_mode = TextServer.AUTOWRAP_OFF
 		team_line.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-		if team.has("rank"): Kit.chip(who, "世界排名 #%s" % Fmt.integer(team.get("rank")), "green")
+		if team.has("rank"): Kit.chip(who, Locale.source("device.world_rank_value") % Fmt.integer(team.get("rank")), "green")
 	var next_game := match_center.current_game()
 	var next_card := PanelContainer.new()
 	next_card.name = "DesktopNextMatch"
@@ -707,14 +712,14 @@ func _render_desktop() -> void:
 	next_words.add_theme_constant_override("separation", 3)
 	next_row.add_child(next_words)
 	if next_game.is_empty():
-		_label(next_words, "下一场比赛", 12, MUTED)
-		_label(next_words, "还没有排定的比赛", 19)
-		_label(next_words, "在邮件里确认赛事邀请后，赛程会出现在这里。", 13, MUTED)
-		var invites := UI.compact(_button(next_row, "查看邀请", _navigate.bind("mail"), false))
+		_label(next_words, Locale.source("device.next_match"), 12, MUTED)
+		_label(next_words, Locale.source("device.no_matches_scheduled"), 19)
+		_label(next_words, Locale.source("device.accept_event_invitations_in_your_mail_and_the_schedule_appears_here"), 13, MUTED)
+		var invites := UI.compact(_button(next_row, Locale.source("device.view_invitations"), _navigate.bind("mail"), false))
 		invites.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	else:
 		var label_colour := Color("b8d4c2")
-		_label(next_words, "下一场比赛 · %s%s" % [next_game.get("date", ""), " · 今天" if next_game.get("due", false) else ""], 12, label_colour)
+		_label(next_words, Locale.source("device.next_match_valuevalue") % [next_game.get("date", ""), Locale.source("device.today") if next_game.get("due", false) else ""], 12, label_colour)
 		var versus := HBoxContainer.new()
 		versus.add_theme_constant_override("separation", 10)
 		next_words.add_child(versus)
@@ -722,7 +727,7 @@ func _render_desktop() -> void:
 		vs_mark.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		vs_mark.autowrap_mode = TextServer.AUTOWRAP_OFF
 		TeamVisuals.badge(versus, str(next_game.get("opponent", "")), 28)
-		var opponent := _label(versus, str(next_game.get("opponent", "待定")), 21, UI.PAPER)
+		var opponent := _label(versus, str(next_game.get("opponent", Locale.source("device.tbd"))), 21, UI.PAPER)
 		opponent.autowrap_mode = TextServer.AUTOWRAP_OFF
 		var detail_line := "%s · BO%s" % [next_game.get("event", ""), Fmt.integer(next_game.get("best_of", 3))]
 		var event_line := _label(next_words, detail_line, 13, label_colour)
@@ -730,8 +735,8 @@ func _render_desktop() -> void:
 		event_line.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		var stage := str(next_game.get("stage", ""))
 		if not stage.is_empty():
-			_label(next_words, {"QF":"四分之一决赛", "SF":"半决赛", "GF":"决赛", "R16":"十六强"}.get(stage, stage), 12, label_colour)
-		var go := _button(next_row, "参赛安排", _navigate.bind("career_match"), false)
+			_label(next_words, {"QF":Locale.source("device.quarterfinal"), "SF":Locale.source("device.semifinal"), "GF":Locale.source("device.final"), "R16":Locale.source("device.round_of_16")}.get(stage, stage), 12, label_colour)
+		var go := _button(next_row, Locale.source("device.event_schedule"), _navigate.bind("career_match"), false)
 		UI.compact(go)
 		UI.primary(go)
 		go.add_theme_stylebox_override("normal", UI.style(Color("e9c46a"), 12, 10))
@@ -748,18 +753,18 @@ func _render_desktop() -> void:
 	var pocket: Dictionary = finance.get("pocket", {}) if finance.get("pocket") is Dictionary else {}
 	var club: Dictionary = finance.get("club", {}) if finance.get("club") is Dictionary else {}
 	var pocket_next = pocket.get("next_net")
-	Kit.stat_tile(stats, UI, "个人余额", Fmt.money_short(personal.get("personal_money", c.get("personal_money", c.get("money")))), ("下月 " + Fmt.money(pocket_next, true)) if Fmt.is_number(pocket_next) else "", "green" if Fmt.is_number(pocket_next) and float(pocket_next) >= 0 else "red")
+	Kit.stat_tile(stats, UI, Locale.source("device.personal_balance"), Fmt.money_short(personal.get("personal_money", c.get("personal_money", c.get("money")))), (Locale.source("device.next_month") + Fmt.money(pocket_next, true)) if Fmt.is_number(pocket_next) else "", "green" if Fmt.is_number(pocket_next) and float(pocket_next) >= 0 else "red")
 	var club_next = club.get("next_net")
-	Kit.stat_tile(stats, UI, "俱乐部资金", Fmt.money_short(personal.get("club_money", c.get("club_money", team.get("money")))), ("下月 " + Fmt.money(club_next, true)) if Fmt.is_number(club_next) else "", "green" if Fmt.is_number(club_next) and float(club_next) >= 0 else "red")
+	Kit.stat_tile(stats, UI, Locale.source("device.club_funds_2"), Fmt.money_short(personal.get("club_money", c.get("club_money", team.get("money")))), (Locale.source("device.next_month") + Fmt.money(club_next, true)) if Fmt.is_number(club_next) else "", "green" if Fmt.is_number(club_next) and float(club_next) >= 0 else "red")
 	var points := int(c.get("attr_points", personal.get("attr_points", 0)))
-	Kit.stat_tile(stats, UI, "当前能力", Fmt.score(personal.get("ability", player.get("ability"))), ("%s 点可分配" % points) if points > 0 else "状态 %s" % ("%+.1f" % float(personal.get("form_delta")) if Fmt.is_number(personal.get("form_delta")) else "—"), "amber" if points > 0 else "")
-	Kit.stat_tile(stats, UI, "待回复邮件", str(open_mail), "共 %d 封" % c.get("inbox", []).size(), "amber" if open_mail > 0 else "")
+	Kit.stat_tile(stats, UI, Locale.source("device.current_ability"), Fmt.score(personal.get("ability", player.get("ability"))), (Locale.source("device.value_points_to_assign") % points) if points > 0 else Locale.source("device.form_value") % ("%+.1f" % float(personal.get("form_delta")) if Fmt.is_number(personal.get("form_delta")) else "—"), "amber" if points > 0 else "")
+	Kit.stat_tile(stats, UI, Locale.source("device.mail_awaiting_reply"), str(open_mail), Locale.source("device.value_in_total") % c.get("inbox", []).size(), "amber" if open_mail > 0 else "")
 	var news_rows: Array = c.get("news", {}).get("rows", []) if c.get("news") is Dictionary else []
 	if not news_rows.is_empty():
 		var headline: Dictionary = news_rows[0]
-		var news_button := _button(greeting, "赛事新闻：" + str(headline.get("title", "")), _navigate.bind("news"), false)
+		var news_button := _button(greeting, Locale.source("device.event_news") + str(headline.get("title", "")), _navigate.bind("news"), false)
 		news_button.name = "DesktopHeadline"
-		Kit.rich_row(news_button, UI, Locale.field(headline, "title"), "最新报道 · " + str(headline.get("date", "")), "", "新闻", "blue", "news")
+		Kit.rich_row(news_button, UI, Locale.field(headline, "title"), Locale.source("device.latest") + str(headline.get("date", "")), "", Locale.source("device.news"), "blue", "news")
 	# 3. Agenda: today's actionable shortcuts.
 	var agenda := UI.card(desktop)
 	var agenda_panel := agenda.get_parent() as PanelContainer
@@ -770,21 +775,21 @@ func _render_desktop() -> void:
 	agenda.size_flags_horizontal = Control.SIZE_SHRINK_END
 	agenda.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	agenda.add_theme_constant_override("separation", 6)
-	Kit.section(agenda, UI, "今日安排", str(c.get("date", "")), 17)
+	Kit.section(agenda, UI, Locale.source("device.today_s_agenda"), str(c.get("date", "")), 17)
 	var attendance := match_center.attendance()
 	if not next_game.is_empty() and (attendance.get("planned", false) or next_game.get("due", false)):
-		_label(agenda, "%s · %s" % [next_game.get("event", "下一场比赛"), attendance.get("display_name", "比赛场馆")], 13)
-		var arrangement := _button(agenda, "查看参赛安排", _navigate.bind("career_match"), false)
+		_label(agenda, "%s · %s" % [next_game.get("event", Locale.source("device.next_match")), attendance.get("display_name", Locale.source("device.match_venue_2"))], 13)
+		var arrangement := _button(agenda, Locale.source("device.view_match_arrangements"), _navigate.bind("career_match"), false)
 		arrangement.name = "DesktopAttendance"
 		UI.primary(arrangement)
 	for entry in [
-		["调整与培养 · %s 点自由属性" % Fmt.integer(c.get("attr_points", 0), "0"), "profile", "profile"],
-		["训练与对战", "battle", "match"],
-		["%d 封邮件" % c.get("inbox", []).size(), "mail", "mail"],
-		["看看日历", "calendar", "calendar"],
-		["快速赛季", "quick", "trophy"],
-		["战术室", "tactics", "clipboard"],
-		["CS2 与换肤设置", "settings", "settings"]]:
+		[Locale.source("device.training_and_setup_value_available_attribute_points") % Fmt.integer(c.get("attr_points", 0), "0"), "profile", "profile"],
+		[Locale.source("device.training_and_matches"), "battle", "match"],
+		[Locale.source("device.value_messages") % c.get("inbox", []).size(), "mail", "mail"],
+		[Locale.source("device.open_calendar"), "calendar", "calendar"],
+		[Locale.source("page.quick"), "quick", "trophy"],
+		[Locale.source("page.tactics"), "tactics", "clipboard"],
+		[Locale.source("device.cs2_and_skin_settings"), "settings", "settings"]]:
 		var item := _button(agenda, str(entry[0]), _navigate.bind(str(entry[1])), false)
 		Kit.rich_row(item, UI, str(entry[0]), "", "", "", "gray", str(entry[2]))
 		item.custom_minimum_size.y = 42
@@ -793,35 +798,35 @@ func _battle() -> void:
 	match_center.render(content)
 	if match_center.is_presenting():
 		return
-	_label(content, "对战中心", 25)
-	_label(content, "从一场好好打的比赛开始。", 14, MUTED)
+	_label(content, Locale.source("page.battle"), 25)
+	_label(content, Locale.source("device.start_with_a_good_match"), 14, MUTED)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 22)
 	content.add_child(row)
 	var ladder_box := UI.card(row)
 	ladder_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_label(ladder_box, "本地天梯", 20)
+	_label(ladder_box, Locale.source("page.ladder"), 20)
 	var player: Dictionary = _ladder_state().get("player", {})
 	_label(ladder_box, "%s · Elo %s" % [CareerBridge.context.get("player", {}).get("name", ""), Fmt.integer(player.get("elo"))], 15)
-	_label(ladder_box, "当前生涯角色 · 十人匹配 · 队长选人 · 地图 BP", 13, MUTED)
-	UI.primary(_button(ladder_box, "打开天梯", _navigate.bind("ladder"), false))
+	_label(ladder_box, Locale.source("device.career_character_ten_players_captain_picks_map_veto"), 13, MUTED)
+	UI.primary(_button(ladder_box, Locale.source("device.open_ladder"), _navigate.bind("ladder"), false))
 	var training := UI.card(row)
 	training.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_label(training, "训练赛", 20)
-	_label(training, "约对手、练配合，打完一起看战报。", 13, MUTED)
+	_label(training, Locale.source("page.scrim"), 20)
+	_label(training, Locale.source("device.arrange_a_scrim_practise_teamwork_and_review_the_match_together"), 13, MUTED)
 	if location == "club":
-		_button(training, "约一场训练赛", _navigate.bind("scrim"), false)
+		_button(training, Locale.source("device.arrange_a_scrim"), _navigate.bind("scrim"), false)
 	else:
-		_label(training, "到俱乐部电脑安排训练赛。", 14, MUTED)
+		_label(training, Locale.source("device.arrange_a_scrim_at_the_club_workstation"), 14, MUTED)
 	var custom := UI.card(content)
-	_label(custom, "自定义对局 · 战术验证", 18)
-	_label(custom, "自行选择双方各五名选手、地图与开场阵营；可控制一名选手或观察十名 BOT，不计天梯积分。", 13, MUTED)
-	var custom_entry := _button(custom, "打开自定义对局", _navigate.bind("custom"), false)
+	_label(custom, Locale.source("device.custom_match_test_tactics"), 18)
+	_label(custom, Locale.source("device.choose_both_five_player_squads_map_and_starting_side_play_as_one_player_or_obser"), 13, MUTED)
+	var custom_entry := _button(custom, Locale.source("device.open_custom_match"), _navigate.bind("custom"), false)
 	custom_entry.name = "ComputerOpenCustom"
-	var rts_entry := _button(custom, "RTS 指挥对局", Callable(rts_room, "open_custom"), false)
+	var rts_entry := _button(custom, Locale.source("device.rts_command_match"), Callable(rts_room, "open_custom"), false)
 	rts_entry.name = "ComputerOpenRTS"
-	_label(content, "职业赛事", 18)
-	_button(content, "查看赛事日程", _navigate.bind("events"), false)
+	_label(content, Locale.source("device.career_tournaments"), 18)
+	_button(content, Locale.source("device.view_tournament_schedule"), _navigate.bind("events"), false)
 
 func _personal() -> Dictionary:
 	var value = CareerBridge.context.get("personal", {})
@@ -841,37 +846,13 @@ func _position_preview_changed(index: int, page: String, selector: OptionButton)
 	_rebuild()
 
 func _position_preview(parent: Node, data: Dictionary, current_role: String, current_stats: Dictionary, page: String) -> void:
-	var raw_views = data.get("position_views", [])
-	var views: Array = raw_views if raw_views is Array else []
-	if views.is_empty():
-		return
-	var selected := str(position_preview_roles.get(page, ""))
-	var shown: Dictionary = {"ability":data.get("ability"), "stats":current_stats}
-	var box := UI.card(parent)
-	box.name = "ComputerPositionPreview_" + page
-	_label(box, "位置能力", 18)
-	var selector := OptionButton.new()
-	UI.dark_options(selector)
-	selector.name = "PositionPreviewSelector"
-	selector.custom_minimum_size = Vector2(220, 36)
-	selector.add_item("当前位置 · " + str(Phone.ROLES.get(current_role, current_role)))
-	selector.set_item_metadata(0, "")
-	box.add_child(selector)
-	for view in views:
-		if not view is Dictionary:
-			continue
-		selector.add_item(str(view.get("label", view.get("role", ""))))
-		var index := selector.item_count - 1
-		selector.set_item_metadata(index, str(view.get("role", "")))
-		if str(view.get("role", "")) == selected:
-			selector.select(index)
-			shown = view
-	selector.item_selected.connect(_position_preview_changed.bind(page, selector))
-	_quiet_row(box, "位置适配能力", _number(shown.get("ability"), 2))
-	var stats: Dictionary = shown.get("stats", {}) if shown.get("stats") is Dictionary else {}
-	for axis in {"firepower":"火力", "entrying":"突破", "trading":"补枪", "opening":"首杀", "clutching":"残局", "sniping":"狙击", "utility":"道具"}:
-		_quiet_row(box, str({"firepower":"火力", "entrying":"突破", "trading":"补枪", "opening":"首杀", "clutching":"残局", "sniping":"狙击", "utility":"道具"}[axis]), _number(stats.get(axis), 1))
-	_label(box, "切换预览不会改变阵容。", 12, MUTED)
+	var preview := preload("res://scripts/position_preview.gd").new()
+	preview.role_selected.connect(func(role: String):
+		position_preview_roles[page] = role
+		page_scroll[active_page] = scroll.scroll_vertical
+		_rebuild())
+	var widget := preview.render(parent, data, current_role, current_stats, str(position_preview_roles.get(page, "")), Phone.ROLES, page, false)
+	if widget != null: widget.set_meta("page_fragment", preview)
 
 func _profile() -> void:
 	var you: Dictionary = CareerBridge.context.get("player", {})
@@ -888,63 +869,19 @@ func _profile() -> void:
 	heading.alignment = BoxContainer.ALIGNMENT_CENTER
 	heading.add_theme_constant_override("separation", 2)
 	header.add_child(heading)
-	_label(heading, str(you.get("name", "我的生涯")), 25)
+	_label(heading, str(you.get("name", Locale.source("page.career"))), 25)
 	var form = personal.get("form_delta")
-	var form_text := "%+.1f" % float(form) if typeof(form) in [TYPE_INT, TYPE_FLOAT] else "—"
-	_label(heading, "%s · %s 岁 · 当前位置能力 %s · 状态 %s" % [Phone.ROLES.get(you.get("role", ""), you.get("role", "")), Fmt.integer(you.get("age")), Fmt.score(personal.get("ability", you.get("ability"))), form_text], 14, MUTED)
+	var form_text := Fmt.signed(form)
+	_label(heading, Locale.source("device.value_age_value_role_ability_value_form_value") % [Phone.ROLES.get(you.get("role", ""), you.get("role", "")), Fmt.integer(you.get("age")), Fmt.score(personal.get("ability", you.get("ability"))), form_text], 14, MUTED)
 	var club_name := str(CareerBridge.context.get("team", {}).get("name", ""))
 	if not club_name.is_empty(): TeamVisuals.badge(header, club_name, 48)
-	_tabs(content, [{"id":"overview", "label":"概览"}, {"id":"growth", "label":"属性培养"}, {"id":"history", "label":"比赛数据"}], profile_tab, _profile_tab)
+	_tabs(content, [{"id":"overview", "label":Locale.source("device.overview")}, {"id":"growth", "label":Locale.source("device.attribute_training")}, {"id":"history", "label":Locale.source("device.match_statistics")}], profile_tab, _profile_tab)
 	if profile_tab == "growth":
-		var raw_attributes = personal.get("attributes", {})
-		var attributes: Dictionary = raw_attributes if raw_attributes is Dictionary else {}
-		var axes: Array = personal.get("axes", attributes.keys())
-		var labels: Dictionary = personal.get("axis_labels", {})
-		_label(content, "自由属性点 · %d" % CareerBridge.growth_remaining(), 22)
-		var allowed: bool = bool(personal.get("growth_allowed", false))
-		_label(content, str(personal.get("growth_reason", "")), 13, MUTED)
-		if axes.is_empty():
-			_label(content, "属性资料正在载入。", 14, MUTED)
-		for axis in axes:
-			var key := str(axis)
-			var row := HBoxContainer.new()
-			row.name = "ComputerAttribute_" + key
-			row.add_theme_constant_override("separation", 12)
-			content.add_child(row)
-			_label(row, str(labels.get(key, key)), 14).custom_minimum_size.x = 86
-			var pending := int(CareerBridge.growth_draft.get(key, 0))
-			var raw_value = attributes.get(key)
-			var has_value: bool = typeof(raw_value) in [TYPE_INT, TYPE_FLOAT]
-			var value := float(raw_value) if has_value else 0.0
-			var meter := ProgressBar.new()
-			meter.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			meter.custom_minimum_size = Vector2(180, 8)
-			meter.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			meter.show_percentage = false
-			meter.value = value + pending
-			meter.add_theme_stylebox_override("background", UI.style(Color("e6e3d6"), 0, 4))
-			meter.add_theme_stylebox_override("fill", UI.style(Color("4f8a6c") if pending == 0 else UI.AMBER, 0, 4))
-			row.add_child(meter)
-			var value_label := _label(row, ("%.0f%s" % [value, " +%d" % pending if pending > 0 else ""]) if has_value else "—", 14)
-			value_label.name = "AttributeValue"
-			value_label.custom_minimum_size.x = 66
-			value_label.size_flags_horizontal = Control.SIZE_SHRINK_END
-			var minus := UI.compact(_button(row, "−", CareerBridge.growth_adjust.bind(key, -1)))
-			minus.name = "AttributeMinus_" + key
-			minus.custom_minimum_size = Vector2(34, 30)
-			minus.disabled = not allowed or not has_value or pending <= 0
-			var plus := UI.compact(_button(row, "+", CareerBridge.growth_adjust.bind(key, 1)))
-			plus.name = "AttributePlus_" + key
-			plus.custom_minimum_size = Vector2(34, 30)
-			plus.disabled = not allowed or not has_value or CareerBridge.growth_remaining() <= 0 or value + pending >= 100
-		var actions := HBoxContainer.new()
-		content.add_child(actions)
-		var confirm := _button(actions, "确认加点", _commit_growth)
-		confirm.name = "ComputerGrowthCommit"
-		UI.primary(confirm)
-		confirm.disabled = not allowed or CareerBridge.growth_draft.is_empty()
-		_button(actions, "清空本次分配", CareerBridge.growth_clear, false)
-		_label(content, "手机和电脑使用同一份属性与点数。", 12, MUTED)
+		var fragment := SharedPages.new()
+		fragment.growth_adjusted.connect(CareerBridge.growth_adjust)
+		fragment.growth_confirmed.connect(_commit_growth)
+		fragment.growth_cleared.connect(CareerBridge.growth_clear)
+		fragment.growth(content, personal, CareerBridge.growth_draft, CareerBridge.growth_remaining(), false, _button, CareerBridge.busy)
 		return
 	if profile_tab == "overview":
 		var raw_playing = personal.get("playing_attributes", personal.get("attributes", {}))
@@ -956,7 +893,7 @@ func _profile() -> void:
 	metrics.name = "ProfileMetrics"
 	metrics.add_theme_constant_override("separation", 12)
 	content.add_child(metrics)
-	for stat in [{"id":"rating", "label":"Rating", "format":"%.2f"}, {"id":"adr", "label":"ADR", "format":"%.1f"}, {"id":"kast", "label":"KAST", "format":"%.1f%%"}, {"id":"maps", "label":"地图", "format":"%.0f"}]:
+	for stat in [{"id":"rating", "label":"Rating", "format":"%.2f"}, {"id":"adr", "label":"ADR", "format":"%.1f"}, {"id":"kast", "label":"KAST", "format":"%.1f%%"}, {"id":"maps", "label":Locale.source("device.map"), "format":"%.0f"}]:
 		var raw_amount = stats.get(str(stat["id"]))
 		var has_amount: bool = typeof(raw_amount) in [TYPE_INT, TYPE_FLOAT]
 		var amount := float(raw_amount) if has_amount else 0.0
@@ -965,18 +902,14 @@ func _profile() -> void:
 		Kit.stat_tile(metrics, UI, str(stat["label"]), str(stat["format"]) % amount if has_amount and int(stats.get("maps", 0)) > 0 else "—")
 	if stats.has("k"):
 		_quiet_row(content, "K / D / A", Fmt.kda(stats))
-	_quiet_row(content, "个人余额", Fmt.money(personal.get("personal_money", CareerBridge.context.get("money", 0))))
-	_quiet_row(content, "所属战队", str(CareerBridge.context.get("team", {}).get("name", "")))
-	_label(content, "最近职业比赛", 18)
-	for game in CareerBridge.context.get("recent_matches", []):
-		var series = game.get("series", [])
-		var score := "%s : %s" % [series[0], series[1]] if series is Array and series.size() == 2 else ""
-		var row := _button(content, "%s %s %s" % [game.get("team_a", ""), score, game.get("team_b", "")], _load_detail.bind("match", str(game.get("id", ""))), false)
-		Kit.rich_row(row, UI, row.text, "%s · %s" % [Kit.short_date(str(game.get("date", ""))), game.get("event", "")], "", "", "gray", "match")
-	if CareerBridge.context.get("recent_matches", []).is_empty():
-		_label(content, "暂无", 14, MUTED)
+	_quiet_row(content, Locale.source("device.personal_balance"), Fmt.money(personal.get("personal_money", CareerBridge.context.get("money", 0))))
+	_quiet_row(content, Locale.source("device.current_team"), str(CareerBridge.context.get("team", {}).get("name", "")))
+	_label(content, Locale.source("device.recent_career_matches"), 18)
+	var recent := SharedPages.new()
+	recent.match_selected.connect(func(id: String): _load_detail("match", id))
+	recent.recent_matches(content, CareerBridge.context.get("recent_matches", []), false, _button)
 	if profile_tab == "overview":
-		_button(content, "分配自由属性点", _profile_tab.bind("growth"), false)
+		_button(content, Locale.source("device.allocate_attribute_points"), _profile_tab.bind("growth"), false)
 
 func _skins() -> Dictionary:
 	var value = CareerBridge.context.get("skins", {})
@@ -1003,7 +936,7 @@ func _rarity_color(value: String) -> Color:
 	return {"consumer":Color("8a98a6"), "industrial":Color("668bb7"), "milspec":Color("668bb7"), "restricted":Color("9278ae"), "classified":Color("b46f91"), "covert":Color("ae5d55"), "rare":Color("a78236"), "extraordinary":Color("a78236")}.get(value, Color("668bb7"))
 
 func _rarity_label(value: String) -> String:
-	return str({"consumer":"消费级", "industrial":"工业级", "milspec":"军规级", "restricted":"受限", "classified":"保密", "covert":"隐秘", "rare":"罕见特殊", "extraordinary":"非凡"}.get(value, value))
+	return str({"consumer":Locale.source("device.consumer_grade"), "industrial":Locale.source("device.industrial_grade"), "milspec":Locale.source("device.mil_spec"), "restricted":Locale.source("device.restricted"), "classified":Locale.source("device.classified"), "covert":Locale.source("device.covert"), "rare":Locale.source("device.rare_special_item"), "extraordinary":Locale.source("device.extraordinary")}.get(value, value))
 
 func _skin_art(parent: Node, row: Dictionary, height: int = 112) -> void:
 	var surface := PanelContainer.new()
@@ -1030,7 +963,7 @@ func _skin_art(parent: Node, row: Dictionary, height: int = 112) -> void:
 	placeholder.weapon = str(row.get("weapon", ""))
 	placeholder.paint = _rarity_color(str(row.get("rarity", "")))
 	surface.add_child(placeholder)
-	_label(parent, "图片暂缺 · " + str(row.get("weapon", "")), 11, MUTED)
+	_label(parent, Locale.source("device.image_unavailable") + str(row.get("weapon", "")), 11, MUTED)
 
 func _open_skin(row: Dictionary, inventory: bool) -> void:
 	selected_skin = row.duplicate(true)
@@ -1039,12 +972,12 @@ func _open_skin(row: Dictionary, inventory: bool) -> void:
 
 func _market() -> void:
 	var shop := _skins()
-	_label(content, "饰品市场", 25)
+	_label(content, Locale.source("page.market"), 25)
 	var wallet = shop.get("personal_money", CareerBridge.context.get("money", 0))
-	_quiet_row(content, "个人余额", "%d 游戏币" % int(wallet) if market_tab == "packs" else Fmt.money(wallet))
-	_tabs(content, [{"id":"market", "label":"市场"}, {"id":"inventory", "label":"我的库存"}, {"id":"cases", "label":"武器箱"}, {"id":"packs", "label":"职业配装"}], market_tab, _market_tab)
+	_quiet_row(content, Locale.source("device.personal_balance"), Locale.source("device.value_game_coins") % int(wallet) if market_tab == "packs" else Fmt.money(wallet))
+	_tabs(content, [{"id":"market", "label":Locale.source("device.market")}, {"id":"inventory", "label":Locale.source("device.my_inventory")}, {"id":"cases", "label":Locale.source("device.cases")}, {"id":"packs", "label":Locale.source("device.pro_loadouts")}], market_tab, _market_tab)
 	if shop.is_empty():
-		_label(content, "饰品资料正在载入。", 14, MUTED)
+		_label(content, Locale.source("device.loading_item_details"), 14, MUTED)
 		return
 	if market_tab == "packs":
 		skin_bundles.render(self, content, shop)
@@ -1053,23 +986,23 @@ func _market() -> void:
 	if pending is Dictionary and not pending.is_empty():
 		var reveal := UI.card(content)
 		if case_room.is_running():
-			_label(reveal, "正在开箱……", 20)
-			_label(reveal, "结果已保存，轮播结束后可处理饰品。", 13, MUTED)
+			_label(reveal, Locale.source("device.opening_case"), 20)
+			_label(reveal, Locale.source("device.the_result_is_saved_manage_the_item_after_the_animation"), 13, MUTED)
 		else:
-			_label(reveal, "开箱结果 · " + str(pending.get("name", "饰品")), 20)
-			_label(reveal, "结果已保存，关闭窗口也不会重新抽取。", 13, MUTED)
+			_label(reveal, Locale.source("device.case_result") + str(pending.get("name", Locale.source("device.skin"))), 20)
+			_label(reveal, Locale.source("device.the_result_is_saved_closing_this_window_will_not_reroll_it"), 13, MUTED)
 			_skin_art(reveal, pending)
 			var decisions := HBoxContainer.new()
 			reveal.add_child(decisions)
-			var keep := _button(decisions, "放入库存", _skin_command.bind("keep", {}))
+			var keep := _button(decisions, Locale.source("device.keep_in_inventory"), _skin_command.bind("keep", {}))
 			UI.primary(keep)
 			keep.set_meta("case_gate", true)
-			var cash := _button(decisions, "立即出售 · %s" % Fmt.money(pending.get("sell", 0)), _skin_command.bind("cash", {}))
+			var cash := _button(decisions, Locale.source("device.sell_now_value") % Fmt.money(pending.get("sell", 0)), _skin_command.bind("cash", {}))
 			cash.set_meta("case_gate", true)
 	if not selected_skin.is_empty():
 		var item := selected_skin
 		var owned := bool(item.get("_inventory", false))
-		_button(content, "‹ 返回列表", _market_tab.bind(market_tab), false)
+		_button(content, Locale.source("device.back_to_list"), _market_tab.bind(market_tab), false)
 		var columns := HBoxContainer.new()
 		columns.add_theme_constant_override("separation", 25)
 		content.add_child(columns)
@@ -1081,28 +1014,28 @@ func _market() -> void:
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		info.add_theme_constant_override("separation", 12)
 		columns.add_child(info)
-		_label(info, str(item.get("name", "饰品")), 21)
+		_label(info, str(item.get("name", Locale.source("device.skin"))), 21)
 		_label(info, _rarity_label(str(item.get("rarity", ""))), 13, _rarity_color(str(item.get("rarity", ""))))
-		_quiet_row(info, "磨损", str(item.get("wear_name", item.get("wear", "—"))))
+		_quiet_row(info, Locale.source("device.wear"), str(item.get("wear_name", item.get("wear", "—"))))
 		_label(info, Fmt.money(item.get("spot", item.get("buy", 0))), 25)
 		if owned:
 			for side in item.get("sides", []):
 				var equipped: Dictionary = shop.get("equipped_" + str(side), {})
 				var active: bool = str(equipped.get(str(item.get("slot", "")), "")) == str(item.get("id", ""))
-				_button(info, ("卸下 " if active else "装备 ") + str(side).to_upper(), _skin_command.bind("equip", {"id":item.get("id", ""), "side":side, "off":active}))
-			_button(info, "出售 · %s" % Fmt.money(item.get("sell", 0)), _skin_command.bind("sell", {"id":item.get("id", "")}))
+				_button(info, (Locale.source("device.unequip") if active else Locale.source("device.equip")) + str(side).to_upper(), _skin_command.bind("equip", {"id":item.get("id", ""), "side":side, "off":active}))
+			_button(info, Locale.source("device.sell_value") % Fmt.money(item.get("sell", 0)), _skin_command.bind("sell", {"id":item.get("id", "")}))
 		else:
-			var purchase := _button(info, "购买并入库", _skin_command.bind("buy", {"id":item.get("id", "")}))
+			var purchase := _button(info, Locale.source("device.buy_and_add_to_inventory"), _skin_command.bind("buy", {"id":item.get("id", "")}))
 			UI.primary(purchase)
 			purchase.disabled = float(shop.get("personal_money", CareerBridge.context.get("money", 0))) < float(item.get("spot", item.get("buy", 0)))
 		return
 	if market_tab == "cases":
 		for case_row in shop.get("cases", []):
 			var case_box := UI.card(content)
-			_label(case_box, str(case_row.get("name", "武器箱")), 18)
+			_label(case_box, str(case_row.get("name", Locale.source("device.cases"))), 18)
 			var cost := int(case_row.get("price", 0)) + int(case_row.get("key", 0))
-			_label(case_box, "武器箱与钥匙 · %s" % Fmt.money(cost), 14, MUTED)
-			var open := _button(case_box, "开箱", _skin_command.bind("case", {"id":case_row.get("id", "")}))
+			_label(case_box, Locale.source("device.case_and_key_value") % Fmt.money(cost), 14, MUTED)
+			var open := _button(case_box, Locale.source("device.open_case"), _skin_command.bind("case", {"id":case_row.get("id", "")}))
 			open.set_meta("case_gate", true)
 			open.disabled = (pending is Dictionary and not pending.is_empty()) or float(shop.get("personal_money", CareerBridge.context.get("money", 0))) < cost
 		return
@@ -1118,10 +1051,10 @@ func _market() -> void:
 		card.custom_minimum_size.x = 260
 		card.mouse_filter = Control.MOUSE_FILTER_PASS
 		var hit_area := card.get_parent() as PanelContainer
-		hit_area.tooltip_text = str(item.get("name", "饰品"))
+		hit_area.tooltip_text = str(item.get("name", Locale.source("device.skin")))
 		hit_area.gui_input.connect(_skin_card_input.bind(item, market_tab == "inventory"))
 		_skin_art(card, item)
-		var name_button := _button(card, str(item.get("name", "饰品")), _open_skin.bind(item, market_tab == "inventory"), false)
+		var name_button := _button(card, str(item.get("name", Locale.source("device.skin"))), _open_skin.bind(item, market_tab == "inventory"), false)
 		UI.transparent(name_button)
 		name_button.add_theme_font_size_override("font_size", 13)
 		_label(card, _rarity_label(str(item.get("rarity", ""))) + " · " + str(item.get("wear_name", item.get("wear", ""))), 12, _rarity_color(str(item.get("rarity", ""))))
@@ -1132,7 +1065,7 @@ func _market() -> void:
 		stripe.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.add_child(stripe)
 	if rows.is_empty():
-		_label(content, "库存还没有饰品。", 14, MUTED)
+		_label(content, Locale.source("device.your_inventory_is_empty"), 14, MUTED)
 
 func _skin_card_input(event: InputEvent, item: Dictionary, inventory: bool) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -1145,85 +1078,35 @@ func _open_mail(row: Dictionary) -> void:
 	_rebuild()
 
 func _mail() -> void:
-	var inbox: Array = []
-	for row in CareerBridge.context.get("inbox", []):
-		if row.get("kind") not in ["news", "awards", "top20"] and not (row.get("kind") == "notification" and row.has("publication_key")):
-			inbox.append(row)
+	var inbox: Array = SharedData.inbox(CareerBridge.context)
+	var fragment := SharedPages.new()
 	if selected_mail.is_empty():
-		var waiting := 0
-		for row in inbox:
-			if row.get("status") == "open": waiting += 1
-		_label(content, "邮件", 25)
-		Kit.section(content, UI, "收件箱", ("%d 封待回复" % waiting) if waiting > 0 else "全部已处理", 15)
-		if inbox.is_empty():
-			Kit.empty_state(content, UI, "mail", "收件箱很安静", "新的赛事邀请会出现在这里。")
-		for row in inbox:
-			var subject := Locale.field(row, "title", str(row.get("evname", "邮件")))
-			var status := str(row.get("status", ""))
-			var button := _button(content, subject + "\n" + str(row.get("date", "")) + " · " + Phone._mail_status(status), _open_mail.bind(row), false)
-			button.name = "ComputerMail_" + str(row.get("id", "")).validate_node_name()
-			var sender := "教练" if row.get("kind") == "invite" else ("俱乐部" if row.get("kind") == "contract" else "邮件")
-			var tone: String = {"open":"amber", "expired":"gray", "accepted":"green", "declined":"gray"}.get(status, "gray")
-			Kit.rich_row(button, UI, subject, sender + " · " + str(row.get("date", "")), "", Phone._mail_status(status), tone, "mail", "", UI.AMBER if status == "open" else Color.TRANSPARENT)
+		fragment.mail_selected.connect(_open_mail)
+		fragment.mail_list(content, inbox, false, _button)
 		return
-	var letter := selected_mail
-	for row in inbox:
-		if str(row.get("id", "")) == str(letter.get("id", "")):
-			letter = row
-			break
-	_label(content, "教练的邮件" if letter.get("kind") == "invite" else "俱乐部邮件", 22)
-	var paper := UI.card(content)
-	_label(paper, Locale.field(letter, "title", str(letter.get("evname", "邮件"))), 20)
-	_label(paper, str(letter.get("date", "")), 12, MUTED)
-	_label(paper, Locale.field(letter, "body"), 15)
-
-	if not str(letter.get("evname", "")).is_empty():
-		var days := PackedStringArray()
-		for day in letter.get("dates", []): days.append(Kit.short_date(str(day)))
-		_label(paper, str(letter.get("evname", "")) + (" · 比赛日 " + "、".join(days) if not days.is_empty() else ""), 14, MUTED)
-	if letter.get("kind") == "invite" and letter.get("status") == "open":
-		var actions := HBoxContainer.new()
-		content.add_child(actions)
-		UI.primary(_button(actions, "参加这场赛事", _mail_action.bind("accept", letter)))
-		_button(actions, "这次先不报名", _mail_action.bind("decline", letter))
-	elif letter.get("kind") == "contract" and letter.get("status") == "open":
-		_label(content, "接受邀请后仍会让你确认最终去留，不会直接自动离队。", 13, MUTED)
-		UI.primary(_button(content, "继续加盟决定" if letter.get("decision_pending", false) else "查看加盟机会", _mail_action.bind("accept", letter)))
-		_button(content, "婉拒邀请", _mail_action.bind("decline", letter))
-	elif letter.get("status") == "open" and not str(letter.get("accept_action", "")).is_empty():
-		UI.primary(_button(content, "接受邀请", _mail_action.bind("accept", letter)))
-		_button(content, "婉拒邀请", _mail_action.bind("decline", letter))
-	elif letter.get("kind") == "contract" and not CareerBridge.context.get("stories", []).is_empty():
-		_button(content, "处理当前加盟决定", _open_phone.bind("stories"), false)
-	else:
-		_label(content, Phone._mail_status(str(letter.get("status", ""))), 13, MUTED)
+	var letter := SharedData.current_mail(inbox, selected_mail)
+	fragment.mail_action.connect(_mail_action)
+	fragment.mail_content(content, letter, false, _button)
+	if letter.get("status") != "open" and letter.get("kind") == "contract" and not CareerBridge.context.get("stories", []).is_empty():
+		_button(content, Locale.source("device.resolve_current_transfer_decision"), _open_phone.bind("stories"), false)
 
 func _language_changed() -> void:
 	rendered_context = ""
 	call_deferred("_rebuild")
 
 func _mail_action(action: String, letter: Dictionary) -> void:
-	if action == "accept" and bool(letter.get("decision_pending", false)):
-		_open_phone("stories")
-		return
-	var path := str(letter.get(action + "_action", "/api/3d/mail/" + action))
-	if path in ["/api/3d/mail/accept", "/api/3d/mail/decline"]:
-		_device_command(path, {"id":str(letter.get("id", ""))})
+	var intent := SharedData.mail_intent(action, letter)
+	if intent.has("page"):
+		_open_phone(intent.page)
+	elif intent.has("path"):
+		_device_command(intent.path, intent.body)
 
 func _calendar_select_day(value: String) -> void:
 	selected_date = value
 	_rebuild()
 
 func _shift_calendar_month(amount: int) -> void:
-	var year := int(calendar_month.left(4))
-	var month_number := int(calendar_month.right(2)) + amount
-	if month_number < 1:
-		year -= 1
-		month_number = 12
-	elif month_number > 12:
-		year += 1
-		month_number = 1
-	calendar_month = "%04d-%02d" % [year, month_number]
+	calendar_month = SharedData.shift_month(calendar_month, amount, str(CareerBridge.context.get("date", "")))
 	_rebuild()
 
 func _calendar() -> void:
@@ -1234,69 +1117,26 @@ func _calendar() -> void:
 		selected_date = CareerBridge.add_days(current, 1)
 	if calendar_month.is_empty():
 		calendar_month = selected_date.left(7)
-	_label(content, "日历", 25)
-	_label(content, "选一天，在那天的早晨醒来。", 14, MUTED)
-	var header := HBoxContainer.new()
-	content.add_child(header)
-	UI.transparent(UI.compact(_button(header, "‹", _shift_calendar_month.bind(-1), false)))
-	_label(header, calendar_month, 18).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UI.transparent(UI.compact(_button(header, "›", _shift_calendar_month.bind(1), false)))
-	var columns := HBoxContainer.new()
-	columns.add_theme_constant_override("separation", 32)
-	content.add_child(columns)
-	var grid := GridContainer.new()
-	grid.columns = 7
-	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	grid.add_theme_constant_override("h_separation", 5)
-	grid.add_theme_constant_override("v_separation", 5)
-	columns.add_child(grid)
-	for weekday in ["日", "一", "二", "三", "四", "五", "六"]:
-		_label(grid, weekday, 12, MUTED).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var first := Time.get_datetime_dict_from_datetime_string(calendar_month + "-01T00:00:00", true)
-	for _blank in range(int(first.get("weekday", 0))):
-		_label(grid, " ")
-	for day in range(1, Phone._days_in_month(calendar_month) + 1):
-		var stamp := "%s-%02d" % [calendar_month, day]
-		var button := _button(grid, str(day), _calendar_select_day.bind(stamp), false)
-		button.custom_minimum_size = Vector2(42, 40)
-		UI.transparent(button)
-		button.disabled = stamp < current or stamp.left(4) != current.left(4)
-		if stamp == selected_date:
-			button.add_theme_stylebox_override("normal", UI.style(UI.MINT, 5, 8))
-	var day_box := VBoxContainer.new()
-	day_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	day_box.add_theme_constant_override("separation", 13)
-	columns.add_child(day_box)
-	_label(day_box, selected_date, 19)
-	_quiet_row(day_box, "醒来时间", "08:00")
-	UI.primary(_button(day_box, "睡到这一天早上", CareerBridge.calendar.bind(selected_date, true)))
-	_button(day_box, "睡到明早", CareerBridge.calendar.bind(CareerBridge.add_days(current, 1), true))
-	_label(day_box, "比赛和待处理事件会让时间暂停。", 12, MUTED)
-	if not CareerBridge.pending_target.is_empty() and CareerBridge.pending_target > current:
-		_button(day_box, "继续到 " + CareerBridge.pending_target, CareerBridge.calendar.bind(CareerBridge.pending_target, true))
+	var fragment := SharedPages.new()
+	fragment.day_selected.connect(_calendar_select_day)
+	fragment.month_shifted.connect(_shift_calendar_month)
+	fragment.sleep_requested.connect(func(day: String): CareerBridge.calendar(day, true))
+	fragment.event_selected.connect(func(id: String): _load_detail("event", id))
+	fragment.calendar_controls(content, current, selected_date, calendar_month, CareerBridge.pending_target, false, _button)
 	var next_game := match_center.current_game()
 	if not next_game.is_empty():
 		var match_card := UI.card(content)
 		match_card.name = "CalendarCareerMatch"
-		_label(match_card, "今天的比赛" if next_game.get("due", false) else "下一场比赛", 18)
-		_label(match_card, "%s · %s\n对阵 %s" % [next_game.get("date", ""), next_game.get("event", ""), next_game.get("opponent", "")], 15)
+		_label(match_card, Locale.source("device.today_s_match") if next_game.get("due", false) else Locale.source("device.next_match"), 18)
+		_label(match_card, Locale.source("device.value_value_vs_value") % [next_game.get("date", ""), next_game.get("event", ""), next_game.get("opponent", "")], 15)
 		var attendance := match_center.attendance()
 		if not str(attendance.get("display_name", "")).is_empty():
-			_label(match_card, "比赛地点 · " + str(attendance.display_name), 15)
+			_label(match_card, Locale.source("device.match_venue") + str(attendance.display_name), 15)
 			_label(match_card, str(attendance.get("instruction", "")), 13, MUTED)
-		var participate := _button(match_card, "亲自参赛" if next_game.get("due", false) else "亲自参赛 · 睡到比赛日", match_center.prepare_real.bind(str(next_game.get("id", ""))))
+		var participate := _button(match_card, Locale.source("device.play_in_person") if next_game.get("due", false) else Locale.source("device.play_in_person_sleep_until_match_day"), match_center.prepare_real.bind(str(next_game.get("id", ""))))
 		participate.name = "CalendarAttendMatch"
 		UI.primary(participate)
-	Kit.section(content, UI, "这个月开始的赛事", "", 18)
-	var month_count := 0
-	for item in CareerBridge.context.get("calendar_events", []):
-		if str(item.get("date", "")).begins_with(calendar_month):
-			month_count += 1
-			var tier := Kit.event_tier(str(item.get("type", "")))
-			var month_row := _button(content, str(item.get("date", "")) + " · " + str(item.get("name", "")), _load_detail.bind("event", str(item.get("id", ""))), false)
-			Kit.rich_row(month_row, UI, str(item.get("name", "")), Kit.short_date(str(item.get("date", ""))) + " 开赛", "已报名" if item.get("registered", false) else "", str(tier[0]), str(tier[1]), "calendar", "", UI.GREEN if item.get("registered", false) else Color.TRANSPARENT)
-	if month_count == 0:
-		Kit.empty_state(content, UI, "calendar", "这个月没有赛事开赛", "")
+	fragment.calendar_events(content, CareerBridge.context.get("calendar_events", []), calendar_month, false, _button)
 
 func _ladder_state() -> Dictionary:
 	return CareerBridge.context.get("ladder", {})
@@ -1307,28 +1147,28 @@ func _ladder() -> void:
 		return
 	var ladder := _ladder_state()
 	if ladder.is_empty():
-		_label(content, "天梯资料还没有载入。")
+		_label(content, Locale.source("device.ladder_data_has_not_loaded_yet"))
 		return
 	var record: Dictionary = ladder.get("player", {})
-	_label(content, "%s  ·  Elo %s  ·  %s 胜 / %s 负" % [CareerBridge.context.get("player", {}).get("name", ""), Fmt.integer(record.get("elo")), Fmt.integer(record.get("wins"), "0"), Fmt.integer(record.get("losses"), "0")], 19)
-	_label(content, "独立天梯积分 · 可模拟比赛，也可进入 CS2 亲自打", 13, MUTED)
+	_label(content, Locale.source("device.value_elo_value_value_w_value_l") % [CareerBridge.context.get("player", {}).get("name", ""), Fmt.integer(record.get("elo")), Fmt.integer(record.get("wins"), "0"), Fmt.integer(record.get("losses"), "0")], 19)
+	_label(content, Locale.source("device.separate_ladder_rating_simulate_or_play_in_cs2"), 13, MUTED)
 	var ladder_tiles := HBoxContainer.new()
 	ladder_tiles.add_theme_constant_override("separation", 12)
 	content.add_child(ladder_tiles)
 	var wins := int(record.get("wins", 0)) if Fmt.is_number(record.get("wins")) else 0
 	var losses := int(record.get("losses", 0)) if Fmt.is_number(record.get("losses")) else 0
 	Kit.stat_tile(ladder_tiles, UI, "Elo", Fmt.integer(record.get("elo")))
-	Kit.stat_tile(ladder_tiles, UI, "胜 / 负", "%d / %d" % [wins, losses])
-	Kit.stat_tile(ladder_tiles, UI, "胜率", ("%d%%" % roundi(100.0 * wins / (wins + losses))) if wins + losses > 0 else "—")
+	Kit.stat_tile(ladder_tiles, UI, Locale.source("device.w_l"), "%d / %d" % [wins, losses])
+	Kit.stat_tile(ladder_tiles, UI, Locale.source("device.win_rate"), ("%d%%" % roundi(100.0 * wins / (wins + losses))) if wins + losses > 0 else "—")
 	var lobby = ladder.get("lobby")
 	if lobby is Dictionary and lobby.get("mode", "rank") not in ["rank", "fpl"]:
-		_label(content, "当前共享房间是自定义对局；天梯身份不变，先处理该房间。", 16, MUTED)
-		_button(content, "打开自定义房间", _navigate.bind("custom"), false)
-		if lobby.get("phase") == "finished": _button(content, "开始天梯匹配", _ladder_command.bind("matchmake", {}))
+		_label(content, Locale.source("device.a_custom_match_room_is_active_finish_or_close_it_before_playing_ladder"), 16, MUTED)
+		_button(content, Locale.source("device.open_custom_room"), _navigate.bind("custom"), false)
+		if lobby.get("phase") == "finished": _button(content, Locale.source("device.find_ladder_match"), _ladder_command.bind("matchmake", {}))
 		return
 	if not lobby is Dictionary or lobby.is_empty():
 		abandon_lobby_id = ""
-		UI.primary(_button(content, "开始匹配", _ladder_command.bind("matchmake", {})))
+		UI.primary(_button(content, Locale.source("device.find_match"), _ladder_command.bind("matchmake", {})))
 	else:
 		var phase := str(lobby.get("phase", ""))
 		if abandon_lobby_id != str(lobby.get("id", "")):
@@ -1336,8 +1176,8 @@ func _ladder() -> void:
 		if phase == "finished":
 			var saved: Dictionary = lobby.get("result", {})
 			if not saved.is_empty():
-				_button(content, "打开本场战报", _open_report.bind(saved), false)
-			_button(content, "开始下一场匹配", _ladder_command.bind("matchmake", {}))
+				_button(content, Locale.source("device.open_match_report"), _open_report.bind(saved), false)
+			_button(content, Locale.source("device.find_next_match"), _ladder_command.bind("matchmake", {}))
 		else:
 			ladder_room.heading(lobby)
 			# Keep the active pool above the full rosters: on a 720p monitor the
@@ -1351,84 +1191,84 @@ func _ladder() -> void:
 			elif phase == "veto":
 				ladder_room.veto(lobby, human)
 			elif phase == "side":
-				_label(content, str(lobby.get("map", "")).capitalize() + " · 选择开场阵营", 21)
-				_button(content, "CT · 防守方", _ladder_command.bind("side", {"side":"ct"})).disabled = not human
-				_button(content, "T · 进攻方", _ladder_command.bind("side", {"side":"t"})).disabled = not human
+				_label(content, str(lobby.get("map", "")).capitalize() + Locale.source("device.choose_starting_side"), 21)
+				_button(content, Locale.source("device.ct_defenders"), _ladder_command.bind("side", {"side":"ct"})).disabled = not human
+				_button(content, Locale.source("device.t_attackers"), _ladder_command.bind("side", {"side":"t"})).disabled = not human
 			elif phase == "ready":
-				_label(content, "地图：" + str(lobby.get("map", "")).capitalize(), 21)
+				_label(content, Locale.source("device.map_2") + str(lobby.get("map", "")).capitalize(), 21)
 				var ct_team := str(lobby.get("ct", "a"))
-				_label(content, "开场：%s 队 CT · %s 队 T" % [ct_team.to_upper(), "B" if ct_team == "a" else "A"], 15, MUTED)
+				_label(content, Locale.source("device.starting_sides_team_value_ct_team_value_t") % [ct_team.to_upper(), "B" if ct_team == "a" else "A"], 15, MUTED)
 				var ready_actions := HBoxContainer.new()
 				ready_actions.add_theme_constant_override("separation", 12)
 				content.add_child(ready_actions)
-				_button(ready_actions, "模拟这场天梯比赛", _ladder_command.bind("simulate", {"lobby_id":lobby.get("id", "")}))
-				var launch := _button(ready_actions, "进入 CS2", _ladder_command.bind("launch", {"lobby_id":lobby.get("id", "")}))
+				_button(ready_actions, Locale.source("device.simulate_ladder_match"), _ladder_command.bind("simulate", {"lobby_id":lobby.get("id", "")}))
+				var launch := _button(ready_actions, Locale.source("device.play_in_cs2_2"), _ladder_command.bind("launch", {"lobby_id":lobby.get("id", "")}))
 				launch.name = "ComputerLadderLaunchCS2"
 				UI.primary(launch)
 				launch.disabled = not bool(cs2_status.get("can_launch", false))
-				var rts := _button(ready_actions, "RTS 指挥这场天梯", Callable(rts_room, "open_ladder"), false)
+				var rts := _button(ready_actions, Locale.source("device.command_ladder_match_in_rts"), Callable(rts_room, "open_ladder"), false)
 				rts.name = "LadderPlayRTS"
 				rts.disabled = not rts_room.has_method("ladder_eligible") or not bool(rts_room.call("ladder_eligible"))
-				if rts.disabled: _label(content, "本图暂不支持 RTS，可以模拟或进入 CS2。", 12, MUTED)
+				if rts.disabled: _label(content, Locale.source("device.rts_is_unavailable_for_this_map_simulate_or_play_in_cs2"), 12, MUTED)
 				var config: Dictionary = cs2_status.get("config", ladder.get("config", {}))
 				if not config.get("ready", false):
-					_label(content, str(config.get("reason", "正在检查 CS2 环境。")), 13, MUTED)
+					_label(content, str(config.get("reason", Locale.source("device.checking_cs2_setup"))), 13, MUTED)
 			elif phase == "rts":
-				_label(content, "RTS 对局待完成", 20)
-				var resume_rts := _button(content, "继续这场 RTS 天梯", Callable(rts_room, "open_ladder"), false)
+				_label(content, Locale.source("device.rts_match_pending"), 20)
+				var resume_rts := _button(content, Locale.source("device.resume_rts_ladder_match"), Callable(rts_room, "open_ladder"), false)
 				resume_rts.name = "LadderResumeRTS"
 			elif phase in ["starting", "playing", "waiting", "started", "launched", "live"]:
-				var phase_label := "正在准备 CS2 对局。" if phase == "starting" else "等待 CS2 对局战绩回传。"
+				var phase_label := Locale.source("device.preparing_cs2_match") if phase == "starting" else Locale.source("device.waiting_for_cs2_match_results")
 				if phase == "starting" and cs2_status.get("status") == "failed":
-					phase_label = "CS2 对局启动未完成。"
+					phase_label = Locale.source("device.cs2_match_launch_did_not_finish")
 				elif cs2_status.get("cs2_running") == true:
-					phase_label = "正在 CS2 中进行这场比赛。"
+					phase_label = Locale.source("device.this_match_is_being_played_in_cs2")
 				_label(content, phase_label, 20)
 			else:
-				_label(content, "当前房间无法在这台电脑继续，请结束原房间后再匹配。", 16, MUTED)
+				_label(content, Locale.source("device.this_room_cannot_resume_on_this_computer_close_it_before_matching_again"), 16, MUTED)
 			if phase in ["draft", "veto"]:
 				_render_rosters(lobby)
 			if phase != "draft":
 				ladder_room.records(lobby)
 			if phase in ["draft", "veto", "side", "ready"] and not cs2_status.get("cs2_running", false):
-				_button(content, "离开当前匹配房间", _ladder_command.bind("cancel", {}))
+				_button(content, Locale.source("device.leave_current_room"), _ladder_command.bind("cancel", {}))
 	if not cs2_status.is_empty():
 		var game_status := str(cs2_status.get("status", ""))
 		if game_status in ["waiting", "failed", "blocked", "interrupted", "starting"]:
-			_label(content, str(cs2_status.get("reason", "等待 CS2 比赛结果。")), 14, MUTED)
+			_label(content, str(cs2_status.get("reason", Locale.source("device.waiting_for_cs2_results"))), 14, MUTED)
 		if game_status == "interrupted":
-			_label(content, "重新进入或切换 RTS 会重开当前未完成地图；原名单、地图 BP 和天梯身份保留。", 13, MUTED)
+			_label(content, Locale.source("device.re_entering_or_switching_to_rts_restarts_the_unfinished_map_your_roster_map_veto"), 13, MUTED)
 			if cs2_status.get("can_resume", false):
-				var resume := _button(content, "重新进入 CS2 · 重开当前图", _ladder_command.bind("launch", {"lobby_id":cs2_status.get("lobby_id", "")}))
+				var resume := _button(content, Locale.source("device.re_enter_cs2_restart_this_map"), _ladder_command.bind("launch", {"lobby_id":cs2_status.get("lobby_id", "")}))
 				resume.name = "LadderResumeCS2"
 			if cs2_status.get("can_simulate", false):
-				var simulate := _button(content, "继续模拟这场天梯", _ladder_command.bind("simulate", {"lobby_id":cs2_status.get("lobby_id", "")}))
+				var simulate := _button(content, Locale.source("device.simulate_this_ladder_match"), _ladder_command.bind("simulate", {"lobby_id":cs2_status.get("lobby_id", "")}))
 				simulate.name = "LadderResumeSimulate"
 			if cs2_status.get("can_rts", false):
-				var rts := _button(content, "切换 RTS · 重开当前图", Callable(rts_room, "open_ladder"), false)
+				var rts := _button(content, Locale.source("device.switch_to_rts_restart_this_map"), Callable(rts_room, "open_ladder"), false)
 				rts.name = "LadderResumeCS2RTS"
 		if cs2_status.get("can_retry", false) and game_status != "interrupted":
-			var retry := _button(content, "重试进入 CS2", _ladder_command.bind("launch", {"lobby_id":cs2_status.get("lobby_id", "")}))
+			var retry := _button(content, Locale.source("device.retry_cs2_launch"), _ladder_command.bind("launch", {"lobby_id":cs2_status.get("lobby_id", "")}))
 			retry.name = "ComputerLadderRetryCS2"
 		if cs2_status.get("can_collect", false):
-			var collect := _button(content, "录入战绩" if game_status != "failed" else "重试录入战绩", _ladder_command.bind("collect", {"lobby_id":cs2_status.get("lobby_id", "")}))
+			var collect := _button(content, Locale.source("device.import_result") if game_status != "failed" else Locale.source("device.retry_result_import"), _ladder_command.bind("collect", {"lobby_id":cs2_status.get("lobby_id", "")}))
 			collect.name = "ComputerLadderCollectCS2"
 		if _can_abandon_ladder():
 			if abandon_lobby_id == str(cs2_status.get("lobby_id", "")):
 				var confirmation := UI.card(content, true)
-				_label(confirmation, "放弃这场天梯？", 18)
-				_label(confirmation, "关闭这个未录入房间，不计算胜负或天梯积分。之后不能再为这场录入战绩。", 14, MUTED)
+				_label(confirmation, Locale.source("device.abandon_this_ladder_match"), 18)
+				_label(confirmation, Locale.source("device.close_this_room_without_recording_a_win_loss_or_rating_change_results_cannot_be"), 14, MUTED)
 				var choices := HBoxContainer.new()
 				confirmation.add_child(choices)
-				var abandon := _button(choices, "确认放弃，不计分", _confirm_ladder_abandon)
+				var abandon := _button(choices, Locale.source("device.confirm_abandon_no_rating_change"), _confirm_ladder_abandon)
 				abandon.name = "ComputerLadderConfirmAbandon"
-				_button(choices, "继续等待", _dismiss_ladder_abandon, false)
+				_button(choices, Locale.source("device.keep_waiting"), _dismiss_ladder_abandon, false)
 			else:
-				var abandon := _button(content, "放弃本场天梯", _request_ladder_abandon)
+				var abandon := _button(content, Locale.source("device.abandon_ladder_match"), _request_ladder_abandon)
 				abandon.name = "ComputerLadderAbandon"
-	Kit.section(content, UI, "最近天梯比赛", "", 21)
+	Kit.section(content, UI, Locale.source("device.recent_ladder_matches"), "", 21)
 	if ladder.get("history", []).is_empty():
-		Kit.empty_state(content, UI, "match", "还没有天梯战绩", "开始匹配后，打完的每一场都会留在这里。")
+		Kit.empty_state(content, UI, "match", Locale.source("device.no_ladder_record_yet"), Locale.source("device.start_matchmaking_and_every_finished_match_will_be_kept_here"))
 	for item in ladder.get("history", []):
 		_button(content, _report_title(item), _open_report.bind(item), false)
 
@@ -1442,15 +1282,15 @@ func _render_rosters(lobby: Dictionary) -> void:
 		box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var captains: Array = lobby.get("captains", [])
 		var captain := str(captains[0 if side == "a" else 1]) if captains.size() == 2 else ""
-		_label(box, "%s 队 · 队长 %s" % [str(side).to_upper(), ladder_room.player_name(lobby, captain)], 16, UI.GREEN)
+		_label(box, Locale.source("device.team_value_captain_value") % [str(side).to_upper(), ladder_room.player_name(lobby, captain)], 16, UI.GREEN)
 		for index in range(5):
 			var team: Array = lobby.get(side, [])
 			if index >= team.size():
-				_label(box, "%d · 等待选人" % (index + 1), 13, MUTED)
+				_label(box, Locale.source("device.value_awaiting_draft") % (index + 1), 13, MUTED)
 				continue
 			var pid: String = team[index]
 			var player: Dictionary = roster.get(pid, {})
-			_label(box, "%s%s · Elo %s%s" % [player.get("name", ""), " ★ 你" if pid == lobby.get("human_id") else "",
+			_label(box, "%s%s · Elo %s%s" % [player.get("name", ""), Locale.source("device.you_2") if pid == lobby.get("human_id") else "",
 				lobby.get("ratings", {}).get(pid, "—"), " · " + str(LadderRoom.ROLES.get(player.get("role", ""), "")) if lobby.get("role_assignment_version") else ""], 13)
 
 func _ladder_command(action: String, extra: Dictionary) -> bool:
@@ -1462,7 +1302,7 @@ func _ladder_command(action: String, extra: Dictionary) -> bool:
 	if ladder_command_sender.is_valid(): accepted = bool(ladder_command_sender.call("/api/3d/ladder/" + action, body.duplicate(true)))
 	else: accepted = CareerBridge.command("/api/3d/ladder/" + action, body) if action in ["advance", "launch", "collect"] else _command("/api/3d/ladder/" + action, body)
 	if not accepted:
-		notice = "操作暂未发出，请等当前操作完成后重试。"
+		notice = Locale.source("device.request_not_sent_wait_for_the_current_operation_then_retry")
 		_update_status()
 	return accepted
 
@@ -1483,7 +1323,7 @@ func _dismiss_ladder_abandon() -> void:
 func _confirm_ladder_abandon() -> void:
 	if not _can_abandon_ladder() or abandon_lobby_id != str(cs2_status.get("lobby_id", "")):
 		abandon_lobby_id = ""
-		notice = "请先退出 CS2，核验进程状态后再放弃本场。"
+		notice = Locale.source("device.close_cs2_and_verify_its_process_has_stopped_before_abandoning")
 		_rebuild()
 		return
 	abandon_lobby_id = ""
@@ -1499,20 +1339,23 @@ func _advance_ai() -> void:
 
 func _scrim() -> void:
 	if location != "club":
-		_label(content, "请到俱乐部工作站约训练赛。")
+		_label(content, Locale.source("device.arrange_scrims_at_the_club_workstation"))
 		return
 	if not report.is_empty():
 		_render_report(report)
 		return
 	var scrims: Dictionary = CareerBridge.context.get("scrims", {})
-	_label(content, "约一场训练赛", 26)
-	_label(content, "本地模拟训练赛。比赛保存战报，不计职业赛事奖金、排名或能力奖励。", 15, MUTED)
+	_label(content, Locale.source("device.arrange_a_scrim"), 26)
+	_label(content, Locale.source("scrim.play_options"), 15, MUTED)
+	if not str(scrims.get("launch_reason", "")).is_empty():
+		_label(content, str(scrims["launch_reason"]), 14, MUTED)
+		_button(content, Locale.source("scrim.open_settings"), _navigate.bind("settings"), false)
 	var opponents: Array = scrims.get("opponents", [])
 	if opponents.is_empty():
-		_label(content, "暂时没有可约的对手。")
+		_label(content, Locale.source("device.no_scrim_opponents_available"))
 	else:
 		var form := UI.card(content, true)
-		_label(form, "对手", 15, MUTED)
+		_label(form, Locale.source("device.opponent"), 15, MUTED)
 		var opponent := OptionButton.new()
 		UI.dark_options(opponent)
 		opponent.custom_minimum_size.y = 42
@@ -1525,7 +1368,7 @@ func _scrim() -> void:
 			opponent_id = str(opponents[0].get("id", ""))
 		opponent.item_selected.connect(func(index: int): opponent_id = str(opponents[index].get("id", "")))
 		form.add_child(opponent)
-		_label(form, "日期", 15, MUTED)
+		_label(form, Locale.source("device.date"), 15, MUTED)
 		var current := str(CareerBridge.context.get("date", ""))
 		if scrim_date.is_empty() or scrim_date < current:
 			scrim_date = current
@@ -1538,9 +1381,9 @@ func _scrim() -> void:
 		form.add_child(date_entry)
 		var dates := HBoxContainer.new()
 		form.add_child(dates)
-		_button(dates, "今天", _set_scrim_date.bind(current), false)
-		_button(dates, "明天", _set_scrim_date.bind(CareerBridge.add_days(current, 1)), false)
-		_label(form, "地图", 15, MUTED)
+		_button(dates, Locale.source("device.today_2"), _set_scrim_date.bind(current), false)
+		_button(dates, Locale.source("device.tomorrow"), _set_scrim_date.bind(CareerBridge.add_days(current, 1)), false)
+		_label(form, Locale.source("device.map"), 15, MUTED)
 		var maps: Array = _ladder_state().get("maps", [])
 		var map_choice := OptionButton.new()
 		UI.dark_options(map_choice)
@@ -1553,18 +1396,40 @@ func _scrim() -> void:
 			scrim_map = str(maps[0])
 		map_choice.item_selected.connect(func(index: int): scrim_map = str(maps[index]))
 		form.add_child(map_choice)
-		_button(form, "确认预约训练赛", _schedule_scrim).disabled = maps.is_empty()
-	_label(content, "已约训练赛", 21)
+		_button(form, Locale.source("device.confirm_scrim_booking"), _schedule_scrim).disabled = maps.is_empty()
+	_label(content, Locale.source("device.booked_scrims"), 21)
 	for item in scrims.get("scheduled", []):
 		var card := UI.card(content, true)
 		_label(card, "%s · %s · %s" % [item.get("date", ""), item.get("opponent", ""), str(item.get("map", "")).capitalize()], 19)
 		if str(item.get("date", "")) <= str(CareerBridge.context.get("date", "")):
-			_button(card, "开始模拟训练赛", _command.bind("/api/3d/scrim/simulate", {"id":item.get("id", "")}))
+			var ident := str(item.get("id", ""))
+			var pending: Dictionary = scrims.get("pending", {})
+			var waiting := str(pending.get("booking_id", "")) == ident and not str(pending.get("nonce", "")).is_empty()
+			if waiting:
+				_label(card, Locale.source("scrim.waiting"), 14, MUTED)
+				var collect := _button(card, Locale.source("scrim.collect"), _command.bind("/api/3d/scrim/collect", {"id":ident,"nonce":pending.get("nonce", "")}))
+				collect.name = "ScrimCollect_" + ident.validate_node_name()
+			else:
+				var side_choice := OptionButton.new()
+				side_choice.name = "ScrimSide_" + ident.validate_node_name()
+				UI.dark_options(side_choice)
+				side_choice.add_item(Locale.text(Locale.source("scrim.start_ct")))
+				side_choice.add_item(Locale.text(Locale.source("scrim.start_t")))
+				side_choice.select(1 if scrim_side == "t" else 0)
+				side_choice.item_selected.connect(func(index: int): scrim_side = "t" if index == 1 else "ct")
+				card.add_child(side_choice)
+			var launch := _button(card, Locale.source("scrim.restart" if waiting else "scrim.launch"), _launch_scrim.bind(ident, str(pending.get("nonce", "")) if waiting else ""))
+			launch.name = "ScrimLaunch_" + ident.validate_node_name()
+			launch.disabled = not scrims.get("launch_ready", false) or (not waiting and not str(pending.get("nonce", "")).is_empty())
+			if waiting:
+				_button(card, Locale.source("scrim.cancel"), _command.bind("/api/3d/scrim/cancel", {"id":ident,"nonce":pending.get("nonce", ""),"confirmed":true}))
+			else:
+				_button(card, Locale.source("device.simulate_scrim"), _command.bind("/api/3d/scrim/simulate", {"id":ident})).disabled = not str(pending.get("nonce", "")).is_empty()
 		else:
-			_label(card, "到约定日期后可开赛。", 15, MUTED)
+			_label(card, Locale.source("device.the_match_starts_on_the_booked_date"), 15, MUTED)
 	if scrims.get("scheduled", []).is_empty():
-		_label(content, "还没有约好的训练赛。", 15, MUTED)
-	_label(content, "训练赛战报", 21)
+		_label(content, Locale.source("device.no_scrims_booked_yet"), 15, MUTED)
+	_label(content, Locale.source("device.scrim_reports"), 21)
 	for item in scrims.get("history", []):
 		var saved: Dictionary = item.get("report", {})
 		_button(content, _report_title(saved), _open_report.bind(saved), false)
@@ -1576,6 +1441,9 @@ func _set_scrim_date(value: String) -> void:
 
 func _schedule_scrim() -> void:
 	_command("/api/3d/scrim/schedule", {"opponent_id":opponent_id, "date":scrim_date, "map":scrim_map})
+
+func _launch_scrim(ident: String, nonce: String) -> void:
+	_device_command("/api/3d/scrim/launch", {"id":ident,"nonce":nonce,"side":scrim_side})
 
 func _report_title(value: Dictionary) -> String:
 	var map_result: Dictionary = value.get("map", {})
@@ -1596,24 +1464,24 @@ func _open_report(value: Dictionary) -> void:
 	_rebuild()
 
 func _render_report(value: Dictionary) -> void:
-	_button(content, "‹ 返回", _back, false)
+	_button(content, Locale.source("device.back_2"), _back, false)
 	var mp: Dictionary = value.get("map", {})
 	var pid := str(value.get("human_id", ""))
 	var changes: Dictionary = value.get("changes", {})
 	if changes.has(pid):
-		_label(content, "你的天梯积分：%+d" % int(changes[pid]), 19, UI.GREEN)
+		_label(content, Locale.source("device.your_ladder_rating_value") % int(changes[pid]), 19, UI.GREEN)
 	var teams := _report_teams(value)
 	var game := {"team_a":teams[0] if teams.size() > 0 else "", "team_b":teams[1] if teams.size() > 1 else "", "date":value.get("date", ""), "series":mp.get("score", ""), "winner":mp.get("winner", ""), "maps":[mp]}
 	MatchReport.mount(content, game, {}, pid, func(id: String): _load_detail("player", id))
 
 func _events() -> void:
-	_label(content, "赛事中心", 24)
-	_tabs(content, [{"id":"calendar", "label":"赛程与战报"}, {"id":"teams", "label":"战队资料"}, {"id":"players", "label":"选手数据"}], events_tab, _events_tab)
+	_label(content, Locale.source("page.events"), 24)
+	_tabs(content, [{"id":"calendar", "label":Locale.source("device.schedule_and_reports")}, {"id":"teams", "label":Locale.source("page.team_details")}, {"id":"players", "label":Locale.source("device.player_stats")}], events_tab, _events_tab)
 	if events_tab == "teams":
-		var regions := {"EU":"欧洲", "AM":"美洲", "AS":"亚洲"}
+		var regions := {"EU":Locale.source("device.europe"), "AM":Locale.source("device.americas"), "AS":Locale.source("device.asia")}
 		for team in CareerBridge.context.get("teams", []):
 			var team_row := _button(content, "#%s  %s  ·  %s" % [Fmt.integer(team.get("rank")), team.get("name", ""), team.get("region", "")], _load_detail.bind("team", str(team.get("id", ""))), false)
-			Kit.rich_row(team_row, UI, str(team.get("name", "")), str(regions.get(str(team.get("region", "")), team.get("region", ""))) + "赛区", Fmt.rank(team.get("rank")), "", "gray", "", str(team.get("name", "")))
+			Kit.rich_row(team_row, UI, str(team.get("name", "")), str(regions.get(str(team.get("region", "")), team.get("region", ""))) + Locale.source("device.region"), Fmt.rank(team.get("rank")), "", "gray", "", str(team.get("name", "")))
 	elif events_tab == "players":
 		_render_player_directory()
 	else:
@@ -1625,25 +1493,25 @@ func _events() -> void:
 			if str(item.get("end_date", item.get("date", ""))) < today: finished.append(item)
 			else: upcoming.append(item)
 		finished.reverse()
-		Kit.section(content, UI, "赛事日程", "进行中与即将开始 %d 项 · 已结束 %d 项" % [upcoming.size(), finished.size()], 19)
+		Kit.section(content, UI, Locale.source("device.tournament_schedule"), Locale.source("device.value_live_or_upcoming_value_finished") % [upcoming.size(), finished.size()], 19)
 		if events.is_empty():
-			Kit.empty_state(content, UI, "calendar", "暂无赛事", "确认邀请后，报名的赛事会出现在这里。")
+			Kit.empty_state(content, UI, "calendar", Locale.source("device.no_events_yet"), Locale.source("device.events_you_register_for_appear_here_after_accepting_invitations"))
 		for item in upcoming + finished:
 			if item == (finished[0] if not finished.is_empty() else null):
-				_label(content, "已结束", 13, MUTED)
+				_label(content, Locale.source("device.finished_2"), 13, MUTED)
 			var tier := Kit.event_tier(str(item.get("type", "")))
 			var span := Kit.short_date(str(item.get("date", "")))
 			if not str(item.get("end_date", "")).is_empty() and item.get("end_date") != item.get("date"):
 				span += " – " + Kit.short_date(str(item.get("end_date", "")))
 			var ended := str(item.get("end_date", item.get("date", ""))) < today
 			var running := not ended and str(item.get("date", "")) <= today
-			var state := ["已报名", "green"] if item.get("registered", false) and not ended else (["已结束", "gray"] if ended else (["进行中", "gray"] if running else ["", "gray"]))
-			var event_row := _button(content, "%s  ·  %s%s" % [item.get("date", ""), item.get("name", ""), " · 已报名" if item.get("registered", false) else ""], _load_detail.bind("event", str(item.get("id", ""))), false)
+			var state := [Locale.source("calendar.registered"), "green"] if item.get("registered", false) and not ended else ([Locale.source("device.finished_2"), "gray"] if ended else ([Locale.source("device.live"), "gray"] if running else ["", "gray"]))
+			var event_row := _button(content, "%s  ·  %s%s" % [item.get("date", ""), item.get("name", ""), Locale.source("device.registered") if item.get("registered", false) else ""], _load_detail.bind("event", str(item.get("id", ""))), false)
 			Kit.rich_row(event_row, UI, str(item.get("name", "")), "%s · %s" % [span, tier[0]], str(state[0]), str(tier[0]), str(tier[1]), "trophy", "", Color("2f6b52") if item.get("registered", false) else Color.TRANSPARENT)
-		Kit.section(content, UI, "最近比赛", "", 19)
+		Kit.section(content, UI, Locale.source("device.recent_matches"), "", 19)
 		var recent: Array = CareerBridge.context.get("recent_matches", [])
 		if recent.is_empty():
-			Kit.empty_state(content, UI, "match", "还没有比赛记录", "打完第一场职业比赛后，战报会出现在这里。")
+			Kit.empty_state(content, UI, "match", Locale.source("device.no_match_records_yet"), Locale.source("device.match_reports_appear_here_after_your_first_pro_match"))
 		for game in recent:
 			var match_row := _button(content, "%s · %s / %s · %s" % [game.get("date", ""), game.get("team_a", ""), game.get("team_b", ""), str(game.get("series", ""))], _load_detail.bind("match", str(game.get("id", ""))), false)
 			Kit.rich_row(match_row, UI, "%s  vs  %s" % [game.get("team_a", ""), game.get("team_b", "")], str(game.get("date", "")), str(game.get("series", "")), "", "gray", "", str(game.get("team_a", "")))
@@ -1654,17 +1522,17 @@ func _events_tab(value: String) -> void:
 	_rebuild()
 
 func _render_player_directory() -> void:
-	_label(content, "本赛季选手数据", 21)
-	_label(content, str(players_data.get("note", "本赛季 · 对 VRS Top30")), 13, MUTED)
+	_label(content, Locale.source("device.season_player_statistics"), 21)
+	_label(content, str(players_data.get("note", Locale.source("device.this_season_vs_vrs_top30"))), 13, MUTED)
 	var filter_row := HBoxContainer.new()
 	content.add_child(filter_row)
 	var search := LineEdit.new()
 	UI.line_edit(search)
 	search.text = players_search
-	search.placeholder_text = "选手或战队名称"
+	search.placeholder_text = Locale.source("device.player_or_team_name")
 	search.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	filter_row.add_child(search)
-	_button(filter_row, "搜索", func():
+	_button(filter_row, Locale.source("device.search"), func():
 		players_search = search.text.strip_edges()
 		players_page = 1
 		players_data = {}
@@ -1685,14 +1553,14 @@ func _render_player_directory() -> void:
 		team_label.size_flags_horizontal = Control.SIZE_SHRINK_END
 		team_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 		team_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		_label(box, "Rating %s · ADR %s · KAST %s · %s 图 · %s / %s / %s" % [_number(player.get("rating"), 2), _number(player.get("adr"), 1), _percentage(player.get("kast")), player.get("maps", 0), player.get("k", "—"), player.get("d", "—"), player.get("a", "—")], 14)
+		_label(box, Locale.source("device.rating_value_adr_value_kast_value_value_maps_value_value_value") % [_number(player.get("rating"), 2), _number(player.get("adr"), 1), _percentage(player.get("kast")), player.get("maps", 0), player.get("k", "—"), player.get("d", "—"), player.get("a", "—")], 14)
 	if players_data.get("rows", []).is_empty():
-		_label(content, "正在读取选手数据……" if players_data.is_empty() else "没有符合条件的已记录选手。", 14, MUTED)
+		_label(content, Locale.source("device.loading_player_statistics") if players_data.is_empty() else Locale.source("device.no_recorded_players_match_these_filters"), 14, MUTED)
 	var pages := HBoxContainer.new()
 	content.add_child(pages)
-	_button(pages, "上一页", _players_page.bind(-1), false).disabled = players_page <= 1
+	_button(pages, Locale.source("device.previous"), _players_page.bind(-1), false).disabled = players_page <= 1
 	_label(pages, "%s / %s" % [players_page, players_data.get("pages", 1)])
-	_button(pages, "下一页", _players_page.bind(1), false).disabled = players_page >= int(players_data.get("pages", 1))
+	_button(pages, Locale.source("device.next"), _players_page.bind(1), false).disabled = players_page >= int(players_data.get("pages", 1))
 	var query := "/api/3d/players?span=season&page=%s&search=%s" % [players_page, players_search.uri_encode()]
 	if players_query != query and pending_players_path.is_empty():
 		call_deferred("_fetch_players", query)
@@ -1722,57 +1590,55 @@ func _load_detail(kind: String, id: String, span: String = "", page: int = 1) ->
 
 func _team() -> void:
 	var team_name := str(detail.get("name", ""))
-	TeamVisuals.banner(content, str(detail.get("name", "战队")), team_name, "战队资料")
+	TeamVisuals.banner(content, str(detail.get("name", Locale.source("page.team"))), team_name, Locale.source("page.team_details"))
 	for field in ["region", "rank", "vrs", "money"]:
 		if detail.has(field):
-			_label(content, "%s：%s" % [{"region":"赛区", "rank":"排名", "vrs":"VRS", "money":"资金"}.get(field, field), str(detail[field])])
+			_label(content, "%s：%s" % [{"region":Locale.source("device.region"), "rank":Locale.source("device.rank"), "vrs":"VRS", "money":Locale.source("device.funds")}.get(field, field), str(detail[field])])
 	var roster: Array = detail.get("roster", detail.get("players", []))
 	for member in roster:
 		if member is Dictionary:
-			TeamVisuals.button_logo(_button(content, "%s · %s · 能力 %s" % [member.get("name", ""), Phone.ROLES.get(member.get("role", ""), member.get("role", "")), Fmt.score(member.get("ability"))], _load_detail.bind("player", str(member.get("player_id", member.get("id", ""))))), team_name)
+			TeamVisuals.button_logo(_button(content, Locale.source("device.value_value_ability_value") % [member.get("name", ""), Phone.ROLES.get(member.get("role", ""), member.get("role", "")), Fmt.score(member.get("ability"))], _load_detail.bind("player", str(member.get("player_id", member.get("id", ""))))), team_name)
 
 func _player() -> void:
-	TeamVisuals.banner(content, str(detail.get("name", "选手")), str(detail.get("team", detail.get("last_team", ""))), str(detail.get("team", detail.get("last_team", ""))))
-	_label(content, str(Phone.ROLES.get(detail.get("role", ""), detail.get("role", ""))) + (" · 历史资料" if detail.get("historical", false) else ""), 17, MUTED)
+	TeamVisuals.banner(content, str(detail.get("name", Locale.source("page.player"))), str(detail.get("team", detail.get("last_team", ""))), str(detail.get("team", detail.get("last_team", ""))))
+	_label(content, str(Phone.ROLES.get(detail.get("role", ""), detail.get("role", ""))) + (Locale.source("device.historical_profile") if detail.get("historical", false) else ""), 17, MUTED)
 	if not str(detail.get("team_id", "")).is_empty():
 		TeamVisuals.button_logo(_button(content, str(detail.get("team", "")), _load_detail.bind("team", str(detail["team_id"])), false), str(detail.get("team", "")))
 	for field in ["age", "ability", "command", "form_delta"]:
 		if detail.has(field) and detail[field] != null:
-			_label(content, "%s：%s" % [{"team":"战队", "age":"年龄", "ability":"能力", "command":"指挥", "form_delta":"状态"}.get(field, field), str(detail[field])])
-	_tabs(content, [{"id":"overview", "label":"概览"}, {"id":"matches", "label":"比赛记录"}, {"id":"honours", "label":"荣誉"}], player_tab, _player_tab)
+			_label(content, "%s：%s" % [{"team":Locale.source("page.team"), "age":Locale.source("device.age"), "ability":Locale.source("device.ability"), "command":Locale.source("role.igl"), "form_delta":Locale.source("device.form")}.get(field, field), str(detail[field])])
+	_tabs(content, [{"id":"overview", "label":Locale.source("device.overview")}, {"id":"matches", "label":Locale.source("device.match_history")}, {"id":"honours", "label":Locale.source("profile.honours")}], player_tab, _player_tab)
 	var ranges := HBoxContainer.new()
 	content.add_child(ranges)
-	_label(ranges, "统计范围", 13, MUTED)
-	for scope in [{"id":"30d", "label":"最近30天"}, {"id":"season", "label":"本赛季"}, {"id":"all", "label":"全部历史"}]:
+	_label(ranges, Locale.source("device.statistics_range"), 13, MUTED)
+	for scope in [{"id":"30d", "label":Locale.source("device.last_30_days")}, {"id":"season", "label":Locale.source("device.this_season")}, {"id":"all", "label":Locale.source("device.all_saved_history")}]:
 		var button := _button(ranges, str(scope["label"]), _player_range.bind(str(scope["id"])), false)
 		if player_span == str(scope["id"]):
 			UI.transparent(button)
 			button.add_theme_stylebox_override("normal", UI.style(UI.MINT, 7, 8))
-	_label(content, "%s 张已保存地图 · 不补造缺失数据" % detail.get("total", 0), 13, MUTED)
+	_label(content, Locale.source("device.value_saved_maps_missing_data_is_not_reconstructed") % detail.get("total", 0), 13, MUTED)
 	if player_tab == "honours":
 		_player_honours()
 		return
-	var summary: Dictionary = detail.get("summary", {})
-	_label(content, "Rating %s · ADR %s · KAST %s · %s 图 / %s 回合" % [_number(summary.get("rating"), 2), _number(summary.get("adr"), 1), _percentage(summary.get("kast")), summary.get("maps", 0), summary.get("rounds", 0)], 19)
-	_label(content, "K / D / A · %s / %s / %s" % [summary.get("k", "—"), summary.get("d", "—"), summary.get("a", "—")], 15, MUTED)
+	SharedPages.new().player_summary(content, detail.get("summary", {}), false)
 	if player_tab == "overview":
 		var stats: Dictionary = detail.get("stats", {}) if detail.get("stats") is Dictionary else {}
 		_position_preview(content, detail, str(detail.get("role", "")), stats, "player")
 		if not detail.get("historical", false) and not stats.is_empty():
 			var box := UI.card(content)
-			_label(box, "实际位置属性", 18)
-			for axis in {"firepower":"枪法", "entrying":"突破", "trading":"补枪", "opening":"首杀", "clutching":"残局", "sniping":"狙击", "utility":"道具", "command":"指挥"}:
+			_label(box, Locale.source("device.attributes_for_current_role"), 18)
+			for axis in {"firepower":Locale.source("device.aim"), "entrying":Locale.source("device.entry"), "trading":Locale.source("device.trading"), "opening":Locale.source("device.opening"), "clutching":Locale.source("device.clutching"), "sniping":Locale.source("device.sniping"), "utility":Locale.source("device.utility"), "command":Locale.source("role.igl")}:
 				if stats.get(axis) != null:
-					_quiet_row(box, str({"firepower":"枪法", "entrying":"突破", "trading":"补枪", "opening":"首杀", "clutching":"残局", "sniping":"狙击", "utility":"道具", "command":"指挥"}[axis]), _number(stats.get(axis), 1))
-		_label(content, "最近10图", 19)
+					_quiet_row(box, str({"firepower":Locale.source("device.aim"), "entrying":Locale.source("device.entry"), "trading":Locale.source("device.trading"), "opening":Locale.source("device.opening"), "clutching":Locale.source("device.clutching"), "sniping":Locale.source("device.sniping"), "utility":Locale.source("device.utility"), "command":Locale.source("role.igl")}[axis]), _number(stats.get(axis), 1))
+		_label(content, Locale.source("device.last_10_maps"), 19)
 	_render_player_matches(detail.get("records", []) if player_tab == "matches" else detail.get("recent", []))
 	if player_tab == "matches":
 		var pagination := HBoxContainer.new()
 		content.add_child(pagination)
 		var pages := maxi(1, ceili(float(detail.get("total", 0)) / maxf(1, float(detail.get("page_size", 20)))))
-		_button(pagination, "上一页", _player_page.bind(-1), false).disabled = player_page <= 1
+		_button(pagination, Locale.source("device.previous"), _player_page.bind(-1), false).disabled = player_page <= 1
 		_label(pagination, "%s / %s" % [player_page, pages])
-		_button(pagination, "下一页", _player_page.bind(1), false).disabled = player_page >= pages
+		_button(pagination, Locale.source("device.next"), _player_page.bind(1), false).disabled = player_page >= pages
 
 func _player_tab(value: String) -> void:
 	player_tab = value
@@ -1787,7 +1653,7 @@ func _player_page(delta: int) -> void:
 
 func _render_player_matches(records: Array) -> void:
 	if records.is_empty():
-		_label(content, "这个范围内没有已保存的地图记录。", 14, MUTED)
+		_label(content, Locale.source("device.no_saved_maps_in_this_range"), 14, MUTED)
 	for item in records:
 		var box := UI.card(content)
 		var row := HBoxContainer.new()
@@ -1797,35 +1663,20 @@ func _render_player_matches(records: Array) -> void:
 		_label(box, "%s / %s / %s · Rating %s · ADR %s · KAST %s" % [item.get("k", "—"), item.get("d", "—"), item.get("a", "—"), _number(item.get("rating"), 2), _number(item.get("adr"), 1), _percentage(item.get("kast"))], 14)
 
 func _player_honours() -> void:
-	if not str(detail.get("honours_notice", "")).is_empty():
-		_label(content, str(detail["honours_notice"]), 14, MUTED)
-		return
-	var honours: Dictionary = detail.get("honours", {})
-	for group in ["titles", "mvp", "evp", "top20"]:
-		var rows: Array = honours.get(group, [])
-		_label(content, str({"titles":"冠军", "mvp":"MVP", "evp":"EVP", "top20":"年度 Top20"}[group]) + " · " + str(rows.size()), 19)
-		for item in rows:
-			if group == "top20":
-				_label(content, "%s 年 · #%s · Rating %s" % [item.get("year", ""), item.get("rank", ""), _number(item.get("rating"), 2)], 14)
-			else:
-				_label(content, "%s · %s%s" % [item.get("date", ""), item.get("event", item.get("short", "")), " · Rating " + _number(item.get("rating"), 2) if item.has("rating") else ""], 14)
-		if rows.is_empty():
-			_label(content, "暂无记录。", 13, MUTED)
+	SharedPages.new().player_honours(content, detail, false)
 
 static func _number(value, digits: int = 1) -> String:
-	if typeof(value) not in [TYPE_INT, TYPE_FLOAT]:
-		return "—"
-	return "%.2f" % float(value) if digits == 2 else "%.1f" % float(value)
+	return Fmt.num(value, digits)
 
 static func _percentage(value) -> String:
-	return "%.1f%%" % (float(value) * 100) if typeof(value) in [TYPE_INT, TYPE_FLOAT] else "—"
+	return Fmt.percent_fixed(value)
 
 func _event() -> void:
-	_label(content, str(detail.get("name", "赛事")), 28)
+	_label(content, str(detail.get("name", Locale.source("page.match"))), 28)
 	_label(content, EventFlow.dates_text(detail.get("dates", [])), 17, MUTED)
 	for field in ["tier", "format", "prize", "region", "status"]:
 		if detail.has(field):
-			_label(content, "%s：%s" % [{"tier":"级别", "format":"赛制", "prize":"奖金", "region":"赛区", "status":"状态"}.get(field, field), EventFlow.field_text(field, detail[field])])
+			_label(content, "%s：%s" % [{"tier":Locale.source("device.tier"), "format":Locale.source("device.format"), "prize":Locale.source("device.prize_money"), "region":Locale.source("device.region"), "status":Locale.source("device.form")}.get(field, field), EventFlow.field_text(field, detail[field])])
 	EventFlow.mount(content, detail, func(id: String): _load_detail("match", id))
 
 func _match() -> void:
@@ -1934,26 +1785,26 @@ func _finished(path: String, result: Dictionary) -> void:
 		if active_page in ["operations", "transfers", "mail"]:
 			_rebuild()
 	elif path.begins_with("/api/3d/skins/"):
-		notice = "正在开箱……" if case_room.is_running() else str(result.get("reason", result.get("msg", "")))
+		notice = Locale.source("device.opening_case") if case_room.is_running() else str(result.get("reason", result.get("msg", "")))
 		if result.get("ok", false):
 			selected_skin = {}
 		if active_page == "market":
 			_rebuild()
 	elif not result.get("ok", false):
-		notice = str(result.get("msg", result.get("reason", "这次操作没有完成。")))
+		notice = str(result.get("msg", result.get("reason", Locale.source("device.this_operation_did_not_complete"))))
 		_update_status()
 
 func _update_status() -> void:
 	if status:
 		if case_room.is_running():
-			status.text = "正在开箱……"
+			status.text = Locale.source("device.opening_case")
 			return
 		# While a match result is being revealed the service message would spoil
 		# the score ("Vitality 2-0 ..."), so the footer stays quiet until the end.
 		if match_center.is_presenting() and match_center.reveal_phase == "maps":
 			status.text = ""
 			return
-		status.text = ("正在处理……" if CareerBridge.active_post else "同步资料中……") if CareerBridge.busy else (notice if not notice.is_empty() else CareerBridge.message)
+		status.text = (Locale.source("device.processing") if CareerBridge.active_post else Locale.source("device.synchronizing_2")) if CareerBridge.busy else (notice if not notice.is_empty() else CareerBridge.message)
 
 func _wake() -> void:
 	close_computer()

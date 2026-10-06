@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 """Read-only five-position device projections; fixtures never load a save."""
 from copy import deepcopy
 from types import SimpleNamespace
@@ -31,7 +32,7 @@ def state_for(person):
         my_team=lambda teams: team, you_card=None, player_name=person['name'],
         training_session=None, over=lambda: False, assist={}, attr_points=5,
         money=800, retired=False, banned=False, unsigned=False, origin='academy', role='awp')
-    return SimpleNamespace(season=SimpleNamespace(teams=[team], events=[]),
+    return ApplicationDouble(season=SimpleNamespace(teams=[team], events=[]),
                            career=career, arena=SimpleNamespace(pending=None))
 
 

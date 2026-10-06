@@ -3,7 +3,8 @@
 ## 1.7.2 · 3D 版
 
 本版发布普通 Windows 包与对应源码，按作者要求设置为 GitHub Latest。
-更新重点是按地图加载战术、保位接口兼容、自定义 VPK 模板与战绩回传。
+本次刷新同一个 1.7.2：队标头像、当前 CS2 战术兼容、比赛重新启动、训练赛、
+配乐，以及存档与比赛流程重构。不创建带后缀的新版本。
 GitHub 的 Latest 使用非 draft、非 prerelease 发布。
 主分支保存当前源码；既有 1.6.0-hotfix.1 标签和正式 Release 不修改。
 
@@ -21,7 +22,9 @@ GitHub 的 Latest 使用非 draft、非 prerelease 发布。
 `docs/external-runtime-pins.json`，更详细的构建记录见
 `docs/3d-preview-packaging.zh-CN.txt`。
 
-Git 推送使用已有仓库的历史，不强推、不改旧标签，也不上传用户存档、
+Git 推送使用已有仓库的历史，主分支不强推。此次按作者要求替换 1.7.2，
+只将 v1.7.2 标签更新到本次构建提交，并保留原标签的提交记录；其他标签不改。
+不上传用户存档、
 账号、私人扩展、原始 Demo、日志和缓存。GitHub Release 的所有附件上传
 并核对完毕后才从 draft 发布，以免玩家下载到缺少源码或文件的版本。
 

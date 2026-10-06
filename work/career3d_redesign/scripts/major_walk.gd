@@ -1,48 +1,24 @@
-extends Node3D
-const Player=preload("res://scripts/chicken_player.gd")
+extends "res://scripts/small_venue_base.gd"
 const Collisions=preload("res://scripts/arena_collision.gd")
 const Atmosphere=preload("res://scripts/arena_atmosphere.gd")
 const ChickenCrowd=preload("res://scripts/arena_chicken_crowd.gd")
 const Roster=preload("res://scripts/venue_match_roster.gd")
 const Competitor=preload("res://scripts/venue_competitor.gd")
-const UI=preload("res://scripts/phone_ui.gd")
 const SceneTiers=preload("res://scripts/scene_tiers.gd")
-const Hud=preload("res://scripts/world_hud.gd")
-const Kit=preload("res://scripts/stage_kit.gd")
 var atmosphere: Atmosphere
 var crowd: ChickenCrowd
-var player: Player
-var camera: Camera3D
-var settings: Dictionary
 var model: Node3D
 var collision_builder: RefCounted
-var yaw:=0.0
-var pitch:=0.0
 var intro:=0.0
 var intro_finished:=false
-var testing:=false
-var capturing:=false
-var booted:=false
-var focused:=true
-var paused:=false
-var status: Label
-var hint: Label
 var notice: Label
 var notice_time:=0.0
-var pause_panel: PanelContainer
-var title_parts: Dictionary={}
-var caption_parts: Dictionary={}
-var prompt_parts: Dictionary={}
-var shown_hint:="<unset>"
 var main_board: Control
 var wing_boards: Array[Control]=[]
 var board_phase:="<unset>"
-var cursor_dot: Label
-var env: Environment
 var sun: DirectionalLight3D
 var showtime:=false
 var lights: Array[OmniLight3D]=[]
-var body_y:=0.0
 var current_point: Dictionary={}
 var roster_plan: Dictionary={}
 var peers: Array[Node3D]=[]
@@ -51,8 +27,6 @@ var competition_phase:="preview"
 var player_station: Dictionary={}
 var device_seated:=false
 var device_approach:=Vector3.ZERO
-var camera_owned:=false
-var camera_tween: Tween
 var seat_serial:=0
 var entry_door_released:=false
 
@@ -73,6 +47,7 @@ func _ready() -> void:
 	atmosphere=Atmosphere.new();add_child(atmosphere)
 	var atmosphere_options: Dictionary=settings.get("atmosphere",{}).duplicate(true)
 	atmosphere_options["competitive"]=not roster_plan.is_empty()
+	atmosphere_options["capacity"]=_visit_capacity(10000)
 	atmosphere.setup(env,sun,atmosphere_options)
 	_stand_lights(_visit_capacity(10000))
 	atmosphere.set_master_volume(CareerBridge.sound_volume); atmosphere.set_muted(CareerBridge.sound_muted)
@@ -111,11 +86,6 @@ func _ready() -> void:
 		print("ARENA_ATMOSPHERE ",JSON.stringify(atmosphere.diagnostic_snapshot()))
 		get_tree().quit()
 
-func vec(a: Array) -> Vector3:return Vector3(a[0],a[1],a[2])
-
-## Soft, shadowless wash over the seating bowl so the fans read as an
-## audience instead of a black void. Stage spots stay the brightest light.
-## The backend sends capacity inside the visit's venue (100 / 1000 / 10000).
 func _visit_capacity(fallback: int) -> int:
 	var venue: Dictionary = Travel.match_visit.get("venue", {}) if Travel.match_visit.get("venue") is Dictionary else {}
 	return int(venue.get("capacity", Travel.match_visit.get("capacity", fallback)))
@@ -129,14 +99,6 @@ func _stand_lights(capacity: int) -> void:
 			light.position=Vector3(sin(angle)*ring[0],ring[1]+5.0,cos(angle)*ring[0]*.75+8.0)
 			light.light_color=Color("ffe2c2");light.light_energy=1.1;light.omni_range=26.0;light.omni_attenuation=1.0
 			light.shadow_enabled=false;light.light_volumetric_fog_energy=0.0;add_child(light)
-
-func _input_map() -> void:
-	var keys: Dictionary={"club_up":[KEY_W,KEY_UP],"club_down":[KEY_S,KEY_DOWN],"club_left":[KEY_A,KEY_LEFT],"club_right":[KEY_D,KEY_RIGHT],"club_run":[KEY_SHIFT]}
-	for action in keys:
-		if InputMap.has_action(action):continue
-		InputMap.add_action(action)
-		for key in keys[action]:
-			var event:=InputEventKey.new();event.physical_keycode=key;InputMap.action_add_event(action,event)
 
 func _batch_crowd() -> void:
 	crowd=ChickenCrowd.new();add_child(crowd);crowd.setup(model)
@@ -194,7 +156,7 @@ func _environment() -> void:
 	sun.light_color=Color("fff0d9");sun.light_energy=.95;sun.shadow_enabled=true
 	sun.directional_shadow_max_distance=120;sun.light_angular_distance=2;add_child(sun)
 
-func _sign(text: String,pos: Vector3,size: float=.012,face_view: bool=false) -> Label3D:
+func _arena_sign(text: String,pos: Vector3,size: float=.012,face_view: bool=false) -> Label3D:
 	var label:=Label3D.new();label.text=text;label.position=pos;label.font_size=58
 	label.font=UI.font()
 	label.pixel_size=size;label.modulate=Color("ffe2ad");label.outline_size=10
@@ -207,9 +169,9 @@ func _wayfinding() -> void:
 	var board:=MeshInstance3D.new();var face:=BoxMesh.new();face.size=Vector3(5.4,.83,.10)
 	board.mesh=face;board.position=Vector3(0,3.74,50.40)
 	var ink:=StandardMaterial3D.new();ink.albedo_color=Color("172c3b");board.material_override=ink;add_child(board)
-	_sign("内场入口  /  ARENA",Vector3(0,3.74,50.47),.006)
-	_sign("↓",Vector3(0,2.8,50.47),.008)
-	_sign("向前进入内场",Vector3(0,3.4,19.2),.006)
+	_arena_sign("内场入口  /  ARENA",Vector3(0,3.74,50.47),.006)
+	_arena_sign("↓",Vector3(0,2.8,50.47),.008)
+	_arena_sign("向前进入内场",Vector3(0,3.4,19.2),.006)
 	# Add visible short access stairs up to the trophy runway (the original
 	# diorama had a 45 cm vertical front face, impossible to walk up).
 	for i in range(2):
@@ -241,7 +203,7 @@ func _competition_roster() -> void:
 		# Desk-front name plates face the audience; only your seat gets a marker.
 		_plate(str(own[i].get("name","")),Vector3(x_positions[i],2.27,-16.205))
 		if i==2:
-			var marker:=_sign("你的席位 ↓",Vector3(x_positions[i],3.45,-17.55),.0022,true);marker.double_sided=true
+			var marker:=_arena_sign("你的席位 ↓",Vector3(x_positions[i],3.45,-17.55),.0022,true);marker.double_sided=true
 		if i!=2:
 			var offset:=Vector3(-.76 if ally_index%2==0 else .76,0,-1.25-int(ally_index/2)*1.45)
 			var waiting_at:=player.position+Vector3(offset.x,0,-1.2-int(ally_index/2)*1.4)
@@ -259,7 +221,7 @@ func _competition_roster() -> void:
 	_notice("和队友一起穿过中央通道入场")
 
 func _plate(text: String, at: Vector3) -> void:
-	var label:=_sign(text,at,.0024)
+	var label:=_arena_sign(text,at,.0024)
 	label.modulate=Color("24332d");label.outline_size=0
 
 func _competitor(row: Dictionary, team: String, at: Vector3, color: Color) -> Node3D:
@@ -271,6 +233,9 @@ func _competitor(row: Dictionary, team: String, at: Vector3, color: Color) -> No
 
 func _update_competition() -> void:
 	if roster_plan.is_empty() or paused or CareerBridge.phone_open or Travel.busy or not intro_finished: return
+	# The final opener starts with the team assembled; its build holds until
+	# the walk-out nears the tunnel mouth, where the drop lands.
+	if competition_phase=="holding" and atmosphere.uses_cue():atmosphere.start_entrance()
 	if competition_phase=="holding" and player.position.z<36.0:
 		competition_phase="walkout";atmosphere.start_entrance();atmosphere.set_showtime(true)
 		_notice(str(roster_plan["own_team"])+" 入场")
@@ -425,7 +390,7 @@ func _process(delta: float) -> void:
 	if atmosphere.muted!=CareerBridge.sound_muted:atmosphere.set_muted(CareerBridge.sound_muted)
 	atmosphere.update_visitor(player.position,delta,intro_finished and not Travel.busy and roster_plan.is_empty())
 	_update_competition()
-	crowd.set_reaction(atmosphere.entrance_envelope,not paused and not CareerBridge.phone_open)
+	crowd.set_reaction(atmosphere.crowd_reaction(),not paused and not CareerBridge.phone_open)
 	var p: Vector3=player.get_global_transform_interpolated().origin
 	body_y=lerpf(body_y,p.y,1-exp(-16*delta))
 	var eye:=Vector3(p.x,body_y+float(settings["eye_height"]),p.z)
@@ -462,11 +427,11 @@ func zone(p: Vector3) -> String:
 
 func _notice(text: String) -> void:notice.text=text;notice_time=6;Hud.fit_caption(caption_parts)
 
-func set_paused(value: bool) -> void:
-	paused=value;pause_panel.visible=value;player.velocity=Vector3.ZERO
-	if value:Travel.close_menu()
-	if is_instance_valid(atmosphere):atmosphere.set_paused(value)
-	Input.mouse_mode=Input.MOUSE_MODE_VISIBLE if value or CareerBridge.phone_open else Input.MOUSE_MODE_CAPTURED
+func _pause_changed(value: bool) -> void:
+	if is_instance_valid(atmosphere): atmosphere.set_paused(value)
+
+func _look_allowed() -> bool:
+	return intro_finished
 
 func interact() -> void:
 	if not intro_finished or paused or device_seated:return
@@ -503,9 +468,6 @@ func _leave_computer() -> void:
 func match_seated(match_id: String) -> bool:
 	return not roster_plan.is_empty() and str(roster_plan.get("match_id",""))==match_id and device_seated and competition_phase=="ready"
 
-func before_computer() -> void:
-	Travel.close_menu();player.velocity=Vector3.ZERO
-
 func after_computer() -> void:_leave_computer()
 
 func set_device_open(value: bool, kind: String) -> void:
@@ -519,28 +481,12 @@ func set_device_open(value: bool, kind: String) -> void:
 	if not value:_leave_computer()
 	Input.mouse_mode=Input.MOUSE_MODE_VISIBLE if value or paused else Input.MOUSE_MODE_CAPTURED
 
-func set_phone_open(value: bool) -> void:set_device_open(value,"phone")
-
 func _unhandled_input(event: InputEvent) -> void:
-	if not booted or Travel.busy or CareerBridge.phone_open:return
-	if event is InputEventMouseMotion and Input.mouse_mode==Input.MOUSE_MODE_CAPTURED and not paused and not camera_owned and intro_finished:
-		yaw-=event.relative.x*.0024;pitch=clampf(pitch-event.relative.y*.0024,-1.35,1.35)
-	if event is InputEventKey and event.pressed and not event.echo:
-		match event.physical_keycode:
-			KEY_ESCAPE:set_paused(not paused)
-			KEY_E:interact()
-			KEY_N:
-				showtime=not showtime;atmosphere.set_showtime(showtime)
-
-func _notification(what: int) -> void:
-	if what==NOTIFICATION_APPLICATION_FOCUS_OUT:
-		focused=false
-		if booted and not testing and not capturing:set_paused(true)
-	elif what==NOTIFICATION_APPLICATION_FOCUS_IN:focused=true
-
-func _exit_tree() -> void:
-	if camera_tween and camera_tween.is_valid():camera_tween.kill()
-	Input.mouse_mode=Input.MOUSE_MODE_VISIBLE
+	super._unhandled_input(event)
+	if not booted or Travel.busy or CareerBridge.phone_open: return
+	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_N:
+		showtime = not showtime
+		atmosphere.set_showtime(showtime)
 
 func before_phone() -> void:
 	Travel.close_menu();_leave_computer()

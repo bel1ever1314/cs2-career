@@ -37,7 +37,7 @@ def run(folder):
     from tools.career3d_start import start_command, creation_options
     state = ApplicationState()
     ensure_economy(state.career)
-    state.persist()  # Explicit empty save pair, never an official/demo career.
+    state.settle()  # Explicit empty save pair, never an official/demo career.
     checks = []
     metadata = data / METADATA_NAME
     def save_hashes():
@@ -209,7 +209,7 @@ def run(folder):
     saved = json.loads((data / 'save' / 'season.json').read_text('utf-8'))
     persisted = next(p for t in saved['teams'] if t['id'] == team['id'] for p in t['players'] if p.get('you'))
     assert {axis: persisted['stats'][axis] for axis in AXES} == values
-    state.persist()
+    state.settle()
     exact = save_hashes()
     loaded = ApplicationState()
     assert start_command(loaded, 'create', {**create_body, 'revision': -1})['replayed'] and save_hashes() == exact

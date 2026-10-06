@@ -392,6 +392,12 @@ func _player(parent: Node, value: Variant, featured: bool = false) -> void:
 	if not team.is_empty(): UI.label(row, team, 13, UI.MUTED).horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 
 func acknowledge(visit: bool = false) -> void:
+	# Closing a presentation is local. Losing the server must not lock the UI;
+	# no unconfirmed acknowledgement or ceremony travel is invented.
+	if not CareerBridge.connected and not command_sender.is_valid():
+		acknowledgements_pending = false
+		_release()
+		return
 	if entry.is_empty() or acknowledgements_pending or (is_instance_valid(champion_ceremony) and champion_ceremony.active): return
 	var payload := {"ids":[str(entry.get("id", ""))], "revision":int(CareerBridge.context.get("calendar", {}).get("revision", 0))}
 	var accepted := bool(command_sender.call(ACK_PATH, payload)) if command_sender.is_valid() else CareerBridge.command(ACK_PATH, payload)

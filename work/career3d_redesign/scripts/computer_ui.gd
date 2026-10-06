@@ -13,7 +13,7 @@ const BADGE := Base.BADGE
 const AMBER := Base.AMBER
 const BLUE := Base.BLUE
 ## Monitor text is read from the chair; 12–14 px Chinese was too small.
-const TYPE_SCALE := {10:12, 11:12, 12:13, 13:14, 14:15, 15:16}
+const TYPE_SCALE := preload("res://scripts/ui_theme.gd").COMPUTER_TYPE
 
 static func style(color: Color, padding: int = 12, radius: int = 12, border: Color = Color.TRANSPARENT) -> StyleBoxFlat:
 	return Base.style(color, padding, radius, border)

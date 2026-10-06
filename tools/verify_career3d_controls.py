@@ -92,7 +92,7 @@ def run(folder):
         checks.append('original role command and invite rules persist with revision guards and receipt-safe retries')
 
         state.career.attr_points = 2
-        state.persist()
+        state.settle()
         you = state.career.my_player(state.season.teams)
         old = float(you['stats']['firepower'])
         command('assistance', 'points-request-001', points='firepower')

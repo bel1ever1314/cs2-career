@@ -1,5 +1,6 @@
 """Check the authored cue without needing the external audio toolchain."""
 import importlib.util
+import json
 from pathlib import Path
 import unittest
 
@@ -22,13 +23,14 @@ class ArenaCompositionTest(unittest.TestCase):
         self.assertTrue(all(0 <= event[1] < 128 for _, event in events if len(event) > 1))
 
     def test_music_and_light_clock_agree(self):
-        _, report = MUSIC.arrangement()
+        report = json.loads((ROOT / "assets/audio/major_final_cue.json").read_text(encoding="utf-8"))
         source = (ROOT / "scripts" / "arena_atmosphere.gd").read_text(encoding="utf-8")
-        self.assertEqual(report["bpm"], 112)
-        self.assertIn("const ENTRANCE_BPM := 112.0", source)
-        self.assertAlmostEqual(report["cadence_seconds"], report["beat_seconds"] * 32)
-        self.assertGreaterEqual(MUSIC.CUE_SECONDS, 16)
-        self.assertLessEqual(MUSIC.CUE_SECONDS, 24)
+        self.assertEqual(report["bpm"], 128)
+        self.assertIn("const ENTRANCE_BPM := 128.0", source)
+        self.assertAlmostEqual(report["beat_seconds"], 60 / report["bpm"])
+        self.assertGreater(report["length"], report["final"])
+        self.assertNotIn('arena_entrance.ogg', source)
+        self.assertNotIn('CompetitiveCue', source)
 
     def test_standard_midi_is_complete(self):
         events, _ = MUSIC.arrangement()

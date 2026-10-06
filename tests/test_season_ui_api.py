@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 """Season board reads and mode choices must not advance on refresh/retry."""
 from copy import deepcopy
 import json
@@ -55,7 +56,7 @@ class SeasonBoardTests(TestCase):
 class SeasonModeHttpTests(TestCase):
     def setUp(self):
         self.career=SimpleNamespace(assist={})
-        self.state=SimpleNamespace(career=self.career,season=SimpleNamespace(year=2026),
+        self.state=ApplicationDouble(career=self.career,season=SimpleNamespace(year=2026),
             persist=Mock(),payload=lambda msg='':{'ok':True,'msg':msg,'state':{}})
         self.server=create_server(self.state)
         self.thread=threading.Thread(target=self.server.serve_forever,daemon=True)

@@ -151,7 +151,8 @@ class RoleAbilityTests(unittest.TestCase):
             # A prior score-only snapshot must not be modified by live migration.
             state.season.history=[{'year':2025,'events':[], 'sentinel':{'ability':74}}]
             state.persist()
-            originals={f.name:f.read_bytes() for f in root.glob('*.json')}
+            from cs2career.storage.history import portable_bytes
+            originals={f.name:portable_bytes(f) for f in root.glob('*.json')}
             state=ApplicationState()
             p=state.career.my_player(state.season.teams)
             self.assertEqual(67.2,p['ability'])

@@ -1,0 +1,11 @@
+这次启动的结果尚待确认，请刷新比赛连接状态。	This launch is not yet confirmed. Refresh the match connection status.
+启动返回的比赛编号与已保存请求不一致。	The launched match ID does not match the saved request.
+上次操作的结果尚待确认，请刷新安装与插件状态；不会自动再次执行。	The previous action is not yet confirmed. Refresh the installation and plugin status; the action will not run again automatically.
+存档提交等待恢复，请重新启动后台。	The save is awaiting recovery. Restart the local service to continue.
+这场比赛的规则版本尚未支持，原战绩已保留。	This match uses an unsupported rules version. Its original results have been kept.
+回传规则版本与本场比赛不一致，未结算。	The returned rules version does not match this match. No result was recorded.
+回传会话编号与本场比赛不一致，未结算。	The returned session ID does not match this match. No result was recorded.
+战绩比分不是有效的非负整数，未结算。	The returned score must contain nonnegative whole numbers. No result was recorded.
+比分不符合本场 MR12／MR3 终场规则，未结算。	The score does not meet this match's MR12/MR3 final-score rules. No result was recorded.
+战术已保存，正在同步到游戏目录。	Tactics saved. Syncing to the game directory.
+现有 %s 组件缺失；请先在设置里安装人机增强。	The installed %s component is missing. Install Bot Improver from Settings first.

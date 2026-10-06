@@ -25,6 +25,9 @@ class ApplicationState:
         return self._arena
 
     def __init__(self) -> None:
+        from .paths import save_root
+        from .storage.transaction import recover
+        recover(save_root())
         self._recover_personal_command()
         self.season = Season.load_or_new()
         self.career = Career.load()
@@ -51,7 +54,7 @@ class ApplicationState:
             if self._boot_career():
                 dirty = True
         if dirty:
-            self.persist()
+            self.settle()
 
     def _boot_career(self) -> bool:
         dirty = False
@@ -115,15 +118,6 @@ class ApplicationState:
 
     def payload(self, msg: str = "") -> dict:
         from .career.localization import present
-        self.sync()
-        ingested = ""
-        try:
-            ingested = self.season.try_ingest_pending_cs2()
-        except Exception:
-            pass
-        if ingested:
-            self.persist()
-            msg = msg or ingested
         return {
             "ok": True,
             "msg": msg,
@@ -132,6 +126,25 @@ class ApplicationState:
         }
 
     def persist(self) -> None:
+        """Save current values only. No invitations, stories or automatic points."""
+        from .storage.transaction import batch, CommitPending
+        if getattr(self, '_storage_failed', False):
+            raise CommitPending('存档提交等待恢复，请重启后台后继续。')
+        with batch():
+            self.season.save()
+            self.career.save()
+
+    def operation(self):
+        from .operations import operation
+        return operation(self)
+
+    def settle(self) -> None:
+        """Explicit command-side reconciliation, separate from persistence."""
+        with self.operation():
+            self._reconcile()
+
+    def _reconcile(self) -> None:
+        self.sync()
         from .career.assistance import process_invites, process_points
         from .career.story_timing import reconcile
         from .career.notifications import reconcile as file_notices
@@ -141,8 +154,18 @@ class ApplicationState:
         process_points(self.career, self.season)
         reconcile(self.career, self.season)
         file_notices(self.career, self.season)
-        self.season.save()
-        self.career.save()
+        self.persist()
+
+    def poll_results(self) -> str:
+        """Explicit background command; never called while projecting a page."""
+        if not any(m.get('cs2_session') and not m.get('played')
+                   for ev in self.season.events for m in ev.get('matches', [])):
+            return ''
+        with self.operation():
+            message = self.season.try_ingest_pending_cs2()
+            if message:
+                self.settle()
+            return message
 
     @staticmethod
     def _recover_personal_command():
@@ -159,31 +182,13 @@ class ApplicationState:
         journal.unlink()
 
     def personal_command(self, command):
-        """Rollback both saves after an interrupted transfer, before loading.
-
-        Caller holds the shared application lock. Internal Career.save calls
-        are deferred so the pair is committed before sending a UI response.
-        """
-        from .paths import save_root
-        self.persist()
-        folder = self.backup()
-        old_season, old_career = deepcopy((self.season, self.career))
-        journal = save_root()/'personal-transfer.pending.json'
-        pending = journal.with_suffix('.writing')
-        pending.write_text(json.dumps({'backup': folder.name}), encoding='utf-8')
-        pending.replace(journal)
-        self.career.save = lambda: None
-        try:
+        """One recoverable operation; keep the old journal reader for upgrades."""
+        if not getattr(self, '_operation_depth', 0):
+            self.persist()  # Preserve a direct caller's already accepted edits.
+        with self.operation():
             result = command(self.career, self.season)
-            del self.career.save
-            self.persist()
-            journal.unlink()
+            self.settle()
             return result
-        except Exception:
-            self.season, self.career = old_season, old_career
-            self.season.career = self.career
-            self._recover_personal_command()
-            raise
 
     def reset(self) -> None:
         self._replace_career(Season(), Career())
@@ -195,20 +200,14 @@ class ApplicationState:
         return create(save_root())
 
     def _replace_career(self, season, career):
-        folder = self.backup()  # A failed backup must prevent replacement.
-        old_season, old_career = self.season, self.career
-        self.season, self.career = season, career
-        self.season.career = career
-        try:
-            self.persist()
-        except Exception:
-            self.season, self.career = old_season, old_career
-            if folder:
-                from .save_backups import restore
-                restore(folder.parent.parent,folder,require_pair=False)
-            raise
+        self.backup()  # A failed backup must prevent replacement.
+        with self.operation():
+            self.season, self.career = season, career
+            self.season.career = career
+            self.settle()
 
-    def create_career(self, payload: dict, *, start_attributes=None, start_metadata=None) -> str:
+    def create_career(self, payload: dict, *, start_attributes=None, start_metadata=None,
+                      story_seed=None, inherit_preferences=False, quick_mode=None) -> str:
         from .world import ERA_META, slug, roster_names
         from .career.origins import ORIGINS, DEFAULT_ORIGIN
 
@@ -249,16 +248,25 @@ class ApplicationState:
         season.career = career
         # Build and validate off to the side. Career.create normally saves, so
         # defer this one instance's write until the old save has been backed up.
-        career.save = lambda: None
-        try:
-            msg = career.create(payload, season)
-        finally:
-            del career.save
+        from .storage.transaction import discard_writes
+        with discard_writes():
+            msg = career.create(payload, season, story_seed=story_seed)
+            if inherit_preferences:
+                career.steam_id = self.career.steam_id
+                career.real_skins = self.career.real_skins
+            if quick_mode is not None:
+                from .career.fast_mode import configure_season
+                configure_season(career, season, quick_mode, season.year)
         self._replace_career(season, career)
         return msg
 
     def run(self, operation, *args, **kwargs) -> str:
         """Execute a domain command and save; used by desktop button handlers."""
-        msg = operation(*args, **kwargs)
-        self.persist()
-        return str(msg or "")
+        from .league.outcomes import MatchPaused
+        with self.operation():
+            try:
+                msg = operation(*args, **kwargs)
+            except MatchPaused as exc:
+                msg = str(exc)
+            self.settle()
+            return str(msg or "")

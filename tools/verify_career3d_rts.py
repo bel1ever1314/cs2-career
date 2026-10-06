@@ -160,13 +160,13 @@ def run(folder, godot):
             original_stage = match['stage']
             match['stage'] = 'GF'
             moment(state.career, state.season, ev, match, 'final')
-            state.persist()
+            state.settle()
         gated = command('rts/start', match_id=ident, side='t')
         assert gated['status'] == 'paused' and not match.get('career3d_rts') and not match.get('maps')
         assert context()['stories']
         with server.state_lock:
             match['stage'] = original_stage
-            state.persist()
+            state.settle()
         ack()
         checks.append('ordinary pending tournament final decision pauses RTS before freezing any map or recording statistics')
         session = start(ident)
@@ -213,6 +213,9 @@ def run(folder, godot):
                     for key in ('k', 'd', 'a', 'damage', 'opening_kills', 'opening_deaths'):
                         row[key] = float(row[key])
             committed = command('rts/submit', match_id=ident, nonce=session['nonce'], report=numeric)
+            # Rejected commands restore the aggregate snapshot. Reacquire the
+            # authoritative match instead of retaining a pre-rollback object.
+            ev, match = state.season.find_match(ident)
             assert len(match['maps']) == index + 1 and not match.get('career3d_rts')
             saved = match['maps'][-1]
             assert saved['source'] == 'rts' and len(saved['rts_round_history']) == len(report['round_history'])
@@ -240,7 +243,7 @@ def run(folder, godot):
         checks.append('each map and completed ordinary series settle once; stale submit receipts replay without any write or repeat rewards')
     finally:
         server.shutdown(); thread.join(3); server.server_close()
-        state.persist()
+        state.settle()
     return dict(ok=True, official_saves_accessed=False, actual_cs2_started=False, actual_plugins_modified=False,
                 actual_natural_godot_reports=True, gate_fixture='only isolated stage changed to GF; no fabricated map reports',
                 checks=checks, maps=natural_maps)

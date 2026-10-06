@@ -98,7 +98,7 @@ def run(folder):
             sid = f"bday.{s.date}.{mate['name']}"
             with server.state_lock:
                 c._push_plot(dict(plot.birthday_popup(mate['name']), date=s.date), sid)
-                state.persist()
+                state.settle()
             points, mentality = c.attr_points, team['mentality']
             captured = before_story_choice(state, next(r for r in c.story_queue if r['id'] == sid), choice)
             result = api('/api/3d/story', dict(id=sid, choice=choice))
@@ -132,7 +132,7 @@ def run(folder):
                       social=dict(contact_id=mates[2]['player_id'], replies={'yes':'行，我等你。'}))
         with server.state_lock:
             c.story_queue.append(custom)
-            state.persist()
+            state.settle()
         linked = api('/api/3d/story', dict(id=custom['id'], choice='yes'))
         linked_lines = next(r for r in linked['context']['contacts'] if r['id'] == mates[2]['player_id'])['messages']
         assert [r['sender'] for r in linked_lines] == ['narrator', 'you', 'contact']

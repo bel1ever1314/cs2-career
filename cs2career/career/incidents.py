@@ -42,7 +42,7 @@ def pending(career):
 
 
 def competition_status(career, day):
-    pause = state(career).get('competition_pause', {})
+    pause = (getattr(career, 'incident_state', None) or {}).get('competition_pause', {})
     return {**pause, 'active': bool(pause.get('until', '') > day)}
 
 

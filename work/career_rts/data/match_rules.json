@@ -1,0 +1,8 @@
+{
+  "id": "competitive-mr12-mr3-v1",
+  "regulation_half": 12,
+  "overtime_half": 3,
+  "overtime_money": 10000,
+  "final_scores": [[13, 0], [13, 11], [16, 12], [16, 13], [16, 14], [19, 15], [19, 17], [22, 20]],
+  "nonfinal_scores": [[12, 12], [13, 12], [15, 15], [17, 13], [18, 12], [18, 18], [19, 18]]
+}

@@ -6,12 +6,15 @@ const CATALOGUE := "res://data/locale_en.json"
 var language := "zh-CN"
 var _preferences: Dictionary = {}
 var _messages: Dictionary = {}
+var _keyed_messages: Dictionary = {}
 var _templates: Array[Dictionary] = []
 var _identity_names: Dictionary = {}
 var _cache: Dictionary = {}
 var _translation: Translation
 
 func _ready() -> void:
+	var keyed = JSON.parse_string(FileAccess.get_file_as_string("res://data/ui_messages.json"))
+	if keyed is Dictionary: _keyed_messages = keyed.get("messages", {})
 	var saved = JSON.parse_string(FileAccess.get_file_as_string(_preferences_path())) if FileAccess.file_exists(_preferences_path()) else null
 	if saved is Dictionary: _preferences = saved
 	if _preferences.is_empty() and FileAccess.file_exists("res://runtime/ui_preferences.json"):
@@ -118,6 +121,26 @@ func text(value: Variant) -> String:
 	if value is Dictionary:
 		return str(value.get("en", value.get("zh", value.get("zh-CN", "")))) if language == "en" else str(value.get("zh", value.get("zh-CN", value.get("en", ""))))
 	return english(str(value)) if language == "en" else str(value)
+
+func source(key: String) -> String:
+	# Native Controls keep source text so switching languages updates existing
+	# menus and toolbars in both directions. The catalogue compiler joins these
+	# ID-backed pairs, including printf templates, without a second English copy.
+	if not _keyed_messages.has(key):
+		push_error("Unknown UI message ID: " + key)
+		return key
+	return str(_keyed_messages[key].zh)
+
+func message(key: String, arguments: Dictionary = {}) -> String:
+	# IDs survive copy edits. Only explicit placeholders are formatted; names
+	# and arbitrary player text are never treated as translation lookup keys.
+	if not _keyed_messages.has(key):
+		push_error("Unknown UI message ID: " + key)
+		return key
+	var value := str(_keyed_messages[key].get("en" if language == "en" else "zh", key))
+	for argument in arguments:
+		value = value.replace("{" + str(argument) + "}", str(arguments[argument]))
+	return value
 
 func field(record: Dictionary, key: String, fallback: String = "") -> String:
 	protect_records(record)

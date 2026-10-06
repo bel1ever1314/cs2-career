@@ -1,5 +1,7 @@
 using CareerMatch;
 
+AvatarDeliveryTests.Run();
+
 var bots = Enumerable.Range(1, 9).Select(i => new IdentityBot($"p{i}", $"C2C_p{i}", $"Player {i}", (ulong)(100+i))).ToList();
 var live = bots.Select((b,i) => new IdentitySlot(i+1, $"connection-{i+1}", b.Profile, 0, 0, true)).ToList();
 live.Add(new IdentitySlot(0, "human-1", "Steam nickname", 999, 999, false));

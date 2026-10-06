@@ -9,9 +9,81 @@ import subprocess
 import time
 import urllib.request
 from urllib.error import HTTPError
+from uuid import uuid4
 
 
-def verify_backend(executable, qa, media=None, bundled=None):
+def verify_workflows(request):
+    """Exercise the shipped executable through HTTP, with no source imports."""
+    def require(condition, message):
+        if not condition:
+            raise RuntimeError(message)
+
+    def context():
+        return request('/api/3d/context')
+
+    def command(path, **body):
+        return request('/api/3d/' + path, dict(
+            revision=context()['calendar']['revision'], request_id=uuid4().hex, **body))
+
+    options = request('/api/3d/start/options?era=2026')
+    team = options['teams'][0]
+    player = team['players'][0]
+    created = command('start/create', confirm_replace=True, career=dict(
+        mode='join', era='2026', team_id=team['id'], player_id=player['player_id'], role='rifle'))
+    require(not created['context']['start']['creation_required'], 'Creation did not complete')
+    require(created['context']['player']['id'] == player['player_id'], 'Wrong playable identity')
+    checks = ['professional character creation through frozen backend']
+
+    before = context().get('avatar', {})
+    saved = command('saves/save', label='Packaged verification')
+    command('avatar', appearance={'body_color':'acbdee', 'jersey_color':'334477', 'outfit':'natural'})
+    require(context()['avatar']['appearance']['body_color'] == 'acbdee', 'Avatar not persisted')
+    loaded = command('saves/load', id=saved['id'], confirm=True)
+    require(loaded.get('loaded') and context().get('avatar', {}) == before, 'Manual save did not restore')
+    checks.append('save, edit appearance, load restores original state')
+
+    def ladder(action, **body):
+        return request('/api/3d/ladder/' + action, dict(
+            revision=context()['ladder']['revision'], request_id=uuid4().hex, **body))
+
+    ladder('matchmake')
+    for _ in range(30):
+        lobby = context()['ladder']['lobby']
+        if lobby['phase'] == 'ready':
+            break
+        if not lobby['turn']['human']:
+            ladder('advance')
+        elif lobby['phase'] == 'draft':
+            available = [pid for pid in lobby['selection'] if pid not in lobby['a'] + lobby['b']]
+            ladder('pick', player_id=available[0])
+        elif lobby['phase'] == 'veto':
+            banned = {row['map'] for row in lobby['bans']}
+            ladder('ban', map=next(mp for mp in lobby['map_pool'] if mp not in banned))
+        else:
+            ladder('side', side='ct')
+    else:
+        raise RuntimeError('Draft did not complete within 30 operations')
+    require(all(len({lobby['roster'][pid]['role'] for pid in lobby[side]}) == 5
+                for side in ('a', 'b')), 'Draft roles overlap')
+    ident = uuid4().hex
+    body = dict(revision=context()['ladder']['revision'], request_id=ident, lobby_id=lobby['id'])
+    result = request('/api/3d/ladder/simulate', body)['result']
+    require(sum(len(rows) for rows in result['map']['players'].values()) == 10,
+            'Simulation did not retain all ten players')
+    settled = context()
+    replay = request('/api/3d/ladder/simulate', body)
+    require(replay.get('replayed') and context()['ladder']['player'] == settled['ladder']['player'],
+            'Repeated match command settled Elo again')
+    receipt = request('/api/3d/requests?id=' + ident)
+    require(receipt.get('status') == 'completed', 'Cannot confirm completed request')
+    require(settled['ladder']['player']['wins'] + settled['ladder']['player']['losses'] == 1,
+            'Unexpected ladder match count')
+    checks.append('captains, draft, map veto, ten-player simulation, one Elo settlement and receipt lookup')
+    return dict(checks=checks, player_id=player['player_id'], ladder=settled['ladder']['player'],
+                save_id=saved['id'], session_id=result['map'].get('session_id'))
+
+
+def verify_backend(executable, qa, media=None, bundled=None, workflows=False):
     qa = Path(qa).resolve()
     qa.mkdir(parents=True, exist_ok=False)
     ready = qa / 'ready.json'
@@ -48,7 +120,9 @@ def verify_backend(executable, qa, media=None, bundled=None):
                     response = error
                 with response:
                     if response.status != expected:
-                        raise ValueError('Unexpected endpoint status ' + path + ': ' + str(response.status))
+                        detail = json.load(response)
+                        raise ValueError('Unexpected endpoint status ' + path + ': ' + str(response.status)
+                                         + ': ' + str(detail.get('msg') or detail.get('reason') or ''))
                     return json.load(response)
 
             context = request('/api/3d/context')
@@ -83,6 +157,8 @@ def verify_backend(executable, qa, media=None, bundled=None):
             if any(context['settings'][key] for key in
                    ('real_skins', 'skin_tools_enabled', 'skin_inspect_enabled')):
                 raise ValueError('Skins and optional skin tools must be disabled by default')
+            if workflows:
+                report['workflows'] = verify_workflows(request)
             request('/api/3d/shutdown', {})
             proc.wait(timeout=20)
             if proc.returncode:
@@ -90,6 +166,27 @@ def verify_backend(executable, qa, media=None, bundled=None):
             if ready.exists():
                 raise ValueError('Backend did not remove its own ready handshake')
             report['clean_shutdown'] = True
+            if workflows:
+                # Re-open the same isolated save with the frozen executable.
+                proc = subprocess.Popen(args, cwd=qa, env=env, stdout=log, stderr=subprocess.STDOUT)
+                deadline = time.monotonic() + 75
+                while not ready.exists():
+                    if proc.poll() is not None or time.monotonic() > deadline:
+                        raise RuntimeError('Frozen backend failed to reopen the saved career')
+                    time.sleep(.1)
+                connection = json.loads(ready.read_text('utf-8'))
+                reopened = request('/api/3d/context')
+                if (reopened['player']['id'] != report['workflows']['player_id'] or
+                        reopened['ladder']['player'] != report['workflows']['ladder']):
+                    raise RuntimeError('Career or ladder changed after process restart')
+                slots = request('/api/3d/saves')['slots']
+                if not any(row['id'] == report['workflows']['save_id'] for row in slots):
+                    raise RuntimeError('Manual slot lost after restart')
+                request('/api/3d/shutdown', {})
+                proc.wait(timeout=20)
+                if proc.returncode or ready.exists():
+                    raise RuntimeError('Reopened backend did not shut down cleanly')
+                report['saved_progress_survives_restart'] = True
         finally:
             if proc.poll() is None:
                 proc.terminate()
@@ -104,6 +201,7 @@ if __name__ == '__main__':
     parser.add_argument('--qa', type=Path, required=True)
     parser.add_argument('--media', type=Path)
     parser.add_argument('--bundled', choices=('yes', 'no'))
+    parser.add_argument('--workflows', action='store_true', help='Create character, save/load, play ladder and restart the actual frozen backend')
     args = parser.parse_args()
     print(json.dumps(verify_backend(args.backend, args.qa, args.media,
-        {'yes': True, 'no': False}.get(args.bundled)), ensure_ascii=False, indent=2))
+        {'yes': True, 'no': False}.get(args.bundled), args.workflows), ensure_ascii=False, indent=2))

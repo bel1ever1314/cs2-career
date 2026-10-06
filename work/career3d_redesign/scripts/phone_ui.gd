@@ -3,19 +3,20 @@ extends RefCounted
 const Device = preload("res://scripts/career_ui.gd")
 ## Shared device palette (phone, computer and world HUD). Warm paper surfaces,
 ## one deep green accent and a small set of status tones.
-const INK := Color("22342b")
-const MUTED := Color("67746b")
-const GREEN := Color("2f6b52")
-const PAPER := Color("fffdf6")
-const CREAM := Color("f8f4e9")
-const MINT := Color("d3e6d7")
-const LINE := Color("e1dfd2")
-const BADGE := Color("b4553c")
-const AMBER := Color("b97d22")
-const BLUE := Color("3f6a9e")
-const SHADOW := Color(0.13, 0.22, 0.17, 0.08)
+const ThemeTokens = preload("res://scripts/ui_theme.gd")
+const INK := ThemeTokens.INK
+const MUTED := ThemeTokens.MUTED
+const GREEN := ThemeTokens.GREEN
+const PAPER := ThemeTokens.PAPER
+const CREAM := ThemeTokens.CREAM
+const MINT := ThemeTokens.MINT
+const LINE := ThemeTokens.LINE
+const BADGE := ThemeTokens.BADGE
+const AMBER := ThemeTokens.AMBER
+const BLUE := ThemeTokens.BLUE
+const SHADOW := ThemeTokens.SHADOW
 ## Phone copy reads at arm's length on a small screen; lift the smallest sizes.
-const TYPE_SCALE := {10:11, 11:12, 12:13, 13:14, 14:15}
+const TYPE_SCALE := ThemeTokens.PHONE_TYPE
 static var body_font: Font
 static var font_style := "rounded"
 static var font_loaded := false

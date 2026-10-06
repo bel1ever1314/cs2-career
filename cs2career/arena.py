@@ -30,6 +30,8 @@ def captain_key(row):
 class Arena:
     def __init__(self, path=None):
         self.path = path or save_file('arena.json')
+        from .storage.transaction import recover
+        recover(self.path.parent)
         self.data = json.loads(self.path.read_text('utf-8')) if self.path.exists() else {
             'schema_version':2,'revision':0,'ladder':{},'lobby':None,'matches':[]}
         self._migration_backup = self.data.get('schema_version') == 1
@@ -74,33 +76,31 @@ class Arena:
         return (self.data['lobby'] or {}).get('phase') in ('starting', 'launched', 'rts')
 
     def save(self):
+        from .storage.transaction import save, on_commit, CommitPending
+        from .json_bytes import encode
         self.path.parent.mkdir(parents=True,exist_ok=True)
-        fd,raw=tempfile.mkstemp(prefix='.arena-',suffix='.tmp',dir=self.path.parent)
         try:
-            with os.fdopen(fd,'w',encoding='utf-8') as f:
-                if self._migration_backup and self.path.exists():
-                    backup=self.path.with_name('arena.schema1-'+uuid.uuid4().hex+'.json')
-                    shutil.copy2(self.path,backup)
-                    self._migration_backup=False
-                json.dump(self.data,f,ensure_ascii=False,allow_nan=False)
-                f.flush();os.fsync(f.fileno())
-            os.replace(raw,self.path)
-            self._saved = deepcopy(self.data)
+            if self._migration_backup and self.path.exists():
+                backup=self.path.with_name('arena.schema1-'+uuid.uuid4().hex+'.json')
+                shutil.copy2(self.path,backup)
+                self._migration_backup=False
+            save(self.path, lambda: encode(self.data))
+            on_commit(self.path, lambda: setattr(self, '_saved', deepcopy(self.data)))
+        except CommitPending:
+            raise
         except Exception:
             self.data = deepcopy(self._saved)
             raise
-        finally:
-            if os.path.exists(raw):os.unlink(raw)
 
     def roster(self,state):
         found={}
         for team in state.season.teams:
             for p in team['players']:
-                if p.get('player_id'):found[p['player_id']]={**deepcopy(p),'club':team['name']}
+                if p.get('player_id'):found[p['player_id']]={**deepcopy(p),'club':team['name'],'club_id':team['id']}
         for p in state.career.free:
-            if p.get('player_id'):found.setdefault(p['player_id'],{**deepcopy(p),'club':''})
+            if p.get('player_id'):found.setdefault(p['player_id'],{**deepcopy(p),'club':'','club_id':''})
         you=getattr(state.career,'you_card',{}) or {}
-        if you.get('player_id'):found.setdefault(you['player_id'],{**deepcopy(you),'club':''})
+        if you.get('player_id'):found.setdefault(you['player_id'],{**deepcopy(you),'club':'','club_id':''})
         return found
 
     def _record(self,state,p):
@@ -322,7 +322,7 @@ class Arena:
     def _career_pending(state):
         return any(m.get('cs2_session') and not m.get('played') for e in state.season.events for m in e.get('matches',[]))
 
-    def launch(self,state,body):
+    def launch(self,state,body, *, launcher=None):
         self._guard(body.get('revision'));l=self.data['lobby']
         if not l or l['phase'] not in ('ready','starting'):raise ValueError('房间不在待开赛状态')
         self.guard_rank_action(state,'launch')
@@ -340,8 +340,10 @@ class Arena:
             self._commit()  # Keep a recovery token even if Steam launch fails.
         request=launch.build_lobby_request(ct,t,l['human_id'],'de_'+l['map'],l['nonce'])
         l['request']=request
+        from .engine.sessions import stamp
+        stamp(l, 'cs2')
         self.save()
-        out=launch.start_match(ct,t,request['player'],request['map'],request['human_team'],
+        out=(launcher or launch.start_match)(ct,t,request['player'],request['map'],request['human_team'],
             teams=[ct,t],purpose='arena',request_override=request)
         l['phase']='launched';self._commit()
         return out['msg']
@@ -354,6 +356,7 @@ class Arena:
         from .cs2.result import result_usable, cs2_to_map
         result=raw if raw is not None else read_result(l['nonce'])
         session=dict(nonce=l['nonce'],map=l['map'],started_at=l['started_at'],expected_player_ids=list(l['roster']))
+        session.update({key: l[key] for key in ('rules_id', 'session_id') if key in l})
         reason=result_usable(result,session)
         if reason:raise ValueError(reason)
         if result.get('map') != 'de_'+l['map'] or not result.get('ended_at'):

@@ -300,14 +300,14 @@ func _venue(config: Dictionary) -> void:
 					# Each riser is solid down to the floor: a real stand, not
 					# thin slabs hanging in the air.
 					var height := maxf(.26,y-base_y+.02)
-					_box(self,"TerraceBank",Vector3(side*(inner+band_width*.5),y-height*.5,z),Vector3(band_width,height,float(config.spacing_z)),Color("b5a080") if row%5==0 else oak)
+					_box(self,"TerraceBank",Vector3(side*(inner+band_width*.5),y-height*.5,z),Vector3(band_width,height,float(config.spacing_z)),Color("b5a080") if row%5==0 else oak,core_variant=="major")
 					if row%5==4: _rounded(self,"TerraceRail",Vector3(side*(inner+band_width*.5),y+.35,z+.4),Vector3(band_width,.08,.08),green,.035)
 				var top := base_y+(int(config.rows)-1)*float(config.rise)
 				# Back of the stand: solid to the floor, topped by a waist-high
 				# rail behind the last row (not a tall blank wall).
 				var back_h := top-base_y+1.05
 				var back_z := -6.0+int(config.rows)*float(config.spacing_z)-.3
-				_box(self,"TerraceBackWall",Vector3(side*(inner+band_width*.5),base_y+back_h*.5,back_z),Vector3(band_width,back_h,.24),cream)
+				_box(self,"TerraceBackWall",Vector3(side*(inner+band_width*.5),base_y+back_h*.5,back_z),Vector3(band_width,back_h,.24),cream,core_variant=="major")
 				_rounded(self,"TerraceBackRail",Vector3(side*(inner+band_width*.5),base_y+back_h+.04,back_z),Vector3(band_width+.1,.08,.32),green,.035)
 			var x: float = side*(width*.5-1.1)
 			for i in range(11 if grand else 7):

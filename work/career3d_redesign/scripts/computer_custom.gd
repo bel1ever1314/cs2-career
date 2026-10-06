@@ -207,6 +207,12 @@ func command(action: String) -> bool:
 
 func received(path: String, result: Dictionary) -> bool:
 	if not path.begins_with(PREFIX): return false
+	if result.get("result_summary", false):
+		pending_action = ""
+		notice = str(result.get("reason", result.get("msg", "操作已保存，请查看当前进度。")))
+		request_status = true
+		_repaint(false)
+		return true
 	var should_repaint := true
 	if path.begins_with(PREFIX + "catalog"):
 		if path == pending_catalog: pending_catalog = ""

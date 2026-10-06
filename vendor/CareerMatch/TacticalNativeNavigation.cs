@@ -45,7 +45,7 @@ internal sealed class TacticalNativeNavigation
     // Reviewed hashes provide a legacy exact-file profile. A different file
     // may use the bounded complete current feature profile below instead.
     internal static bool IsAuditedServerHash(string hash) =>
-        hash is AuditedServerSha256 or PreviousServerSha256;
+        hash is AuditedServerSha256 or PreviousServerSha256 or TacticalServer927.Sha256;
 
     private static readonly byte[] MoveSignature = Convert.FromHexString(
         "F20F1002F20F1181E80200008B4208488D91E00200008981F0020000448981F4020000E928E10000");
@@ -94,7 +94,10 @@ internal sealed class TacticalNativeNavigation
     internal sealed record Audit(string Sha256, int MoveRva, int IdleRva, int StateRva, int PathRva, int ImageSize)
     {
         internal TacticalFeatureAudit.Snapshot? Dependencies { get; init; }
-        public string CompatibilityProfile => Dependencies is null ? "reviewed_whole_file" : "current_stable_rva_features";
+        public int BotVtableRva => Sha256 == TacticalServer927.Sha256 ? TacticalServer927.BotVtable : 0x17ad970;
+        public int MoveToVtableRva => Sha256 == TacticalServer927.Sha256 ? TacticalServer927.MoveToVtable : 0x17ad7b8;
+        public string CompatibilityProfile => Sha256 == TacticalServer927.Sha256 ? "reviewed_2000927"
+            : Dependencies is null ? "reviewed_whole_file" : "current_stable_rva_features";
     }
     private readonly nint _module;
     private readonly MoveToFn _move;
@@ -170,10 +173,14 @@ internal sealed class TacticalNativeNavigation
                 throw new InvalidDataException("navigation_setstate_target_mismatch");
             if (!text.Slice(moveState - textRva, StatePrefix.Length).SequenceEqual(StatePrefix))
                 throw new InvalidDataException("navigation_setstate_prefix_mismatch");
-            foreach (var body in ContinuationBodies)
+            for (var i = 0; i < ContinuationBodies.Length; i++)
+            {
+                var body = ContinuationBodies[i];
+                var expected = hash == TacticalServer927.Sha256 ? TacticalServer927.NavigationHashes[i] : body.Sha;
                 if (body.Rva < textRva || (long)body.Rva+body.Length > textRva+textLength
-                    || Convert.ToHexString(SHA256.HashData(text.Slice(body.Rva-textRva, body.Length))) != body.Sha)
+                    || Convert.ToHexString(SHA256.HashData(text.Slice(body.Rva-textRva, body.Length))) != expected)
                     throw new InvalidDataException("navigation_continuation_audit_mismatch:"+body.Name);
+            }
             code = ContinuationBodies.Select(body =>
                 bytes.AsSpan(textRaw+body.Rva-textRva, body.Length).ToArray()).ToArray();
             audit = new(hash, moveRva, idleRva, moveState, textRva + path, imageSize) { Dependencies = dependencies };
@@ -395,16 +402,20 @@ internal sealed class TacticalNativeNavigation
         // ASLR-aware pointers, not raw file VAs. SetState uses these virtual
         // methods; hashing their old bodies alone would miss a replaced slot.
         var botVtable = Marshal.ReadIntPtr(bot);
-        if (botVtable != _module+0x17ad970
-            || Marshal.ReadIntPtr(botVtable+0x28) != _module+0x2dcab0
-            || Marshal.ReadIntPtr(botVtable+0x30) != _module+0x2e7a00
-            || Marshal.ReadIntPtr(_module+0x17ad7b8) != _module+0x32a630
-            || Marshal.ReadIntPtr(_module+0x17ad7c0) != _module+0x330e90
-            || Marshal.ReadIntPtr(_module+0x17ad7c8) != _module+0x32aaf0
-            || !MatchMemory(_module+0x2dcab0, RunBody) || !MatchMemory(_module+0x2e7a00, WalkBody))
+        if (!LayoutMatches(_module, botVtable, Evidence))
         { reason = "loaded_continuation_vtable_or_gait_changed"; return false; }
         reason = ""; return true;
     }
+
+    // Also exercised with a synthetic, non-executable mapped image.
+    internal static bool LayoutMatches(nint module, nint botVtable, Audit evidence) =>
+        botVtable == module+evidence.BotVtableRva
+        && Marshal.ReadIntPtr(botVtable+0x28) == module+0x2dcab0
+        && Marshal.ReadIntPtr(botVtable+0x30) == module+0x2e7a00
+        && Marshal.ReadIntPtr(module+evidence.MoveToVtableRva) == module+0x32a630
+        && Marshal.ReadIntPtr(module+evidence.MoveToVtableRva+8) == module+0x330e90
+        && Marshal.ReadIntPtr(module+evidence.MoveToVtableRva+16) == module+0x32aaf0
+        && MatchMemory(module+0x2dcab0, RunBody) && MatchMemory(module+0x2e7a00, WalkBody);
 
     // Pure byte checks used by file/synthetic regression tests, without loading
     // a game module. Only two EXACT full-body variants exist. Other known
@@ -415,8 +426,11 @@ internal sealed class TacticalNativeNavigation
         selected = null; variant = "";
         if (!ValidContinuationShape(audited) || !ValidContinuationShape(observed))
         { reason = "navigation_continuation_snapshot_shape_invalid"; return false; }
+        // Select ONE complete build, never mix bodies from different releases.
+        var hashes = audited.Select(body => Convert.ToHexString(SHA256.HashData(body))).ToArray();
+        var current = hashes[0] == TacticalServer927.NavigationHashes[0];
         for (var i = 0; i < ContinuationBodies.Length; i++)
-            if (Convert.ToHexString(SHA256.HashData(audited[i])) != ContinuationBodies[i].Sha)
+            if (hashes[i] != (current ? TacticalServer927.NavigationHashes[i] : ContinuationBodies[i].Sha))
             { reason = "navigation_continuation_snapshot_not_audited:"+ContinuationBodies[i].Name; return false; }
         if (!audited[MoveToUpdateIndex].AsSpan(DefuseVisibilityOffset, 6).SequenceEqual(DefuseVisibilityBranch))
         { reason = "navigation_defuse_visibility_branch_not_audited"; return false; }

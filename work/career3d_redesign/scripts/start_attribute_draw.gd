@@ -233,6 +233,7 @@ func history_text(session: Dictionary) -> String:
 	return "本次抽取记录\n" + "\n".join(lines) if not lines.is_empty() else ""
 
 func fetch() -> void:
+	if start == null: return # The owning form may have been replaced by a slot load.
 	var era := str(start.draft.era)
 	if loaded.has(era) or not pending_path.is_empty() or CareerBridge.busy: return
 	var path := PATH + "?era=" + era.uri_encode()
@@ -269,6 +270,20 @@ func rebuild_preserving_scroll() -> void:
 	host._rebuild()
 
 func finished(path: String, result: Dictionary) -> bool:
+	if path == PATH and result.get("result_summary", false):
+		# A lookup confirms the saved draw, not another spin. Reload its current
+		# projection even if the transport error already released pending_path.
+		pending_path = ""
+		pending_body.clear()
+		retry_body.clear()
+		proposal.clear()
+		unrevealed_draw_id = ""
+		loaded.clear()
+		if is_instance_valid(popup): popup.queue_free()
+		notice = str(result.get("reason", result.get("msg", "")))
+		call_deferred("fetch")
+		refresh_controls()
+		return true
 	if path != pending_path or pending_path.is_empty(): return false
 	var body := pending_body.duplicate(true)
 	var era := pending_era

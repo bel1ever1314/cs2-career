@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 """Fixture-date attendance plans, morning stops and read-only venue guidance."""
 from copy import deepcopy
 from http.server import ThreadingHTTPServer
@@ -44,7 +45,7 @@ class CareerMatchAttendanceTests(unittest.TestCase):
         self.s._require_yours = Mock()
         self.s._next_busy_day = lambda: self.m['date']
         self.s.career = self.c
-        self.state = SimpleNamespace(career=self.c, season=self.s,
+        self.state = ApplicationDouble(career=self.c, season=self.s,
             arena=SimpleNamespace(pending=False, career_player_id=lambda state: 'p0_0'), persist=Mock())
         self.config = patch('tools.career3d_activities.config_status', return_value=dict(ready=True, reason=''))
         self.config.start()
@@ -240,7 +241,8 @@ class CareerMatchAttendanceTests(unittest.TestCase):
         self.c.assist['quick_mode'] = quick
         self.c.next_calendar_day = lambda season, target: birthday if birthday and season.date < birthday <= target else None
         def next_stage(**kwargs):
-            self.s.date = self.s._next_busy_day()
+            target = min(self.s._next_busy_day(), kwargs['until'])
+            self.s.date = self.c.next_calendar_day(self.s, target) or target
             if self.s.date == birthday:
                 self.c.story_queue.append(dict(id='birthday-choice'))
             return self.s.date
@@ -313,7 +315,9 @@ class CareerMatchAttendanceTests(unittest.TestCase):
                 self.assertEqual('planned', out['status'])
                 self.assertTrue(out['attendance']['planned'])
                 self.assertEqual('2026-06-21', out['attendance']['sleep_target'])
-                self.state.persist.assert_called_once()
+                # Handler-only double: reconciliation plus the shared receipt.
+                # Real disk-write coalescing is checked in test_operation_boundary.
+                self.assertEqual(2, self.state.persist.call_count)
                 self.assertNotIn('career3d_venue', self.m)
                 self.state.persist.reset_mock()
                 code, retry = post(server.token, 0)

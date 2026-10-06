@@ -71,6 +71,13 @@ def _windows_cs2_running():
                 live = _windows_process_running(entry.th32ProcessID, kernel)
                 if live is True:
                     return True
+                # Windows can retain an exited CS2 entry while another process
+                # holds its process object. OpenProcess may then return access
+                # denied, even though the snapshot has no execution threads.
+                # A real/suspended/startup process still has threads; access
+                # denial alone must never be interpreted as a closed game.
+                if live is None and entry.cntThreads == 0:
+                    live = False
                 uncertain = uncertain or live is None
             found = kernel.Process32NextW(handle, ctypes.byref(entry))
         if ctypes.get_last_error() != 18:  # ERROR_NO_MORE_FILES: normal EOF.

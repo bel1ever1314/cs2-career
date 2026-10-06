@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 """Optional skin integrations, using isolated settings and loopback fixtures."""
 import json
 import os
@@ -33,7 +34,7 @@ class OptionalSkinApiTests(unittest.TestCase):
             self.addCleanup(context.stop)
         self.career = SimpleNamespace(real_skins=True, steam_id='76561198000000000',
                                       inventory=[], equipped_ct={}, equipped_t={})
-        self.state = SimpleNamespace(career=self.career,
+        self.state = ApplicationDouble(career=self.career,
                                      payload=lambda: {'state': {'career': {'skins': {
                                          'skin_integration': launch.skin_integration()}}}})
 
@@ -119,11 +120,13 @@ class OptionalSkinApiTests(unittest.TestCase):
     def test_failed_atomic_replace_retains_original_settings(self):
         launch.save_settings({'skins_inventory_mode': 'external'})
         original = launch.SETTINGS_PATH.read_bytes()
-        with patch.object(launch.os, 'replace', side_effect=OSError('fixture locked file')):
+        # Fail before the journal's commit point, not an obsolete os.replace
+        # implementation detail (Windows uses a write-through rename).
+        with patch('cs2career.storage.transaction._replace', side_effect=OSError('fixture locked file')):
             with self.assertRaises(OSError):
                 launch.save_settings({'skin_inspect_enabled': True})
         self.assertEqual(original, launch.SETTINGS_PATH.read_bytes())
-        self.assertEqual([], list(launch.SETTINGS_PATH.parent.glob('.cs2-settings-*.tmp')))
+        self.assertEqual([], list((launch.SETTINGS_PATH.parent / '.save-transaction').glob('*.next')))
 
     def test_broken_optional_config_does_not_hide_local_cosmetics(self):
         from cs2career.career.career import Career

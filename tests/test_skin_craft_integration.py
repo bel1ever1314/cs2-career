@@ -175,7 +175,8 @@ class CosmeticsIntegrationTests(unittest.TestCase):
         row = self.weapon()
         career = self.career
 
-        class FixtureState:
+        from application_double import ApplicationDouble
+        class FixtureState(ApplicationDouble):
             def __init__(self):
                 self.career = career
             def persist(self):

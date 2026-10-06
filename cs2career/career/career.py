@@ -8,6 +8,7 @@ import math
 import random
 import re
 import shutil
+from copy import deepcopy
 from datetime import date as calendar_date, datetime
 from pathlib import Path
 
@@ -245,16 +246,16 @@ class Career:
         }
 
     def save(self) -> None:
-        target = self.path()
-        target.parent.mkdir(parents=True, exist_ok=True)
-        pending = target.with_suffix('.pending')
-        pending.write_text(json.dumps(self.to_json(), ensure_ascii=False, indent=2), encoding="utf-8")
-        pending.replace(target)
+        from ..storage.transaction import save
+        from ..json_bytes import encode
+        save(self.path(), lambda: encode(self.to_json()))
 
     @classmethod
     def load(cls) -> "Career":
         obj = cls()
         path = obj.path()
+        from ..storage.transaction import recover
+        recover(path.parent)
         if not path.exists():
             return obj
         try:
@@ -396,7 +397,7 @@ class Career:
 
     # ---------------------------------------------------------------- create
 
-    def create(self, payload: dict, season) -> str:
+    def create(self, payload: dict, season, *, story_seed=None) -> str:
         era = payload.get("era") or "2026"
         meta = ERA_META[era]
         mode = payload.get("mode") or "join"
@@ -493,7 +494,7 @@ class Career:
         self.rebuild_free(season.teams)
         self._remember_you(season)
         from . import arcs
-        arcs.initialize(self, season, payload)
+        arcs.initialize(self, season, payload, seed=story_seed)
         from . import news
         news.initialize(self, season)
         self.personal_transfers['pre_join_events']=[f"{season.year}:{e['id']}" for e in season.events if e.get('status')=='done']
@@ -875,6 +876,8 @@ class Career:
         self.training_session = dict(nonce=request['nonce'],map=to_sim_map(request.get('map','')),
             expected_player_ids=ids, team_id=self.team_id, player=self.player_name,
             date=self.current_date, started_at=datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'))
+        from ..engine.sessions import stamp
+        stamp(self.training_session, 'cs2')
         self.save()
 
     def finish_training(self, season) -> str:
@@ -1894,7 +1897,7 @@ class Career:
         self.save()
         return self.log[-1]
 
-    def set_skin_pref(self, real: bool, steam_id: str = "") -> str:
+    def set_skin_pref(self, real: bool, steam_id: str = "", *, sync: bool = True) -> str:
         self.real_skins = bool(real)
         if steam_id:
             self.steam_id = "".join(ch for ch in steam_id if ch.isdigit())[:20]
@@ -1903,7 +1906,7 @@ class Career:
             return "只在生涯里显示皮肤，不写进 CS2。"
         if not self.steam_id:
             return "已打开换肤，但还没填 SteamID。填 17 位数字后再装备一次。"
-        if not skins.plugin_installed():
+        if not sync or not skins.plugin_installed():
             return "已打开换肤。请到训练赛页把换肤插件装进游戏，然后完全退出 CS2 再进。"
         skins.sync_live(self)
         return "已打开游戏内换肤。进本地房后武器会换成你装备的饰品；局内可打 !ws 刷新，对着枪按检视键看外观。"
@@ -2025,7 +2028,7 @@ class Career:
         self.equipped_t = {k: v for k, v in (self.equipped_t or {}).items() if v != inv_id}
         self.equipped = {**self.equipped_ct, **self.equipped_t}
 
-    def sell_skin(self, inv_id: str) -> str:
+    def sell_skin(self, inv_id: str, *, sync: bool = True) -> str:
         item = next((row for row in self.inventory if row.get("id") == inv_id), None)
         if not item:
             return "库存里没有这件。"
@@ -2039,10 +2042,11 @@ class Career:
         msg = f"卖掉 {item['name']}，口袋 +${pay:,}（市价扣 10%）。"
         self.log.append(msg)
         self.save()
-        skins.sync_live(self)
+        if sync:
+            skins.sync_live(self)
         return msg
 
-    def equip_skin(self, inv_id: str, side: str = "", off: bool = False) -> str:
+    def equip_skin(self, inv_id: str, side: str = "", off: bool = False, *, sync: bool = True) -> str:
         skins.migrate_equipped(self)
         side = (side or "").lower()
         if side not in ("ct", "t"):
@@ -2059,7 +2063,8 @@ class Career:
                         loadout.pop(key, None)
             self.equipped = {**self.equipped_ct, **self.equipped_t}
             self.save()
-            skins.sync_live(self)
+            if sync:
+                skins.sync_live(self)
             return f"已从 {side.upper()} 卸下。"
         item = next((row for row in self.inventory if row.get("id") == inv_id), None)
         if not item:
@@ -2070,8 +2075,9 @@ class Career:
         loadout[slot] = item["id"]
         self.equipped = {**self.equipped_ct, **self.equipped_t}
         self.save()
-        skins.sync_live(self)
-        if self.real_skins and skins.plugin_installed() and self.steam_id:
+        if sync:
+            skins.sync_live(self)
+        if sync and self.real_skins and skins.plugin_installed() and self.steam_id:
             return f"已给 {side.upper()} 装备 {item['name']}，并写入换肤文件。"
         if self.real_skins:
             return f"已给 {side.upper()} 装备 {item['name']}。游戏内换肤还差插件或 SteamID。"
@@ -2740,7 +2746,7 @@ class Career:
         from .localization import present
         from . import arcs, story_timing
         team = self.my_team(season.teams) if self.exists else None
-        you = self.my_player(season.teams) if self.exists else None
+        you = deepcopy(self.my_player(season.teams)) if self.exists else None
         if not you and self.you_card:
             you = dict(self.you_card)
             you["you"] = True

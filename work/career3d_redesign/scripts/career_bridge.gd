@@ -10,6 +10,16 @@ signal growth_changed
 const Feedback = preload("res://scripts/career_feedback.gd")
 const SleepTransition = preload("res://scripts/sleep_transition.gd")
 const Fmt = preload("res://scripts/ui_format.gd")
+const ReadQueue = preload("res://scripts/career_read_queue.gd")
+var reads := ReadQueue.new()
+var connection_generation := 0
+var request_sequence := 0
+var response_callback: Callable
+var reconnecting := false
+var reconnect_due := 0.0
+var reconnect_attempts := 0
+var unknown_command: Dictionary = {}
+var known_revision := -1
 var feedback: CanvasLayer
 var sleep_transition: CanvasLayer
 var sleeping := false
@@ -43,6 +53,7 @@ var clock_boundary := false
 var active_path := ""
 var active_body: Dictionary = {}
 var active_post := false
+var active_request_id := ""
 var queued_command: Dictionary = {}
 var calendar_running := false
 var closing := false
@@ -70,6 +81,7 @@ static func service_launch(config: Dictionary, handshake: String, owner_pid: int
 		"--data-dir", local_path(str(config.get("data_dir", "runtime/career")), root),
 		"--port", "127.0.0.1:0", "--ready-file", local_path(handshake, root),
 		"--parent-pid", str(owner_pid), "--media-config", local_path("data/media.json", root)])
+	if not config.get("import_cs2_config", true): common.append("--no-cs2-config")
 	var backend := str(config.get("backend_exe", "")).strip_edges()
 	if not backend.is_empty():
 		return {"executable":local_path(backend, root), "args":common}
@@ -97,7 +109,7 @@ func _ready() -> void:
 	add_child(sleep_transition)
 	get_tree().auto_accept_quit = false
 	request = HTTPRequest.new(); request.timeout = 90; request.use_threads = true
-	add_child(request); request.request_completed.connect(_response)
+	add_child(request)
 	for flag in ["--no-service", "--test", "--npc-test", "--arena-test", "--travel-test", "--arena-capture", "--npc-capture"]:
 		if flag in OS.get_cmdline_user_args():
 			connecting=false; message="独立场景检查"; set_process(false); return
@@ -125,24 +137,29 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if closing_startup:return
+	if reconnecting and not closing and not exiting:
+		_reconnect(delta)
+		return
 	if connecting:
 		startup_time+=delta; startup_poll-=delta
 		if startup_poll<=0:
 			startup_poll=.25
 			if FileAccess.file_exists(ready_file):
 				var row = JSON.parse_string(FileAccess.get_file_as_string(ready_file))
-				if row is Dictionary and row.get("ready",false) and row.get("host")=="127.0.0.1":
+				if row is Dictionary and row.get("ready",false) and row.get("host")=="127.0.0.1" and (not owns_service or int(row.get("pid", -1)) == process_id):
 					endpoint="http://127.0.0.1:%d" % int(row["port"]); token=str(row["token"])
 					connecting=false; refresh(); return
 		if Time.get_ticks_msec()-startup_started>35000:_fail("后台没有就绪。可能另一个样板窗口仍开着，请关闭它后重新打开。")
 		return
 	if not connected or closing or exiting:return
+	if not busy:
+		_flush_queued()
 	refresh_time+=delta
 	if refresh_time>20 and not busy and not sleeping:refresh_time=0; refresh()
 	var scene=get_tree().current_scene
 	var at_club: bool=scene!=null and scene.scene_file_path in ["res://play.tscn","res://bedroom.tscn"]
 	var real_match_pending := _has_pending_match()
-	if at_club and not bool(context.get("start", {}).get("creation_required", false)) and not real_match_pending and not phone_open and not clock_held and not busy and not Travel.busy and context.get("stories",[]).is_empty():
+	if at_club and not bool(context.get("start", {}).get("creation_required", false)) and not real_match_pending and not phone_open and not clock_held and not clock_boundary and not busy and not Travel.busy and context.get("stories",[]).is_empty():
 		clock_minutes+=delta/maxf(.2,float(settings.get("real_seconds_per_game_minute",1.0)))
 		if clock_minutes>=1440 and not clock_boundary:
 			clock_minutes=1439; clock_boundary=true
@@ -166,17 +183,35 @@ func refresh() -> void:
 	_send("/api/3d/context",{},false)
 
 func _send(path: String,body: Dictionary,post: bool=true) -> bool:
-	if busy or endpoint.is_empty():return false
+	if endpoint.is_empty():return false
+	if not post and (busy or not reads.ready(path, Time.get_ticks_msec())):
+		return reads.enqueue(path)
+	if busy:return false
+	if not post: reads.paths.erase(path)
+	active_request_id = str(body.get("request_id", "godot-%d-%d" % [OS.get_process_id(), Time.get_ticks_usec()])) if post else ""
 	active_path=path; active_body=body.duplicate(true); active_post=post; busy=true; busy_changed.emit(true)
-	# The first explicit install downloads official runtime components.
+	request_sequence += 1
+	if response_callback.is_valid() and request.request_completed.is_connected(response_callback):
+		request.request_completed.disconnect(response_callback)
+	response_callback = _response.bind(connection_generation, request_sequence)
+	request.request_completed.connect(response_callback, CONNECT_ONE_SHOT)
+	# Explicit installation can copy/prepare a large local runtime.
 	request.timeout = 600 if path == "/api/3d/setup/install" else 90
 	var headers:=PackedStringArray(["X-Career-Token: "+token,"Content-Type: application/json"])
+	if post: headers.append("X-Career-Request-ID: " + active_request_id)
 	var error:=request.request(endpoint+path,headers,HTTPClient.METHOD_POST if post else HTTPClient.METHOD_GET,JSON.stringify(body) if post else "")
 	if error!=OK:
-		busy=false; busy_changed.emit(false); _fail("本地请求没有发出："+str(error)); return false
+		busy=false; busy_changed.emit(false)
+		if not post: reads.failed(path, Time.get_ticks_msec())
+		_begin_reconnect("本地请求没有发出，正在重新连接……")
+		return false
 	return true
 
 func command(path: String,body: Dictionary={}) -> bool:
+	if not unknown_command.is_empty() and not closing:
+		message = "上一项操作结果正在确认，请稍候。"
+		status_changed.emit()
+		return false
 	if sleeping:
 		message = "正在睡觉，醒来后再操作。"
 		status_changed.emit()
@@ -199,13 +234,18 @@ func command(path: String,body: Dictionary={}) -> bool:
 	return _send(path,body)
 
 func _flush_queued() -> void:
-	if busy or queued_command.is_empty(): return
+	if busy or not connected: return
+	if queued_command.is_empty():
+		var next := reads.take(Time.get_ticks_msec())
+		if not next.is_empty(): _send(next, {}, false)
+		return
 	var queued := queued_command.duplicate(true)
 	queued_command.clear()
 	if not command(str(queued.path), queued.body):
 		command_finished.emit(str(queued.path), {"ok":false, "msg":message, "not_sent":true})
 
-func _response(result: int,code: int,_headers: PackedStringArray,body: PackedByteArray) -> void:
+func _response(result: int,code: int,_headers: PackedStringArray,body: PackedByteArray, generation: int = -1, sequence: int = -1) -> void:
+	if generation >= 0 and (generation != connection_generation or sequence != request_sequence): return
 	var path:=active_path; var sent:=active_body.duplicate(true)
 	busy=false; busy_changed.emit(false)
 	var parsed := JSON.new()
@@ -216,32 +256,90 @@ func _response(result: int,code: int,_headers: PackedStringArray,body: PackedByt
 		# Tactics/RTS payloads keep their exact parsed form for round-trips.
 		if out is Dictionary and not (path.contains("/tactics") or path.contains("/rts")):
 			out = Fmt.normalize(out)
-	if result!=HTTPRequest.RESULT_SUCCESS or not out is Dictionary:
+	if result!=HTTPRequest.RESULT_SUCCESS or not out is Dictionary or code in [401, 403]:
 		var discarded := queued_command.duplicate(true)
 		queued_command.clear()
-		connected=false; clock_held=true; calendar_running=false
-		message="后台连接中断，当前场景仍可查看。请重新打开样板以恢复已保存生涯。"
+		if active_post: unknown_command = {"path":path, "request_id":active_request_id}
+		else: reads.failed(path, Time.get_ticks_msec())
+		_begin_reconnect("连接中断，正在重连；已发送的操作不会自动重发。")
 		if sleeping: sleep_transition.complete({"ok":false, "msg":message})
 		status_changed.emit()
 		# The active write may already have been saved. Never retry it here;
 		# just release local pending forms and ask for a fresh saved-state read.
 		command_finished.emit(path, {"ok":false, "msg":message, "transport_failure":true, "outcome_unknown":active_post})
 		if not discarded.is_empty():
-			command_finished.emit(str(discarded.path), {"ok":false, "msg":"操作未执行：后台同步中断。请重新打开样板后再试。", "not_sent":true})
+			command_finished.emit(str(discarded.path), {"ok":false, "msg":"操作未发出：等待后台重新连接后再试。", "not_sent":true})
 		if closing:_exit_now()
 		return
+	if out.get("error_code", "") == "storage_recovery_required":
+		var discarded := queued_command.duplicate(true)
+		queued_command.clear()
+		if active_post: unknown_command = {"path":path, "request_id":active_request_id}
+		else: reads.failed(path, Time.get_ticks_msec())
+		# The service replies before exiting without another save. Wait for that
+		# owned PID to exit, then use the regular handshake/restart flow. Never
+		# kill an external service or repeat the command that already committed.
+		_begin_reconnect("正在恢复已提交的进度，完成后会自动重新连接。" if owns_service else "存档需要恢复，请重新启动外部后台；操作不会自动重发。")
+		if sleeping: sleep_transition.complete({"ok":false, "msg":message})
+		command_finished.emit(path, {"ok":false, "error_code":"storage_recovery_required", "msg":message, "outcome_unknown":true})
+		if not discarded.is_empty():
+			command_finished.emit(str(discarded.path), {"ok":false, "msg":"操作未发出：恢复完成后再试。", "not_sent":true})
+		if closing: _exit_now()
+		return
 	var loaded: bool = path == "/api/3d/saves/load" and out.get("ok", false) and out.get("loaded", false)
+	if not active_post:
+		if code >= 400 or not out.get("ok", false): reads.failed(path, Time.get_ticks_msec())
+		else: reads.succeeded(path)
+	var revision := int(out.get("state_revision", known_revision))
+	if not active_post and revision < known_revision:
+		reads.enqueue(path)
+		call_deferred("_flush_queued")
+		return
+	if loaded: known_revision = -1
+	known_revision = maxi(known_revision, revision)
 	Locale.register_projection(out)
 	if loaded: _reset_for_loaded_career()
-	# Even a rejected command can carry a valid, newly queued career story.
+	# A story gate is a successful paused command. Rejections never carry a
+	# projection of changes that were rolled back.
 	if out.has("context"): _apply_context(out["context"])
 	elif path=="/api/3d/context" and out.get("ok",false): _apply_context(out)
 	if loaded and is_instance_valid(feedback): feedback.ingest()
 	message=str(out.get("reason",out.get("msg","")))
 	if code>=400:message=str(out.get("msg",message))
+	if out.get("result_summary", false):
+		calendar_running = false
+		message = "这项操作已保存。已刷新当前进度，完整战绩可在比赛记录查看。"
+		out["msg"] = message
+		out["reason"] = message
+		reads.enqueue("/api/3d/context")
 	status_changed.emit(); command_finished.emit(path,out)
 	if loaded: call_deferred("_return_from_loaded_career")
-	if not queued_command.is_empty(): call_deferred("_flush_queued")
+	call_deferred("_flush_queued")
+	if path=="/api/3d/context" and out.get("ok", false):
+		reconnecting = false
+		reconnect_attempts = 0
+		if not clock_boundary: clock_held = false
+		if not unknown_command.is_empty():
+			reads.enqueue("/api/3d/requests?id=" + str(unknown_command.request_id).uri_encode())
+	if path.begins_with("/api/3d/requests?") and code < 400 and out.get("ok", false) and not unknown_command.is_empty():
+		if out.get("status", "unknown") == "completed":
+			var saved: Dictionary = out.get("result", {}).duplicate(true)
+			# Recovery confirms an outcome, without another command or report
+			# animation. A completed slot load also invalidates the old scene.
+			saved["result_summary"] = true
+			saved["reason"] = "这项操作已保存，请查看当前进度。"
+			if str(unknown_command.path) == "/api/3d/saves/load" and saved.get("loaded", false):
+				# The slot was already loaded; invalidate old room/page state,
+				# never issue the load command again.
+				_reset_for_loaded_career()
+				reads.enqueue("/api/3d/context")
+				call_deferred("_return_from_loaded_career")
+			command_finished.emit(str(unknown_command.path), saved)
+			message = "已重新连接，刚才的操作已保存。"
+		else:
+			message = "已重新连接。刚才的操作结果尚不能确认，请先查看当前进度。"
+		unknown_command.clear()
+		status_changed.emit()
 	if path=="/api/3d/shutdown":
 		_exit_now()
 		return
@@ -266,7 +364,7 @@ func _finish_calendar(out: Dictionary, sent: Dictionary) -> void:
 		clock_held = false
 		clock_boundary = false
 		if sent.get("wake", false): wake_requested.emit()
-	elif status == "paused":
+	elif status == "paused" or clock_boundary:
 		clock_held = true
 	if sleeping:
 		var presentation := out.duplicate(true)
@@ -274,6 +372,8 @@ func _finish_calendar(out: Dictionary, sent: Dictionary) -> void:
 		sleep_transition.complete(presentation)
 
 func _reset_for_loaded_career() -> void:
+	reads.clear()
+	known_revision = -1
 	queued_command.clear()
 	calendar_running = false
 	pending_target = ""
@@ -314,6 +414,37 @@ func _apply_context(value: Dictionary) -> void:
 	if old_date!=str(context.get("date","")):
 		clock_minutes=float(context.get("clock",{}).get("hour",8))*60; clock_boundary=false; clock_held=false
 	if differs:changed.emit()
+
+func _begin_reconnect(text: String) -> void:
+	connection_generation += 1
+	connected = false
+	connecting = false
+	reconnecting = true
+	clock_held = true
+	calendar_running = false
+	reconnect_due = minf(15.0, pow(2.0, mini(reconnect_attempts, 4)))
+	reconnect_attempts += 1
+	message = text
+	status_changed.emit()
+
+func _reconnect(delta: float) -> void:
+	if busy: return
+	reconnect_due -= delta
+	if reconnect_due > 0: return
+	reconnect_due = minf(15.0, pow(2.0, mini(reconnect_attempts, 4)))
+	if owns_service and not OS.is_process_running(process_id):
+		var launch := service_launch(settings, ready_file, OS.get_process_id())
+		if launch.has("error"): return
+		process_id = OS.create_process(str(launch.executable), launch.args, false)
+		if process_id <= 0: return
+		known_revision = -1
+		return
+	if FileAccess.file_exists(ready_file):
+		var row = JSON.parse_string(FileAccess.get_file_as_string(ready_file))
+		if row is Dictionary and row.get("ready",false) and row.get("host")=="127.0.0.1" and (not owns_service or int(row.get("pid", -1)) == process_id):
+			endpoint = "http://127.0.0.1:%d" % int(row.port)
+			token = str(row.token)
+			_send("/api/3d/context", {}, false)
 
 func growth_remaining() -> int:
 	var spent := 0
@@ -382,7 +513,8 @@ func add_days(day: String,count: int) -> String:
 	return Time.get_date_string_from_unix_time(int(Time.get_unix_time_from_datetime_string(day+"T00:00:00"))+count*86400)
 
 func clock_text() -> String:
-	return "%s  %02d:%02d" % [str(context.get("date","载入中")),floori(clock_minutes/60),int(clock_minutes)%60]
+	var minutes := clampi(floori(clock_minutes), 0, 1439)
+	return "%s  %02d:%02d" % [str(context.get("date","载入中")),floori(float(minutes)/60),minutes%60]
 
 func quit() -> void:
 	if exiting:return

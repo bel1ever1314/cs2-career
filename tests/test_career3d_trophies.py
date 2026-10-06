@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 from copy import deepcopy
 from datetime import date
 from types import SimpleNamespace
@@ -18,7 +19,7 @@ class ClubTrophyTests(unittest.TestCase):
         teams = [dict(id='vitality', name='Vitality', players=[dict(name='You', player_id='human', you=True)]),
                  dict(id='other', name='Other', players=[dict(name='OtherPerson', player_id='other')])]
         self.s = SimpleNamespace(date='2026-08-01', year=2026, events=[], history=[], teams=teams)
-        self.state = SimpleNamespace(career=self.c, season=self.s,
+        self.state = ApplicationDouble(career=self.c, season=self.s,
             arena=SimpleNamespace(career_player_id=lambda state: 'human'))
 
     def event(self, **changes):

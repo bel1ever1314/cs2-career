@@ -103,6 +103,7 @@ public sealed partial class CareerMatchPlugin
         Logger.LogInformation("Tactical native navigation: {State}", _tacticalFailure);
         TacticalNativeLook.TryBind(Addresses.ServerPath, out _tacticalLook, out _tacticalLookState);
         Logger.LogInformation("Tactical native observation: {State}", _tacticalLookState);
+        WriteTacticalStatus("interfaces_bound");
         var path = Path.Combine(ModuleDirectory, "tactical_routes.json");
         try
         {
@@ -148,6 +149,9 @@ public sealed partial class CareerMatchPlugin
         {
             if (_tacticalNavigator is null)
             {
+                TacticalTrace("interface_unavailable", new { plan.TacticId, plan.Side,
+                    navigation = _tacticalFailure, direction = _tacticalLookState, hold = _customHoldState });
+                WriteTacticalStatus("navigation_unavailable");
                 player?.PrintToChat(" \x02指挥：当前游戏版本的寻路接口未就绪，未设置战术。控制台输入 css_tactics 查看原因。\x01");
                 return HookResult.Handled;
             }
@@ -161,6 +165,7 @@ public sealed partial class CareerMatchPlugin
             {
                 Logger.LogWarning(ex, "Tactic preflight rejected {Tactic}: {Reason}", plan.TacticId ?? plan.Site, ex.Message);
                 TacticalTrace("preflight_rejected", new { plan.TacticId, plan.Site, plan.Side, reason = ex.Message });
+                WriteTacticalStatus("preflight_rejected", ex.Message);
                 player?.PrintToChat($" \x02指挥：战术未启动（{ex.Message}）。\x01");
                 return HookResult.Handled;
             }
@@ -180,6 +185,7 @@ public sealed partial class CareerMatchPlugin
             }
             SubmitTacticalBuying(decision.Plan, player);
         }
+        WriteTacticalStatus(decision.Accepted ? "command_accepted" : "command_rejected", decision.Accepted ? "" : decision.Message);
         var feedback = decision.Accepted && parsed.Order == TacticalOrder.Playbook
             ? $"本回合采用战术：{_customPlaybook?.Tactics.FirstOrDefault(t => t.Id == parsed.TacticId)?.Name ?? parsed.TacticId}。"
             : decision.Message;
@@ -459,4 +465,22 @@ public sealed partial class CareerMatchPlugin
     }
 
     private void TacticalTrace(string kind, object data) => TraceIdentity("tactic_" + kind, data);
+
+    private void WriteTacticalStatus(string stage, string error = "")
+    {
+        // On bind/command only, never per tick. Useful even when the command
+        // fails before a route starts or the player closes the game afterward.
+        try
+        {
+            var path = Path.Combine(ModuleDirectory, "tactical_status.json");
+            File.WriteAllText(path + ".tmp", JsonSerializer.Serialize(new {
+                version = ModuleVersion, nonce = _sessionNonce, map = Server.MapName, stage, error,
+                navigation = _tacticalFailure, direction = _tacticalLookState,
+                hold = _customHoldState, playbook = _customPlaybookState,
+                navigation_ready = _tacticalNavigator is not null, direction_ready = _tacticalLook is not null,
+            }));
+            File.Move(path + ".tmp", path, true);
+        }
+        catch (Exception ex) { Logger.LogWarning("Tactical status write failed: {Error}", ex.Message); }
+    }
 }

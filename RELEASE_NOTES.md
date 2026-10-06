@@ -1,6 +1,15 @@
-# 1.7.2（战术、VPK 与战绩更新，2026-10-05）
+# 1.7.2（2026-10-06 更新）
 
-这次主要处理大家测试时反馈的几个问题。
+这次把最近的修改整理回 1.7.2，直接更新原来的下载包，不再增加版本后缀。
+
+- **游戏内队标头像。** 天梯和自定义里的 Bot 使用所属俱乐部的队标，改用深色底；没有队标的保持原样，真人仍用自己的 Steam 头像。
+- **更新战术兼容。** 适配这次 CS2 更新后的导航与朝向接口，修复有战术却提示接口未就绪的问题。
+- **退出后继续比赛。** 修复已退出的 CS2 进程残留导致重新启动被拦住的问题，并调整队标头像的同步。
+- **训练赛可以亲自打。** 补上进入 CS2、退出后继续和比赛回传的衔接，战报也调整为适应电脑界面的宽度。
+- **配乐和场馆声音。** 加入俱乐部、宿舍和大场馆的新配乐；小型线下赛场保留环境声，不播放入场音乐。
+- **整理存档与比赛流程。** 存档统一提交，断线后重新连接；系列赛逐图保存，加时打到胜负确定就结束。手机和电脑的共用页面也做了整理。
+
+此前 1.7.2 的修改继续保留：
 
 - **不同地图的战术分开加载。** 同名、同编号的战术可以在不同地图使用，切图时读取对应地图的战术库。
 - **调整到点保位的兼容检查。** 支持已兼容接口的重新构建版本；生涯配套插件需要更新时，在进入比赛前提示安装。
@@ -13,6 +22,17 @@
 **进入 CS2 前，关闭 CS2，在设置中点一次“安装填写目录的人机增强”，更新本版配套插件。已有完整人机增强包可离线安装。**
 
 ## English
+
+The existing 1.7.2 downloads have been refreshed; no extra version suffix is used.
+
+- Club-logo bot avatars in ladder and custom matches now use a dark background, with default avatars retained for clubs without artwork. Human Steam avatars stay unchanged.
+- Updated tactical navigation and look interfaces for the latest reviewed CS2 build.
+- Fixed stale exited CS2 processes blocking match relaunch and improved avatar delivery.
+- Added the CS2 handoff, recovery and result flow for booked scrims, with responsive match reports.
+- Added club, home and large-arena music. Small LAN rooms use ambience without entrance music.
+- Consolidated save commits, backend reconnection and per-map series progress; overtime stops when a winner is decided. Shared phone and computer pages were also reorganized.
+
+Earlier 1.7.2 changes remain included:
 
 - Tactics load from the current map's library. Names and IDs can be reused across maps.
 - Updated hold-position compatibility checks for supported interfaces. Outdated Career companion plugins are detected before entering a match.

@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 """Only synthetic starter identities; never load or change player saves."""
 from types import SimpleNamespace
 from uuid import UUID
@@ -8,7 +9,7 @@ from tools.career3d_start import requires_creation
 
 class OnboardingTests(unittest.TestCase):
     def fixture(self):
-        return SimpleNamespace(
+        return ApplicationDouble(
             career=SimpleNamespace(exists=True, player_name='Old Player', mode='create',
                 origin='academy', incident_state={}),
             season=SimpleNamespace(date='2026-01-01', events=[]),

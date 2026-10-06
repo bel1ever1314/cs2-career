@@ -117,6 +117,10 @@ func render(parent: Node) -> void:
 	if not str(plan.get("display_name", "")).is_empty(): details.append(str(plan.display_name))
 	Kit.match_hero(parent, UI, own, str(game.get("opponent", "")), str(game.get("event", "下一场比赛")), " · ".join(details), str(game.get("tier", game.get("event_type", ""))))
 	var due := bool(game.get("due", false))
+	# Once at the venue, BP and launch are the primary action. Keep them above
+	# alternative modes so the side buttons stay visible in a 720p window.
+	if (due and show_real and can_prepare_here()) or str(current_preflight().get("phase", "")) in ["waiting", "starting", "launched"] or is_interrupted():
+		render_preflight(parent)
 	if request_pending:
 		var progress := "正在读取本场结果……"
 		if pending_action in ["preflight", "veto", "autoveto"]: progress = "正在核对本场比赛、阵容与地图……"
@@ -146,8 +150,6 @@ func render(parent: Node) -> void:
 		Kit.action_tile(attend, UI, "睡到比赛日", "比赛当天早上去现场", true)
 		var skip: Button = host._button(actions, "只推进到比赛日", CareerBridge.calendar.bind(str(game.get("date", "")), true))
 		Kit.action_tile(skip, UI, "推进到比赛日", "跳过中间的日子")
-	if (due and show_real and can_prepare_here()) or str(current_preflight().get("phase", "")) in ["waiting", "starting", "launched"] or is_interrupted():
-		render_preflight(parent)
 	if not notice.is_empty(): _text(parent, notice, 13, UI.MUTED)
 	if not last_result.is_empty():
 		host._button(parent, "查看刚才的完整战报", open_saved.bind(last_result), false)
@@ -739,6 +741,12 @@ func finished(path: String, output: Dictionary) -> bool:
 	if not status_probe:
 		request_pending = false
 		pending_action = ""
+	if output.get("result_summary", false):
+		quick_running = false
+		venue_after_preflight = ""
+		notice = str(output.get("reason", output.get("msg", "操作已保存，请查看比赛记录。")))
+		if host.screen.visible: host._rebuild()
+		return true
 	if output.get("preflight") is Dictionary: preflight = output.preflight.duplicate(true)
 	if output.get("connection") is Dictionary: connection = output.connection.duplicate(true)
 	elif status_probe: connection = output.duplicate(true)

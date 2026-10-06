@@ -15,5 +15,7 @@ if __name__ == '__main__':
         os.environ['CS2CAREER_NO_GAME'] = '1'
         # Optional unittest glob still goes through import-time save isolation.
         suite = unittest.defaultTestLoader.discover(str(ROOT / 'tests'), pattern=sys.argv[1] if len(sys.argv)>1 else 'test*.py')
+        if suite.countTestCases() == 0:
+            sys.exit('No tests matched; refusing an empty successful test run')
         result = unittest.TextTestRunner(verbosity=2).run(suite)
         sys.exit(0 if result.wasSuccessful() else 1)

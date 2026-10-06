@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 """Exercise authenticated quick-mode guards through a real loopback server."""
 from copy import deepcopy
 import json
@@ -20,7 +21,7 @@ class QuickHttp160Tests(unittest.TestCase):
         self.career = SimpleNamespace(assist={'step_counter': 7, 'quick_mode': True, 'quick_break_ack': 'previous'},
             incident_state={'story_timing': {'windows': [
                 {'key': '2026:major-1', 'start': '2026-06-21', 'until': '2026-07-12'}]}})
-        self.state = SimpleNamespace(career=self.career, season=SimpleNamespace(date='2026-06-23'),
+        self.state = ApplicationDouble(career=self.career, season=SimpleNamespace(date='2026-06-23'),
             persist=Mock(), payload=lambda msg='': {'ok': True, 'msg': msg, 'state': {}})
         self.server = create_server(self.state)
         self.server.game_disabled = True

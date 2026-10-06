@@ -1,3 +1,4 @@
+from application_double import ApplicationDouble
 """Data/API/deployment fixtures only: no real saves, CS2, or network services."""
 import json
 import os
@@ -312,7 +313,7 @@ class TacticalDataTests(unittest.TestCase):
         path.unlink()
         tactics.save_tactic(tactic())
         before = path.read_bytes()
-        with patch.object(tactics.os, "replace", side_effect=PermissionError("locked")):
+        with patch('cs2career.storage.transaction._replace', side_effect=PermissionError("locked")):
             with self.assertRaises(PermissionError):
                 tactics.save_tactic(tactic("new"))
         self.assertEqual(before, path.read_bytes())
@@ -437,7 +438,7 @@ class TacticalHttpTests(unittest.TestCase):
         examples = example_source(self.root / "missing_examples.json")
         examples.start()
         self.addCleanup(examples.stop)
-        self.state = SimpleNamespace(persist=lambda: self.fail("tactics API persisted career"),
+        self.state = ApplicationDouble(persist=lambda: self.fail("tactics API persisted career"),
                                      payload=lambda *args: self.fail("tactics API inspected career"))
         self.server = create_server(self.state)
         self.server.preview = True

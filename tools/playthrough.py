@@ -101,7 +101,7 @@ def run(args):
                     # loading a real saved career restores both exact streams.
                     from cs2career.random_state import capture
                     with server.state_lock:
-                        server.state.persist()
+                        server.state.settle()
                         expected_rng = capture()
                         random.seed(args.seed + step)
                         RNG.seed(args.seed + step + 1)
@@ -187,7 +187,7 @@ def run(args):
             else:
                 report['errors'].append({'kind': 'step_limit', 'date': state['date']})
             # A real reload, not a fresh fixture. Compare persisted business state.
-            server.state.persist()
+            server.state.settle()
             before = (Path(folder) / 'save' / 'career.json').read_bytes()
             restored = ApplicationState()
             report['reload'] = {'date_equal': restored.season.date == server.state.season.date,

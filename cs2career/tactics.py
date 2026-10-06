@@ -272,20 +272,29 @@ def load_library(map_code: str = MAP) -> dict:
     map_code = validate_map_code(map_code)
     with _LOCK:
         path = library_path(map_code)
-        if not path.exists():
+        from .storage.transaction import read_bytes
+        try:
+            blob = read_bytes(path, max_bytes=MAX_BYTES + 1)
+        except FileNotFoundError:
             if map_code != MAP:
                 return empty_library(map_code)
             path = data_file("tactical_playbook.json")  # Dust2 examples stay read-only.
-        if not path.exists():
-            return empty_library(map_code)
-        with path.open("rb") as source:
-            return validate_library(decode_json(source.read(MAX_BYTES + 1)), map_code)
+            if not path.exists():
+                return empty_library(map_code)
+            blob = path.read_bytes()
+        return validate_library(decode_json(blob[:MAX_BYTES + 1]), map_code)
 
 
 def write_library(path: Path, library: dict, *, before_replace=None) -> None:
     """Atomically write validated data; arbitrary destinations are never HTTP input."""
     blob = encode_library(validate_library(library))
     path = Path(path)
+    # The application-owned library shares the career commit. Runtime exports
+    # use their own atomic replacement (and optional live-session guard).
+    if path.absolute() == library_path(library['map']).absolute() and before_replace is None:
+        from .storage.transaction import save
+        save(path, lambda: blob)
+        return
     path.parent.mkdir(parents=True, exist_ok=True)
     handle, temporary = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
     pending = Path(temporary)

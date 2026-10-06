@@ -149,7 +149,7 @@ def next_action(c, s):
     return {'action': 'advance', 'msg': '推进到下一阶段，等待适合本队的赛事。'}
 
 
-def step(c, s, token, expected=None):
+def step(c, s, token, expected=None, *, until=None, max_maps=None):
     """API command: same token returns same receipt, never a second simulation."""
     from ..league.tournament_auto import step as tournament_step, blocker
     if not isinstance(token, str) or not 8 <= len(token) <= 100:
@@ -188,10 +188,11 @@ def step(c, s, token, expected=None):
     run['status'] = 'running'
     c.dispatch_invites(s)
     if action['action'] == 'tournament':
-        result = tournament_step(c, s, action['event_id'], token, counter)
+        result = tournament_step(c, s, action['event_id'], token, counter, until=until,
+                                **({'max_maps': max_maps} if max_maps is not None else {}))
         return finish(result, counted=True)
     before = (s.year, s.date, tuple((e['id'], e.get('status'), len(e.get('matches') or [])) for e in s.events))
-    message = s.next_stage(stop_at_season_end=True)
+    message = s.next_stage(stop_at_season_end=True, **({'until': until} if until is not None else {}))
     reason = blocker(c, s)
     current_break = window(c, s)
     if current_break and c.assist.get('quick_break_ack') != current_break['key']:

@@ -72,6 +72,10 @@ func capture(label: String, eye: Vector3=Vector3.ZERO, focus: Vector3=Vector3.ZE
 	await frames(3)
 
 func run() -> void:
+	DirAccess.make_dir_recursive_absolute("res://temp")
+	get_tree().create_timer(180.0).timeout.connect(func():
+		check(false, "venue flow exceeded three minute timeout")
+		finish())
 	CareerBridge.connected=false;CareerBridge.set_process(false);CareerBridge.sound_muted=true
 	var online:=venue("lan");online["travel_allowed"]=false
 	check(not Travel.go_match(online,"online"),"online/unknown projection cannot request physical travel")
@@ -102,7 +106,9 @@ func run() -> void:
 	if not await arrive("major","major-fixture"):finish();return
 	check(scene.peers.size()==9 and scene.allies.size()==4 and scene.diagnostic_snapshot()["seated_peers"]==5,"major starts with four walking teammates and five seated opponents")
 	check(not Travel.menu_open,"competition arrival keeps door menu out of team walkout")
-	check(scene.atmosphere.entrance_bpm==136.0 and scene.atmosphere.competitive,"competition gets distinct original 136 BPM cue")
+	check(scene.atmosphere.competitive and scene.atmosphere.uses_cue() and scene.atmosphere.entrance_bpm==128.0,"competition gets the original 128 BPM final opener cue")
+	var opener: AudioStream=scene.atmosphere.audio_layers["entrance"].stream
+	check(opener is AudioStreamSynchronized and (opener as AudioStreamSynchronized).stream_count==2,"opener music and crowd play as two synchronized stems")
 	var ids: Dictionary={}
 	for actor in scene.peers:ids[actor.npc_id]=true
 	check(ids.size()==9 and not ids.has("own_0"),"nine distinct IDs and player's seat genuinely empty")
@@ -119,6 +125,7 @@ func run() -> void:
 			for i in range(entry["actor"].get_slide_collision_count()):print("ALLY_COLLISION ",entry["actor"].get_slide_collision(i).get_collider().name)
 	check(scene._at_player_seat(),"user walks continuously to rear empty seat")
 	check(scene.atmosphere.entrance_count==1 and scene.atmosphere.portal_landed,"team walkout/portal cue occurs once")
+	check(scene.atmosphere.drop_seen,"opener drop lands after the team leaves the tunnel")
 	await capture("major_nine_peers",Vector3(0,4.4,-22.0),Vector3(0,2.5,-16.0))
 	check(not Travel.go_match(venue("major"),"major-fixture"),"same scene and match cannot restart entrance")
 	var standing: Vector3=scene.player.position
@@ -142,7 +149,9 @@ func run() -> void:
 	for i in range(20):awards["top20"].append({"rank":i+1,"name":"Archived "+str(i+1),"player_id":"archived_"+str(i+1)})
 	check(Travel.go_awards(awards),"normal mode can reach finalized annual ceremony")
 	awards["top3"][0]["name"]="MUTATED OUTSIDE"
-	while Travel.busy:await get_tree().process_frame
+	var travel_deadline := Time.get_ticks_msec() + 15000
+	while Travel.busy and Time.get_ticks_msec() < travel_deadline:await get_tree().process_frame
+	check(not Travel.busy, "travel completes before timeout")
 	scene=get_tree().current_scene;scene.testing=true;scene.player.test_mode=true
 	check(scene.finalized and not scene.preview and scene.top20_rows.size()==20 and "Actual One" in scene.ranking_board.text,"ceremony freezes actual annual top3 and full Top20")
 	await capture("awards_actual_top20",Vector3(-5.8,2.0,3.0),Vector3(-9.6,2.5,3.0))
@@ -151,5 +160,6 @@ func run() -> void:
 
 func finish() -> void:
 	var report: Dictionary={"checks":checks,"failures":failures,"commands":commands,"no_service":not CareerBridge.connected,"cs2_launches":0}
-	var file:=FileAccess.open("res://temp/venue_match_flow.json",FileAccess.WRITE);file.store_string(JSON.stringify(report,"  "))
+	var file:=FileAccess.open("res://temp/venue_match_flow.json",FileAccess.WRITE)
+	if file != null: file.store_string(JSON.stringify(report,"  "))
 	print("VENUE_FLOW_RESULT ",JSON.stringify(report));get_tree().quit(0 if failures.is_empty() else 1)

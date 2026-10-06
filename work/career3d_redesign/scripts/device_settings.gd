@@ -445,6 +445,18 @@ func reset(host: Node) -> void:
 	host._rebuild()
 
 func finished(path: String, result: Dictionary) -> bool:
+	if path == "/api/3d/settings" and result.get("result_summary", false):
+		pending = false
+		saving = false
+		pending_read = false
+		pending_path = ""
+		install_stage = ""
+		install_source = ""
+		fetched = false
+		_set_message(str(result.get("reason", result.get("msg", ""))))
+		_sync_form_state()
+		call_deferred("fetch") # Confirmation never authorizes a new install.
+		return true
 	if path == "/api/3d/settings/environment":
 		if not pending or pending_path != path: return true
 		pending = false

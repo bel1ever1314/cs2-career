@@ -77,6 +77,11 @@ def compile_catalogue():
     for path in [ROOT/'cs2career/data/career3d_environment.json']:
         if path.exists(): bilingual(json.loads(path.read_text('utf-8')))
     pairs.update(authored())
+    # Stable IDs are the source of truth for migrated device copy. Keep the
+    # native-Control catalogue derived from them, not a second manual lookup.
+    keyed = json.loads((PROJECT/'data/ui_messages.json').read_text('utf-8'))['messages']
+    for row in keyed.values():
+        pairs.setdefault(row['zh'], row['en'])
     templates = [row for source, english in pairs.items() if (row := template(source, english))]
     # Concatenated UI prefixes/suffixes are authored as complete source fragments,
     # never discovered by replacing individual Chinese words in arbitrary prose.
@@ -110,7 +115,9 @@ def sources():
             elif isinstance(value, list):
                 for item in value: visit(item)
         visit(json.loads(path.read_text('utf-8')))
-    for path in sorted((ROOT/'tools').glob('career3d*.py')) + [ROOT/'cs2career/manual_saves.py']:
+    service_sources = sorted((ROOT/'cs2career/services').glob('*.py'))
+    service_sources += [ROOT/'cs2career/cs2/runtime_compat.py', ROOT/'cs2career/cs2/watchdog.py']
+    for path in sorted((ROOT/'tools').glob('career3d*.py')) + service_sources + [ROOT/'cs2career/manual_saves.py']:
         if path.stem in ('career3d_locale',) or path.stem.startswith('career3d_package'): continue
         tree = ast.parse(path.read_text('utf-8-sig'))
         parents = {child: node for node in ast.walk(tree) for child in ast.iter_child_nodes(node)}

@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from cs2career import save_backups as backups
 
@@ -79,3 +80,14 @@ class BackupTests(unittest.TestCase):
         folder=backups.create(self.root)
         (folder/'snapshot.json').unlink()
         self.assertNotEqual(folder,backups.create(self.root))
+
+    def test_interrupted_restore_rolls_forward_the_whole_pair(self):
+        from cs2career.storage import transaction as tx
+        folder=backups.create(self.root)
+        for name in backups.NAMES:(self.root/name).write_bytes(b'new current')
+        def interrupt(point):
+            if point == 'replaced:career.json': raise OSError('interrupted restore')
+        with patch.object(tx, '_checkpoint', interrupt), self.assertRaises(tx.CommitPending):
+            backups.restore(self.root, folder)
+        tx.recover(self.root)
+        self.assertEqual(self.original, {name:(self.root/name).read_bytes() for name in backups.NAMES})
