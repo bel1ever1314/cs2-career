@@ -9,6 +9,8 @@ const MatchReport = preload("res://scripts/career_match_report.gd")
 const EventFlow = preload("res://scripts/career_event_flow.gd")
 const PageProjection = preload("res://scripts/device_projection.gd")
 const ActionFeedback = preload("res://scripts/device_action_feedback.gd")
+const Fmt = preload("res://scripts/ui_format.gd")
+const Kit = preload("res://scripts/ui_kit.gd")
 const PAGES := {"home":"主屏", "mail":"邮件", "chat":"聊天", "match":"赛事", "quick":"快速赛季", "calendar":"日历", "profile":"我的", "settings":"设置", "team":"战队", "stories":"队内事件", "player":"选手", "event":"赛事资料", "news":"赛事新闻"}
 const APPS := [
 	{"id":"mail", "name":"邮件"},
@@ -214,9 +216,10 @@ func _resize() -> void:
 	stretch.x = maxf(stretch.x, 0.001)
 	stretch.y = maxf(stretch.y, 0.001)
 	var available := viewport_size * stretch - Vector2(24, 24)
-	var fit := maxf(0.1, minf(1.0, minf(available.x / 350.0, available.y / 636.0)))
-	var width := 350.0
-	var height := 636.0
+	# A larger handset: more room for the home widgets and fewer wrapped rows.
+	var width := 384.0
+	var height := 748.0
+	var fit := maxf(0.1, minf(1.0, minf(available.x / width, available.y / height)))
 	panel.offset_left = -width / 2
 	panel.offset_right = width / 2
 	panel.offset_top = -height / 2
@@ -463,9 +466,9 @@ func _today() -> void:
 		var stamp := Time.get_datetime_dict_from_datetime_string(date + "T00:00:00", true)
 		weekday = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"][int(stamp.get("weekday", 0))]
 	UI.label(greeting, weekday + (" · 上午" if hour < 12 else (" · 下午" if hour < 18 else " · 晚上")), 12, UI.MUTED)
-	UI.space(content, 8)
-	content.add_child(Visuals.wallpaper(120))
-	UI.space(content, 16)
+	UI.space(content, 6)
+	content.add_child(Visuals.wallpaper(100))
+	UI.space(content, 12)
 	var grid := GridContainer.new()
 	grid.columns = 3
 	grid.add_theme_constant_override("h_separation", 10)
@@ -496,7 +499,7 @@ func _today() -> void:
 		center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		tile.add_child(center)
-		var icon := Visuals.icon(str(app["id"]), Vector2(16, 16))
+		var icon := Visuals.icon(str(app["id"]), Vector2(24, 24))
 		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		center.add_child(icon)
@@ -506,6 +509,9 @@ func _today() -> void:
 		caption.set_meta("app_caption", app["id"])
 		caption.gui_input.connect(_app_caption_input.bind(str(app["id"])))
 		nav_buttons[app["id"]] = tile
+	# Widgets sit under the apps so Tab still starts at the first app.
+	UI.space(content, 14)
+	_home_widgets(c)
 	var open_mail := 0
 	for item in c.get("inbox", []):
 		if item.get("status") == "open":
@@ -524,6 +530,74 @@ func _today() -> void:
 		number.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		number.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		number.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+func _home_widgets(c: Dictionary) -> void:
+	# Glanceable cards: the next match and today's numbers, tappable into apps.
+	var holder := VBoxContainer.new()
+	holder.name = "PhoneHomeWidgets"
+	holder.add_theme_constant_override("separation", 8)
+	UI.inset(content, holder)
+	var game: Variant = c.get("nextmatch")
+	var next_button := _button(holder, "", _route.bind("match"), false)
+	next_button.name = "PhoneNextMatchWidget"
+	next_button.custom_minimum_size.y = 64
+	var dark := game is Dictionary and not (game as Dictionary).is_empty()
+	next_button.add_theme_stylebox_override("normal", UI.raised(Color("24402f") if dark else UI.PAPER, 0, 16, Color(0, 0, 0, 0)))
+	next_button.add_theme_stylebox_override("hover", UI.style(Color("2c4c39") if dark else Color("eef3e8"), 0, 16))
+	next_button.add_theme_stylebox_override("pressed", UI.style(Color("1d3326") if dark else UI.MINT, 0, 16))
+	var row := HBoxContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	row.offset_left = 14; row.offset_right = -12; row.offset_top = 8; row.offset_bottom = -8
+	row.add_theme_constant_override("separation", 10)
+	next_button.add_child(row)
+	var words := VBoxContainer.new()
+	words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	words.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	words.add_theme_constant_override("separation", 0)
+	row.add_child(words)
+	if dark:
+		var info: Dictionary = game
+		var top := UI.label(words, "下一场 · %s%s" % [info.get("date", ""), " · 今天" if info.get("due", false) else ""], 11, Color("b8d4c2"))
+		top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var versus := UI.label(words, "VS  " + str(info.get("opponent", "待定")), 17, UI.PAPER)
+		versus.autowrap_mode = TextServer.AUTOWRAP_OFF
+		versus.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		versus.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var mark := TeamVisuals.badge(row, str(info.get("opponent", "")), 34)
+		if mark: row.move_child(mark, 0)
+	else:
+		UI.label(words, "下一场比赛", 11, UI.MUTED).mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var none := UI.label(words, "还没有排定的比赛", 15)
+		none.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var arrow := Visuals.icon("chevron_right", Vector2(16, 16))
+	arrow.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	if dark: arrow.ink = UI.PAPER
+	row.add_child(arrow)
+	var personal: Dictionary = c.get("personal", {}) if c.get("personal") is Dictionary else {}
+	var waiting := 0
+	for item in c.get("inbox", []):
+		if item.get("status") == "open": waiting += 1
+	var tiles := HBoxContainer.new()
+	tiles.add_theme_constant_override("separation", 8)
+	holder.add_child(tiles)
+	for spec in [["个人余额", Fmt.money_short(personal.get("personal_money", c.get("money"))), "profile"], ["待回复", "%d 封" % waiting, "mail"], ["能力", Fmt.score(personal.get("ability", c.get("player", {}).get("ability"))), "profile"]]:
+		var tile := _button(tiles, "", _route.bind(str(spec[2])), false)
+		tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tile.custom_minimum_size.y = 50
+		tile.add_theme_stylebox_override("normal", UI.raised(UI.PAPER, 0, 13, Color(0, 0, 0, 0)))
+		tile.add_theme_stylebox_override("hover", UI.style(Color("eef3e8"), 0, 13))
+		var column := VBoxContainer.new()
+		column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		column.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		column.offset_left = 10; column.offset_top = 6; column.offset_right = -6
+		column.add_theme_constant_override("separation", 0)
+		tile.add_child(column)
+		UI.label(column, str(spec[0]), 11, UI.MUTED).mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var value := UI.label(column, str(spec[1]), 15)
+		value.autowrap_mode = TextServer.AUTOWRAP_OFF
+		value.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		value.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 func _app_caption_input(event: InputEvent, page: String) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -725,19 +799,14 @@ func _profile() -> void:
 	_button(links, "阵容与合同", _computer_page.bind("management"), false)
 	var player: Dictionary = CareerBridge.context.get("player", {})
 	var personal: Dictionary = CareerBridge.context.get("personal", {})
-	var avatar := PanelContainer.new()
-	avatar.custom_minimum_size = Vector2(64, 64)
-	avatar.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	avatar.add_theme_stylebox_override("panel", UI.style(UI.MINT, 0, 22))
-	UI.inset(content, avatar)
-	var center := CenterContainer.new()
-	avatar.add_child(center)
-	var icon := Visuals.icon("profile", Vector2(32, 32))
-	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	center.add_child(icon)
+	# The profile shows your own chicken in its saved colours, not a generic icon.
+	var avatar_row := CenterContainer.new()
+	UI.inset(content, avatar_row)
+	var saved: Variant = CareerBridge.context.get("avatar", {})
+	var look: Variant = saved.get("appearance", {}) if saved is Dictionary else {}
+	Kit.chicken_badge(avatar_row, look if look is Dictionary else {}, 76)
 	UI.label(content, str(player.get("name", "选手")), 20).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UI.label(content, "%s · 能力 %s" % [ROLES.get(player.get("role", ""), player.get("role", "")), player.get("ability", "—")], 12, UI.MUTED).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UI.label(content, "%s · 能力 %s" % [ROLES.get(player.get("role", ""), player.get("role", "")), Fmt.score(player.get("ability"))], 12, UI.MUTED).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UI.space(content, 12)
 	var tabs := HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 6)
@@ -766,16 +835,16 @@ func _profile() -> void:
 	if profile_tab == "stats":
 		var recent: Array = personal.get("recent", [])
 		if recent.is_empty():
-			UI.label(content, "还没有已保存的个人比赛数据。天梯与职业赛事分别记录。", 13, UI.MUTED)
+			UI.label(content, "还没有比赛数据", 13, UI.MUTED)
 		for game in recent:
 			_list_row(content, "%s · %s" % [game.get("map", ""), game.get("opponent", "")], "%s · Rating %s" % [game.get("date", ""), _stat(game.get("rating"), 2)], _load_detail.bind(str(game.get("match_id", ""))), "", "match", false, true)
 		var ladder: Dictionary = CareerBridge.context.get("ladder", {}).get("player", {})
-		UI.label(content, "天梯 Elo %s · %s 胜 / %s 负" % [ladder.get("elo", "—"), ladder.get("wins", 0), ladder.get("losses", 0)], 13)
+		UI.label(content, "天梯 Elo %s · %s 胜 / %s 负" % [Fmt.integer(ladder.get("elo")), Fmt.integer(ladder.get("wins"), "0"), Fmt.integer(ladder.get("losses"), "0")], 13)
 		return
 	_list_row(content, str(CareerBridge.context.get("team", {}).get("name", "我的战队")), "战队阵容", _own_team, "", "profile", false, false, str(CareerBridge.context.get("team", {}).get("name", "")))
 	_list_row(content, "最近比赛与战报", "查看职业赛事记录", _route.bind("match"), "", "match")
-	UI.label(content, "个人余额 ¥" + str(personal.get("personal_money", CareerBridge.context.get("money", 0))), 14)
-	UI.label(content, "俱乐部资金 ¥" + str(personal.get("club_money", CareerBridge.context.get("team", {}).get("money", 0))), 12, UI.MUTED)
+	UI.label(content, "个人余额 " + Fmt.money(personal.get("personal_money", CareerBridge.context.get("money", 0))), 14)
+	UI.label(content, "俱乐部资金 " + Fmt.money(personal.get("club_money", CareerBridge.context.get("team", {}).get("money", 0))), 12, UI.MUTED)
 
 func _stat(value: Variant, digits: int) -> String:
 	if value == null:
@@ -902,7 +971,7 @@ func _team() -> void:
 	TeamVisuals.banner(content, str(team.get("name", "战队")), str(team.get("name", "")), "赛区 %s · 排名 %s" % [team.get("region", ""), team.get("rank", "—")])
 	var player_id := str(CareerBridge.context.get("player", {}).get("id", ""))
 	for member in team.get("roster", team.get("players", [])):
-		_list_row(content, str(member.get("name", "")) + (" · 你" if str(member.get("player_id", member.get("id", ""))) == player_id else ""), "%s · 能力 %s" % [ROLES.get(member.get("role", ""), member.get("role", "")), member.get("ability", "—")], _load_player.bind(str(member.get("player_id", member.get("id", "")))), str(member.get("name", "")).left(1), "", false, true, str(team.get("name", "")))
+		_list_row(content, str(member.get("name", "")) + (" · 你" if str(member.get("player_id", member.get("id", ""))) == player_id else ""), "%s · 能力 %s" % [ROLES.get(member.get("role", ""), member.get("role", "")), Fmt.score(member.get("ability"))], _load_player.bind(str(member.get("player_id", member.get("id", "")))), str(member.get("name", "")).left(1), "", false, true, str(team.get("name", "")))
 
 func _open_player(player: Dictionary) -> void:
 	selected_player = player.duplicate(true)
@@ -1042,25 +1111,31 @@ func _matches() -> void:
 	if not detail.is_empty():
 		_render_detail()
 		return
-	_button(content, "赛事新闻 ›", _route.bind("news"), false)
-	_button(content, "快速赛季 ›", _route.bind("quick"), false)
+	var shortcuts := HBoxContainer.new()
+	shortcuts.add_theme_constant_override("separation", 8)
+	UI.inset(content, shortcuts)
+	_button(shortcuts, "赛事新闻 ›", _route.bind("news"), false)
+	_button(shortcuts, "快速赛季 ›", _route.bind("quick"), false)
 	var game = CareerBridge.context.get("nextmatch")
 	if game is Dictionary and not game.is_empty():
-		var box := UI.card(content)
-		UI.label(box, "下一场比赛", 12, UI.MUTED)
-		UI.label(box, str(game.get("event", "下一场")), 16)
-		UI.label(box, "%s\n对阵 %s · BO%d" % [game.get("date", ""), game.get("opponent", ""), game.get("best_of", 3)], 14)
-		_render_match_destination(box, game)
+		var plan: Dictionary = game.get("attendance", {})
+		var details: Array[String] = [Kit.short_date(str(game.get("date", "")))]
+		details.append("BO%d" % int(game.get("best_of", 3)))
+		if not str(plan.get("display_name", "")).is_empty(): details.append(str(plan.display_name))
+		Kit.match_hero(content, UI, str(CareerBridge.context.get("team", {}).get("name", "")), str(game.get("opponent", "")), str(game.get("event", "下一场")), " · ".join(details))
+		var box := VBoxContainer.new()
+		box.add_theme_constant_override("separation", 8)
+		UI.inset(content, box)
 		if game.get("due", false):
-			_primary(_button(box, "打开比赛中心 · 模拟 / 亲自打", _open_computer.bind("career_match"), false))
+			_primary(_button(box, "去比赛电脑 · 模拟或上场", _open_computer.bind("career_match"), false))
 			_button(box, "自己去 CS2 打", Computer.match_center.prepare_real.bind(str(game.get("id", ""))))
 		else:
 			_primary(_button(box, "亲自参赛 · 睡到比赛日", Computer.match_center.prepare_real.bind(str(game.get("id", "")))))
 			_button(box, "只推进到比赛日", CareerBridge.calendar.bind(str(game["date"]), true))
 	else:
-		UI.label(content, "没有已安排的下一场比赛。")
+		Kit.empty_state(content, UI, "match", "还没有排定的比赛", "确认赛事邀请后，赛程会出现在这里。")
 		_button(content, "查看赛事邀请", _route.bind("mail"), false)
-	UI.label(content, "最近比赛", 16)
+	Kit.section(content, UI, "最近比赛", "", 16)
 	for game_row in CareerBridge.context.get("recent_matches", []):
 		var series = game_row.get("series", [])
 		var score := str(series)
@@ -1068,16 +1143,25 @@ func _matches() -> void:
 			score = "%s : %s" % [series[0], series[1]]
 		_list_row(content, "%s  %s  %s" % [game_row.get("team_a", ""), score, game_row.get("team_b", "")], "%s · %s" % [game_row.get("date", ""), game_row.get("event", "")], _load_detail.bind(str(game_row["id"])), "", "match", false, true)
 	if CareerBridge.context.get("recent_matches", []).is_empty():
-		UI.label(content, "还没有比赛战报。", 12, UI.MUTED)
-	UI.label(content, "赛事日程", 16)
+		UI.label(content, "暂无", 12, UI.MUTED)
+	var today := str(CareerBridge.context.get("date", ""))
+	var upcoming: Array = []
+	var finished: Array = []
 	for event in CareerBridge.context.get("calendar_events", []):
-		_list_row(content, str(event.get("name", "")), str(event.get("date", "")), _load_event.bind(str(event.get("id", ""))), "", "calendar", false, true)
+		if str(event.get("end_date", event.get("date", ""))) < today: finished.append(event)
+		else: upcoming.append(event)
+	finished.reverse()
+	Kit.section(content, UI, "赛事日程", "%d 项进行中或即将开始" % upcoming.size(), 16)
+	for event in upcoming + finished:
+		var tier := Kit.event_tier(str(event.get("type", "")))
+		var state := "已结束" if event in finished else ("已报名" if event.get("registered", false) else "")
+		var subtitle := "%s · %s%s" % [Kit.short_date(str(event.get("date", ""))), tier[0], (" · " + state) if not state.is_empty() else ""]
+		_list_row(content, str(event.get("name", "")), subtitle, _load_event.bind(str(event.get("id", ""))), "", "calendar", false, true)
 
 func _render_match_destination(parent: Node, game: Dictionary) -> void:
 	var plan: Dictionary = game.get("attendance", {})
 	if str(plan.get("display_name", "")).is_empty(): return
 	UI.label(parent, "比赛地点 · " + str(plan.display_name), 14)
-	UI.label(parent, str(plan.get("instruction", "")), 12, UI.MUTED)
 
 func _news() -> void:
 	News.render(self)
@@ -1118,14 +1202,14 @@ func _open_computer(page: String) -> void:
 
 func _quick() -> void:
 	var state: Dictionary = CareerBridge.context.get("quick", {})
-	UI.label(content, "本赛季的节奏", 20)
+	UI.label(content, "快速赛季", 20)
 	UI.label(content, "%s 赛季 · %s" % [state.get("year", str(CareerBridge.context.get("date", "")).left(4)), "快速模式" if state.get("mode", "normal") == "quick" else "正常模式"], 14)
 	if bool(state.get("can_choose", state.get("choice_required", false))):
 		var season_label := "下赛季" if state.get("season_phase", "") == "end" else "本赛季"
 		_primary(_button(content, season_label + "使用快速模式", Computer.match_center.choose_mode.bind(true)))
 		_button(content, season_label + "正常进行", Computer.match_center.choose_mode.bind(false))
 	if not str(state.get("block_reason", "")).is_empty(): UI.label(content, str(state.block_reason), 13, UI.MUTED)
-	UI.label(content, "比赛按地图展开；赛后停留在十人数据，再继续下一场。", 13, UI.MUTED)
+
 	_primary(_button(content, "打开快速赛季与逐场战报", _open_computer.bind("quick"), false))
 	if not CareerBridge.context.get("stories", []).is_empty(): _button(content, "处理队内事件", _route.bind("stories"), false)
 

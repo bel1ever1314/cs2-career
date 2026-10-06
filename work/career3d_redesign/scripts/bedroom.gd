@@ -1,4 +1,5 @@
 extends Node3D
+const Hud = preload("res://scripts/world_hud.gd")
 const Player=preload("res://scripts/chicken_player.gd")
 const Buildings = preload("res://scripts/scene_tiers.gd")
 const Decor = preload("res://scripts/home_decor.gd")
@@ -52,6 +53,7 @@ func _ready() -> void:
 	sun=DirectionalLight3D.new(); sun.rotation_degrees=Vector3(-58,-30,0); sun.light_color=Color("ffe8be"); sun.light_energy=.8; sun.shadow_enabled=true; add_child(sun)
 	player=Player.new(); player.position=Vector3(-1.45,.12,1.35); player.home=player.position; add_child(player)
 	camera=Camera3D.new(); camera.current=true; camera.projection=Camera3D.PROJECTION_ORTHOGONAL; camera.near=.1; camera.far=100; add_child(camera)
+	camera.physics_interpolation_mode=Node.PHYSICS_INTERPOLATION_MODE_OFF
 	_hud(); _camera()
 	decoration=Decor.new(); add_child(decoration); decoration.setup(self)
 	CareerBridge.changed.connect(_career_changed); _career_changed()
@@ -79,11 +81,10 @@ func _box(id: String,pos: Vector3,size: Vector3) -> void:
 	var collision:=CollisionShape3D.new(); var box:=BoxShape3D.new(); box.size=size; collision.shape=box; body.add_child(collision)
 
 func _hud() -> void:
-	var layer:=CanvasLayer.new(); add_child(layer)
+	var layer:=CanvasLayer.new(); layer.name="WorldHud"; add_child(layer)
 	var root:=Control.new(); root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT); root.mouse_filter=Control.MOUSE_FILTER_IGNORE; layer.add_child(root)
 	var top:=PanelContainer.new(); top.position=Vector2(25,24); root.add_child(top)
-	var style:=StyleBoxFlat.new(); style.bg_color=Color(.09,.18,.15,.94); style.set_corner_radius_all(12)
-	style.content_margin_left=18; style.content_margin_right=18; style.content_margin_top=12; style.content_margin_bottom=12
+	var style:=Hud.glass(18,12)
 	top.add_theme_stylebox_override("panel",style)
 	var col:=VBoxContainer.new(); top.add_child(col)
 	var label:=Label.new(); label.text="宿舍"; label.add_theme_font_size_override("font_size",18); col.add_child(label)
@@ -94,13 +95,10 @@ func _hud() -> void:
 	var stack:=VBoxContainer.new(); prompt_panel.add_child(stack)
 	prompt=Label.new(); prompt.add_theme_font_size_override("font_size",21); stack.add_child(prompt)
 	prompt.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
-	var shortcuts:=PanelContainer.new();shortcuts.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	shortcuts.offset_left=-390;shortcuts.offset_right=-24;shortcuts.offset_top=-75;shortcuts.offset_bottom=-24
-	shortcuts.add_theme_stylebox_override("panel",style);root.add_child(shortcuts)
-	var row:=HBoxContainer.new();row.add_theme_constant_override("separation",10);shortcuts.add_child(row)
-	var phone:=Button.new();phone.text="P 手机";phone.focus_mode=Control.FOCUS_NONE;phone.pressed.connect(func():Phone.present());row.add_child(phone)
-	var help:=Button.new();help.text="F1 帮助";help.focus_mode=Control.FOCUS_NONE;help.pressed.connect(_toggle_help);row.add_child(help)
-	var decor:=Button.new();decor.text="布置房间";decor.focus_mode=Control.FOCUS_NONE;decor.pressed.connect(func(): if not CareerBridge.phone_open and not Travel.busy: decoration.present());row.add_child(decor)
+	var row:=Hud.hint_bar(root)
+	Hud.key_button(row,"P","手机",func():Phone.present())
+	Hud.key_button(row,"F1","帮助",_toggle_help)
+	Hud.key_button(row,"B","布置房间",func(): if not CareerBridge.phone_open and not Travel.busy: decoration.present())
 	help_panel=PanelContainer.new();help_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	help_panel.offset_left=-275;help_panel.offset_right=275;help_panel.offset_top=-165;help_panel.offset_bottom=165
 	help_panel.add_theme_stylebox_override("panel",style);root.add_child(help_panel)
@@ -161,6 +159,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.physical_keycode==KEY_F1:_toggle_help()
 		elif event.physical_keycode==KEY_ESCAPE and help_panel.visible:_toggle_help()
+		elif event.physical_keycode==KEY_B and not help_panel.visible and is_instance_valid(decoration) and not decoration.visible:decoration.present()
 
 func before_phone() -> void:
 	if is_instance_valid(decoration) and decoration.visible: decoration.close()
@@ -181,6 +180,8 @@ func set_phone_open(opened: bool) -> void:
 
 func set_device_open(opened: bool,kind: String) -> void:
 	if not is_instance_valid(player):return
+	var hud_layer:=get_node_or_null("WorldHud") as CanvasLayer
+	if hud_layer: hud_layer.visible=not opened or kind=="decoration"
 	if opened:
 		device_kind=kind;player.locked=true;player.velocity=Vector3.ZERO
 		if kind=="computer":

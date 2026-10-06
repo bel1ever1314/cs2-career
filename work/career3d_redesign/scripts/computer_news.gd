@@ -2,6 +2,8 @@ extends RefCounted
 ## News is read-only saved publication data, separate from invitation mail.
 const UI = preload("res://scripts/computer_ui.gd")
 const TeamVisuals = preload("res://scripts/team_visuals.gd")
+const Kit = preload("res://scripts/ui_kit.gd")
+const TONE := {"news":"blue", "awards":"amber", "top20":"red", "transfer":"green"}
 const CATEGORY := {"all":"全部", "news":"赛场新闻", "awards":"赛事荣誉", "top20":"年度 Top20", "transfer":"转会动态"}
 var host
 var category := "all"
@@ -29,7 +31,6 @@ func render() -> void:
 		_render_article()
 		return
 	_label(host.content, "赛事新闻", 25)
-	_label(host.content, "看见赛场、荣誉与转会发生了什么。这里只呈现已经保存的消息。", 14, UI.MUTED)
 	var tabs: Array = []
 	for key in CATEGORY:
 		tabs.append({"id":key, "label":CATEGORY[key]})
@@ -53,24 +54,26 @@ func render() -> void:
 		month_choice.select(keys.find(month))
 	month_choice.item_selected.connect(func(index: int): _set_month(keys[index]))
 	tools.add_child(month_choice)
-	_button(tools, "刷新新闻", _refresh)
-	_label(tools, "%s 篇" % shown.get("total", shown.get("rows", []).size()), 13, UI.MUTED)
+	UI.compact(_button(tools, "刷新新闻", _refresh))
+	var count := _label(tools, "%s 篇" % shown.get("total", shown.get("rows", []).size()), 13, UI.MUTED)
+	count.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	count.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	if not error.is_empty():
 		_label(host.content, error, 14, Color("a25746"))
 	if data.is_empty() and category != "all" or data.is_empty() and not month.is_empty():
 		_label(host.content, "正在读取新闻……", 14, UI.MUTED)
 	else:
 		for record in shown.get("rows", []):
-			var box := UI.card(host.content)
-			_label(box, str(record.get("date", "")) + " · " + str(CATEGORY.get(record.get("category", "news"), "赛场新闻")), 12, UI.MUTED)
-			var title := _button(box, Locale.field(record, "title", "赛场动态"), _open.bind(str(record.get("id", ""))))
-			TeamVisuals.button_logo(title, str(record.get("team", "")), 26)
+			var kind := str(record.get("category", "news"))
+			var headline := Locale.field(record, "title", "赛场动态")
+			var title := _button(host.content, headline, _open.bind(str(record.get("id", ""))))
 			title.name = "ComputerNewsArticle_" + str(record.get("id", "")).validate_node_name()
 			var intro := Locale.field(record, "summary", Locale.field(record, "preview"))
-			if not intro.is_empty():
-				_label(box, intro, 14, UI.MUTED)
+			if intro.is_empty(): intro = Locale.field(record, "text").get_slice("\n", 0)
+			Kit.rich_row(title, UI, headline, intro if not intro.is_empty() else str(record.get("date", "")), str(record.get("date", "")), str(CATEGORY.get(kind, "赛场新闻")), str(TONE.get(kind, "blue")), "news", str(record.get("team", "")))
+			title.custom_minimum_size.y = 64
 		if shown.get("rows", []).is_empty() and pending_path.is_empty():
-			_label(host.content, "这个范围内还没有已发表的消息。", 14, UI.MUTED)
+			Kit.empty_state(host.content, UI, "news", "暂无新闻", "这个范围内还没有已发表的消息。")
 	var pagination := HBoxContainer.new()
 	host.content.add_child(pagination)
 	_button(pagination, "上一页", _change_page.bind(-1)).disabled = page <= 1

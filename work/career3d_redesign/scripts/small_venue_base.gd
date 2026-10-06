@@ -2,6 +2,8 @@ extends Node3D
 ## Shared walking/presentation for the small career venues. Career state is read only.
 const Player = preload("res://scripts/chicken_player.gd")
 const UI = preload("res://scripts/phone_ui.gd")
+const Hud = preload("res://scripts/world_hud.gd")
+const Kit = preload("res://scripts/stage_kit.gd")
 var player: Player
 var camera: Camera3D
 var settings: Dictionary = {}
@@ -22,6 +24,10 @@ var status: Label
 var caption: Label
 var pause_panel: PanelContainer
 var cursor_dot: Label
+var title_parts: Dictionary = {}
+var caption_parts: Dictionary = {}
+var prompt_parts: Dictionary = {}
+var shown_hint := "<unset>"
 var env: Environment
 var collision_count := 0
 var materials: Dictionary = {}
@@ -42,6 +48,7 @@ func _ready() -> void:
 	player.visual.visible = false
 	player.recovered.connect(func(): _set_caption("已回到场馆入口。"))
 	camera = Camera3D.new(); camera.name = "VisitorCamera"; camera.current = true
+	camera.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	camera.fov = 75; camera.near = .05; camera.far = 80
 	camera.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF; add_child(camera)
 	body_y = player.position.y
@@ -85,6 +92,11 @@ func _environment() -> void:
 	env.ambient_light_energy = .34; env.tonemap_mode = Environment.TONE_MAPPER_ACES
 	env.ssao_enabled = true; env.ssao_radius = .5; env.ssao_intensity = .7
 	env.glow_enabled = true; env.glow_intensity = .25
+	_polish_environment()
+
+## Venues override this to set their own bloom/haze/reflection profile.
+func _polish_environment() -> void:
+	Kit.polish(env,0.0,true)
 
 func _material(color: Color, glow: float = 0.0) -> StandardMaterial3D:
 	var key := color.to_html() + ":" + str(glow)
@@ -131,7 +143,7 @@ func _fill(id: String, at: Vector3, color: Color, energy: float, reach: float) -
 	# Large soft pools illuminate faces and furniture outside the narrow key beams.
 	var light := OmniLight3D.new(); light.name = id; light.position = at
 	light.light_color = color; light.light_energy = energy; light.omni_range = reach; light.omni_attenuation = .65
-	light.shadow_enabled = false; add_child(light); return light
+	light.shadow_enabled = false; light.light_volumetric_fog_energy = 0.0; add_child(light); return light
 
 func _enclosure(width: float, depth: float, height: float) -> void:
 	_box("Floor", Vector3(0,-.12,0), Vector3(width,.24,depth), Color("18222b"), true)
@@ -158,36 +170,46 @@ func _trophy(id: String, parent: Node3D, scale_value: float = 1.0) -> Node3D:
 	return trophy
 
 func _hud() -> void:
-	var layer := CanvasLayer.new(); add_child(layer)
+	# Same glass HUD as the club and dorm: title card, subtitle-style captions,
+	# a keycap prompt under the crosshair and a compact key bar.
+	var layer := CanvasLayer.new(); layer.name = "WorldHud"; add_child(layer)
 	var root := Control.new(); root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT); root.mouse_filter = Control.MOUSE_FILTER_IGNORE; layer.add_child(root)
-	var style := StyleBoxFlat.new(); style.bg_color = Color(.035,.06,.09,.90); style.set_corner_radius_all(10)
-	style.content_margin_left = 18; style.content_margin_right = 18; style.content_margin_top = 12; style.content_margin_bottom = 12
-	var top := PanelContainer.new(); top.position = Vector2(22,20); top.add_theme_stylebox_override("panel",style); root.add_child(top)
-	var stack := VBoxContainer.new(); top.add_child(stack); _label(stack,str(settings["title"]),24)
-	status = _label(stack,"",16); status.modulate = Color("a7bbc4")
-	var footer := PanelContainer.new(); footer.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE); footer.offset_top = -98
-	footer.mouse_filter = Control.MOUSE_FILTER_IGNORE; footer.add_theme_stylebox_override("panel",style); root.add_child(footer)
-	var bottom := VBoxContainer.new(); footer.add_child(bottom); hint = _label(bottom,"",20)
-	_label(bottom,"WASD 走动 / Shift 小跑 / 鼠标转头 / E 交互 / P 手机 / Esc 菜单",15).modulate = Color("a7bbc4")
-	caption = _label(root,"",21); caption.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	caption.offset_left = -520; caption.offset_right = 520; caption.offset_top = 145; caption.offset_bottom = 245
-	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	cursor_dot = _label(root,"·",28); cursor_dot.set_anchors_and_offsets_preset(Control.PRESET_CENTER); cursor_dot.offset_left = -5; cursor_dot.offset_top = -16
-	pause_panel = PanelContainer.new(); pause_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	pause_panel.offset_left = -260; pause_panel.offset_right = 260; pause_panel.offset_top = -135; pause_panel.offset_bottom = 135
-	pause_panel.add_theme_stylebox_override("panel",style); root.add_child(pause_panel)
-	var menu := VBoxContainer.new(); menu.add_theme_constant_override("separation",16); pause_panel.add_child(menu)
-	_label(menu,str(settings["title"]),25); _label(menu,"走到出口可选择下一站。\nP 手机可随时查看当前生涯。",17)
-	var resume := Button.new(); resume.text = "继续走动"; resume.pressed.connect(func(): set_paused(false)); menu.add_child(resume)
-	var leave := Button.new(); leave.text = "返回俱乐部"; leave.pressed.connect(func(): Travel.go("club")); menu.add_child(leave)
+	title_parts = Hud.title_card(root,str(settings["title"]))
+	status = title_parts["status"]
+	caption_parts = Hud.caption_pill(root)
+	caption = caption_parts["label"]
+	prompt_parts = Hud.prompt(root)
+	# The live hint text stays on one Label for scene code; _sync_hint routes it.
+	hint = Label.new(); hint.visible = false; root.add_child(hint)
+	var row := Hud.hint_bar(root)
+	Hud.key_hint(row,"WASD","走动")
+	Hud.key_hint(row,"Shift","小跑")
+	Hud.key_hint(row,"E","交互")
+	Hud.key_button(row,"P","手机",func(): if not CareerBridge.phone_open and not Travel.busy: Phone.present())
+	Hud.key_button(row,"Esc","菜单",func(): set_paused(not paused))
+	cursor_dot = Hud.text(root,"•",14,Color(1,1,1,.8)); cursor_dot.set_anchors_and_offsets_preset(Control.PRESET_CENTER); cursor_dot.offset_left = -4; cursor_dot.offset_top = -10
+	var pause := Hud.pause_menu(root,str(settings["title"]),"走到出口可选择下一站。\nP 手机可随时查看当前生涯。")
+	pause_panel = pause["panel"]
+	Hud.menu_button(pause["menu"],"继续走动",func(): set_paused(false),true)
+	Hud.menu_button(pause["menu"],"返回俱乐部",func(): Travel.go("club"))
 	pause_panel.visible = false
+
+func _sync_hint() -> void:
+	if hint.text == shown_hint: return
+	shown_hint = hint.text
+	var objective: Label = title_parts["objective"]
+	var active := Hud.set_prompt(prompt_parts,hint.text)
+	objective.text = "" if active else hint.text
+	objective.visible = not objective.text.is_empty()
 
 func _label(parent: Node, text: String, size: int) -> Label:
 	var label := Label.new(); label.text = text; label.add_theme_font_override("font",UI.font()); label.add_theme_font_size_override("font_size",size)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE; parent.add_child(label); return label
 
 func _set_caption(text: String) -> void:
-	if is_instance_valid(caption): caption.text = text
+	if is_instance_valid(caption):
+		caption.text = text
+		Hud.fit_caption(caption_parts)
 
 func _distance(point: Vector3) -> float:
 	return Vector2(player.position.x-point.x,player.position.z-point.z).length()
@@ -214,6 +236,7 @@ func _process(delta: float) -> void:
 	hint.text = _hint_text()
 	if _distance(vec(settings["door"]))<float(settings.get("door_range",1.25)): hint.text = "门口可选择下一站 · 可直接走开"
 	cursor_dot.visible = not paused and not CareerBridge.phone_open
+	_sync_hint()
 	_update_venue(delta)
 
 func set_paused(value: bool) -> void:
@@ -230,6 +253,8 @@ func before_computer() -> void:
 func set_phone_open(value: bool) -> void: set_device_open(value,"phone")
 
 func set_device_open(value: bool, kind: String) -> void:
+	var hud_layer := get_node_or_null("WorldHud") as CanvasLayer
+	if hud_layer: hud_layer.visible = not value
 	device_kind = kind if value else ""; player.locked = value; player.velocity = Vector3.ZERO
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if value or paused else Input.MOUSE_MODE_CAPTURED
 

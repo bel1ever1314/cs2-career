@@ -4,6 +4,7 @@ const UI = preload("res://scripts/computer_ui.gd")
 const TeamVisuals = preload("res://scripts/team_visuals.gd")
 const Trophy = preload("res://scripts/career_trophy.gd")
 const ChampionCeremony = preload("res://scripts/venue_champion_ceremony.gd")
+const CeremonyAudio = preload("res://scripts/ceremony_audio.gd")
 const ACK_PATH := "/api/3d/feedback/ack"
 var queue: Array[Dictionary] = []
 var seen: Dictionary = {}
@@ -27,6 +28,17 @@ var venue_results: Dictionary = {}
 var champion_seen: Dictionary = {}
 var champion_ceremony: CanvasLayer
 var championship_sound_played := false
+# Top20 is sealed when it arrives: an invitation to the ceremony, or a staged
+# reveal here from #20 to #1. Names are never listed up front.
+var top20_rows: Array[Dictionary] = []
+var top20_name_labels: Dictionary = {}
+var top20_team_labels: Dictionary = {}
+var top20_cards: Dictionary = {}
+var reveal_queue: Array[int] = []
+var reveal_clock := 0.0
+var revealing := false
+var reveal_done := false
+var reveal_button: Button
 
 func reset_for_loaded_career() -> void:
 	queue.clear()
@@ -63,9 +75,10 @@ func ingest() -> void:
 		seen[id] = true
 		queue.append(row.duplicate(true))
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if entry.is_empty() and not queue.is_empty() and can_present():
 		present(queue.pop_front())
+	_tick_reveal(delta)
 
 func can_present() -> bool:
 	if CareerBridge.sleeping: return false
@@ -157,15 +170,24 @@ func _show_newspaper() -> void:
 	headline.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if entry.get("kind", "") == "top20": _top20()
 	else: _event_awards()
-	status = UI.label(body, "荣誉与战绩已保存在赛事新闻中。", 12, UI.MUTED)
+	status = UI.label(body, "", 12, UI.MUTED)
 	var buttons := HBoxContainer.new()
 	buttons.add_theme_constant_override("separation", 12)
 	body.add_child(buttons)
-	if entry.get("kind", "") == "top20" and not bool(entry.get("quick", false)) and entry.get("ceremony", {}).get("ready", false):
-		actions.append(UI.button(buttons, "和同行一起去颁奖现场", acknowledge.bind(true)))
-	var next := UI.button(buttons, "我看完了 · 继续", acknowledge.bind(false))
-	UI.primary(next)
-	actions.append(next)
+	if entry.get("kind", "") == "top20":
+		# Quick mode gets the same invitation: the ceremony is the reveal.
+		if entry.get("ceremony", {}).get("ready", false):
+			var go := UI.button(buttons, "前往颁奖现场揭晓", acknowledge.bind(true))
+			UI.primary(go)
+			actions.append(go)
+		reveal_button = UI.button(buttons, "在这里揭晓", start_reveal)
+		actions.append(reveal_button)
+		actions.append(UI.button(buttons, "稍后再看", acknowledge.bind(false)))
+		status.text = ""
+	else:
+		var next := UI.button(buttons, "我看完了 · 继续", acknowledge.bind(false))
+		UI.primary(next)
+		actions.append(next)
 	_layout()
 	sheet.pivot_offset = sheet.size / 2
 	var final_position := sheet.position
@@ -236,17 +258,122 @@ func _event_awards() -> void:
 		for player in players: _player(card, player)
 
 func _top20() -> void:
-	UI.label(body, "年度 Top20 正式揭晓", 18, Color("92702c"))
+	top20_rows.clear(); top20_name_labels.clear(); top20_team_labels.clear(); top20_cards.clear()
+	reveal_queue.clear(); revealing = false; reveal_done = false
+	var intro := UI.label(body, "年度颁奖礼邀请函", 18, Color("92702c"))
+	intro.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var line := UI.label(body, "二十个名字已经封存，揭晓时刻由你决定。", 14, UI.MUTED)
+	line.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	for row in entry.get("rows", []):
-		if not row is Dictionary: continue
-		var ranked := HBoxContainer.new()
-		ranked.add_theme_constant_override("separation", 12)
-		body.add_child(ranked)
+		if row is Dictionary: top20_rows.append(row)
+	top20_rows.sort_custom(func(a, b): return int(a.get("rank", 0)) < int(b.get("rank", 0)))
+	var grid := GridContainer.new()
+	grid.name = "Top20SealedGrid"
+	grid.columns = 2
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.add_theme_constant_override("h_separation", 12)
+	grid.add_theme_constant_override("v_separation", 6)
+	body.add_child(grid)
+	# Column-major: #1–#10 left, #11–#20 right.
+	var ordered: Array[Dictionary] = []
+	var half := int(ceil(top20_rows.size() / 2.0))
+	for i in range(half):
+		ordered.append(top20_rows[i])
+		if i + half < top20_rows.size(): ordered.append(top20_rows[i + half])
+	for row in ordered:
 		var rank := int(row.get("rank", 0))
-		var number := UI.label(ranked, "#%d" % rank, 24 if rank <= 3 else 16, Color("9c772e") if rank <= 3 else UI.MUTED)
-		number.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-		number.custom_minimum_size.x = 56
-		_player(ranked, row, rank <= 3)
+		var card := PanelContainer.new()
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		card.add_theme_stylebox_override("panel", UI.style(Color("efe8d5"), 8, 10, Color("ddd2b6")))
+		grid.add_child(card)
+		var cells := HBoxContainer.new()
+		cells.add_theme_constant_override("separation", 10)
+		card.add_child(cells)
+		var number := UI.label(cells, "#%d" % rank, 20 if rank <= 3 else 15, Color("9c772e") if rank <= 3 else UI.MUTED)
+		number.custom_minimum_size.x = 44
+		number.autowrap_mode = TextServer.AUTOWRAP_OFF
+		var name_label := UI.label(cells, "？", 18 if rank <= 3 else 15, UI.MUTED)
+		name_label.name = "HonoursPlayerName"
+		name_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+		name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		var team_label := UI.label(cells, "", 12, UI.MUTED)
+		team_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		team_label.size_flags_horizontal = Control.SIZE_SHRINK_END
+		team_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+		top20_name_labels[rank] = name_label
+		top20_team_labels[rank] = team_label
+		top20_cards[rank] = card
+
+## Staged reveal: #20…#4 tick over quickly, then a drum roll before each of
+## the top three. The player's own row is called out when it lands.
+func start_reveal() -> void:
+	if revealing or reveal_done or top20_rows.is_empty(): return
+	revealing = true
+	reveal_clock = 0.0
+	if is_instance_valid(reveal_button): reveal_button.text = "全部揭晓"; reveal_button.pressed.disconnect(start_reveal); reveal_button.pressed.connect(reveal_all)
+	reveal_queue.clear()
+	for row in top20_rows: reveal_queue.push_front(int(row.get("rank", 0)))
+
+func reveal_all() -> void:
+	while not reveal_queue.is_empty(): _reveal_rank(reveal_queue.pop_front(), false)
+	_finish_reveal()
+
+func _reveal_step_delay(rank: int) -> float:
+	return 1.9 if rank <= 3 else (0.55 if rank <= 10 else 0.32)
+
+func _tick_reveal(delta: float) -> void:
+	if not revealing or reveal_queue.is_empty(): return
+	reveal_clock += delta
+	var rank: int = reveal_queue[0]
+	if rank <= 3 and reveal_clock > 0.05 and not bool(top20_cards[rank].get_meta("rolling", false)):
+		top20_cards[rank].set_meta("rolling", true)
+		CeremonyAudio.play(self, "drumroll", -6.0)
+		var label: Label = top20_name_labels[rank]
+		var tween := create_tween().set_loops(4)
+		tween.tween_property(label, "modulate:a", .25, .2); tween.tween_property(label, "modulate:a", 1.0, .2)
+	if reveal_clock < _reveal_step_delay(rank): return
+	reveal_clock = 0.0
+	reveal_queue.pop_front()
+	_reveal_rank(rank, true)
+	if reveal_queue.is_empty(): _finish_reveal()
+
+func _reveal_rank(rank: int, with_sound: bool) -> void:
+	var row: Dictionary = {}
+	for candidate in top20_rows:
+		if int(candidate.get("rank", 0)) == rank: row = candidate
+	if row.is_empty() or not top20_name_labels.has(rank): return
+	var label: Label = top20_name_labels[rank]
+	var human := str(entry.get("human_id", ""))
+	var mine := not human.is_empty() and str(row.get("player_id", row.get("id", ""))) == human
+	label.text = str(row.get("name", row.get("player", ""))) + ("  ·  你" if mine else "")
+	label.modulate.a = 1.0
+	label.add_theme_color_override("font_color", UI.GREEN if mine else UI.INK)
+	(top20_team_labels[rank] as Label).text = str(row.get("team", ""))
+	var team := str(row.get("team", ""))
+	if not team.is_empty():
+		var cells := label.get_parent()
+		var mark := TeamVisuals.badge(cells, team, 22)
+		if mark: cells.move_child(mark, 1)
+	var card: PanelContainer = top20_cards[rank]
+	if mine: card.add_theme_stylebox_override("panel", UI.style(Color("dcebd9"), 8, 10, UI.GREEN))
+	elif rank <= 3: card.add_theme_stylebox_override("panel", UI.style(Color("f6e7bf"), 8, 10, Color("d4b06b")))
+	if with_sound:
+		CeremonyAudio.stop(self, "drumroll")
+		if mine or rank <= 3:
+			CeremonyAudio.play(self, "hit", -6.0)
+			CeremonyAudio.play(self, "fanfare" if (mine or rank == 1) else "applause", -4.0)
+		else:
+			CeremonyAudio.play(self, "tick", -2.0)
+		card.pivot_offset = card.size / 2
+		card.scale = Vector2(1.06, 1.06)
+		create_tween().tween_property(card, "scale", Vector2.ONE, .25)
+
+func _finish_reveal() -> void:
+	revealing = false
+	reveal_done = true
+	if is_instance_valid(reveal_button): reveal_button.disabled = true
+	for button in actions:
+		if button.text == "稍后再看": button.text = "我看完了 · 继续"; UI.primary(button)
 
 func _player(parent: Node, value: Variant, featured: bool = false) -> void:
 	var row := HBoxContainer.new()
@@ -294,6 +421,8 @@ func _release() -> void:
 	champion_ceremony = null
 	if is_instance_valid(overlay): overlay.queue_free()
 	entry.clear(); actions.clear()
+	revealing = false; reveal_queue.clear(); reveal_done = false
+	CeremonyAudio.stop(self, "drumroll")
 	visit_after_ack = false
 	CareerBridge.feedback_active = false
 	UI.device_closed(self)

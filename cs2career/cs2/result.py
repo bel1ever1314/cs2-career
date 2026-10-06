@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import math
+from datetime import datetime, timezone
 
 from ..engine.rating import career_rating, skill_tier
 from .profiles import stable_player_id
@@ -26,8 +27,12 @@ def to_sim_map(name: str, fallback: str = "") -> str:
     return fallback
 
 
-def _ts(value: str) -> str:
-    return (value or "").replace("Z", "").split(".")[0]
+def _ts(value: str):
+    try:
+        instant = datetime.fromisoformat(value.replace('Z', '+00:00'))
+        return instant.replace(tzinfo=timezone.utc) if instant.tzinfo is None else instant.astimezone(timezone.utc)
+    except (ValueError, TypeError, AttributeError):
+        return None
 
 
 def _norm_name(name: str) -> str:
@@ -59,7 +64,14 @@ def pick_better_result(*cands: dict | None) -> dict:
     rows = [c for c in cands if c]
     if not rows:
         return {"status": "none"}
-    return max(rows, key=result_quality)
+    best = max(rows, key=result_quality)
+    # A disconnect/rebind can leave a later but incomplete dump alongside a
+    # valid final backup. Prefer the usable copy of exactly the same result;
+    # never let an older map, score or session take over the current one.
+    same = [r for r in rows if all(r.get(k) == best.get(k)
+            for k in ('request_nonce', 'map', 'ct_score', 't_score'))]
+    usable = [r for r in same if r.get('ended_at') and not result_usable(r, {})]
+    return max(usable, key=result_quality) if usable else best
 
 
 def result_usable(result: dict | None, session: dict) -> str:
@@ -82,9 +94,9 @@ def result_usable(result: dict | None, session: dict) -> str:
     actual_ids = {str(p.get("player_id") or "") for p in players}
     if expected_ids and actual_ids != expected_ids:
         return "战绩十人身份与当前比赛请求不一致"
-    started = session.get("started_at") or ""
+    started = _ts(session.get("started_at") or "")
     ended = _ts(result.get("ended_at") or "")
-    if started and ended and ended < _ts(started):
+    if started and ended and ended < started:
         return "这是上一场的残留战绩，请重开这张图"
     raw_map = (result.get("map") or "").strip()
     got = to_sim_map(raw_map, session.get("map") or "")

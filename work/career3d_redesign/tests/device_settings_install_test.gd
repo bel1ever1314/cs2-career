@@ -47,6 +47,13 @@ func run() -> void:
 	check(CareerBridge.endpoint.is_empty() and not CareerBridge.owns_service, "fixtures never start the service")
 	var detection := fixture()
 	var detection_parent := form(detection)
+	var source_field := detection_parent.find_child("DeviceSetting_bot_profile_source", true, false) as LineEdit
+	check(source_field != null and source_field.text.is_empty(), "custom VPK source is visible and not enabled by default")
+	detection.set_value("bot_profile_mode", "custom")
+	source_field.text_changed.emit("D:/MyProfiles/botprofile.vpk")
+	check(detection.draft.get("bot_profile_mode") == "custom" and detection.draft.get("bot_profile_source") == "D:/MyProfiles/botprofile.vpk", "custom source and mode survive the settings draft")
+	detection.set_value("bot_profile_mode", "career")
+	detection.set_value("bot_profile_source", "")
 	var detect_button := detection_parent.find_child("DeviceSettingsDetectPaths", true, false) as Button
 	check(detect_button != null and not detect_button.disabled, "ordinary and bundled settings offer local Steam and CS2 detection")
 	detection.set_value("mod_source_path", "D:/KeepMyImprover")

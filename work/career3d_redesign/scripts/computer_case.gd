@@ -126,7 +126,7 @@ func present_saved(box: Dictionary, drop: Dictionary) -> void:
 	keep_button = UI.button(decisions, "放入库存", resolve.bind("keep"))
 	keep_button.name = "CaseKeepDrop"
 	UI.primary(keep_button)
-	cash_button = UI.button(decisions, "立即出售 · ¥%s" % drop.get("sell", 0), resolve.bind("cash"))
+	cash_button = UI.button(decisions, "立即出售 · %s" % preload("res://scripts/ui_format.gd").money(drop.get("sell", 0)), resolve.bind("cash"))
 	cash_button.name = "CaseCashDrop"
 	UI.button(decisions, "稍后处理", _later)
 	decisions.hide()
@@ -185,7 +185,7 @@ func refresh_buttons() -> void:
 	if is_instance_valid(keep_button): keep_button.disabled = disabled
 	if is_instance_valid(cash_button):
 		cash_button.disabled = disabled
-		if not pending().is_empty(): cash_button.text = "立即出售 · ¥%s" % pending().get("sell", 0)
+		if not pending().is_empty(): cash_button.text = "立即出售 · %s" % preload("res://scripts/ui_format.gd").money(pending().get("sell", 0))
 
 func _later() -> void:
 	if is_instance_valid(overlay): overlay.hide()

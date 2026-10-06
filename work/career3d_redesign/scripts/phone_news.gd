@@ -53,7 +53,7 @@ static func render(phone: Node) -> void:
 	var rows: Array = data.get("rows", [])
 	UI.label(parent, "已发布 · %d 篇" % int(data.get("total", rows.size())), 12, UI.MUTED)
 	if rows.is_empty():
-		UI.label(parent, "还没有这个分类的新闻。赛事荣誉、转会报道和年度 Top20 发布后会出现在这里。", 14)
+		UI.label(parent, "暂无新闻", 14)
 	for row in rows:
 		phone._list_row(parent, Locale.field(row, "title", "赛事新闻"), "%s · %s" % [row.get("date", ""), CATEGORY.get(row.get("category", "news"), "赛场")], phone._load_news.bind(phone.news_category, phone.news_page, str(row.get("id", ""))), "", "mail", false, true, str(row.get("team", "")))
 	if phone.news_data.is_empty() and int(data.get("total", 0)) > rows.size():

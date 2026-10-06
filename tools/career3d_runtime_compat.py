@@ -37,7 +37,7 @@ _OFFICIAL_REPOS = frozenset(('alliedmodders/metamod-source', 'roflmuffin/counter
 _PRIVATE_DIRS = frozenset(('inventories', 'logs', 'backup', 'backups', 'save', 'saves',
                          'plugins_off', '.git', 'demos', 'captures'))
 _PRIVATE_PLUGINS = frozenset(('careermatch', 'inventorysimulator', 'invsimcareer'))
-_PRIVATE_NAMES = frozenset(('bot_info.json', 'botprofile.db', 'botprofile.vpk',
+_PRIVATE_NAMES = frozenset(('bot_info.json', 'botprofile.db', 'botprofile.vpk', 'career_botprofile.vpk', 'botprofile.manifest.json',
                            'inventories.json', 'autoexec.cfg', 'config.cfg', 'invsim_career.cfg',
                            'match_request.json', 'match_result.json', 'match_result.best.json',
                            'tactical_playbook.json', 'console.log'))

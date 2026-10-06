@@ -21,7 +21,7 @@ import zipfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = '1.7.1'
+VERSION = '1.7.2'
 MODELS = ('cozy_room.glb', 'chicken_club.glb', 'player_chicken.glb', 'major_walk.glb')
 ENGINE_VERSION = '4.7.2-stable'
 ENGINE_LEGAL_HASHES = {
@@ -290,7 +290,7 @@ def archive(folder, destination, prefix=None):
             output.write(path, (prefix + '/' if prefix else '') + name)
 
 
-PREVIEW_README = '''CS2 Career 1.7.1 · 本地 3D 测试版
+PREVIEW_README = '''CS2 Career 1.7.2 · 本地 3D 测试版
 
 解压整个文件夹，不要在压缩包里直接打开。双击“开始游戏.cmd”。
 不需要安装 Python 或 Godot。显卡兼容问题可试“兼容显卡启动.cmd”。

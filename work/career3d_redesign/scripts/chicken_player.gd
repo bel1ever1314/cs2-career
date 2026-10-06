@@ -16,7 +16,7 @@ var left_wing: Node3D
 var right_wing: Node3D
 var phase := 0.0
 var seat_pose := false
-var home := Vector3(-.75,.23,6.65)
+var home := Vector3(-.75,.23,5.45)
 var shape_node: CollisionShape3D
 var walk_speed := 2.65
 var run_speed := 4.1
@@ -37,10 +37,36 @@ var item_nodes: Dictionary = {}
 var left_grip: Node3D
 var right_grip: Node3D
 var seat_blend := 0.0
+## While seated the visual rises onto the chair cushion and slides toward the
+## desk, so the round body rests on the seat instead of passing through it.
+## seat_lift = cushion top above the actor origin minus the body's 0.16 m base.
+var seat_lift := 0.0
+var seat_forward := 0.0
 var upper_body_action := ""
 var chicken_model: Node3D
 var appearance: Dictionary = {}
 var saved_appearance_signature := ""
+## Secondary motion on the imported pivots: head bob, breathing, blinking and
+## look-around. Purely visual; collision, gait timing and carry poses unchanged.
+var head_pivot: Node3D
+var player_kit: Node3D
+var head_kit: Node3D
+var body_pivot: Node3D
+var head_origin := Vector3.ZERO
+var head_rest := Vector3.ZERO
+var body_scale := Vector3.ONE
+var eyes: Array[Node3D] = []
+var eye_scale: Array[Vector3] = []
+var life_time := 0.0
+var look_timer := 2.0
+var look_target := Vector2.ZERO
+var look_current := Vector2.ZERO
+var blink_timer := 3.0
+var blink_left := 0.0
+var last_heading := 0.0
+var turn_lean := 0.0
+var bounce := 0.0
+var previous_gait := 0.0
 
 func _ready() -> void:
 	collision_layer = 2
@@ -74,6 +100,25 @@ func _ready() -> void:
 	left_wing = model.find_child("WingLeftPivot",true,false) as Node3D
 	right_wing = model.find_child("WingRightPivot",true,false) as Node3D
 	if left_foot and right_foot:foot_origins=[left_foot.position,right_foot.position]
+	head_pivot = model.find_child("HeadPivot",true,false) as Node3D
+	body_pivot = model.find_child("BodyPivot",true,false) as Node3D
+	if head_pivot: head_origin = head_pivot.position; head_rest = head_pivot.rotation
+	# The headset was modelled beside the head, not under it. Move it onto the
+	# head so look-around and head bobbing carry it along.
+	player_kit = model.find_child("PlayerKit",true,false) as Node3D
+	if head_pivot and player_kit:
+		head_kit = Node3D.new(); head_kit.name = "HeadKit"; head_pivot.add_child(head_kit)
+		for node in player_kit.find_children("*","MeshInstance3D",true,false):
+			var part := str(node.name).to_lower()
+			if part.begins_with("headphone") or part.begins_with("headset") or part.begins_with("microphone"):
+				node.reparent(head_kit,true)
+	if body_pivot: body_scale = body_pivot.scale
+	for eye_name in ["Eye L","Eye R","Eye glint","Eye glint_001"]:
+		var eye := model.find_child(eye_name,true,false) as Node3D
+		if eye: eyes.append(eye); eye_scale.append(eye.scale)
+	life_time = randf()*10.0
+	blink_timer = randf_range(1.5,4.0)
+	look_timer = randf_range(1.0,3.0)
 	_prepare_carried_items()
 	if _is_personal_avatar():
 		add_to_group("career_personal_avatar")
@@ -142,9 +187,15 @@ func _animate(delta: float,speed: float) -> void:
 	phase+=speed*delta*TAU/1.25
 	seat_blend=move_toward(seat_blend,1.0 if seat_pose else 0.0,delta*5)
 	var upper_still:=carry_state!="idle" or seat_pose
-	visual.position.y=lerpf(visual.position.y,(1-cos(phase*2))*.009*gait_weight if not upper_still else 0.0,1-exp(-14*delta))
-	visual.rotation.z=lerpf(visual.rotation.z,sin(phase)*.022*gait_weight if not upper_still else 0.0,1-exp(-12*delta))
-	visual.rotation.x=lerpf(visual.rotation.x,.035*gait_weight if not upper_still else .015*seat_blend,1-exp(-10*delta))
+	# A small hop on every step (two per cycle), a waddle, a forward lean that
+	# grows when trotting, and a lean into turns.
+	var trot := clampf((speed-walk_speed)/maxf(.1,run_speed-walk_speed),0,1)
+	var hop := absf(sin(phase))*(.028+.020*trot)*gait_weight
+	visual.position.y=lerpf(visual.position.y,hop if not upper_still else seat_lift*seat_blend,1-exp(-18*delta))
+	var facing:=Vector3(sin(visual.rotation.y),0,cos(visual.rotation.y))*seat_forward*seat_blend
+	visual.position.x=lerpf(visual.position.x,facing.x,1-exp(-18*delta));visual.position.z=lerpf(visual.position.z,facing.z,1-exp(-18*delta))
+	visual.rotation.z=lerpf(visual.rotation.z,(sin(phase)*.045*gait_weight+turn_lean) if not upper_still else 0.0,1-exp(-12*delta))
+	visual.rotation.x=lerpf(visual.rotation.x,(.05+.09*trot)*gait_weight if not upper_still else .015*seat_blend,1-exp(-10*delta))
 	if foot_origins.size()==2:
 		for i in range(2):
 			var foot: Node3D=left_foot if i==0 else right_foot
@@ -157,15 +208,66 @@ func _animate(delta: float,speed: float) -> void:
 				forward=lerpf(-.24,.24,smoothstep(0,1,swing))
 				height=sin(swing*PI)*.10
 			foot.position=foot_origins[i]+Vector3(0,height,forward)*gait_weight
-			foot.rotation.x=lerpf(-forward*.45*gait_weight,-.65,seat_blend)
-	var left_pose:=Vector3(-sin(phase)*.09*gait_weight,0,0)
-	var right_pose:=Vector3(sin(phase)*.09*gait_weight,0,0)
+			# Seated: shins swing forward over the cushion edge.
+			foot.rotation.x=lerpf(-forward*.45*gait_weight,-1.05 if seat_lift>.05 else -.65,seat_blend)
+	_secondary_motion(delta,speed,upper_still)
+	var running_weight := clampf((speed-walk_speed)/maxf(.1,run_speed-walk_speed),0,1)
+	# Wings swing with the stride and open a little when trotting.
+	var left_pose:=Vector3(-sin(phase)*(.14+.12*running_weight)*gait_weight,0,-.10*running_weight*gait_weight)
+	var right_pose:=Vector3(sin(phase)*(.14+.12*running_weight)*gait_weight,0,.10*running_weight*gait_weight)
 	if upper_body_action=="typing":
 		left_pose=Vector3(-.65+.035*sin(phase*2),0,.10)
 		right_pose=Vector3(-.65+.035*sin(phase*2+1.8),0,-.10)
+	elif upper_body_action=="trophy_lift":
+		# Both wings up around a cup held over the head, with a small pump.
+		var lift:=sin(life_time*3.4)*.09
+		left_pose=Vector3(-2.2+lift,0,.24);right_pose=Vector3(-2.2+lift,0,-.24)
+	elif upper_body_action=="clap":
+		var clap:=absf(sin(life_time*8.5))
+		left_pose=Vector3(-.95,0,.38-clap*.3);right_pose=Vector3(-.95,0,-.38+clap*.3)
 	if left_wing:left_wing.rotation=left_pose
 	if right_wing:right_wing.rotation=right_pose
 	_animate_carried_item(delta,left_pose,right_pose)
+
+func _secondary_motion(delta: float,speed: float,upper_still: bool) -> void:
+	life_time += delta
+	var idle := clampf(1.0-gait_weight,0,1)
+	# Turn lean from how fast the facing changes (only while walking).
+	var heading := visual.rotation.y
+	var turn_rate := wrapf(heading-last_heading,-PI,PI)/maxf(delta,.001)
+	last_heading = heading
+	turn_lean = lerpf(turn_lean,clampf(-turn_rate*.035,-.16,.16)*gait_weight,1-exp(-8*delta))
+	# Start/stop squash: compress when the gait weight changes quickly.
+	var gait_change := (gait_weight-previous_gait)/maxf(delta,.001)
+	previous_gait = gait_weight
+	bounce = lerpf(bounce,clampf(absf(gait_change)*.03,0,.06),1-exp(-12*delta))
+	if body_pivot:
+		var breathe := sin(life_time*2.3)*.016*idle
+		var step_squash := absf(cos(phase))*.035*gait_weight
+		var squash := breathe-step_squash-bounce
+		body_pivot.scale = body_scale*Vector3(1.0-squash*.5,1.0+squash,1.0-squash*.5)
+	if is_instance_valid(head_kit) and is_instance_valid(player_kit): head_kit.visible = player_kit.visible
+	if head_pivot:
+		# Look around now and then while standing; the body never turns, so a
+		# seated or menu-facing pose keeps its exact direction.
+		look_timer -= delta
+		if look_timer <= 0:
+			look_timer = randf_range(2.2,5.5)
+			look_target = Vector2(randf_range(-.55,.55),randf_range(-.10,.16)) if randf() < .7 else Vector2.ZERO
+		var target := look_target*idle if not upper_still or seat_pose else Vector2.ZERO
+		look_current = look_current.lerp(target,1-exp(-3.5*delta))
+		var peck := sin(phase*2.0)*.05*gait_weight
+		head_pivot.rotation = head_rest+Vector3(look_current.y+peck*.6,look_current.x,0)
+		head_pivot.position = head_origin+Vector3(0,sin(life_time*2.3+.6)*.006*idle,peck*.35)
+	# Blink: quick vertical squash of the eyes and their glints.
+	blink_timer -= delta
+	if blink_timer <= 0:
+		blink_left = .13
+		blink_timer = randf_range(2.4,5.2) if randf() > .2 else .25
+	if blink_left > 0: blink_left = maxf(0,blink_left-delta)
+	var lid := 1.0-sin(clampf(blink_left/.13,0,1)*PI)*.9
+	for index in range(eyes.size()):
+		if is_instance_valid(eyes[index]): eyes[index].scale = eye_scale[index]*Vector3(1,lid,1)
 
 func _prepare_carried_items() -> void:
 	var source=JSON.parse_string(FileAccess.get_file_as_string("res://data/carried_items.json"))

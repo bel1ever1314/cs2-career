@@ -50,6 +50,20 @@ public sealed class TacticalPlaybook
         return result;
     }
 
+    public static TacticalPlaybook ReadForMap(string folder, string? mapName)
+    {
+        var map = TacticalMapCatalog.MapIds.FirstOrDefault(m => TacticalMapCatalog.Matches(m, mapName));
+        var path = map is null ? Path.Combine(folder, "tactical_playbook.json")
+            : Path.Combine(folder, "tactical_playbooks", map + ".json");
+        if (!File.Exists(path)) path = Path.Combine(folder, "tactical_playbook.json");
+        if (!File.Exists(path)) throw new InvalidDataException("未找到已同步的战术库");
+        if (new FileInfo(path).Length > MaximumBytes) throw new InvalidDataException("tactical_playbook_too_large");
+        var book = Parse(File.ReadAllText(path));
+        if (map is not null && book.Map != map)
+            throw new InvalidDataException($"当前地图 {map} 的战术未同步（已有 {book.Map}）。退出 CS2 后在战术板同步当前对局");
+        return book;
+    }
+
     public static bool ValidId(string? id) => id is { Length: > 0 and <= 32 }
         && id.All(c => c is >= 'a' and <= 'z' or >= '0' and <= '9' or '_' or '-');
     private static bool ValidName(string? value)

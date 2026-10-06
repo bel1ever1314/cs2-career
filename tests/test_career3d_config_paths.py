@@ -34,6 +34,7 @@ class Career3DConfigPathTests(unittest.TestCase):
         self.start(patch.object(launch, 'find_mod_source', side_effect=AssertionError('no discovery')))
         self.start(patch.object(launch, 'find_csgo_path', side_effect=AssertionError('no discovery')))
         self.start(patch.object(launch, 'install_mod', side_effect=AssertionError('no implicit install')))
+        self.start(patch.object(launch, 'career_match_current', return_value=True))
         self.process = self.start(patch.object(activities, '_running_cs2', return_value=False))
         self.state = SimpleNamespace(career=SimpleNamespace(
             incident_state={'career3d_service': {'revision': 7}},
@@ -75,6 +76,33 @@ class Career3DConfigPathTests(unittest.TestCase):
         self.assertEqual(value['path_errors'], [])
         self.assertEqual(value['component_errors'], [])
         self.assertEqual(value['missing'], [])
+
+    def test_old_match_plugin_is_an_update_hint_not_a_path_error(self):
+        self.installed()
+        with patch.object(launch, 'career_match_current', return_value=False):
+            value = activities.config_status()
+        self.assertFalse(value['ready'])
+        self.assertEqual([], value['path_errors'])
+        self.assertIn('career_match_update', value['missing'])
+        self.assertIn('无需重新下载', value['reason'])
+
+    def test_custom_vpk_settings_validate_locally_without_touching_source(self):
+        from cs2career.cs2.profiles import write_vpk
+        source = self.root / 'my bots.vpk'
+        write_vpk(source, 'Default\n Skill = 77\nEnd\n')
+        before = source.read_bytes()
+        activities.settings_command(self.state, {'revision': 7, 'settings': {
+            'bot_profile_mode': 'custom', 'bot_profile_source': f'"{source}"'}})
+        saved = json.loads(self.settings.read_text('utf-8'))
+        self.assertEqual('custom', saved['bot_profile_mode'])
+        self.assertEqual(str(source), saved['bot_profile_source'])
+        self.assertEqual(before, source.read_bytes())
+        snapshot = self.settings.read_bytes()
+        with self.assertRaises(ValueError):
+            activities.settings_command(self.state, {'revision': 7, 'settings': {'bot_profile_source': str(self.root / 'missing.vpk')}})
+        self.assertEqual(snapshot, self.settings.read_bytes())
+        activities.settings_command(self.state, {'revision': 7, 'settings': {'bot_profile_mode': 'career', 'bot_profile_source': ''}})
+        self.assertEqual('', json.loads(self.settings.read_text('utf-8'))['bot_profile_source'])
 
     def test_status_includes_cheap_compatibility_context_without_downloads(self):
         self.installed()

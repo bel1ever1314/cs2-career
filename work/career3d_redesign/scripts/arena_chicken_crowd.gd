@@ -2,9 +2,10 @@ extends Node3D
 ## One shared seated chicken design. Seats/feet remain planted; only a small
 ## near-floor group breathes and moves wings. Far terraces are fully static.
 
+const ChickenMesh = preload("res://scripts/chicken_mesh.gd")
 const MAX_ANIMATED := 56
-const CUSHION_TOP := 0.475
-const BODY_BOTTOM := 0.475
+const CUSHION_TOP := 0.30
+const BODY_BOTTOM := 0.30
 const FOOT_SOLE := 0.018
 const PALETTE := [Color("ffffff"),Color("c99b71"),Color("91adb9"),Color("c47e60"),Color("657c80"),Color("d1ad62"),Color("a390b5"),Color("abb99b")]
 var spectator_count := 0
@@ -35,6 +36,11 @@ func setup(venue: Node3D) -> void:
 		if "terrace" in surface_name or surface_name == "event floor":
 			var bounds: AABB = surface_node.global_transform * surface_node.get_aabb()
 			floor_levels.append(bounds.end.y)
+	# The entrance tunnel cuts through the lowest rows: nobody sits on its roof.
+	var tunnels: Array[AABB] = []
+	for surface_node in venue.find_children("*", "MeshInstance3D", true, false):
+		if "walk tunnel" in str(surface_node.name).replace("_", " ").to_lower():
+			tunnels.append(surface_node.global_transform * surface_node.get_aabb())
 	for legacy in venue.find_children("Crowd*", "MeshInstance3D", true, false):
 		var pose: Transform3D = legacy.global_transform
 		# The GLB Crowd origins were 25 mm above terraces / 50 mm above the
@@ -44,43 +50,73 @@ func setup(venue: Node3D) -> void:
 		for level in floor_levels:
 			if level <= pose.origin.y + 0.001 and pose.origin.y - level <= 0.10:
 				row_floor = maxf(row_floor, level)
-		if is_finite(row_floor):
-			pose.origin.y = row_floor - FOOT_SOLE
-			grounded_count += 1
-			max_floor_error = maxf(max_floor_error, absf((pose * Vector3(0, FOOT_SOLE, 0)).y - row_floor))
+		legacy.visible = false
+		legacy.queue_free()
+		removed_legacy_count += 1
+		# A spectator with no terrace or floor under it would float: skip it.
+		if not is_finite(row_floor) or _over_tunnel(pose.origin, tunnels): continue
+		pose.origin.y = row_floor - FOOT_SOLE
+		grounded_count += 1
+		max_floor_error = maxf(max_floor_error, absf((pose * Vector3(0, FOOT_SOLE, 0)).y - row_floor))
 		seated.append(pose)
 		var at := pose.origin
 		if near.size() < MAX_ANIMATED and at.y < 3.4 and absf(at.x) < 13.0 and at.z > -8.0 and at.z < 18.0:
 			near.append(pose)
 		else:
 			far.append(pose)
-		legacy.visible = false
-		legacy.queue_free()
-		removed_legacy_count += 1
+	all_seated = seated; all_near = near; all_far = far
+	_build_batches(seated, near, far)
+	print("ARENA_CHICKEN_AUDIENCE seated=", spectator_count, " animated=", animated_count, " batches=", batch_count)
+
+func _over_tunnel(at: Vector3, tunnels: Array[AABB]) -> bool:
+	for box in tunnels:
+		if at.x > box.position.x - 0.3 and at.x < box.end.x + 0.3 and at.z > box.position.z - 0.3 and at.z < box.end.z + 0.3 and at.y < box.end.y + 1.6:
+			return true
+	return false
+
+var all_seated: Array[Transform3D] = []
+var all_near: Array[Transform3D] = []
+var all_far: Array[Transform3D] = []
+
+func _build_batches(seated: Array[Transform3D], near: Array[Transform3D], far: Array[Transform3D]) -> void:
+	for child in get_children():
+		if child is MultiMeshInstance3D: remove_child(child); child.queue_free()
+	batch_count = 0
 	spectator_count = seated.size()
 	animated_count = near.size()
 	near_transforms = near
-	var material := StandardMaterial3D.new()
-	material.vertex_color_use_as_albedo = true
-	material.roughness = 0.88
-	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var material := ChickenMesh.material()
 	_batch("AllSharedSeatsAndPlantedFeet", _seat_and_feet_mesh(), material, seated)
-	_batch("StaticTerraceChickens", _chicken_mesh(true), material, far)
+	_batch("StaticTerraceChickens", ChickenMesh.seated_chicken(0, true), material, far)
 	breathing_batch = _batch("NearSeatedBodies", _chicken_mesh(false), material, near)
 	left_wing_batch = _batch("NearLeftWings", _wing_mesh(-1.0), material, near)
 	right_wing_batch = _batch("NearRightWings", _wing_mesh(1.0), material, near)
-	_update_near(0.0)
-	print("ARENA_CHICKEN_AUDIENCE seated=", spectator_count, " animated=", animated_count, " batches=", batch_count)
+	_update_near(elapsed)
+
+## A smaller event only fills the lower tiers: drop spectators seated above.
+func limit_height(max_y: float) -> void:
+	_build_batches(_below(all_seated, max_y), _below(all_near, max_y), _below(all_far, max_y))
+
+func _below(list: Array[Transform3D], max_y: float) -> Array[Transform3D]:
+	var out: Array[Transform3D] = []
+	for pose in list:
+		if pose.origin.y <= max_y: out.append(pose)
+	return out
 
 func _batch(label: String, mesh: ArrayMesh, material: Material, transforms: Array[Transform3D]) -> MultiMesh:
 	var instances := MultiMesh.new()
 	instances.transform_format = MultiMesh.TRANSFORM_3D
+	# Per-spectator feather tint travels in custom data, so eyes, beaks and
+	# combs keep their colours (instance colour would tint everything).
+	instances.use_custom_data = true
+	# White instance colour: some renderers multiply vertex colour by it.
 	instances.use_colors = true
 	instances.mesh = mesh
 	instances.instance_count = transforms.size()
 	for i in range(transforms.size()):
 		instances.set_instance_transform(i, transforms[i])
-		instances.set_instance_color(i, PALETTE[(i * 7 + int(i / 9)) % PALETTE.size()])
+		instances.set_instance_custom_data(i, ChickenMesh.tint(i))
+		instances.set_instance_color(i, Color.WHITE)
 	var batch := MultiMeshInstance3D.new()
 	batch.name = label
 	batch.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
@@ -128,49 +164,27 @@ func _ellipsoid(surface: SurfaceTool, center: Vector3, radii: Vector3, color: Co
 func _seat_and_feet_mesh() -> ArrayMesh:
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var frame := Color("172431")
-	var upholstery := Color("29435b")
-	_box(surface, Vector3(0, 0.435, -0.035), Vector3(0.50, 0.08, 0.46), upholstery)
-	_box(surface, Vector3(0, 0.71, -0.265), Vector3(0.50, 0.58, 0.055), upholstery)
+	var frame := Color("3b4350")
+	var upholstery := Color("b5473f")
+	_box(surface, Vector3(0, CUSHION_TOP - 0.04, -0.035), Vector3(0.50, 0.08, 0.46), upholstery)
+	# Backrest sits behind the tail feathers (tail reaches z = -0.285).
+	_box(surface, Vector3(0, CUSHION_TOP + 0.25, -0.32), Vector3(0.50, 0.58, 0.055), upholstery)
 	for side in [-1.0, 1.0]:
-		_box(surface, Vector3(side * 0.20, 0.207, -0.06), Vector3(0.045, 0.394, 0.35), frame)
-		# Bent legs: belly supported by the cushion, soles on that row's floor.
-		_box(surface, Vector3(side * 0.13, 0.235, 0.21), Vector3(0.047, 0.386, 0.055), Color("d7882e"))
-		_ellipsoid(surface, Vector3(side * 0.13, 0.041, 0.29), Vector3(0.082, 0.023, 0.125), Color("efa949"), 8, 4)
+		_box(surface, Vector3(side * 0.20, (CUSHION_TOP - 0.08) * 0.5, -0.06), Vector3(0.045, CUSHION_TOP - 0.08, 0.35), frame)
+	# Seated legs: knees over the cushion edge, soles on that row's floor.
+	ChickenMesh.legs(surface, Vector3.ZERO, FOOT_SOLE)
 	return surface.commit()
 
 func _body_parts(surface: SurfaceTool) -> void:
-	var feathers := Color("eedab1")
-	_ellipsoid(surface, Vector3(0, 0.675, -0.015), Vector3(0.225, 0.20, 0.205), feathers)
-	_ellipsoid(surface, Vector3(0, 0.985, 0.025), Vector3(0.178, 0.183, 0.172), Color("f4e8cd"))
-	_ellipsoid(surface, Vector3(0, 0.65, -0.22), Vector3(0.10, 0.105, 0.105), feathers, 8, 4)
-	# A red comb, orange pointed beak and front-facing eyes identify chickens.
-	for z in [-0.055, 0.025, 0.10]:
-		_ellipsoid(surface, Vector3(0, 1.162, z), Vector3(0.041, 0.086, 0.055), Color("cd4b39"), 8, 4)
-	var beak_tip := Vector3(0, 0.969, 0.287)
-	var beak_color := Color("eba84a")
-	for tri in [[Vector3(-0.063, 1.005, 0.177), Vector3(0.063, 1.005, 0.177), beak_tip],
-		[Vector3(0.063, 1.005, 0.177), Vector3(0, 0.935, 0.179), beak_tip],
-		[Vector3(0, 0.935, 0.179), Vector3(-0.063, 1.005, 0.177), beak_tip]]:
-		_triangle(surface, tri[0], tri[1], tri[2], beak_color)
-	for side in [-1.0, 1.0]:
-		_ellipsoid(surface, Vector3(side * 0.076, 1.035, 0.177), Vector3(0.036, 0.041, 0.017), Color("fffaf0"), 8, 4)
-		_ellipsoid(surface, Vector3(side * 0.076, 1.034, 0.192), Vector3(0.018, 0.025, 0.008), Color("172533"), 6, 4)
-		_ellipsoid(surface, Vector3(side * 0.065, 1.047, 0.198), Vector3(0.006, 0.008, 0.004), Color.WHITE, 6, 3)
+	ChickenMesh.add_seated_chicken(surface, Vector3.ZERO, 2, false)
 
 func _chicken_mesh(include_wings: bool) -> ArrayMesh:
-	var surface := SurfaceTool.new()
-	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	_body_parts(surface)
-	if include_wings:
-		for side in [-1.0, 1.0]:
-			_ellipsoid(surface, Vector3(side * 0.231, 0.661, 0.03), Vector3(0.064, 0.154, 0.107), Color("dec899"), 8, 5)
-	return surface.commit()
+	return ChickenMesh.seated_chicken(2, include_wings)
 
 func _wing_mesh(side: float) -> ArrayMesh:
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	_ellipsoid(surface, Vector3(side * 0.032, -0.079, 0.03), Vector3(0.064, 0.154, 0.107), Color("dec899"), 8, 5)
+	ChickenMesh.ellipsoid(surface, Vector3(side * 0.036, -0.065, 0.01), Vector3(0.06, 0.14, 0.11), Color(0.93, 0.9, 0.85, 0.0), 10, 6)
 	return surface.commit()
 
 func set_reaction(value: float, is_active: bool = true) -> void:
@@ -202,7 +216,7 @@ func _update_near(at_time: float) -> void:
 			elif i % 3 == 1:
 				gesture = cheer_mix * (0.45 + 0.18 * sin(at_time * 4.8 + phase))
 			gesture += idle_gesture
-			var wing_pose := Transform3D(Basis(Vector3.FORWARD, -side * gesture), Vector3(side * 0.199, 0.74 + breathe, 0.0))
+			var wing_pose := Transform3D(Basis(Vector3.FORWARD, -side * gesture), Vector3(side * 0.199, 0.74 - (0.475 - BODY_BOTTOM) + breathe, 0.0))
 			(left_wing_batch if side < 0.0 else right_wing_batch).set_instance_transform(i, pose * wing_pose)
 
 func diagnostic_snapshot() -> Dictionary:
@@ -211,3 +225,4 @@ func diagnostic_snapshot() -> Dictionary:
 		"cushion_top_m": CUSHION_TOP, "foot_sole_m": FOOT_SOLE,
 		"grounded": grounded_count, "max_floor_error_m": max_floor_error,
 		"far_static": spectator_count - animated_count, "spectator_physics": 0,"palette_variants":PALETTE.size()}
+

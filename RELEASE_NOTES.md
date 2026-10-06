@@ -1,3 +1,29 @@
+# 1.7.2（战术、VPK 与战绩更新，2026-10-05）
+
+这次主要处理大家测试时反馈的几个问题。
+
+- **不同地图的战术分开加载。** 同名、同编号的战术可以在不同地图使用，切图时读取对应地图的战术库。
+- **调整到点保位的兼容检查。** 支持已兼容接口的重新构建版本；生涯配套插件需要更新时，在进入比赛前提示安装。
+- **可以选择自己的 VPK 模板。** 在设置中选择“我的 VPK 模板”，填写自己的 `botprofile.vpk`。读取其中的 Default／Template 参数，本场选手身份仍由生涯管理；比赛使用单独生成的 `career_botprofile.vpk`，不覆盖原文件。
+- **Rating 不再封顶 2.5。** 新比赛按原公式计算，旧战绩保持不变。
+- **修复比赛回传记录选择。** 完整的终场战绩不会再被退出后的残缺记录覆盖，同场同比分有完整副本时优先使用完整记录。
+
+下载 `CS2Career-1.7.2-windows.zip`，完整解压后运行 `开始游戏.cmd`。继续旧生涯时，保留并复制原来的 `game/runtime/career/save/` 到新包同一位置。
+
+**进入 CS2 前，关闭 CS2，在设置中点一次“安装填写目录的人机增强”，更新本版配套插件。已有完整人机增强包可离线安装。**
+
+## English
+
+- Tactics load from the current map's library. Names and IDs can be reused across maps.
+- Updated hold-position compatibility checks for supported interfaces. Outdated Career companion plugins are detected before entering a match.
+- Settings now accept your own VPK templates. Default/Template parameters are imported while Career manages match identities. A separate `career_botprofile.vpk` is generated without overwriting your source file.
+- Removed the 2.5 Rating cap for new matches; the formula and existing records are unchanged.
+- Complete final results are retained when later disconnect snapshots are incomplete, with complete copies preferred for the same match and score.
+
+Download `CS2Career-1.7.2-windows.zip`, extract it and run `Launch-CS2Career.cmd`. Copy your previous `game/runtime/career/save/` into the same location to continue your career. Close CS2 and run the installer in Settings once to update the bundled companion plugins. Installation from a complete local Bot Improver package remains offline.
+
+---
+
 # 1.7.1（购买、发枪与战术更新，2026-10-04）
 
 最近几轮的调整整理到 1.7.1，不再继续叠加很长的热修版本号。

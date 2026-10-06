@@ -312,7 +312,7 @@ def _scoped_calls(overrides):
             setattr(module, name, original)
 
 
-_CS2_PATH_FIELDS = ('steam_exe', 'csgo_path', 'mod_source_path', 'skins_source_path')
+_CS2_PATH_FIELDS = ('steam_exe', 'csgo_path', 'mod_source_path', 'skins_source_path', 'bot_profile_source')
 
 
 def _clean_config_path(value):
@@ -367,6 +367,9 @@ def config_status():
     # need installing. Only inspect the selected, valid game's components.
     component_errors = [label + '尚未安装到所选 CS2 目录。'
                         for key, label in component_labels.items() if checks['csgo'] and not checks[key]]
+    if checks['career_match'] and not launch.career_match_current(csgo):
+        missing.append('career_match_update')
+        component_errors.append('比赛回传／战术组件需要更新。点击“安装填写目录的人机增强”即可使用随程序提供的新版，无需重新下载人机包。')
     if not missing:
         reason = '路径和比赛组件已就绪。'
     else:
@@ -401,7 +404,7 @@ def settings_command(state, body):
     if not isinstance(patch, dict) or any(key not in launch.DEFAULTS for key in patch):
         raise ValueError('请选择现有 CS2 设置字段。')
     cfg = read_cs2_config()
-    options = {'difficulty': launch.DIFFICULTIES, 'bot_aim': launch.AIM_MODES,
+    options = {'difficulty': launch.DIFFICULTIES, 'bot_profile_mode': launch.PROFILE_MODES, 'bot_aim': launch.AIM_MODES,
                'bot_nades': launch.NADE_MODES, 'bot_identity': launch.IDENTITY_MODES,
                'bot_movement': launch.MOVEMENT_MODES, 'match_chat': ('on', 'custom', 'off'),
                'skins_inventory_mode': launch.SKINS_INVENTORY_MODES}
@@ -430,6 +433,7 @@ def settings_command(state, body):
         cfg[key] = str(launch.resolve_csgo_path(value)) if key == 'csgo_path' and value else value
     # save_settings also modifies a staged CS2 request and skin ownership.
     # The low-level atomic writer is scoped to the independent save root.
+    launch.custom_profile_options(cfg)
     with launch._SETTINGS_LOCK:
         launch._write_settings(launch._clean(cfg))
     if 'real_skins' in body or 'steam_id' in body:
@@ -754,6 +758,8 @@ def _require_existing_plugin(csgo, name):
     root = launch.plugin_dir(Path(csgo)) if name == 'CareerMatch' else Path(csgo) / 'addons' / 'counterstrikesharp' / 'plugins' / name
     if not all((root / file).is_file() for file in (name + '.dll', name + '.deps.json')):
         raise ValueError('现有 ' + name + ' 组件缺失；3D 样板不安装或替换插件。')
+    if name == 'CareerMatch' and not launch.career_match_current(Path(csgo)):
+        raise ValueError('比赛回传／战术组件需要更新，请先在设置里安装填写目录的人机增强。')
     return 0
 
 
@@ -779,7 +785,9 @@ def _arena_cs2_command(state, action, body, mode):
             return {'reason': '这场已录入，不重复保存或计分。', 'status': 'collected', 'result': _public_report(lobby['result']), 'replayed': True}
         arena._guard(body.get('revision'))
         try:
-            message = arena.ingest(body)
+            # Use the same saved game path and candidate selection as the
+            # status page, rather than discovering a different Steam install.
+            message = arena.ingest(body, _peek_ladder_result(state, read_cs2_config()))
         except ValueError as exc:
             return {'reason': str(exc), 'status': 'waiting', 'connection': connection(state), 'replayed': True}
         store.pop(failure_key, None)

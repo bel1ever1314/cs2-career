@@ -1,14 +1,21 @@
 extends RefCounted
 ## Phone-only rendering. Desktop and device business stay in their existing owners.
 const Device = preload("res://scripts/career_ui.gd")
-const INK := Color("293e35")
-const MUTED := Color("667268")
-const GREEN := Color("3d6a55")
+## Shared device palette (phone, computer and world HUD). Warm paper surfaces,
+## one deep green accent and a small set of status tones.
+const INK := Color("22342b")
+const MUTED := Color("67746b")
+const GREEN := Color("2f6b52")
 const PAPER := Color("fffdf6")
 const CREAM := Color("f8f4e9")
-const MINT := Color("cee1d2")
-const LINE := Color("dedfd3")
-const BADGE := Color("a04e38")
+const MINT := Color("d3e6d7")
+const LINE := Color("e1dfd2")
+const BADGE := Color("b4553c")
+const AMBER := Color("b97d22")
+const BLUE := Color("3f6a9e")
+const SHADOW := Color(0.13, 0.22, 0.17, 0.08)
+## Phone copy reads at arm's length on a small screen; lift the smallest sizes.
+const TYPE_SCALE := {10:11, 11:12, 12:13, 13:14, 14:15}
 static var body_font: Font
 static var font_style := "rounded"
 static var font_loaded := false
@@ -83,7 +90,11 @@ static func inset(parent: Node, child: Control) -> void:
 	else:
 		parent.add_child(child)
 
+static func type_size(size: int) -> int:
+	return int(TYPE_SCALE.get(size, size))
+
 static func label(parent: Node, value: String, size: int = 14, color: Color = INK) -> Label:
+	size = type_size(size)
 	var node := Label.new()
 	node.text = value
 	node.add_theme_font_override("font", font())
@@ -98,12 +109,12 @@ static func label(parent: Node, value: String, size: int = 14, color: Color = IN
 static func decorate_button(node: Button, color: Color = PAPER, border: Color = LINE) -> void:
 	node.focus_mode = Control.FOCUS_ALL
 	node.add_theme_font_override("font", font())
-	node.add_theme_font_size_override("font_size", 14)
+	node.add_theme_font_size_override("font_size", 15)
 	for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color"]:
 		node.add_theme_color_override(state, INK)
 	node.add_theme_color_override("font_disabled_color", MUTED)
 	node.add_theme_stylebox_override("normal", style(color, 10, 12, border))
-	node.add_theme_stylebox_override("hover", style(Color("edf0e5"), 10, 12, border))
+	node.add_theme_stylebox_override("hover", style(Color("eef3e8"), 10, 12, Color("b9c9b8")))
 	node.add_theme_stylebox_override("pressed", style(MINT, 10, 12, border))
 	node.add_theme_stylebox_override("disabled", style(Color("e8e8df"), 10, 12, border))
 	node.add_theme_stylebox_override("focus", style(Color.TRANSPARENT, 0, 12, Color("90ab95")))
@@ -134,10 +145,17 @@ static func transparent(node: Button) -> void:
 		node.add_theme_color_override(state, MUTED)
 	node.add_theme_stylebox_override("focus", style(Color.TRANSPARENT, 0, 8, Color("90ab95")))
 
+static func raised(color: Color, padding: int = 16, radius: int = 16, border: Color = LINE) -> StyleBoxFlat:
+	var box := style(color, padding, radius, border)
+	box.shadow_color = SHADOW
+	box.shadow_size = 6
+	box.shadow_offset = Vector2(0, 2)
+	return box
+
 static func card(parent: Node, _dark: bool = false) -> VBoxContainer:
 	var box := PanelContainer.new()
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	box.add_theme_stylebox_override("panel", style(PAPER, 16, 18))
+	box.add_theme_stylebox_override("panel", raised(PAPER, 16, 18))
 	inset(parent, box)
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 8)

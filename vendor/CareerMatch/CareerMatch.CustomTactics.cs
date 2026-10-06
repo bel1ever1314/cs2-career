@@ -42,17 +42,14 @@ public sealed partial class CareerMatchPlugin
     private CommandPlan? _customTacticPlan;
     private readonly Dictionary<int, CustomTacticActor> _customTacticActors = [];
 
-    private void LoadCustomPlaybook()
+    private void LoadCustomPlaybook(string? mapName = null)
     {
-        // A session snapshot: editing/exporting the library cannot mutate an
-        // accepted plan halfway through a round. Reload on plugin load only.
-        var path = Path.Combine(ModuleDirectory, "tactical_playbook.json");
+        // Reload at map boundaries, never halfway through an accepted plan.
+        // Names/IDs are local to this map, not a global tactic namespace.
+        _customPlaybook = null;
         try
         {
-            if (!File.Exists(path)) { _customPlaybookState = "missing"; return; }
-            if (new FileInfo(path).Length > TacticalPlaybook.MaximumBytes)
-                throw new InvalidDataException("tactical_playbook_too_large");
-            _customPlaybook = TacticalPlaybook.Parse(File.ReadAllText(path));
+            _customPlaybook = TacticalPlaybook.ReadForMap(ModuleDirectory, mapName ?? Server.MapName);
             _customPlaybookState = $"{_customPlaybook.Map}:{_customPlaybook.Tactics.Count}";
             Logger.LogInformation("Custom tactical playbook loaded: {State}; direction={Direction}",
                 _customPlaybookState, _tacticalLookState);
@@ -67,12 +64,12 @@ public sealed partial class CareerMatchPlugin
     private CustomTacticActor[] PrepareCustomTactic(CommandPlan plan)
     {
         if (_customPlaybook is null)
-            throw new InvalidDataException("本地战术库未就绪");
+            throw new InvalidDataException($"本地战术库未就绪：{_customPlaybookState}");
         if (!TacticalMapCatalog.Matches(_customPlaybook.Map, Server.MapName)
             || _request is null || !TacticalMapCatalog.Matches(_customPlaybook.Map, _request.Map))
-            throw new InvalidDataException("战术库地图与当前对局不一致，请退出 CS2 后重新准备该地图对局");
+            throw new InvalidDataException($"地图未对齐：游戏 {Server.MapName}，对局 {_request?.Map ?? "未载入"}，战术库 {_customPlaybook.Map}。退出 CS2 后同步当前对局战术；无需改战术名");
         var tactic = _customPlaybook.Tactics.FirstOrDefault(t => t.Id == plan.TacticId)
-            ?? throw new InvalidDataException("找不到该战术 ID");
+            ?? throw new InvalidDataException($"{_customPlaybook.Map} 没有战术 {plan.TacticId}。请同步此地图的战术库");
         if (tactic.Side != plan.Side) throw new InvalidDataException("战术阵营与当前 T/CT 不一致");
         if (_request is null) throw new InvalidDataException("本场名单未就绪");
         // The original career team keeps its five request slots after halftime.

@@ -2,6 +2,7 @@ extends Node3D
 ## Versioned native geometry. The common playing/NPC anchors are never moved.
 ## Each exported tier scene builds its own shell, annex, furniture and audience.
 const ChickenCrowd = preload("res://scripts/arena_chicken_crowd.gd")
+const ChickenMesh = preload("res://scripts/chicken_mesh.gd")
 const CATALOG := "res://data/scene_tiers.json"
 @export var kind := "club"
 @export var tier := "academy"
@@ -238,6 +239,7 @@ func _venue(config: Dictionary) -> void:
 	# the separate floor-level ten-station layout. Never put small-room walls
 	# across the existing arena approach or stage stairs.
 	var large := capacity >= 1000 or core_variant == "major"
+	var core_bowl := core_variant == "major" and capacity >= 1000
 	var grand := capacity >= 10000
 	if core_variant == "major":
 		width = maxf(width,40.0); depth = maxf(depth,67.0)
@@ -288,13 +290,25 @@ func _venue(config: Dictionary) -> void:
 			_rounded(self,"ArenaLED",Vector3(0,4.5,-22.0),Vector3(22,4.2,.16),Color("304f48"),.1)
 			_label(self,"ArenaHeadline","CAREER GRAND ARENA" if grand else "CAREER HALL",Vector3(0,4.8,-21.88),.053)
 		for side in [-1.0,1.0]:
-			for row in range(int(config.rows)):
-				var y := base_y+row*float(config.rise)
-				var z := -6.0+row*float(config.spacing_z)
+			# The live Major keeps its own grounded seating bowl instead.
+			if not core_bowl:
 				var band_width := float(config.columns)*float(config.spacing_x)+1.2
 				var inner := 7.0 if grand else 6.3
-				_box(self,"TerraceBank",Vector3(side*(inner+band_width*.5),y-.13,z),Vector3(band_width,.26,float(config.spacing_z)),Color("b5a080") if row%5==0 else oak)
-				if row%5==4: _rounded(self,"TerraceRail",Vector3(side*(inner+band_width*.5),y+.35,z+.4),Vector3(band_width,.08,.08),green,.035)
+				for row in range(int(config.rows)):
+					var y := base_y+row*float(config.rise)
+					var z := -6.0+row*float(config.spacing_z)
+					# Each riser is solid down to the floor: a real stand, not
+					# thin slabs hanging in the air.
+					var height := maxf(.26,y-base_y+.02)
+					_box(self,"TerraceBank",Vector3(side*(inner+band_width*.5),y-height*.5,z),Vector3(band_width,height,float(config.spacing_z)),Color("b5a080") if row%5==0 else oak)
+					if row%5==4: _rounded(self,"TerraceRail",Vector3(side*(inner+band_width*.5),y+.35,z+.4),Vector3(band_width,.08,.08),green,.035)
+				var top := base_y+(int(config.rows)-1)*float(config.rise)
+				# Back of the stand: solid to the floor, topped by a waist-high
+				# rail behind the last row (not a tall blank wall).
+				var back_h := top-base_y+1.05
+				var back_z := -6.0+int(config.rows)*float(config.spacing_z)-.3
+				_box(self,"TerraceBackWall",Vector3(side*(inner+band_width*.5),base_y+back_h*.5,back_z),Vector3(band_width,back_h,.24),cream)
+				_rounded(self,"TerraceBackRail",Vector3(side*(inner+band_width*.5),base_y+back_h+.04,back_z),Vector3(band_width+.1,.08,.32),green,.035)
 			var x: float = side*(width*.5-1.1)
 			for i in range(11 if grand else 7):
 				var z := -depth*.5+.8+i*(depth-1.6)/(10.0 if grand else 6.0)
@@ -309,7 +323,7 @@ func _venue(config: Dictionary) -> void:
 			_rounded(self,"ArenaGalleryPortal",Vector3(side*4.3,3.5,18),Vector3(1.2,6.2,1.2),cream,.3)
 		_rounded(self,"ArenaPortalBeam",Vector3(0,6.5,18),Vector3(9.8,.65,1.2),green,.28)
 	if include_stations: _stations(stage_z,stage_y,large)
-	if capacity>0: _audience(config,base_y,large)
+	if capacity>0 and not core_bowl: _audience(config,base_y,large)
 	_venue_enclosure(width,depth,large,grand)
 
 func _beam(parent: Node3D, id: String, a: Vector3, b: Vector3, thickness: float, color: Color) -> void:
@@ -428,28 +442,17 @@ func _audience(config: Dictionary, floor_y: float, large: bool) -> void:
 				transforms.append(Transform3D(Basis(Vector3.UP,rotation_y).scaled(Vector3.ONE*scale_value),origin))
 	audience_count = transforms.size()
 	assert(audience_count == capacity)
-	# Source construction reuses the original seated chicken vocabulary,
-	# with a low-detail far mesh; one draw batch represents all ten thousand.
-	var mesh_builder := ChickenCrowd.new()
+	# One shared seated spectator (same design as the near crowd), a low-detail
+	# version so ten thousand stay one cheap batch; seat and legs included.
 	var surface := SurfaceTool.new(); surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	mesh_builder._box(surface,Vector3(0,.40,0),Vector3(.50,.08,.46),Color("5d776d"))
-	mesh_builder._box(surface,Vector3(0,.62,-.26),Vector3(.50,.46,.06),Color("5d776d"))
-	mesh_builder._ellipsoid(surface,Vector3(0,.64,0),Vector3(.23,.20,.20),Color("edd9b8"),6,4)
-	mesh_builder._ellipsoid(surface,Vector3(0,.91,.03),Vector3(.18,.18,.17),Color("f6e7cb"),6,4)
-	for side in [-1.0,1.0]:
-		mesh_builder._ellipsoid(surface,Vector3(side*.23,.64,.01),Vector3(.07,.15,.11),Color("dfcba4"),6,3)
-		mesh_builder._box(surface,Vector3(side*.13,.11,.19),Vector3(.06,.22,.08),Color("d7a159"))
-		mesh_builder._box(surface,Vector3(side*.13,.035,.28),Vector3(.11,.06,.15),Color("e2aa5d"))
-		mesh_builder._box(surface,Vector3(side*.07,.955,.19),Vector3(.035,.04,.02),Color("26392e"))
-	mesh_builder._box(surface,Vector3(0,.90,.24),Vector3(.10,.07,.13),Color("e4a84e"))
-	mesh_builder._ellipsoid(surface,Vector3(0,1.10,.015),Vector3(.045,.10,.12),Color("c2664b"),6,3)
-	var shape := surface.commit(); var material := StandardMaterial3D.new(); material.vertex_color_use_as_albedo = true
-	material.roughness = .9
-	var instances := MultiMesh.new(); instances.transform_format = MultiMesh.TRANSFORM_3D; instances.use_colors = true
+	ChickenMesh._box(surface,Vector3(0,ChickenMesh.BODY_BOTTOM-.04,-.03),Vector3(.52,.08,.48),Color("5d776d"))
+	ChickenMesh._box(surface,Vector3(0,ChickenMesh.BODY_BOTTOM+.23,-.33),Vector3(.52,.50,.06),Color("5d776d"))
+	ChickenMesh.add_seated_chicken(surface,Vector3.ZERO,0,true)
+	ChickenMesh.legs(surface,Vector3.ZERO,0.0)
+	var shape := surface.commit()
+	var instances := MultiMesh.new(); instances.transform_format = MultiMesh.TRANSFORM_3D; instances.use_custom_data = true; instances.use_colors = true
 	instances.mesh = shape; instances.instance_count = transforms.size()
-	var palette := [Color("ffffff"),Color("cdb79c"),Color("8aafaa"),Color("c79880"),Color("b3c09b")]
 	for i in range(transforms.size()):
-		instances.set_instance_transform(i,transforms[i]); instances.set_instance_color(i,palette[(i*7+int(i/11))%palette.size()])
-	var batch := MultiMeshInstance3D.new(); batch.name = "TierSeatedChickenAudience"; batch.multimesh = instances; batch.material_override = material
+		instances.set_instance_transform(i,transforms[i]); instances.set_instance_custom_data(i,ChickenMesh.tint(i)); instances.set_instance_color(i,Color.WHITE)
+	var batch := MultiMeshInstance3D.new(); batch.name = "TierSeatedChickenAudience"; batch.multimesh = instances; batch.material_override = ChickenMesh.material()
 	batch.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF; add_child(batch)
-	mesh_builder.free()

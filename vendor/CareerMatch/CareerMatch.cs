@@ -72,6 +72,7 @@ public sealed class BotProfileContract
     [JsonPropertyName("difficulty_model")] public string DifficultyModel { get; set; } = "";
     [JsonPropertyName("preset_source_hash")] public string PresetSourceHash { get; set; } = "";
     [JsonPropertyName("template_hash")] public string TemplateHash { get; set; } = "";
+    [JsonPropertyName("vpk_file")] public string VpkFile { get; set; } = "botprofile.vpk";
 }
 
 public sealed class BotConfig
@@ -225,7 +226,7 @@ public sealed record TakeoverRecord(
 public sealed partial class CareerMatchPlugin : BasePlugin
 {
     public override string ModuleName => "CareerMatch";
-    public override string ModuleVersion => "1.6.0-tactics.20";
+    public override string ModuleVersion => "1.7.1-tactics.21";
     public override string ModuleAuthor => "CS2 Career Sim";
     public override string ModuleDescription =>
         "Auto-setup named career bots, force human side, export score + box score.";
@@ -410,6 +411,7 @@ public sealed partial class CareerMatchPlugin : BasePlugin
         }
 
         _request = incoming;
+        LoadCustomPlaybook(mapName);
         LoadNatural();
         _dialogue.Reset();
         LoadDialogue();
@@ -582,18 +584,21 @@ public sealed partial class CareerMatchPlugin : BasePlugin
         try
         {
             var root = Path.GetFullPath(Path.Combine(ModuleDirectory, "..", "..", "..", ".."));
-            var vpk = Path.Combine(root, "overrides", "botprofile.vpk");
+            if (_request.BotProfile.VpkFile is not ("botprofile.vpk" or "career_botprofile.vpk")) return "活动 VPK 路径无效";
+            var vpk = Path.Combine(root, "overrides", _request.BotProfile.VpkFile);
             var manifestPath = Path.Combine(root, "overrides", "botprofile.manifest.json");
             if (!File.Exists(vpk) || !File.Exists(manifestPath)) return "活动 VPK 或清单不存在";
             using var doc = JsonDocument.Parse(File.ReadAllText(manifestPath));
             var node = doc.RootElement;
+            var vpkFile = node.TryGetProperty("vpk_file", out var fileNode) ? fileNode.GetString() : "botprofile.vpk";
+            if (vpkFile != _request.BotProfile.VpkFile) return "活动 VPK 文件与请求不一致";
             if (node.GetProperty("nonce").GetString() != _request.Nonce) return "活动 VPK nonce 不一致";
             if (node.GetProperty("difficulty").GetString() != _request.Difficulty) return "活动 VPK 难度不一致";
             var model = node.TryGetProperty("difficulty_model", out var modelNode) ? modelNode.GetString() ?? "" : "";
             if (model != _request.BotProfile.DifficultyModel) return "活动 VPK 难度模型不一致";
             if (model.Length > 0)
             {
-                if (model is not ("bot_improver_base_career_tier_v1" or "bot_improver_career_tuned_v2"))
+                if (model is not ("bot_improver_base_career_tier_v1" or "bot_improver_career_tuned_v2" or "custom_botprofile_templates_v1"))
                     return "不支持的 Bot 难度模型";
                 if (node.GetProperty("preset_source_hash").GetString() != _request.BotProfile.PresetSourceHash
                     || node.GetProperty("template_hash").GetString() != _request.BotProfile.TemplateHash)
@@ -844,8 +849,12 @@ public sealed partial class CareerMatchPlugin : BasePlugin
             : name.Equals("Low", StringComparison.OrdinalIgnoreCase) ? "1/3"
             : "2/3";
         Server.PrintToChatAll($" \x04Career 难度: {name} [{level}]\x01");
-        var tuning = _request?.BotProfile.DifficultyModel == "bot_improver_career_tuned_v2"
-            ? "原版增强参数 + 生涯个人微调" : "旧版调校（下场重新生成）";
+        var tuning = _request?.BotProfile.DifficultyModel switch
+        {
+            "bot_improver_career_tuned_v2" => "原版增强参数 + 生涯个人微调",
+            "custom_botprofile_templates_v1" => "自定义 VPK 模板 · 生涯阵容",
+            _ => "旧版调校（下场重新生成）",
+        };
         Server.PrintToChatAll($" \x04{tuning}\x01");
         Server.PrintToChatAll($" \x04本场 Bot 档案: {_request?.ExpectedBots}/{_request?.ExpectedBots} · {_request?.BotProfile.ShortHash}\x01");
         Server.PrintToConsole($"[CareerMatch] Difficulty {name} [{level}] model={_request?.BotProfile.DifficultyModel} preset={_request?.BotProfile.PresetSourceHash}");
@@ -1204,11 +1213,23 @@ public sealed partial class CareerMatchPlugin : BasePlugin
 
         var scores = (ctScore, tScore) is (int c, int t) ? (c, t) : ReadTeamScores();
         var players = CollectPlayerResults();
+        var validationError = ValidateResult(players, scores.Item1 + scores.Item2);
         var kills = players.Sum(p => p.Kills);
         var quality = SnapshotQuality(scores.Item1, scores.Item2, kills, status);
         var bestQuality = _bestDump is null
             ? -1
             : SnapshotQuality(_bestDump.CtScore, _bestDump.TScore, _bestDump.Players.Sum(p => p.Kills), _bestDump.Status);
+
+        // After the final screen, disconnects can remove live identity slots.
+        // Keep the valid final ledger rather than replacing it with that view.
+        if (_bestDump is { Complete: true, Status: "finished" }
+            && _bestDump.RequestNonce == (_request?.Nonce ?? "") && _bestDump.Map == mapName
+            && _bestDump.CtScore == scores.Item1 && _bestDump.TScore == scores.Item2
+            && !string.IsNullOrEmpty(validationError))
+        {
+            RestoreBestToDisk();
+            return;
+        }
 
         if (!force && quality < bestQuality)
         {
@@ -1222,7 +1243,7 @@ public sealed partial class CareerMatchPlugin : BasePlugin
             && scores.Item2 == _lastWrittenT
             && kills == _lastWrittenKills)
         {
-            return;
+            if (_bestDump?.ValidationError == validationError) return;
         }
 
         if (IsMatchOver(scores.Item1, scores.Item2))
@@ -1256,7 +1277,7 @@ public sealed partial class CareerMatchPlugin : BasePlugin
             IdentityBindings = new Dictionary<int, string>(_slotIds),
             TakeoverEvents = _takeovers.ToList(),
         };
-        result.ValidationError = ValidateResult(players, scores.Item1 + scores.Item2);
+        result.ValidationError = validationError;
         result.Complete = string.IsNullOrEmpty(result.ValidationError);
         if (quality >= bestQuality)
         {
@@ -1380,13 +1401,20 @@ public sealed partial class CareerMatchPlugin : BasePlugin
 
     private void WriteJson<T>(string path, T value)
     {
+        var pending = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
         {
-            File.WriteAllText(path, JsonSerializer.Serialize(value, JsonOptions));
+            File.WriteAllText(pending, JsonSerializer.Serialize(value, JsonOptions));
+            File.Move(pending, path, overwrite: true);
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "CareerMatch: failed to write {Path}.", path);
+        }
+        finally
+        {
+            try { if (File.Exists(pending)) File.Delete(pending); }
+            catch (IOException ex) { Logger.LogWarning(ex, "CareerMatch: temporary result cleanup failed"); }
         }
     }
 }

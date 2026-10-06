@@ -7,6 +7,8 @@ const Roster=preload("res://scripts/venue_match_roster.gd")
 const Competitor=preload("res://scripts/venue_competitor.gd")
 const UI=preload("res://scripts/phone_ui.gd")
 const SceneTiers=preload("res://scripts/scene_tiers.gd")
+const Hud=preload("res://scripts/world_hud.gd")
+const Kit=preload("res://scripts/stage_kit.gd")
 var atmosphere: Atmosphere
 var crowd: ChickenCrowd
 var player: Player
@@ -28,6 +30,13 @@ var hint: Label
 var notice: Label
 var notice_time:=0.0
 var pause_panel: PanelContainer
+var title_parts: Dictionary={}
+var caption_parts: Dictionary={}
+var prompt_parts: Dictionary={}
+var shown_hint:="<unset>"
+var main_board: Control
+var wing_boards: Array[Control]=[]
+var board_phase:="<unset>"
 var cursor_dot: Label
 var env: Environment
 var sun: DirectionalLight3D
@@ -59,12 +68,13 @@ func _ready() -> void:
 	_venue_display_materials()
 	collision_builder=Collisions.new();collision_builder.build(self,model)
 	_batch_crowd()
-	SceneTiers.apply_venue(self,model,int(Travel.match_visit.get("capacity",10000)),"major")
+	SceneTiers.apply_venue(self,model,_visit_capacity(10000),"major")
 	_environment()
 	atmosphere=Atmosphere.new();add_child(atmosphere)
 	var atmosphere_options: Dictionary=settings.get("atmosphere",{}).duplicate(true)
 	atmosphere_options["competitive"]=not roster_plan.is_empty()
 	atmosphere.setup(env,sun,atmosphere_options)
+	_stand_lights(_visit_capacity(10000))
 	atmosphere.set_master_volume(CareerBridge.sound_volume); atmosphere.set_muted(CareerBridge.sound_muted)
 	player=Player.new();player.name="ArenaVisitor"
 	player.position=vec(settings["spawn"]);player.home=player.position
@@ -73,10 +83,11 @@ func _ready() -> void:
 	player.visual.rotation.y=PI;player.locked=true
 	player.recovered.connect(func(): _notice("已回到场馆入口。"))
 	camera=Camera3D.new();camera.current=true;camera.fov=76;camera.near=.06;camera.far=260;add_child(camera)
+	camera.physics_interpolation_mode=Node.PHYSICS_INTERPOLATION_MODE_OFF
 	# Camera itself updates every rendered frame, using interpolated body XY.
 	camera.physics_interpolation_mode=Node.PHYSICS_INTERPOLATION_MODE_OFF
 	body_y=player.position.y
-	_hud();_wayfinding();_competition_roster()
+	_hud();_wayfinding();_competition_roster();_stage_boards()
 	if roster_plan.is_empty():
 		var guidance := Travel.preview_match_hint("major")
 		if not guidance.is_empty(): _notice(guidance)
@@ -102,6 +113,23 @@ func _ready() -> void:
 
 func vec(a: Array) -> Vector3:return Vector3(a[0],a[1],a[2])
 
+## Soft, shadowless wash over the seating bowl so the fans read as an
+## audience instead of a black void. Stage spots stay the brightest light.
+## The backend sends capacity inside the visit's venue (100 / 1000 / 10000).
+func _visit_capacity(fallback: int) -> int:
+	var venue: Dictionary = Travel.match_visit.get("venue", {}) if Travel.match_visit.get("venue") is Dictionary else {}
+	return int(venue.get("capacity", Travel.match_visit.get("capacity", fallback)))
+
+func _stand_lights(capacity: int) -> void:
+	if capacity < 1000: return
+	var rings := [[24.0,7.5],[34.0,11.0]] if capacity >= 10000 else [[24.0,7.5]]
+	for ring in rings:
+		for angle in [-1.25,-.75,-.25,.25,.75,1.25]:
+			var light:=OmniLight3D.new();light.name="StandWash"
+			light.position=Vector3(sin(angle)*ring[0],ring[1]+5.0,cos(angle)*ring[0]*.75+8.0)
+			light.light_color=Color("ffe2c2");light.light_energy=1.1;light.omni_range=26.0;light.omni_attenuation=1.0
+			light.shadow_enabled=false;light.light_volumetric_fog_energy=0.0;add_child(light)
+
 func _input_map() -> void:
 	var keys: Dictionary={"club_up":[KEY_W,KEY_UP],"club_down":[KEY_S,KEY_DOWN],"club_left":[KEY_A,KEY_LEFT],"club_right":[KEY_D,KEY_RIGHT],"club_run":[KEY_SHIFT]}
 	for action in keys:
@@ -126,6 +154,22 @@ func _venue_display_materials() -> void:
 		if node is MeshInstance3D and (n=="main led screen" or n.begins_with("wing screen") and "surround" not in n):
 			var backing:=StandardMaterial3D.new();backing.albedo_color=Color("07101b");backing.roughness=.82
 			node.material_override=backing
+	# Stage stations: chicken players are wider than the old plush stand-ins,
+	# so seats move back from the desk; each monitor gets a live game frame.
+	var screen_index:=0
+	for node in model.find_children("*","MeshInstance3D",true,false):
+		var n:=str(node.name).replace("_"," ").to_lower()
+		if n.begins_with("seat cushion") or n.begins_with("seat pedestal"):node.global_position.z-=.10
+		elif n.begins_with("seat rounded back"):node.global_position.z-=.41
+		elif n.begins_with("player monitor back"):
+			var bounds: AABB=node.global_transform*node.get_aabb()
+			var centre:=bounds.position+bounds.size*.5
+			var screen:=MeshInstance3D.new();screen.name="StageMonitorFrame"
+			var quad:=QuadMesh.new();quad.size=Vector2(bounds.size.x*.9,bounds.size.y*.86);screen.mesh=quad
+			screen.position=Vector3(centre.x,centre.y,bounds.position.z-.004);screen.rotation.y=PI
+			screen.material_override=Kit.screen_material(Kit.game_frame(1009+screen_index*37,centre.x>0),.9)
+			screen.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			add_child(screen);screen_index+=1
 
 func _tunnel_materials() -> void:
 	# Explicit Godot materials keep the added passage's colours consistent
@@ -150,12 +194,14 @@ func _environment() -> void:
 	sun.light_color=Color("fff0d9");sun.light_energy=.95;sun.shadow_enabled=true
 	sun.directional_shadow_max_distance=120;sun.light_angular_distance=2;add_child(sun)
 
-func _sign(text: String,pos: Vector3,size: float=.012,face_view: bool=false) -> void:
+func _sign(text: String,pos: Vector3,size: float=.012,face_view: bool=false) -> Label3D:
 	var label:=Label3D.new();label.text=text;label.position=pos;label.font_size=58
 	label.font=UI.font()
 	label.pixel_size=size;label.modulate=Color("ffe2ad");label.outline_size=10
 	if face_view:label.billboard=BaseMaterial3D.BILLBOARD_ENABLED
+	label.double_sided=false
 	add_child(label)
+	return label
 
 func _wayfinding() -> void:
 	var board:=MeshInstance3D.new();var face:=BoxMesh.new();face.size=Vector3(5.4,.83,.10)
@@ -164,7 +210,6 @@ func _wayfinding() -> void:
 	_sign("内场入口  /  ARENA",Vector3(0,3.74,50.47),.006)
 	_sign("↓",Vector3(0,2.8,50.47),.008)
 	_sign("向前进入内场",Vector3(0,3.4,19.2),.006)
-	_sign("冠军舞台",Vector3(-12.3,3.1,-10.7),.012)
 	# Add visible short access stairs up to the trophy runway (the original
 	# diorama had a 45 cm vertical front face, impossible to walk up).
 	for i in range(2):
@@ -193,7 +238,10 @@ func _competition_roster() -> void:
 	var x_positions: Array[float]=[-7.72,-6.84,-5.96,-5.08,-4.20]
 	var ally_index:=0
 	for i in range(5):
-		_sign(str(own[i].get("name",""))+" · "+("你的席位" if i==2 else str(roster_plan["own_team"])),Vector3(x_positions[i],3.40,-17.75),.0019,true)
+		# Desk-front name plates face the audience; only your seat gets a marker.
+		_plate(str(own[i].get("name","")),Vector3(x_positions[i],2.27,-16.205))
+		if i==2:
+			var marker:=_sign("你的席位 ↓",Vector3(x_positions[i],3.45,-17.55),.0022,true);marker.double_sided=true
 		if i!=2:
 			var offset:=Vector3(-.76 if ally_index%2==0 else .76,0,-1.25-int(ally_index/2)*1.45)
 			var waiting_at:=player.position+Vector3(offset.x,0,-1.2-int(ally_index/2)*1.4)
@@ -206,15 +254,18 @@ func _competition_roster() -> void:
 		var opponent=_competitor(other[i],str(roster_plan["opponent_team"]),opponent_seat,Color("ad6b3d"))
 		opponent.seat_pose=true;opponent.locked=true;opponent.upper_body_action="typing"
 		opponent.face_toward(opponent_seat+Vector3(0,1,1))
-		_sign(str(other[i].get("name","")),opponent_seat+Vector3(0,1.84,-.27),.0019,true)
-	var venue: Dictionary=Travel.match_visit.get("venue",{})
-	_sign(str(venue.get("event_name",venue.get("name","职业赛事"))),Vector3(0,12.4,-23.55),.009)
-	_sign(str(roster_plan["own_team"])+"  vs  "+str(roster_plan["opponent_team"]),Vector3(0,8.9,-23.55),.009)
-	_sign("你的席位 · 从桌侧绕至后排",Vector3(-5.96,2.35,-14.8),.0024,true)
-	_notice("队伍集合完毕 · 和四位队友穿过中央通道，前往选手舞台。")
+		_plate(str(other[i].get("name","")),Vector3(opponent_seat.x,2.27,-16.205))
+	# Event and team names now live on the main LED board (_stage_boards).
+	_notice("和队友一起穿过中央通道入场")
+
+func _plate(text: String, at: Vector3) -> void:
+	var label:=_sign(text,at,.0024)
+	label.modulate=Color("24332d");label.outline_size=0
 
 func _competitor(row: Dictionary, team: String, at: Vector3, color: Color) -> Node3D:
 	var actor=Competitor.new();actor.name="Competitor_"+str(peers.size())
+	# Seated on the stage chair cushion (top 2.0 m), body clear of desk and back.
+	actor.seat_lift=2.0-at.y-.16;actor.seat_forward=-.06
 	actor.position=at;actor.home=at;actor.test_mode=true;actor.step_height=.27;actor.floor_snap_length=.38
 	add_child(actor);actor.setup_identity(row,team,color);peers.append(actor);return actor
 
@@ -222,10 +273,10 @@ func _update_competition() -> void:
 	if roster_plan.is_empty() or paused or CareerBridge.phone_open or Travel.busy or not intro_finished: return
 	if competition_phase=="holding" and player.position.z<36.0:
 		competition_phase="walkout";atmosphere.start_entrance();atmosphere.set_showtime(true)
-		_notice(str(roster_plan["own_team"])+" 入场 · 队名亮灯，沿中央通道走向内场。")
+		_notice(str(roster_plan["own_team"])+" 入场")
 	if competition_phase=="walkout" and player.position.z<18.0:
 		competition_phase="floor";atmosphere.portal_impact()
-		_notice("观众已经看到你们 · 沿中央通道走到奖杯前，再从右侧通道上舞台。")
+		_notice("走到奖杯前，从右侧通道上舞台")
 	if competition_phase in ["holding","walkout"]:
 		for entry in allies:
 			var actor=entry["actor"];var aim: Vector3=player.position+entry["offset"]
@@ -250,7 +301,7 @@ func _update_competition() -> void:
 			else:
 				ready=false;var direction: Vector3=route[step]-actor.position;direction.y=0;actor.test_direction=direction.normalized()
 		if ready:
-			competition_phase="ready";_notice("九位选手已就位 · 从桌侧绕到你的空席后方，按 E 入座打开比赛电脑。")
+			competition_phase="ready";_notice("队友已入座 · 到你的空位按 E")
 
 func _at_player_seat() -> bool:
 	if player_station.is_empty() or player.position.y<1.5: return false
@@ -258,33 +309,92 @@ func _at_player_seat() -> bool:
 	return Vector2(player.position.x-at.x,player.position.z-at.z).length()<1.05
 
 func _hud() -> void:
-	var canvas:=CanvasLayer.new();add_child(canvas)
+	# Same glass HUD as the club, dorm and small venues.
+	var canvas:=CanvasLayer.new();canvas.name="WorldHud";add_child(canvas)
 	var root:=Control.new();root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);root.mouse_filter=Control.MOUSE_FILTER_IGNORE;canvas.add_child(root)
-	var top:=PanelContainer.new();top.position=Vector2(22,20);top.add_theme_stylebox_override("panel",_panel());top.mouse_filter=Control.MOUSE_FILTER_IGNORE;root.add_child(top)
-	var col:=VBoxContainer.new();top.add_child(col)
 	var venue_title := "职业赛事 / 大型场馆" if not roster_plan.is_empty() else "MAJOR / 场馆"
 	var attendance := Travel.match_guidance()
 	if str(attendance.get("destination", "")) == "major": venue_title = str(attendance.get("display_name", venue_title))
-	_label(col,venue_title,24);status=_label(col,"入场大厅",17)
-	_label(col,"P 手机 · 选手席查看比赛",13).modulate=Color("a8c2c2")
-	var footer:=PanelContainer.new();root.add_child(footer);footer.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-	footer.offset_top=-102;footer.add_theme_stylebox_override("panel",_panel());footer.mouse_filter=Control.MOUSE_FILTER_IGNORE
-	var bottom:=VBoxContainer.new();footer.add_child(bottom);hint=_label(bottom,"正在入场……",20)
-	_label(bottom,"WASD 走动  /  Shift 小跑  /  鼠标转头  /  E 交互  /  P 手机  /  Esc 菜单  /  N 舞台灯光",16)
-	notice=_label(root,"",20);notice.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	notice.offset_top=140;notice.offset_left=-360;notice.offset_right=360;notice.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
-	notice.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
-	cursor_dot=_label(root,"·",28);cursor_dot.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	cursor_dot.offset_left=-5;cursor_dot.offset_top=-16;cursor_dot.mouse_filter=Control.MOUSE_FILTER_IGNORE
-	pause_panel=PanelContainer.new();root.add_child(pause_panel);pause_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	pause_panel.offset_left=-250;pause_panel.offset_right=250;pause_panel.offset_top=-160;pause_panel.offset_bottom=160
-	pause_panel.add_theme_stylebox_override("panel",_panel());var menu:=VBoxContainer.new();menu.add_theme_constant_override("separation",15);pause_panel.add_child(menu)
-	_label(menu,"场馆漫步",27)
-	_label(menu,"穿过中央通道进入内场。\n沿座位旁的过道可走到舞台。\n视角保持平稳，不添加跑步晃头。",18)
-	_label(menu,"原创入场配乐 · 场内声 · 欢呼",13).modulate=Color("a8c2c2")
-	var resume:=Button.new();resume.text="继续走动";resume.pressed.connect(func(): set_paused(false));menu.add_child(resume)
-	var leave:=Button.new();leave.text="返回俱乐部";leave.pressed.connect(func(): Travel.go("club"));menu.add_child(leave)
+	title_parts=Hud.title_card(root,venue_title,"入场大厅");status=title_parts["status"]
+	caption_parts=Hud.caption_pill(root);notice=caption_parts["label"]
+	prompt_parts=Hud.prompt(root)
+	hint=Label.new();hint.visible=false;root.add_child(hint)
+	var row:=Hud.hint_bar(root)
+	Hud.key_hint(row,"WASD","走动");Hud.key_hint(row,"E","交互")
+	Hud.key_button(row,"N","舞台灯光",func(): showtime=not showtime;atmosphere.set_showtime(showtime))
+	Hud.key_button(row,"P","手机",func(): if not CareerBridge.phone_open and not Travel.busy: Phone.present())
+	Hud.key_button(row,"Esc","菜单",func(): set_paused(not paused))
+	cursor_dot=Hud.text(root,"•",14,Color(1,1,1,.8));cursor_dot.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	cursor_dot.offset_left=-4;cursor_dot.offset_top=-10
+	var pause:=Hud.pause_menu(root,"场馆漫步","穿过中央通道进入内场，沿座位旁的过道可走到舞台。\n原创入场配乐 · 场内声 · 欢呼")
+	pause_panel=pause["panel"]
+	Hud.menu_button(pause["menu"],"继续走动",func(): set_paused(false),true)
+	Hud.menu_button(pause["menu"],"返回俱乐部",func(): Travel.go("club"))
 	pause_panel.visible=false
+
+func _sync_hint() -> void:
+	if hint.text==shown_hint:return
+	shown_hint=hint.text
+	var objective: Label=title_parts["objective"]
+	var active:=Hud.set_prompt(prompt_parts,hint.text)
+	objective.text="" if active else hint.text
+	objective.visible=not objective.text.is_empty()
+
+## Transparent LED layers over the original stage screens: today's match-up
+## (team marks, event, phase) on the main wall and one team per wing screen.
+func _stage_boards() -> void:
+	main_board=Kit.led_screen(self,"MajorMatchBoard",Vector3(0,9.4,-23.59),Vector2(23.65,10.0),Vector2i(1892,800),0.0,1.0,true)
+	for spec in [[Vector3(-20,7.5,-20.70),0],[Vector3(20,7.5,-20.70),1]]:
+		wing_boards.append(Kit.led_screen(self,"MajorWingBoard",spec[0],Vector2(5.5,8.6),Vector2i(440,688),0.0,1.0,true))
+	for label_name in ["MajorScreenTitle"]:
+		var label:=atmosphere.get_node_or_null(label_name) as Label3D
+		if label:label.visible=false
+	if atmosphere.stage_subtitle:atmosphere.stage_subtitle.visible=false
+	if not CareerBridge.changed.is_connected(_redraw_boards):CareerBridge.changed.connect(_redraw_boards)
+
+func _redraw_boards() -> void:board_phase="<unset>"
+
+func _draw_boards() -> void:
+	var phase:=str(atmosphere.stage_subtitle.text) if atmosphere.stage_subtitle else "入场"
+	if phase==board_phase or not is_instance_valid(main_board):return
+	board_phase=phase
+	var root:=main_board;Kit.clear(root)
+	var w:=root.size.x
+	var venue: Dictionary=Travel.match_visit.get("venue",{})
+	if roster_plan.is_empty():
+		Kit.text_at(root,"MAJOR",230,Rect2(0,150,w,300),Color("f0dfb6"))
+		Kit.text_at(root,"冠军舞台 · 自由参观",64,Rect2(0,470,w,100),Color("b8c7da"))
+	else:
+		var own:=str(roster_plan["own_team"]);var other:=str(roster_plan["opponent_team"])
+		var event_name:=str(venue.get("event_name",venue.get("name","职业赛事")))
+		Kit.text_at(root,event_name,66,Rect2(0,110,w,96),Color("e8c483"))
+		var row:=HBoxContainer.new();row.alignment=BoxContainer.ALIGNMENT_CENTER;row.mouse_filter=Control.MOUSE_FILTER_IGNORE
+		row.position=Vector2(0,230);row.size=Vector2(w,300);row.add_theme_constant_override("separation",56);root.add_child(row)
+		Kit.logo_tile(row,own,250)
+		Kit.text(row,own,132,Color("f0dfb6"),HORIZONTAL_ALIGNMENT_RIGHT)
+		Kit.text(row,"VS",104,Color("e8c483"))
+		Kit.text(row,other,132,Color("f0dfb6"),HORIZONTAL_ALIGNMENT_LEFT)
+		Kit.logo_tile(row,other,250)
+		var preflight: Dictionary=CareerBridge.context.get("match_preflight",{}) if CareerBridge.context.get("match_preflight",{}) is Dictionary else {}
+		var details: Array[String]=[]
+		if str(preflight.get("match_id",""))==str(roster_plan.get("match_id","")):
+			if not str(preflight.get("stage","")).is_empty():details.append(str(preflight.get("stage","")))
+			if int(preflight.get("best_of",0))>0:details.append("BO%d"%int(preflight.get("best_of",0)))
+		details.append(Locale.text(phase))
+		Kit.text_at(root," · ".join(details),56,Rect2(0,560,w,90),Color("b8c7da"))
+	for i in range(wing_boards.size()):
+		var wing:=wing_boards[i];Kit.clear(wing)
+		var team:=""
+		if not roster_plan.is_empty():team=str(roster_plan["own_team"] if i==0 else roster_plan["opponent_team"])
+		if team.is_empty():
+			Kit.text_at(wing,"CHAMPIONS",54,Rect2(0,250,wing.size.x,80),Color("e8c483"))
+			Kit.text_at(wing,"STAGE",54,Rect2(0,330,wing.size.x,80),Color("e8c483"))
+		else:
+			var holder:=CenterContainer.new();holder.position=Vector2(0,150);holder.size=Vector2(wing.size.x,300);holder.mouse_filter=Control.MOUSE_FILTER_IGNORE;wing.add_child(holder)
+			Kit.logo_tile(holder,team,280)
+			Kit.text_at(wing,team,58,Rect2(10,480,wing.size.x-20,90),Color("f0dfb6"))
+		Kit.refresh(wing)
+	Kit.refresh(root)
 
 func finish_intro() -> void:
 	intro_finished=true;player.locked=false
@@ -340,7 +450,8 @@ func _process(delta: float) -> void:
 		var guidance := Travel.preview_match_hint("major")
 		if not guidance.is_empty(): hint.text = guidance
 	cursor_dot.visible=intro_finished and not paused and not CareerBridge.phone_open
-	notice_time=maxf(0,notice_time-delta);notice.visible=notice_time>0
+	notice_time=maxf(0,notice_time-delta);(caption_parts["panel"] as Control).visible=notice_time>0 and not notice.text.is_empty()
+	_sync_hint();_draw_boards()
 
 func zone(p: Vector3) -> String:
 	if p.z>49:return "入场大厅 / 中央入口通往内场"
@@ -349,7 +460,7 @@ func zone(p: Vector3) -> String:
 	if p.z<18 and absf(p.x)<21:return "内场 / 观众席与奖杯区"
 	return "场馆公共区域"
 
-func _notice(text: String) -> void:notice.text=text;notice_time=6
+func _notice(text: String) -> void:notice.text=text;notice_time=6;Hud.fit_caption(caption_parts)
 
 func set_paused(value: bool) -> void:
 	paused=value;pause_panel.visible=value;player.velocity=Vector3.ZERO
@@ -398,6 +509,8 @@ func before_computer() -> void:
 func after_computer() -> void:_leave_computer()
 
 func set_device_open(value: bool, kind: String) -> void:
+	var hud_layer:=get_node_or_null("WorldHud") as CanvasLayer
+	if hud_layer: hud_layer.visible=not value
 	if value and kind=="phone":_leave_computer()
 	if value:Travel.close_menu()
 	player.velocity=Vector3.ZERO

@@ -65,7 +65,14 @@ using (var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combi
     Check(ManifestDigest.Compute(doc.RootElement) == "4a1ba36891a336167784dff4aa0b326af807c14c82f9f76cd0e73ee807959bf9",
         "Python/C# contract digest includes tuning model and both source hashes");
 }
-Console.WriteLine("1 cross-language manifest digest check passed.");
+var customManifest = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "bot_manifest_contract.json")))!;
+customManifest["vpk_file"] = "career_botprofile.vpk";
+using (var doc = System.Text.Json.JsonDocument.Parse(customManifest.ToJsonString()))
+    Check(ManifestDigest.Compute(doc.RootElement) == "646e194d802634d9a11d4f52661aeca4e71d2bb34bd15568db85b12259fad097", "Python/C# digest binds the independent VPK filename");
+customManifest["difficulty_model"] = "custom_botprofile_templates_v1";
+using (var doc = System.Text.Json.JsonDocument.Parse(customManifest.ToJsonString()))
+    Check(ManifestDigest.Compute(doc.RootElement) == "18b14111f191f26e8f8adb245a3f84f8dabc0aa0e569f71f1ae43dc030c5bb60", "Python/C# custom template manifest stays compatible");
+Console.WriteLine("3 cross-language manifest digest checks passed.");
 var actors = new ActorOwnership();
 actors.NewMatch();
 Check(actors.Actor("human") == "human", "own body is human");

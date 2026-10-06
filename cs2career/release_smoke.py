@@ -238,7 +238,7 @@ def run(output: Path) -> None:
                 assert len(manifest['bots']) == 9
                 from .cs2.profiles import read_db
                 import re
-                assert not re.search(r'(?mi)WeaponPreference\s*=\s*(aug|scar20|g3sg1)\b', read_db(game/'overrides/botprofile.vpk'))
+                assert not re.search(r'(?mi)WeaponPreference\s*=\s*(aug|scar20|g3sg1)\b', read_db(game/'overrides/career_botprofile.vpk'))
                 hashes.append(manifest['vpk_sha256'])
             assert len(set(hashes)) == 3
             from .cs2.launch import build_lobby_request, install_match_identities

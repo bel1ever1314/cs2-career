@@ -1,4 +1,5 @@
 extends RefCounted
+const Kit = preload("res://scripts/ui_kit.gd")
 ## Lazy native views of the original career controls and pure extension registry.
 const UI = preload("res://scripts/computer_ui.gd")
 const TeamVisuals = preload("res://scripts/team_visuals.gd")
@@ -141,7 +142,7 @@ func _management(data: Dictionary) -> void:
 			var key := str(player.get("name", ""))
 			var player_id := str(player.get("player_id", ""))
 			_button(row, key + (" · 你" if player.get("you", false) else ""), host._load_detail.bind("player", player_id if not player_id.is_empty() else key), false).size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			_label(row, "能力 %s · %s 岁" % [player.get("ability", "—"), player.get("age", "—")], 13, UI.MUTED)
+			_label(row, "能力 %s · %s 岁" % [preload("res://scripts/ui_format.gd").score(player.get("ability")), preload("res://scripts/ui_format.gd").integer(player.get("age"))], 13, UI.MUTED)
 			_choice(row, "RosterRole_" + player_id, choices, str(role_draft.get(key, "rifle")), _role_changed.bind(key, roster)).disabled = not data.get("roles_allowed", false)
 		_label(card, "保留一名指挥与一名主狙。切换到已有人担任的位置时，沿用原来的位置对调。", 13, UI.MUTED)
 		var apply := _button(card, "保存首发位置", _command.bind("roles", {"roles":role_draft.duplicate()}))
@@ -217,7 +218,7 @@ func _training(data: Dictionary) -> void:
 	if not str(data.get("reason", "")).is_empty(): _label(card, str(data["reason"]), 13, UI.MUTED)
 	var personal: Dictionary = data.get("personal", {})
 	var growth := UI.card(host.content)
-	_label(growth, "属性培养 · %s 点可分配" % personal.get("attr_points", 0), 19)
+	_label(growth, "属性培养 · %s 点可分配" % preload("res://scripts/ui_format.gd").score(personal.get("attr_points", 0)), 19)
 	_label(growth, str(personal.get("growth_reason", "")), 14, UI.MUTED)
 	var window: Dictionary = data.get("growth_window", {})
 	var period = window.get("window")
@@ -304,24 +305,18 @@ func _rankings(data: Dictionary) -> void:
 	_button(filter, "搜索", _search_rankings, false)
 	_label(host.content, str(data.get("note", "")), 13, UI.MUTED)
 	for item in data.get("rows", []):
-		var card := UI.card(host.content)
-		var row := HBoxContainer.new()
-		card.add_child(row)
-		var rank_label := _label(row, "#%s" % item.get("rank", (ranking_page - 1) * 20 + data.get("rows", []).find(item) + 1), 18)
-		rank_label.custom_minimum_size.x = 52
-		rank_label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-		rank_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+		var rank = item.get("rank", (ranking_page - 1) * 20 + data.get("rows", []).find(item) + 1)
 		var identity := str(item.get("player_id", item.get("player", "")))
 		if identity.is_empty(): identity = str(item.get("player", ""))
-		TeamVisuals.button_logo(_button(row, "%s · %s" % [item.get("player", ""), item.get("team", "")], host._load_detail.bind("player", identity), false), str(item.get("team", ""))).size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var summary_label := _label(row, "Rating %s · %s 图" % [_number(item.get("rating"), 2), item.get("maps", 0)], 14)
-		summary_label.size_flags_horizontal = Control.SIZE_SHRINK_END
-		summary_label.autowrap_mode = TextServer.AUTOWRAP_OFF
-		summary_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		var entry := _button(host.content, "%s · %s" % [item.get("player", ""), item.get("team", "")], host._load_detail.bind("player", identity), false)
+		var detail := ""
 		if ranking_board == "top20":
-			_label(card, "Top10 %s · Top20 %s · MVP %s · EVP %s · 总评分 %s" % [_number(item.get("rating_top10"), 2), _number(item.get("rating_top20"), 2), item.get("mvp", 0), item.get("evp", 0), _number(item.get("score"), 4)], 13, UI.MUTED)
+			detail = "%s · Top10 %s · Top20 %s · MVP %s · EVP %s · 总评分 %s" % [item.get("team", ""), _number(item.get("rating_top10"), 2), _number(item.get("rating_top20"), 2), item.get("mvp", 0), item.get("evp", 0), _number(item.get("score"), 4)]
 		else:
-			_label(card, "K / D / A %s / %s / %s · ADR %s · KAST %s%%" % [item.get("k", 0), item.get("d", 0), item.get("a", 0), _number(item.get("adr")), _number(float(item.get("kast", 0)) * 100)], 13, UI.MUTED)
+			detail = "%s · K / D / A %s / %s / %s · ADR %s · KAST %s%%" % [item.get("team", ""), item.get("k", 0), item.get("d", 0), item.get("a", 0), _number(item.get("adr")), _number(float(item.get("kast", 0)) * 100)]
+		var podium := int(rank) <= 3 if typeof(rank) in [TYPE_INT, TYPE_FLOAT] else false
+		Kit.rich_row(entry, UI, str(item.get("player", "")), detail, "Rating %s · %s 图" % [_number(item.get("rating"), 2), item.get("maps", 0)], "#%s" % rank, "amber" if podium else "gray", "", str(item.get("team", "")), Color("c9a24a") if podium else Color.TRANSPARENT)
+		entry.custom_minimum_size.y = 62
 	if data.get("rows", []).is_empty(): _label(host.content, "尚无达到原榜单样本条件的选手。", 15, UI.MUTED)
 	var pager := HBoxContainer.new()
 	host.content.add_child(pager)

@@ -87,7 +87,7 @@ class BotBehaviorTests(unittest.TestCase):
                 install_match_avatars(root, match)
                 for level in bot_behavior.LEVELS:
                     manifest = generate_match_vpk(root, match, level, root / 'cache')
-                    active = root / 'overrides/botprofile.vpk'
+                    active = root / 'overrides/career_botprofile.vpk'
                     payload = active.read_bytes()
                     packed = entries(payload)
                     self.assertEqual(set(packed), {'botprofile.db', *bot_behavior.RESOURCE_PATHS})

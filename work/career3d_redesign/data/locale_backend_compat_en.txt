@@ -1,0 +1,14 @@
+BotProfile 来源	BotProfile source
+生涯能力模板	Career ability templates
+我的 VPK 模板	My VPK templates
+自定义 botprofile.vpk 的完整路径	Full path to your custom botprofile.vpk
+读取你的 Default 和模板参数，原 VPK 不改动；本场选手姓名与战绩仍由生涯管理。	Uses your Default and template parameters without changing the original VPK. Career still manages match identities and results.
+比赛回传／战术组件需要更新。点击“安装填写目录的人机增强”即可使用随程序提供的新版，无需重新下载人机包。	The match and tactics plugin needs updating. Click Install Bot Improver from this folder to install the bundled update. No Bot Improver download is needed.
+路线结束后	After the route
+自动：CT 留守，T 自主行动	Auto: CT holds, T resumes native AI
+留守最后位置	Hold the final position
+恢复原生行动	Resume native AI
+路线结束方式无效。	Invalid route ending.
+中途 0 秒不停留；最后按结束方式行动。留守时仍会射击，受伤、无线电或炸弹任务可接管。	Zero-wait intermediate points stay continuous. The final point follows the route ending. Holding preserves shooting; damage, radio and bomb objectives can take over.
+2026.0 年	2026
+比赛回传／战术组件需要更新，请先在设置里安装填写目录的人机增强。	The match and tactics plugin needs updating. Install Bot Improver from the configured folder in Settings first.

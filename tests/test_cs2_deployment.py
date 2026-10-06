@@ -160,7 +160,7 @@ class DeploymentTests(unittest.TestCase):
             self.assertTrue(manifest['valid'])
             self.assertEqual(level,manifest['difficulty'])
             self.assertEqual(saved['nonce'],manifest['nonce'])
-            self.assertEqual(9,len(PROFILE_RE.findall(read_db(self.csgo/'overrides/botprofile.vpk'))))
+            self.assertEqual(9,len(PROFILE_RE.findall(read_db(self.csgo/'overrides/career_botprofile.vpk'))))
             self.assertEqual(9,len(json.loads((self.csgo/'addons/BotHider/bot_info.json').read_text())['players']))
             self.assertIn('测试战队',(self.csgo/'cfg/career_rules.cfg').read_text(encoding='utf-8'))
             self.assertEqual(patched_gameinfo(current_gameinfo),

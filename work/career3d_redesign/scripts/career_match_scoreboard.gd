@@ -9,7 +9,7 @@ const DIM := Color("b2c3b9")
 const BLUE := Color("82b7db")
 const RED := Color("dc9b95")
 const FIELDS := ["k", "d", "a", "adr", "kast", "rating"]
-const WIDTHS := [32, 32, 32, 54, 56, 57]
+const WIDTHS := [40, 40, 40, 64, 64, 64]
 var cells: Dictionary = {}
 var own_id := ""
 var player_selected: Callable
@@ -55,9 +55,10 @@ func panel_row(color: Color, height: int) -> HBoxContainer:
 	panel.custom_minimum_size.y = height
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var surface := UI.style(color, 0, 0)
+	# Side padding keeps names and numbers off the panel edge.
+	surface.content_margin_left = 12
+	surface.content_margin_right = 12
 	if roomy:
-		surface.content_margin_left = 8
-		surface.content_margin_right = 8
 		surface.content_margin_top = 3
 		surface.content_margin_bottom = 3
 	panel.add_theme_stylebox_override("panel", surface)
@@ -69,7 +70,7 @@ func panel_row(color: Color, height: int) -> HBoxContainer:
 	return line
 
 func name_cell(parent: Node, value: String, font_size: int, color: Color) -> Label:
-	var label := UI.label(parent, value, font_size, color)
+	var label := UI.label_exact(parent, value, font_size, color)
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	label.custom_minimum_size.x = 155 if roomy else 145
 	label.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -77,7 +78,7 @@ func name_cell(parent: Node, value: String, font_size: int, color: Color) -> Lab
 	return label
 
 func numeric_cell(parent: Node, value: String, index: int, color: Color, font_size: int = 12) -> Label:
-	var label := UI.label(parent, value, maxi(font_size, 14) if roomy and font_size == 12 else font_size, color)
+	var label := UI.label_exact(parent, value, maxi(font_size, 14) if roomy and font_size == 12 else font_size, color)
 	label.size_flags_horizontal = Control.SIZE_FILL
 	label.custom_minimum_size.x = WIDTHS[index] * (1.13 if roomy else 1.0)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT

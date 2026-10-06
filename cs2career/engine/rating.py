@@ -69,7 +69,9 @@ def career_rating(
         + 0.20 * adr / AVG_ADR
         + 0.20 * kast / AVG_KAST
     )
-    return round(clamp(raw, 0.20, 2.50), 2)
+    # Exceptional measured maps must remain distinguishable. Simulation
+    # balance belongs in the event generator, not in a display ceiling.
+    return round(max(raw, 0.20), 2)
 
 
 def kda_rating(

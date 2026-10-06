@@ -66,7 +66,7 @@ static func apply_club(parent: Node3D, model: Node3D, requested_tier: String, fa
 	if player and player.position.x > 11.8:
 		var safe: bool = building.footprint.has_point(Vector2(player.position.x,player.position.z))
 		if not safe or _inside_solid(building,player.position):
-			player.position = Vector3(-.75,.23,6.65); player.reset_physics_interpolation()
+			player.position = Vector3(-.75,.23,5.45); player.reset_physics_interpolation()
 			player.set("velocity",Vector3.ZERO)
 	_relabel(building)
 	return building
@@ -109,7 +109,7 @@ static func apply_venue(parent: Node3D, model: Node3D, requested_capacity: int, 
 	building.build(); building.set_meta("capacity",capacity); building.set_meta("venue_kind",venue_kind)
 	parent.add_child(building)
 	if venue_kind == "lan": _lan_shell(parent,building,capacity)
-	elif is_instance_valid(model): _major_shell(parent,model)
+	elif is_instance_valid(model): _major_shell(parent,model,capacity)
 	_relabel(building); return building
 
 static func _lan_shell(parent: Node3D, building: Node3D, capacity: int) -> void:
@@ -133,18 +133,46 @@ static func _lan_shell(parent: Node3D, building: Node3D, capacity: int) -> void:
 		for side in [-1.0,1.0]:
 			for z in [-5.2,5.2]: building._box(building,"CoreSideWall",Vector3(side*6.6,1.3,z),Vector3(.18,2.6,2.5),Color("e6d5b7"),true)
 
-static func _major_shell(parent: Node3D, model: Node3D) -> void:
+static func _major_shell(parent: Node3D, model: Node3D, capacity: int = 10000) -> void:
 	# The original stage, all competing stations, stairs and entrance tunnel
-	# are the stable match core. Building tiers own outer terraces and audience.
-	var retain := ["event floor","rear stage platform","performance floor","stage oak border","champions runway","centre aisle","foyer floor","walk tunnel","public stair","team competition desk","team desk front","team desk","stage ","wing ","main led","trophy","backstage","gate","concession","tree planter"]
+	# are the stable match core. Competition stations (monitors, keyboards,
+	# mice, seats) belong to the core too.
+	# Large events keep the arena's own seating bowl: its terraces are solid
+	# down to the floor, carry the real stairs/colliders and the seated crowd.
+	# A 1,000-seat event uses the lower two tiers; a 100-seat event uses the
+	# building tier's small grounded stands instead.
+	var bowl_tiers := 3 if capacity >= 10000 else (2 if capacity >= 1000 else 0)
+	var retain := ["event floor","rear stage platform","performance floor","stage oak border","champions runway","centre aisle","foyer floor","walk tunnel","public stair","team competition desk","team desk front","team desk","stage ","wing ","main led","trophy","backstage","gate","concession","tree planter",
+		"keyboard","mouse","monitor","seat cushion","seat pedestal","seat rounded back","desk support","desk front illuminated","booth team number","studio backdrop","rig "]
+	if bowl_tiers > 0:
+		retain.append_array(["bowl dark floor","plaza and arena floor","circulation ring","terrace","section number"])
 	for node in model.find_children("*","MeshInstance3D",true,false):
 		var text := str(node.name).replace("_"," ").to_lower()
 		var keep := false
 		for token in retain:
 			if token in text: keep = true; break
-		if not keep or "terrace" in text or text.begins_with("crowd"): _remember_visibility(node,false)
+		var tier := _bowl_tier(text)
+		if tier > 0 and tier > bowl_tiers: keep = false
+		if text.begins_with("crowd"): keep = false
+		if bowl_tiers == 0 and "public stair" in text: keep = false
+		if not keep:
+			_remember_visibility(node,false)
+			# Hidden structural surfaces must not stay walkable as invisible steps.
+			if tier > 0 or "public stair" in text:
+				var body := parent.get_node_or_null(NodePath("Surface_"+str(node.name))) as CollisionObject3D
+				if body:
+					if not body.has_meta("tier_original_layer"): body.set_meta("tier_original_layer",body.collision_layer)
+					body.collision_layer = 0
 	var audience := parent.get_node_or_null("SeatedChickenAudience") as Node3D
-	if audience: audience.visible = false
+	if audience:
+		audience.visible = bowl_tiers > 0
+		# Upper-tier spectators leave with their tier (tier 2 tops out at 8.4 m).
+		if bowl_tiers == 2 and audience.has_method("limit_height"): audience.limit_height(8.9)
+
+static func _bowl_tier(text: String) -> int:
+	if not text.begins_with("tier "): return 0
+	var parts := text.split(" ")
+	return int(parts[1]) if parts.size() > 1 and parts[1].is_valid_int() else 0
 
 static func apply_home(parent: Node3D, model: Node3D, home: Dictionary) -> Node3D:
 	var footprints := {}

@@ -13,7 +13,7 @@ internal interface ITacticalHoldApi
     int CancelSuppression(int slot, long token);
 }
 
-// Borrow an already loaded, audited ABI20/22 module; no hooks/module loads or raw
+// Borrow an already loaded ABI20/22 module; no hooks/module loads or raw
 // position/velocity/view writes. Its existing zero movement token removes the
 // native movement buttons too. Native perception/aim/actions remain running.
 internal sealed class TacticalHoldControls : ITacticalTravelApi
@@ -37,6 +37,20 @@ internal sealed class TacticalHoldControls : ITacticalTravelApi
             throw new InvalidDataException($"hold_ABI_mismatch:expected={expected},actual={actual}");
         return actual;
     }
+    internal static readonly string[] RequiredExports = ["GetVersion", "IsLocked",
+        "StartUsercmdMovement", "UpdateUsercmdMovement", "CancelUsercmdMovement",
+        "StartUsercmdSuppression", "CancelUsercmdSuppression", "InjectUsercmd", "CancelUsercmdInjection"];
+    internal static int CompatibleAbi(string hash, int actual, IEnumerable<string> exports)
+    {
+        var missing = RequiredExports.Except(exports, StringComparer.Ordinal).ToArray();
+        if (missing.Length > 0) throw new InvalidDataException("hold_missing_exports:" + string.Join(",", missing));
+        if (AuditedModules.ContainsKey(hash)) return ValidateAbi(hash, actual);
+        // These exact ABI versions use the same Cdecl widths and token/return
+        // conventions. A rebuild need not have the release's file hash. A new
+        // ABI is NOT assumed compatible and never receives movement calls.
+        if (actual is not (20 or 22)) throw new InvalidDataException($"hold_unsupported_ABI:{actual};supported=20,22");
+        return actual;
+    }
     [DllImport("kernel32.dll", EntryPoint = "GetModuleHandleW", CharSet = CharSet.Unicode)]
     private static extern nint GetModuleHandle(string path);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int VersionFn();
@@ -58,7 +72,9 @@ internal sealed class TacticalHoldControls : ITacticalTravelApi
     {
         T Export<T>(string name) where T : Delegate => Marshal.GetDelegateForFunctionPointer<T>(
             NativeLibrary.GetExport(module, "BotController_" + name));
-        _abi = ValidateAbi(hash, Export<VersionFn>("GetVersion")());
+        var exports = RequiredExports.Where(name => NativeLibrary.TryGetExport(module, "BotController_" + name, out _)).ToArray();
+        if (!exports.Contains("GetVersion")) throw new InvalidDataException("hold_missing_exports:GetVersion");
+        _abi = CompatibleAbi(hash, Export<VersionFn>("GetVersion")(), exports);
         _locked = Export<LockedFn>("IsLocked");
         _move = Export<MoveFn>("StartUsercmdMovement"); _update = Export<UpdateFn>("UpdateUsercmdMovement");
         _cancel = Export<CancelFn>("CancelUsercmdMovement");
@@ -78,10 +94,9 @@ internal sealed class TacticalHoldControls : ITacticalTravelApi
             var full = Path.GetFullPath(path);
             using var stream = File.OpenRead(full);
             var hash = Convert.ToHexString(SHA256.HashData(stream));
-            AuditedAbiForHash(hash); // Reject unknown modules before calling any native function.
             var module = GetModuleHandle(full);
             if (module == 0) throw new InvalidDataException("hold_module_not_loaded");
-            controls = new(module, hash); reason = $"ABI{controls._abi}_zero_movement_bound_live_hold_unverified"; return true;
+            controls = new(module, hash); reason = $"ABI{controls._abi}_exports_bound:sha256={hash[..12]}"; return true;
         }
         catch (Exception ex) { reason = ex.Message; return false; }
     }

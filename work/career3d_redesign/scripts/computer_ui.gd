@@ -2,24 +2,47 @@ extends RefCounted
 ## Computer-only chrome. Data and writes remain in CareerBridge.
 const Base = preload("res://scripts/phone_ui.gd")
 const Device = preload("res://scripts/career_ui.gd")
-const INK := Color("293e35")
-const MUTED := Color("667268")
-const GREEN := Color("3d6a55")
-const PAPER := Color("fffdf6")
-const CREAM := Color("f8f4e9")
-const MINT := Color("cee1d2")
-const LINE := Color("dedfd3")
+const INK := Base.INK
+const MUTED := Base.MUTED
+const GREEN := Base.GREEN
+const PAPER := Base.PAPER
+const CREAM := Base.CREAM
+const MINT := Base.MINT
+const LINE := Base.LINE
+const BADGE := Base.BADGE
+const AMBER := Base.AMBER
+const BLUE := Base.BLUE
+## Monitor text is read from the chair; 12–14 px Chinese was too small.
+const TYPE_SCALE := {10:12, 11:12, 12:13, 13:14, 14:15, 15:16}
 
 static func style(color: Color, padding: int = 12, radius: int = 12, border: Color = Color.TRANSPARENT) -> StyleBoxFlat:
 	return Base.style(color, padding, radius, border)
 
+static func type_size(size: int) -> int:
+	return int(TYPE_SCALE.get(size, size))
+
 static func label(parent: Node, value: String, size: int = 14, color: Color = INK) -> Label:
-	return Base.label(parent, value, size, color)
+	# Base.label applies the phone scale; pre-map so the monitor ends up one step larger.
+	var target := type_size(size)
+	var node := Base.label(parent, value, target, color)
+	node.add_theme_font_size_override("font_size", target)
+	node.custom_minimum_size.y = ceilf(target * 1.4)
+	return node
+
+## Dense tables (scoreboards, round strips) keep their exact pixel sizes.
+static func label_exact(parent: Node, value: String, size: int = 14, color: Color = INK) -> Label:
+	var node := Base.label(parent, value, size, color)
+	node.add_theme_font_size_override("font_size", size)
+	node.custom_minimum_size.y = ceilf(size * 1.4)
+	return node
+
+static func raised(color: Color, padding: int = 16, radius: int = 14, border: Color = LINE) -> StyleBoxFlat:
+	return Base.raised(color, padding, radius, border)
 
 static func button(parent: Node, value: String, callback: Callable, _dark: bool = false) -> Button:
 	var node := Base.button(parent, value, callback)
-	node.custom_minimum_size.y = 36
-	node.add_theme_font_size_override("font_size", 14)
+	node.custom_minimum_size.y = 38
+	node.add_theme_font_size_override("font_size", 15)
 	# Both pointer and keyboard presses need a visible state before a request
 	# starts. Disabled controls must also look different from ready controls.
 	node.add_theme_stylebox_override("hover", style(Color("e5eddf"), 10, 10, Color("9eb19c")))
@@ -54,7 +77,7 @@ static func primary(node: Button) -> void:
 static func card(parent: Node, _dark: bool = false) -> VBoxContainer:
 	var panel := PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	panel.add_theme_stylebox_override("panel", style(PAPER, 16, 12, LINE))
+	panel.add_theme_stylebox_override("panel", raised(PAPER, 18, 14, LINE))
 	parent.add_child(panel)
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 9)
@@ -64,7 +87,7 @@ static func card(parent: Node, _dark: bool = false) -> VBoxContainer:
 static func dark_options(node: OptionButton) -> void:
 	Base.decorate_button(node)
 	node.add_theme_font_override("font", Base.font())
-	node.add_theme_font_size_override("font_size", 14)
+	node.add_theme_font_size_override("font_size", 15)
 	var popup := node.get_popup()
 	popup.add_theme_stylebox_override("panel", style(PAPER, 8, 9, LINE))
 	popup.add_theme_font_override("font", Base.font())
@@ -78,7 +101,7 @@ static func line_edit(node: LineEdit) -> void:
 	# The insertion caret and native text selection still belong to LineEdit.
 	node.mouse_default_cursor_shape = Control.CURSOR_ARROW
 	node.add_theme_font_override("font", Base.font())
-	node.add_theme_font_size_override("font_size", 14)
+	node.add_theme_font_size_override("font_size", 15)
 	node.add_theme_color_override("font_color", INK)
 	node.add_theme_color_override("caret_color", GREEN)
 	node.add_theme_stylebox_override("normal", style(PAPER, 9, 8, LINE))

@@ -1,9 +1,11 @@
 extends RefCounted
 ## Shared native widgets. Only CareerBridge writes career state.
-const INK := Color("243044")
-const MUTED := Color("6a768b")
-const ACCENT := Color("3d6bd9")
-const PAPER := Color("f5f7fb")
+## Legacy helpers kept for compatibility. Colours follow the shared device
+## palette (phone_ui.gd); the old blue set no longer appears anywhere.
+const INK := Color("22342b")
+const MUTED := Color("67746b")
+const ACCENT := Color("2f6b52")
+const PAPER := Color("fffdf8")
 
 static func style(color: Color, padding: int = 12, radius: int = 12, border: Color = Color.TRANSPARENT) -> StyleBoxFlat:
 	var box := StyleBoxFlat.new()

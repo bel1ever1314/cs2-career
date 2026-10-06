@@ -84,7 +84,7 @@ func present() -> void:
 func _render() -> void:
 	for child in content.get_children():
 		content.remove_child(child); child.queue_free()
-	status.text = Locale.text("个人资金 %s" % "$%d" % int(home.get("balance", 0)))
+	status.text = Locale.text("个人资金 %s" % preload("res://scripts/ui_format.gd").money(home.get("balance", 0)))
 	var tabs := HBoxContainer.new()
 	content.add_child(tabs)
 	for entry in [["furniture","家具"],["wallpaper","墙面"],["floor","地板"]]:
@@ -115,7 +115,7 @@ func _render() -> void:
 		var row := HBoxContainer.new()
 		box.add_child(row)
 		if tab == "furniture" or owned == 0:
-			var buy := UI.button(row, "购买 $%d" % int(item.price), _buy.bind(item))
+			var buy := UI.button(row, "购买 %s" % preload("res://scripts/ui_format.gd").money(item.price), _buy.bind(item))
 			buy.disabled = not awaiting.is_empty() or not blocked.is_empty() or int(home.get("balance",0)) < int(item.price)
 		if owned > 0:
 			var use := UI.button(row, "摆放" if tab == "furniture" else "使用", _use.bind(item))

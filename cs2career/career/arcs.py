@@ -652,7 +652,7 @@ def na_progress(c, *, commit=False):
             if row['key'] in seen or not start<=row['date']<=deadline:continue
             for mp in row.get('maps',[]):
                 rating=mp.get('rating')
-                if type(rating) in (float,int) and math.isfinite(rating) and .2<=rating<=2.5:
+                if type(rating) in (float,int) and math.isfinite(rating) and rating>=.2:
                     tally['maps']+=1;tally['total']+=rating
             tally['keys'].append(row['key']);seen.add(row['key'])
         if commit:v['na_stats']=tally

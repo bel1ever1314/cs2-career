@@ -1,8 +1,9 @@
 # coding=utf-8
 """Generate a self-contained 9-Bot player or 10-Bot observer match pack.
 
-1.5 never copies Bot Improver's player database. The only persistent input is
-the sanitised template file shipped with this app.
+Match identities always come from the career roster. Template parameters come
+from the bundled preset or an explicitly selected user VPK; its roster is not
+copied and the source VPK is never overwritten.
 """
 
 from __future__ import annotations
@@ -24,6 +25,7 @@ VPK_SIGNATURE = 0x55AA1234
 ENTRY_NAME = "botprofile"
 ENTRY_EXT = "db"
 NO_ARCHIVE = 0x7FFF
+MATCH_VPK = 'career_botprofile.vpk'
 LEVELS = ("Low", "Medium", "High")
 PROFILE_RE = re.compile(r'^\S+\s+"(C2C_[A-Za-z0-9_]+)"\s*$', re.MULTILINE)
 ROLE_STYLE = {
@@ -96,9 +98,12 @@ def bot_parameters(strength: float, overall: float, difficulty: str = 'Medium',
 
 def _profile_block(bot: dict) -> str:
     weapon, personality = ROLE_STYLE.get(bot["role"], ROLE_STYLE["rifle"])
-    lines = [f'{bot["tier"]}+{weapon}+{personality} "{bot["profile_name"]}"']
+    chain = bot.get('template_chain') or f'{bot["tier"]}+{weapon}+{personality}'
+    lines = [f'{chain} "{bot["profile_name"]}"']
     lines += [f"    {key} = {value}" for key, value in bot["parameters"].items()]
-    lines += [f"    VoicePitch = {90 + crc32(bot['player_id'].encode('ascii')) % 21}", "End", ""]
+    if not bot.get('template_chain'):
+        lines.append(f"    VoicePitch = {90 + crc32(bot['player_id'].encode('ascii')) % 21}")
+    lines += ["End", ""]
     return "\n".join(lines)
 
 
@@ -170,7 +175,7 @@ def _template_text(difficulty: str = 'Medium') -> str:
 
 
 def vpk_bytes(db_text: str, resources: dict[str, bytes] | None = None) -> bytes:
-    """Pack our roster plus explicitly reviewed, anonymous behavior resources."""
+    """Pack our roster and behavior resources at the supported resource paths."""
     files = {ENTRY_NAME + '.' + ENTRY_EXT: db_text.encode('utf-8')}
     for path, payload in (resources or {}).items():
         if path not in bot_behavior.RESOURCE_PATHS or not isinstance(payload, bytes) or not payload or len(payload) > 64 * 1024:
@@ -269,6 +274,8 @@ def _manifest_hash(manifest: dict) -> str:
         lines += [f"difficulty_model={manifest['difficulty_model']}",
                   f"preset_source_hash={manifest['preset_source_hash']}",
                   f"template_hash={manifest['template_hash']}"]
+    if manifest.get('vpk_file'):
+        lines.append(f"vpk_file={manifest['vpk_file']}")
     for bot in sorted(manifest.get("bots") or [], key=lambda row: row["player_id"]):
         lines.append(
             "bot=" + "|".join(str(bot[key]) for key in (
@@ -278,19 +285,33 @@ def _manifest_hash(manifest: dict) -> str:
     return hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()
 
 
-def generate_match_vpk(csgo: Path, match: dict, difficulty: str, cache_root: Path | None = None) -> dict:
+def generate_match_vpk(csgo: Path, match: dict, difficulty: str, cache_root: Path | None = None,
+                       *, custom_source: str = '') -> dict:
     bots = prepare_bots(match, difficulty)
     count = expected_bot_count(match)
     profile_type = 'observer_match_10' if count == 10 else 'career_match_9'
     preset = improver_presets.preset(difficulty)
-    db_text = _template_text(difficulty) + "".join(_profile_block(bot) for bot in bots)
+    template, resources, model = _template_text(difficulty), bot_behavior.resources(difficulty), improver_presets.MODEL
+    if custom_source:
+        from . import custom_profiles
+        if Path(custom_source).resolve() == (csgo / 'overrides' / MATCH_VPK).resolve():
+            raise ValueError('自定义来源请选择你自己的 VPK，不要选择程序生成的 career_botprofile.vpk。')
+        preset = custom_profiles.load(custom_source)
+        template, model = preset['text'], custom_profiles.MODEL
+        resources.update(preset['resources'])
+        for bot in bots:
+            bot['template_chain'] = custom_profiles.chain(bot, preset['templates'])
+            bot['parameters'] = {}
+            bot['aim_preset'] = 'Custom'
+            bot['profile_hash'] = hashlib.sha256(_profile_block(bot).encode()).hexdigest()
+    db_text = template + "".join(_profile_block(bot) for bot in bots)
     if PROFILE_RE.findall(db_text) != [b["profile_name"] for b in bots]:
         raise ValueError("生成后的 BotProfile 清单与请求不一致")
-    payload = vpk_bytes(db_text, bot_behavior.resources(difficulty))
+    payload = vpk_bytes(db_text, resources)
     vpk_sha = hashlib.sha256(payload).hexdigest()
     manifest = {
         "schema_version": 2, "type": profile_type, "nonce": match["nonce"], "difficulty": difficulty, "count": count,
-        "difficulty_model": improver_presets.MODEL,
+        "difficulty_model": model, "vpk_file": MATCH_VPK,
         "preset_source_hash": preset['source_hash'], "template_hash": preset['template_hash'],
         "bots": [{k: b[k] for k in ("player_id", "profile_name", "display_name", "side", "overall", "form_delta", "effective_strength", "role", "tier", "stats", "aim_preset", "parameters", "profile_hash", "avatar_path", "avatar_hash", "avatar_kind")} for b in bots],
         "vpk_sha256": vpk_sha,
@@ -308,29 +329,44 @@ def generate_match_vpk(csgo: Path, match: dict, difficulty: str, cache_root: Pat
     manifest_payload = json.dumps(manifest, indent=2, ensure_ascii=False, allow_nan=False).encode()
     nonce = re.sub(r"[^a-fA-F0-9]", "", str(match["nonce"]))[:64]
     _atomic_bytes((cache_root or (save_root() / "botprofiles")) / f"botprofile-{nonce}.vpk", payload)
-    active = csgo / "overrides" / "botprofile.vpk"
+    active = csgo / "overrides" / MATCH_VPK
     _atomic_bytes(active, payload)
     _atomic_bytes(csgo / "overrides" / "botprofile.manifest.json", manifest_payload)
     if hashlib.sha256(active.read_bytes()).hexdigest() != vpk_sha:
         raise ValueError("活动 VPK 写入后的 SHA-256 校验失败")
     match.update({"schema_version": 2, "difficulty": difficulty, "bots": manifest["bots"]})
     match["bot_profile"] = {"type": profile_type, "nonce": match["nonce"], "count": count, "difficulty": difficulty, "vpk_sha256": vpk_sha, "manifest_hash": manifest["manifest_hash"], "short_hash": manifest["manifest_hash"][:8]}
-    match['bot_profile'].update({key: manifest[key] for key in ('difficulty_model','preset_source_hash','template_hash')})
+    match['bot_profile'].update({key: manifest[key] for key in ('difficulty_model','preset_source_hash','template_hash','vpk_file')})
     for side in ("ct", "t"):
         match[side]["players"] = [b for b in manifest["bots"] if b["side"] == side]
     return manifest
 
 
+def active_vpk_path(csgo: Path) -> Path:
+    try:
+        data = json.loads((csgo / 'overrides' / 'botprofile.manifest.json').read_text('utf-8-sig'))
+        name = data.get('vpk_file', 'botprofile.vpk')
+        if name not in ('botprofile.vpk', MATCH_VPK):
+            raise ValueError('不支持的活动 VPK 路径')
+    except (OSError, ValueError):
+        name = MATCH_VPK
+    return csgo / 'overrides' / name
+
+
 def active_manifest(csgo: Path) -> dict:
-    path, active = csgo / "overrides" / "botprofile.manifest.json", csgo / "overrides" / "botprofile.vpk"
+    path = csgo / "overrides" / "botprofile.manifest.json"
     try:
         data = json.loads(path.read_text(encoding="utf-8-sig"))
+        filename = data.get('vpk_file', 'botprofile.vpk')
+        if filename not in ('botprofile.vpk', MATCH_VPK):
+            raise ValueError('不支持的活动 VPK 路径')
+        active = csgo / 'overrides' / filename
         bots = data.get("bots") or []
         ids = [bot.get("player_id") for bot in bots]
         names = [bot.get("profile_name") for bot in bots]
         count = 10 if data.get('type') == 'observer_match_10' else 9
         model = data.get("difficulty_model")
-        if model:
+        if model and model != 'custom_botprofile_templates_v1':
             if model != improver_presets.MODEL:
                 raise ValueError("不支持的 Bot 难度模型")
             preset = improver_presets.preset(data["difficulty"])

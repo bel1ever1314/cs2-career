@@ -111,8 +111,12 @@ func run() -> void:
 	var top := {"id":"top20-2026", "kind":"top20", "title":"2026 年度Top20", "quick":false, "rows":[{"rank":1, "player":"Player A", "team":"Team A"}, {"rank":2, "player":"Player B", "team":"Team B"}, {"rank":3, "player":"Player C", "team":"Team A"}], "ceremony":{"ready":true,"finalized":true,"year":2026}}
 	feed.present(top)
 	await settle()
-	check(feed.actions.size() == 2 and feed.actions[0].text.contains("颁奖现场"), "normal Top20 offers formal ceremony along with readable feedback")
-	check(feed.body.find_children("HonoursPlayerName", "Label", true, false).size() == 3, "Top20 displays frozen names and ranks")
+	check(feed.actions.size() == 3 and feed.actions[0].text.contains("颁奖现场"), "Top20 arrives as a ceremony invitation with a local reveal and a later option")
+	var sealed: Array = feed.body.find_children("HonoursPlayerName", "Label", true, false)
+	check(sealed.size() == 3 and not sealed.any(func(label): return label.text.contains("Player")), "Top20 names stay sealed until revealed")
+	feed.start_reveal(); feed.reveal_all()
+	var shown: Array = feed.body.find_children("HonoursPlayerName", "Label", true, false)
+	check(shown.all(func(label): return label.text.contains("Player")), "Top20 reveal shows the frozen names and ranks")
 	if DisplayServer.get_name() != "headless":
 		await get_tree().create_timer(.7).timeout
 		await capture("honours-top20")

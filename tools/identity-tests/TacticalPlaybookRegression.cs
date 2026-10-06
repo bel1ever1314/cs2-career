@@ -13,6 +13,25 @@ internal static class TacticalPlaybookRegression
                     Steps = s == 1 ? [] : [new() { Position = [10*s, 100], Wait = 2, Level = "auto" }] }).ToList() }] },
             new JsonSerializerOptions { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
         var json = Valid(); var playbook = TacticalPlaybook.Parse(json);
+        var directory = Path.Combine(Path.GetTempPath(), "career-map-test-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(Path.Combine(directory, "tactical_playbooks"));
+        try
+        {
+            File.WriteAllText(Path.Combine(directory, "tactical_playbook.json"), json);
+            File.WriteAllText(Path.Combine(directory, "tactical_playbooks", "de_dust2.json"), json);
+            File.WriteAllText(Path.Combine(directory, "tactical_playbooks", "de_mirage.json"), json.Replace("de_dust2", "de_mirage"));
+            foreach (var map in new[] { "de_mirage", "de_dust2", "de_mirage" })
+            {
+                var selected = TacticalPlaybook.ReadForMap(directory, map);
+                Check(selected.Map == map && selected.Tactics[0].Id == "short_split" && selected.Tactics[0].Name == "沙二分路",
+                    "same name and ID selects current map, not stale legacy file: " + map);
+            }
+            var rejected = false;
+            try { TacticalPlaybook.ReadForMap(directory, "de_nuke"); }
+            catch (InvalidDataException) { rejected = true; }
+            Check(rejected, "missing map does not fall back to a foreign map's same ID");
+        }
+        finally { Directory.Delete(directory, true); }
         foreach (var finish in new[] { "auto", "hold", "native" })
             Check(TacticalPlaybook.Parse(json.Replace("\"finish\":\"auto\"", "\"finish\":\"" + finish + "\""))
                 .Tactics[0].Slots.All(s => s.Finish == finish), "route endings survive strict JSON parser");
@@ -176,6 +195,22 @@ internal static class TacticalPlaybookRegression
         Check(TacticalHoldControls.AuditedAbiForHash(currentDll) == 22, "installed v0.7.0 pinned to ABI22, not ABI20");
         Check(TacticalHoldControls.ValidateAbi(currentDll, 22) == 22, "audited current ABI22 hold exports accepted");
         Check(TacticalHoldControls.ValidateAbi(legacyDll, 20) == 20, "audited legacy ABI20 remains supported");
+        Check(TacticalHoldControls.CompatibleAbi(new string('0', 64), 22, TacticalHoldControls.RequiredExports) == 22,
+            "compatible ABI22 rebuild is not rejected solely by file hash");
+        foreach (var abi in new[] { 19, 21, 23, 999 })
+        {
+            var rejected = false;
+            try { TacticalHoldControls.CompatibleAbi(new string('0', 64), abi, TacticalHoldControls.RequiredExports); }
+            catch (InvalidDataException) { rejected = true; }
+            Check(rejected, "unknown ABI remains rejected: " + abi);
+        }
+        foreach (var missing in TacticalHoldControls.RequiredExports)
+        {
+            var rejected = false;
+            try { TacticalHoldControls.CompatibleAbi(new string('0', 64), 22, TacticalHoldControls.RequiredExports.Where(x => x != missing)); }
+            catch (InvalidDataException) { rejected = true; }
+            Check(rejected, "missing hold export rejected: " + missing);
+        }
         foreach (var pair in new[] { (Hash:currentDll, Abi:20), (Hash:legacyDll, Abi:22),
                                     (Hash:currentDll, Abi:23), (Hash:new string('0',64), Abi:22) })
         {

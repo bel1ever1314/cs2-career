@@ -61,7 +61,7 @@ class CurrentTacticSyncTests(unittest.TestCase):
     def snapshot(self, exclude_playbook=False):
         return {str(p.relative_to(self.csgo)): (p.read_bytes(), p.stat().st_mtime_ns)
                 for p in self.csgo.rglob('*') if p.is_file()
-                and not (exclude_playbook and p.name == 'tactical_playbook.json')}
+                and not (exclude_playbook and (p.name == 'tactical_playbook.json' or p.parent.name == 'tactical_playbooks'))}
 
     def publish(self, **options):
         return launch.tactical_publication(self.csgo, 'de_dust2', [self.session], **options)

@@ -27,7 +27,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from ..paths import frozen, io_path, logo_dir, save_file, save_root, static_dir, vendor_root
-from .profiles import active_manifest, generate_match_vpk, stable_player_id
+from .profiles import active_manifest, active_vpk_path, generate_match_vpk, stable_player_id
 from .result import pick_better_result, result_quality
 from .gameinfo import ensure_gameinfo_mounts
 
@@ -51,6 +51,8 @@ DEFAULTS = {
     "mod_source_path": "",
     # Difficulty is a generation preset in 1.5, not a persistent player DB.
     "difficulty": "Medium",
+    "bot_profile_mode": "career",
+    "bot_profile_source": "",
     "match_chat": "on",
     "bot_aim": "mixed",
     "bot_nades": "normal",
@@ -68,6 +70,7 @@ DEFAULTS = {
 }
 
 DIFFICULTIES = ("Low", "Medium", "High")
+PROFILE_MODES = ("career", "custom")
 AIM_MODES = ("head", "mixed", "body")
 NADE_MODES = ("off", "less", "normal", "more", "max")
 IDENTITY_MODES = ("player", "bot")
@@ -256,6 +259,9 @@ def _autofill(cfg: dict) -> dict:
 
 
 def _clean(cfg: dict) -> dict:
+    if cfg.get('bot_profile_mode') not in PROFILE_MODES:
+        cfg['bot_profile_mode'] = 'career'
+    cfg.setdefault('bot_profile_source', '')
     if cfg.get("skins_inventory_mode") not in ("career", "external"):
         cfg["skins_inventory_mode"] = DEFAULTS["skins_inventory_mode"]
     for key in ("skin_inspect_enabled", "skin_tools_enabled"):
@@ -319,6 +325,7 @@ def _write_settings(cfg: dict) -> None:
 def _save_settings(patch: dict) -> dict:
     cfg = settings()
     old_difficulty = cfg.get("difficulty")
+    old_profile = (cfg['bot_profile_mode'], cfg['bot_profile_source'])
     old_movement = cfg.get("bot_movement")
     old_inventory_mode = cfg.get("skins_inventory_mode")
     if "skins_inventory_mode" in patch and patch["skins_inventory_mode"] not in ("career", "external"):
@@ -328,6 +335,8 @@ def _save_settings(patch: dict) -> dict:
     if "skin_tools_enabled" in patch and type(patch["skin_tools_enabled"]) is not bool:
         raise ValueError("饰品扩展接口开关必须是布尔值。")
     if cs2_is_live():
+        if any(patch.get(k, cfg[k]) != cfg[k] for k in ('bot_profile_mode', 'bot_profile_source')):
+            raise ValueError('请完全退出 CS2 后再切换 BotProfile 来源。')
         if patch.get("skins_inventory_mode", cfg["skins_inventory_mode"]) != cfg["skins_inventory_mode"]:
             raise ValueError("请完全退出 CS2 后再切换配装来源。")
         if patch.get("difficulty") and patch.get("difficulty") != cfg.get("difficulty"):
@@ -338,6 +347,9 @@ def _save_settings(patch: dict) -> dict:
         if key in ("skin_inspect_enabled", "skin_tools_enabled"):
             cfg[key] = val
             continue
+        if key == 'bot_profile_source':
+            cfg[key] = str(val or '').strip().strip('"')
+            continue
         if key not in DEFAULTS or not val:
             continue
         if key == "csgo_path":
@@ -345,6 +357,7 @@ def _save_settings(patch: dict) -> dict:
         else:
             cfg[key] = val
     _clean(cfg)
+    custom_profile_options(cfg)  # Validate before saving or touching game files.
     _write_settings(cfg)
     if old_inventory_mode != cfg.get("skins_inventory_mode") and cfg.get("skins_inventory_mode") == "external":
         csgo = resolve_csgo_path(cfg.get("csgo_path") or "")
@@ -357,16 +370,17 @@ def _save_settings(patch: dict) -> dict:
                 raise ValueError(f"外部配装设置已保存，但生涯桥停用失败：{exc}。请暂勿启动 CS2，关闭后重新准备比赛以重试。") from exc
     # A staged match is a generated artifact of the chosen difficulty. Rebuild
     # it immediately while CS2 is closed so UI selection and active VPK agree.
-    if old_difficulty != cfg.get("difficulty") or old_movement != cfg.get("bot_movement"):
+    profile_changed = old_profile != (cfg['bot_profile_mode'], cfg['bot_profile_source'])
+    if old_difficulty != cfg.get("difficulty") or old_movement != cfg.get("bot_movement") or profile_changed:
         csgo = resolve_csgo_path(cfg.get("csgo_path") or "")
         request_path = plugin_dir(csgo) / "match_request.json"
         if is_csgo_dir(csgo) and request_path.is_file():
             try:
                 match = json.loads(request_path.read_text(encoding="utf-8-sig"))
                 if match.get("active") and int(match.get("schema_version") or 0) == 2:
-                    if old_difficulty != cfg.get("difficulty"):
+                    if old_difficulty != cfg.get("difficulty") or profile_changed:
                         install_match_avatars(csgo, match)
-                        generate_match_vpk(csgo, match, cfg["difficulty"])
+                        generate_match_vpk(csgo, match, cfg["difficulty"], **custom_profile_options(cfg))
                     from .natural_behavior import configure_match
                     configure_match(match, cfg.get("bot_movement", "classic"))
                     write_career_cfg(csgo, match, cfg)
@@ -1251,16 +1265,27 @@ def install_skins_mod(csgo: Path | None = None) -> dict:
     return {"ok": True, "files": files, "msg": f"已把 {files} 个换肤文件装进游戏。完全退出 CS2 后再开才会加载。"}
 
 
+def custom_profile_options(cfg: dict) -> dict:
+    if cfg.get('bot_profile_mode') != 'custom':
+        return {}
+    from .custom_profiles import load
+    path = str(cfg.get('bot_profile_source') or '').strip().strip('"')
+    if not path:
+        raise ValueError('已选择自定义 BotProfile，请填写你的 VPK 文件路径。')
+    load(path)
+    return {'custom_source': path}
+
+
 def profiles_are_stale(csgo: Path) -> bool:
     """True when the bot database was rewritten after CS2 booted.
 
-    The game mounts botprofile.vpk as a search path at startup, so a newer file
+    The game mounts the active match VPK at startup, so a newer file
     on disk means the running game is still using the old names and difficulty.
     """
     started = cs2_started_at()
     if not started:
         return False
-    live = csgo / "overrides" / "botprofile.vpk"
+    live = active_vpk_path(csgo)
     return live.is_file() and live.stat().st_mtime > started
 
 
@@ -1342,12 +1367,13 @@ def install_mod(csgo: Path | None = None, mod: Path | None = None) -> dict:
         # The enhancement plugins are reused; neither its BotProfile roster nor
         # BotHider's thousands-of-players identity list belongs to career mode.
         if "overrides" in [part.lower() for part in rel.parts] and src.name.lower() in (
-            "botprofile.db", "botprofile.vpk"
+            "botprofile.db", "botprofile.vpk", "career_botprofile.vpk", "botprofile.manifest.json"
         ):
             continue
         if rel_key == "addons/bothider/bot_info.json":
             continue
-        if rel_key == "addons/counterstrikesharp/plugins/careermatch/tactical_playbook.json":
+        if (rel_key == "addons/counterstrikesharp/plugins/careermatch/tactical_playbook.json"
+                or rel_key.startswith("addons/counterstrikesharp/plugins/careermatch/tactical_playbooks/")):
             continue  # Deploy only our separately validated local library.
         dst = io_path(csgo / rel)
         dst.parent.mkdir(parents=True, exist_ok=True)
@@ -1397,7 +1423,7 @@ def status() -> dict:
         except (OSError, ValueError, TypeError):
             pass
     if csgo.is_dir() and cs2_is_live() and manifest.get("valid"):
-        active = csgo / "overrides" / "botprofile.vpk"
+        active = active_vpk_path(csgo)
         if active.stat().st_mtime < cs2_started_at():
             process_difficulty = applied
     return {
@@ -1734,6 +1760,24 @@ def apply_bothider_config(csgo: Path, identity: str = "player") -> None:
     path.write_text(json.dumps(data, indent=4, ensure_ascii=False), encoding="utf-8")
 
 
+@lru_cache(maxsize=16)
+def _matching_plugin_bytes(source: str, source_stamp: tuple, target: str, target_stamp: tuple) -> bool:
+    return hashlib.sha256(Path(source).read_bytes()).digest() == hashlib.sha256(Path(target).read_bytes()).digest()
+
+
+def career_match_current(csgo: Path) -> bool:
+    """Cache by file identity, not by a release label; status reads stay cheap."""
+    try:
+        source = career_match_src() / 'CareerMatch.dll'
+        target = plugin_dir(csgo) / 'CareerMatch.dll'
+        def stamp(path):
+            st = path.stat()
+            return st.st_mtime_ns, st.st_size, st.st_ino
+        return _matching_plugin_bytes(str(source), stamp(source), str(target), stamp(target))
+    except (OSError, ValueError):
+        return False
+
+
 def _copy_career_match(csgo: Path, mod_source: Path | None = None) -> int:
     """Verified deployment; a missing/locked DLL must never silently launch an old plugin."""
     require_cs2_closed("更新比赛回传插件")
@@ -1747,12 +1791,37 @@ def _deploy_tactical_playbook(csgo: Path, playbook: dict | None = None) -> int:
     require_cs2_closed("部署地图战术库")
     from .. import tactics
     clean = tactics.load_library() if playbook is None else tactics.validate_library(playbook)
+    return _write_tactical_snapshots(plugin_dir(csgo), clean,
+        lambda: require_cs2_closed("部署地图战术库"))
+
+
+def _write_tactical_snapshots(folder: Path, clean: dict, guard) -> int:
+    from .. import tactics
+    from .profiles import _atomic_bytes
     blob = tactics.encode_library(clean)
-    target = plugin_dir(csgo) / "tactical_playbook.json"
-    if target.is_file() and target.stat().st_size == len(blob) and target.read_bytes() == blob:
-        return 0
-    tactics.write_library(target, clean, before_replace=lambda: require_cs2_closed("部署地图战术库"))
-    return 1
+    # Keep each map's snapshot separate; the legacy file remains for older
+    # tools, but no longer decides which map the game-side reader executes.
+    targets = (folder / 'tactical_playbook.json', folder / 'tactical_playbooks' / (clean['map'] + '.json'))
+    changed = []
+    try:
+        for target in targets:
+            before = target.read_bytes() if target.is_file() else None
+            if before == blob:
+                continue
+            stamp = target.stat() if before is not None else None
+            tactics.write_library(target, clean, before_replace=guard)
+            changed.append((target, before, stamp))
+    except Exception:
+        for target, before, stamp in reversed(changed):
+            if target.read_bytes() != blob:
+                raise OSError('战术快照在同步中被其他程序修改，请重新同步。')
+            if before is None:
+                target.unlink()  # Only the new, exact map snapshot from this call.
+            else:
+                _atomic_bytes(target, before)
+                os.utime(target, ns=(stamp.st_atime_ns, stamp.st_mtime_ns))
+        raise
+    return len(changed)
 
 
 def tactical_publication(csgo: Path | None, map_code: str, sessions: list[dict], *, sync=False) -> dict:
@@ -1803,7 +1872,8 @@ def tactical_publication(csgo: Path | None, map_code: str, sessions: list[dict],
             or len(players) != 10 or set(players) != set(expected) or len(set(players)) != 10
             or tactics.canonical_map(session.get("cs2_map") or session.get("map")) != prepared):
             return dict(out, status="session_mismatch", reason="战术已保存；游戏请求与当前会话 nonce、地图或十人身份不一致，未同步。")
-        target = folder / "tactical_playbook.json"
+        map_target = folder / 'tactical_playbooks' / (prepared + '.json')
+        target = map_target if map_target.is_file() else folder / "tactical_playbook.json"
         published = None
         if target.is_file():
             with target.open("rb") as source:
@@ -1813,7 +1883,7 @@ def tactical_publication(csgo: Path | None, map_code: str, sessions: list[dict],
                 out["published_ids"] = [t["id"] for t in published["tactics"]]
         if prepared != code:
             return dict(out, status="map_mismatch", reason="战术已保存；当前对局是 %s，此地图下次开局自动同步。" % prepared)
-        same = published == clean
+        same = published == clean and map_target.is_file() and map_target.read_bytes() == tactics.encode_library(clean)
         live = cs2_is_live_strict()
         if live is not True and live is not False:
             return dict(out, status="unavailable", reason="战术已保存；无法确认 CS2 已关闭，当前对局未同步。")
@@ -1830,7 +1900,7 @@ def tactical_publication(csgo: Path | None, map_code: str, sessions: list[dict],
             if read_request() != request_bytes:
                 raise ValueError("当前对局请求已变化，未发布战术；请刷新后再同步。")
         guard_snapshot()
-        tactics.write_library(target, clean, before_replace=guard_snapshot)
+        _write_tactical_snapshots(folder, clean, guard_snapshot)
         return dict(out, status="synced", published_map=prepared, published_ids=list(out["saved_ids"]), synced=True, pending=False,
                     reason="战术库已同步当前对局，不需重新准备或重置比赛。准备阶段使用已发布 ID。")
     except (OSError, ValueError, TypeError, AttributeError, RuntimeError) as exc:
@@ -2092,6 +2162,7 @@ def prepare_game(
     require_cs2_closed(f"生成并安装本场 {count} 人 BotProfile")
     from .. import tactics
     tactical_playbook = tactics.load_library(tactics.canonical_map(match["map"]))  # Validate the selected map before game writes.
+    profile_options = custom_profile_options(opts)
     if not mod_installed(csgo):
         raise ValueError("游戏中缺少人机增强运行组件，请先在游戏设置安装人机增强。")
     ensure_gameinfo_mounts(csgo)  # Preflight before generating/replacing match files.
@@ -2103,7 +2174,7 @@ def prepare_game(
     configure_match(match, opts.get("bot_movement", "classic"))
     want = opts["difficulty"]
     install_match_avatars(csgo, match)
-    manifest = generate_match_vpk(csgo, match, want)
+    manifest = generate_match_vpk(csgo, match, want, **profile_options)
     if not manifest.get("manifest_hash") or manifest.get("count") != count:
         raise ValueError("本场 BotProfile 清单校验失败，已阻止开赛")
     install_match_identities(csgo, match)
@@ -2256,7 +2327,7 @@ def _remember_result(data: dict) -> None:
         return
     path = save_file("cs2_last.json")
     old = _load_result_file(path)
-    if result_quality(data) <= result_quality(old):
+    if pick_better_result(old, data) is old:
         return
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 

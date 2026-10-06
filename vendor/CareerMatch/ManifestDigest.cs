@@ -24,6 +24,7 @@ public static class ManifestDigest
             lines.Add($"preset_source_hash={node.GetProperty("preset_source_hash").GetString()}");
             lines.Add($"template_hash={node.GetProperty("template_hash").GetString()}");
         }
+        if (node.TryGetProperty("vpk_file", out var file)) lines.Add($"vpk_file={file.GetString()}");
         foreach (var bot in node.GetProperty("bots").EnumerateArray()
                      .OrderBy(x => x.GetProperty("player_id").GetString(), StringComparer.Ordinal))
         {

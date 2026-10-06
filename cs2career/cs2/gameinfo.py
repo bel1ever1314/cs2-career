@@ -8,7 +8,7 @@ import re
 import shutil
 import tempfile
 
-MOUNTS = ('csgo/overrides/botprofile.vpk', 'csgo/addons/metamod')
+MOUNTS = ('csgo/overrides/career_botprofile.vpk', 'csgo/addons/metamod')
 _TOKEN = re.compile(r'//[^\r\n]*|/\*[\s\S]*?\*/|"(?:\\.|[^"\\])*"|[{}]|[^\s{}"]+')
 
 
@@ -86,7 +86,7 @@ def without_career_mounts(text: str, *, optional=False) -> str:
     if len(entries) % 2 or any(t[0] in ('{', '}') for t in entries):
         raise ValueError('gameinfo.gi 的 SearchPaths 格式无效。')
     spans = []
-    known = set(MOUNTS) | {'csgo/overrides'}
+    known = set(MOUNTS) | {'csgo/overrides', 'csgo/overrides/botprofile.vpk'}
     for key, value in zip(entries[::2], entries[1::2]):
         if key[0].casefold() != 'game' or value[0].replace('\\', '/').casefold().rstrip('/') not in known:
             continue

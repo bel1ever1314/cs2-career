@@ -80,7 +80,7 @@ class BotProfileTests(unittest.TestCase):
             csgo.mkdir(parents=True)
             install_match_avatars(csgo, match)
             manifest = generate_match_vpk(csgo, match, "High", Path(raw) / "cache")
-            text = read_db(csgo / "overrides" / "botprofile.vpk")
+            text = read_db(csgo / "overrides" / "career_botprofile.vpk")
             self.assertEqual(manifest["count"], 9)
             self.assertEqual(len(PROFILE_RE.findall(text)), 9)
             self.assertEqual(len({b["player_id"] for b in manifest["bots"]}), 9)

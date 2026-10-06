@@ -97,9 +97,9 @@ class TacticalAbilityTests(unittest.TestCase):
         self.assertEqual([bot["profile_hash"] for bot in old_prepared], [bot["profile_hash"] for bot in prepared])
         self.assertTrue(all("tactical_abilities" not in bot for bot in old_prepared))
         manifest = profiles.generate_match_vpk(self.csgo, request, "Medium", self.root / "cache")
-        db = (self.csgo / "overrides" / "botprofile.vpk").read_bytes()
+        db = (self.csgo / "overrides" / "career_botprofile.vpk").read_bytes()
         old_manifest = profiles.generate_match_vpk(self.csgo, legacy, "Medium", self.root / "cache")
-        self.assertEqual(db, (self.csgo / "overrides" / "botprofile.vpk").read_bytes())
+        self.assertEqual(db, (self.csgo / "overrides" / "career_botprofile.vpk").read_bytes())
         for field in ("manifest_hash", "vpk_sha256", "template_hash", "preset_source_hash"):
             self.assertEqual(old_manifest[field], manifest[field])
         self.assertEqual(request["human_tactical_abilities"], manifest["human_tactical_abilities"])

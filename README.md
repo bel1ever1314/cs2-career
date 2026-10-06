@@ -8,13 +8,13 @@
 
 现在，生涯也有了一个可以走进去的 3D 世界。你是一只小鸡，有自己的宿舍、俱乐部、手机和电脑。平时培养选手、安排赛季；到了比赛日，可以模拟比赛、用 RTS 指挥队伍，也可以进入 CS2，亲自打出这场比赛。
 
-[下载 1.7.1](https://github.com/bel1ever1314/cs2-career/releases/latest) · [下载 1.6.0 桌面版](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.6.0-hotfix.1) · [更新日志](RELEASE_NOTES.md) · [交流与反馈](https://github.com/bel1ever1314/cs2-career/issues)
+[下载 1.7.2](https://github.com/bel1ever1314/cs2-career/releases/latest) · [下载 1.6.0 桌面版](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.6.0-hotfix.1) · [更新日志](RELEASE_NOTES.md) · [交流与反馈](https://github.com/bel1ever1314/cs2-career/issues)
 
-当前版本是 **1.7.1**，整理了最近的购买、队友发枪和战术更新。原来的桌面版 **1.6.0-hotfix.1** 也保留下载。
+当前版本是 **1.7.2**，修正不同地图的战术加载，加入自定义 VPK 模板，调整 Rating 与比赛战绩回传。原来的桌面版 **1.6.0-hotfix.1** 也保留下载。
 
 ### 开始游玩
 
-1. 打开 [最新发布页](https://github.com/bel1ever1314/cs2-career/releases/latest)，下载 `CS2Career-1.7.1-windows.zip`。
+1. 打开 [最新发布页](https://github.com/bel1ever1314/cs2-career/releases/latest)，下载 `CS2Career-1.7.2-windows.zip`。
 2. 完整解压到可写入的文件夹，双击 `开始游戏.cmd` 或 `Launch-CS2Career.cmd`。
 3. 按开局引导创建角色、抽取能力并调整小鸡形象，也可以选择年代接管职业选手。
 4. 进入宿舍后，去电脑前按 `E` 看看今天能做什么，或按 `P` 拿出手机。
@@ -88,13 +88,13 @@ An unofficial CS2 player-career game. The idea is to give each match a story of 
 
 The career now has a 3D world to walk around in. You're a chicken with a dorm room, a club, a phone, and a computer. Develop your player and plan the season between matches; on match day, simulate the series, command your team in RTS, or enter CS2 and play it yourself.
 
-[Download 1.7.1](https://github.com/bel1ever1314/cs2-career/releases/latest) · [Download the 1.6.0 desktop release](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.6.0-hotfix.1) · [Changelog](RELEASE_NOTES.md) · [Feedback](https://github.com/bel1ever1314/cs2-career/issues)
+[Download 1.7.2](https://github.com/bel1ever1314/cs2-career/releases/latest) · [Download the 1.6.0 desktop release](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.6.0-hotfix.1) · [Changelog](RELEASE_NOTES.md) · [Feedback](https://github.com/bel1ever1314/cs2-career/issues)
 
-The current version is **1.7.1**, bringing together the recent buying, teammate-drop and tactics updates. The **1.6.0-hotfix.1** desktop version remains available separately.
+The current version is **1.7.2**, with per-map tactic loading, custom VPK templates, uncapped Rating and match-result fixes. The **1.6.0-hotfix.1** desktop version remains available separately.
 
 ### Getting started
 
-1. Open the [latest release](https://github.com/bel1ever1314/cs2-career/releases/latest) and download `CS2Career-1.7.1-windows.zip`.
+1. Open the [latest release](https://github.com/bel1ever1314/cs2-career/releases/latest) and download `CS2Career-1.7.2-windows.zip`.
 2. Extract the entire archive into a writable folder. Run `Launch-CS2Career.cmd` or `开始游戏.cmd`.
 3. Follow the opening flow to create a player, draft abilities, and customize your chicken, or choose an era and take over a professional player.
 4. In your dorm, walk to the computer and press `E`, or press `P` to take out your phone.

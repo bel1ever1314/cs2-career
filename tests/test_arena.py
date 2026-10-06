@@ -179,7 +179,7 @@ class ArenaTests(unittest.TestCase):
             manifest=generate_match_vpk(csgo,match,'Medium',self.root/'cache')
             launch.install_match_identities(csgo,match)
             self.assertEqual(count,manifest['count']);self.assertTrue(active_manifest(csgo)['valid'])
-            self.assertEqual(count,len(PROFILE_RE.findall(read_db(csgo/'overrides/botprofile.vpk'))))
+            self.assertEqual(count,len(PROFILE_RE.findall(read_db(csgo/'overrides/career_botprofile.vpk'))))
             bots=[p for side in ('ct','t') for p in match[side]['players']]
             self.assertEqual(count,len({p['steam_id'] for p in bots}))
             self.assertEqual('observer_match_10' if not human else 'career_match_9',manifest['type'])

@@ -49,7 +49,7 @@ class PatchedGameInfoTests(unittest.TestCase):
         after = gameinfo.patched_gameinfo(MERGED_GAMEINFO)
         expected = MERGED_GAMEINFO.replace(
             '            Game csgo\n',
-            '            Game\tcsgo/overrides/botprofile.vpk\n'
+            '            Game\tcsgo/overrides/career_botprofile.vpk\n'
             '            Game\tcsgo/addons/metamod\n'
             '            Game csgo\n', 1)
         self.assertEqual(expected, after)
@@ -59,15 +59,15 @@ class PatchedGameInfoTests(unittest.TestCase):
     def test_existing_mounts_are_idempotent_with_quoted_keys_and_path_variants(self):
         text = MINIMAL_GAMEINFO.replace(
             '            Game csgo\n',
-            '            "gAmE" "CSGO\\OVERRIDES\\BOTPROFILE.VPK/"\n'
+            '            "gAmE" "CSGO\\OVERRIDES\\CAREER_BOTPROFILE.VPK/"\n'
             '            "GAME" "CSGO/addons/METAMOD/"\n'
             '            Game csgo\n')
         self.assertEqual(text, gameinfo.patched_gameinfo(text))
 
     def test_one_existing_mount_is_not_duplicated(self):
         for mounted, missing in (
-            ('csgo/overrides/botprofile.vpk', 'csgo/addons/metamod'),
-            ('csgo/addons/metamod', 'csgo/overrides/botprofile.vpk'),
+            ('csgo/overrides/career_botprofile.vpk', 'csgo/addons/metamod'),
+            ('csgo/addons/metamod', 'csgo/overrides/career_botprofile.vpk'),
         ):
             with self.subTest(mounted=mounted):
                 text = MINIMAL_GAMEINFO.replace(
@@ -99,7 +99,7 @@ class PatchedGameInfoTests(unittest.TestCase):
 '''.replace('\n', '\r\n')
         expected = text.replace(
             '            "Game" "csgo"',
-            '            Game\tcsgo/overrides/botprofile.vpk\r\n'
+            '            Game\tcsgo/overrides/career_botprofile.vpk\r\n'
             '            Game\tcsgo/addons/metamod\r\n'
             '            "Game" "csgo"', 1)
         after = gameinfo.patched_gameinfo(text)

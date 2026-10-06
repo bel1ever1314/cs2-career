@@ -6,7 +6,8 @@
  function trend(rows){
    const values=[...rows].reverse().filter(r=>r.rating!=null);
    if(!values.length)return ui.empty('暂无比赛。完成比赛后这里会显示最近10图的 Rating 走势。');
-   const x=i=>30+i*700/Math.max(1,values.length-1), y=r=>140-(Math.max(.2,Math.min(2.5,r))-.2)*110/2.3;
+   const ceiling=Math.max(2.5,...values.map(r=>Number(r.rating)||0));
+   const x=i=>30+i*700/Math.max(1,values.length-1), y=r=>140-(Math.max(.2,r)-.2)*110/(ceiling-.2);
    return `<svg class="rating-chart" viewBox="0 0 760 165" role="img" aria-label="最近十张地图Rating走势"><line x1="20" y1="${y(1)}" x2="745" y2="${y(1)}" stroke="#4b5260" stroke-dasharray="4 5"/><text x="20" y="${y(1)-5}">1.00</text><polyline points="${values.map((r,i)=>`${x(i)},${y(r.rating)}`).join(' ')}" fill="none" stroke="#ff9559" stroke-width="3"/>${values.map((r,i)=>`<circle cx="${x(i)}" cy="${y(r.rating)}" r="4" fill="#ff9559"><title>${esc(r.map)} ${ui.num(r.rating,2)}</title></circle><text x="${x(i)}" y="${y(r.rating)-10}" text-anchor="middle">${ui.num(r.rating,2)}</text>`).join('')}</svg>`;
  }
  function history(rows,kind){

@@ -1,7 +1,7 @@
 extends RefCounted
 ## One unsaved form shared by phone and workstation; Python validates every write.
 const UI = preload("res://scripts/computer_ui.gd")
-const BOT_DEFAULTS := {"bot_aim":"mixed", "bot_nades":"normal", "bot_identity":"player", "bot_movement":"classic", "match_chat":"on"}
+const BOT_DEFAULTS := {"bot_aim":"mixed", "bot_nades":"normal", "bot_identity":"player", "bot_movement":"classic", "match_chat":"on", "bot_profile_mode":"career", "bot_profile_source":""}
 var draft: Dictionary = {}
 var dirty := false
 var pending := false
@@ -130,6 +130,17 @@ func render(host: Node, parent: Node, compact: bool = false) -> void:
 	action_buttons.append(environment_refresh)
 	UI.label(parent, "人机难度", 12, UI.MUTED)
 	options(parent, "difficulty", [{"id":"Low", "name":"低"}, {"id":"Medium", "name":"中"}, {"id":"High", "name":"高"}], "Medium")
+	UI.label(parent, "BotProfile 来源", 12, UI.MUTED)
+	options(parent, "bot_profile_mode", [{"id":"career", "name":"生涯能力模板"}, {"id":"custom", "name":"我的 VPK 模板"}], "career")
+	var profile_source := LineEdit.new()
+	profile_source.name = "DeviceSetting_bot_profile_source"
+	UI.line_edit(profile_source)
+	profile_source.text = str(draft.get("bot_profile_source", ""))
+	profile_source.placeholder_text = "自定义 botprofile.vpk 的完整路径"
+	parent.add_child(profile_source)
+	form_controls.append(profile_source)
+	profile_source.text_changed.connect(func(value: String): set_value("bot_profile_source", value))
+	UI.label(parent, "读取你的 Default 和模板参数，原 VPK 不改动；本场选手姓名与战绩仍由生涯管理。", 12, UI.MUTED)
 	UI.label(parent, "瞄准预设", 12, UI.MUTED)
 	options(parent, "bot_aim", [{"id":"head", "name":"头部优先"}, {"id":"mixed", "name":"混合"}, {"id":"body", "name":"身体优先"}], "mixed")
 	UI.label(parent, "选择人机优先瞄准的部位；个人能力与比赛难度仍会影响枪法。", 12, UI.MUTED)
@@ -226,7 +237,7 @@ func submit() -> void:
 
 func _send_settings() -> void:
 	var settings := {}
-	for key in ["steam_exe", "csgo_path", "mod_source_path", "difficulty", "skins_source_path", "skins_inventory_mode", "bot_aim", "bot_nades", "bot_identity", "match_chat"]:
+	for key in ["steam_exe", "csgo_path", "mod_source_path", "difficulty", "skins_source_path", "skins_inventory_mode", "bot_aim", "bot_nades", "bot_identity", "match_chat", "bot_profile_mode", "bot_profile_source"]:
 		var fallback := str(BOT_DEFAULTS.get(key, "Medium" if key == "difficulty" else ("career" if key == "skins_inventory_mode" else "")))
 		settings[key] = str(draft.get(key, fallback)).strip_edges()
 	settings["bot_movement"] = "classic"

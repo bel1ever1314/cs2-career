@@ -74,7 +74,7 @@ class ImproverPresetTests(unittest.TestCase):
                 if old is not None:
                     self.assertEqual(current, old)
                 old = current
-                db = read_db(root/'overrides/botprofile.vpk')
+                db = read_db(root/'overrides/career_botprofile.vpk')
                 self.assertEqual(len(re.findall(r'(?m)^.*"C2C_', db)), 9)
                 for bot in manifest['bots']:
                     self.assertIn(_profile_block(bot), db)

@@ -4,6 +4,7 @@ const UI = preload("res://scripts/computer_ui.gd")
 const Scoreboard = preload("res://scripts/career_match_scoreboard.gd")
 const RoundStrip = preload("res://scripts/career_match_round_strip.gd")
 const TeamVisuals = preload("res://scripts/team_visuals.gd")
+const Kit = preload("res://scripts/ui_kit.gd")
 const MAP_SECONDS := 2.0
 const STATS_SECONDS := 4.0
 const ROUND_SECONDS := 0.28
@@ -85,68 +86,102 @@ func current_connection() -> Dictionary:
 func is_interrupted() -> bool:
 	return str(current_connection().get("status", "")) == "interrupted"
 
+## Broadcast tables keep exact pixel sizes so a full ten-player result fits
+## one monitor; ordinary pages use the larger device type scale.
+func _text(parent: Node, value: String, size: int = 14, color: Color = UI.INK) -> Label:
+	return UI.label_exact(parent, value, size, color) if is_presenting() else UI.label(parent, value, size, color)
+
 func is_presenting() -> bool:
 	return request_pending or not result.is_empty()
+
+const STAGE_NAMES := {"GF":"总决赛", "SF":"半决赛", "QF":"四分之一决赛", "R16":"十六强", "LB":"败者组", "UB":"胜者组", "GS":"小组赛", "SW":"瑞士轮"}
+
+func _stage_name(code: String) -> String:
+	return str(STAGE_NAMES.get(code.to_upper(), code))
 
 func render(parent: Node) -> void:
 	if not result.is_empty():
 		render_reveal(parent)
 		return
 	var game := current_game()
-	UI.label(parent, "职业比赛", 25)
 	if game.is_empty():
-		UI.label(parent, "还没有安排下一场比赛。", 14, UI.MUTED)
+		Kit.empty_state(parent, UI, "match", "还没有下一场比赛", "接受赛事邀请后，赛程会出现在这里。")
 		host._button(parent, "查看赛事日程", host._navigate.bind("events"), false)
+		_match_footer(parent)
+		return
+	var own := str(CareerBridge.context.get("team", {}).get("name", ""))
+	var plan := attendance()
+	var details: Array[String] = [Kit.short_date(str(game.get("date", ""))) if str(game.get("date", "")).length() >= 10 else str(game.get("date", ""))]
+	if not str(game.get("stage", "")).is_empty(): details.append(_stage_name(str(game.get("stage", ""))))
+	details.append("BO%s" % game.get("best_of", 3))
+	if not str(plan.get("display_name", "")).is_empty(): details.append(str(plan.display_name))
+	Kit.match_hero(parent, UI, own, str(game.get("opponent", "")), str(game.get("event", "下一场比赛")), " · ".join(details), str(game.get("tier", game.get("event_type", ""))))
+	var due := bool(game.get("due", false))
+	if request_pending:
+		var progress := "正在读取本场结果……"
+		if pending_action in ["preflight", "veto", "autoveto"]: progress = "正在核对本场比赛、阵容与地图……"
+		elif pending_action == "launch": progress = "正在启动 CS2……"
+		elif pending_action == "collect": progress = "正在读取 CS2 战绩……"
+		_text(parent, progress, 14, UI.MUTED)
+	elif due:
+		var actions := HBoxContainer.new()
+		actions.add_theme_constant_override("separation", 12)
+		parent.add_child(actions)
+		var simulate: Button = host._button(actions, "模拟当前比赛", simulate_match.bind(str(game.get("id", ""))))
+		simulate.name = "CareerMatchSimulate"
+		if current_preflight().has("can_simulate"): simulate.disabled = simulate.disabled or not bool(current_connection().get("can_simulate", current_preflight().get("can_simulate", false)))
+		Kit.action_tile(simulate, UI, "模拟比赛", "直接出结果，看逐回合战报", true)
+		var play: Button = host._button(actions, "自己去 CS2 打", prepare_real.bind(str(game.get("id", ""))))
+		play.name = "CareerMatchPlayCS2"
+		Kit.action_tile(play, UI, "亲自上场", "进入 CS2 打这场比赛")
+		var rts: Button = host._button(actions, "RTS 指挥比赛", open_rts.bind(str(game.get("id", ""))))
+		rts.name = "CareerMatchPlayRTS"
+		if current_preflight().has("can_simulate"): rts.disabled = rts.disabled or not bool(current_connection().get("can_rts", current_preflight().get("can_simulate", false)))
+		Kit.action_tile(rts, UI, "场边指挥", "俯视地图，指挥队伍打完")
 	else:
-		var box := UI.card(parent)
-		UI.label(box, str(game.get("event", "下一场比赛")), 20)
-		UI.label(box, "%s · 对阵 %s · BO%s" % [game.get("date", ""), game.get("opponent", ""), game.get("best_of", 3)], 16)
-		var plan := attendance()
-		if not str(plan.get("display_name", "")).is_empty():
-			UI.label(box, "比赛地点 · " + str(plan.display_name), 16)
-			UI.label(box, str(plan.get("instruction", "")), 13, UI.MUTED)
-		var due := bool(game.get("due", false))
-		if request_pending:
-			var progress := "正在读取本场结果……"
-			if pending_action in ["preflight", "veto", "autoveto"]: progress = "正在核对本场比赛、阵容与地图……"
-			elif pending_action == "launch": progress = "正在启动 CS2，请稍候……"
-			elif pending_action == "collect": progress = "正在检查 CS2 战绩……"
-			UI.label(box, progress, 14, UI.MUTED)
-		elif due:
-			var actions := HBoxContainer.new()
-			actions.add_theme_constant_override("separation", 12)
-			box.add_child(actions)
-			var simulate: Button = host._button(actions, "模拟当前比赛", simulate_match.bind(str(game.get("id", ""))))
-			simulate.name = "CareerMatchSimulate"
-			if current_preflight().has("can_simulate"): simulate.disabled = simulate.disabled or not bool(current_connection().get("can_simulate", current_preflight().get("can_simulate", false)))
-			UI.primary(simulate)
-			var play: Button = host._button(actions, "自己去 CS2 打", prepare_real.bind(str(game.get("id", ""))))
-			play.name = "CareerMatchPlayCS2"
-			var rts: Button = host._button(actions, "RTS 指挥比赛", open_rts.bind(str(game.get("id", ""))))
-			rts.name = "CareerMatchPlayRTS"
-			if current_preflight().has("can_simulate"): rts.disabled = rts.disabled or not bool(current_connection().get("can_rts", current_preflight().get("can_simulate", false)))
-		else:
-			UI.label(box, "可以先睡到比赛当天早上，再点“自己去 CS2 打”前往场馆；门口也能选择比赛地点。", 13, UI.MUTED)
-			UI.primary(host._button(box, "亲自参赛 · 睡到比赛日", prepare_real.bind(str(game.get("id", "")))))
-			host._button(box, "只推进到比赛日", CareerBridge.calendar.bind(str(game.get("date", "")), true))
-		if (due and show_real and can_prepare_here()) or str(current_preflight().get("phase", "")) in ["waiting", "starting", "launched"] or is_interrupted():
-			render_preflight(parent)
-	if not notice.is_empty(): UI.label(parent, notice, 13, UI.MUTED)
+		var actions := HBoxContainer.new()
+		actions.add_theme_constant_override("separation", 12)
+		parent.add_child(actions)
+		var attend: Button = host._button(actions, "亲自参赛 · 睡到比赛日", prepare_real.bind(str(game.get("id", ""))))
+		Kit.action_tile(attend, UI, "睡到比赛日", "比赛当天早上去现场", true)
+		var skip: Button = host._button(actions, "只推进到比赛日", CareerBridge.calendar.bind(str(game.get("date", "")), true))
+		Kit.action_tile(skip, UI, "推进到比赛日", "跳过中间的日子")
+	if (due and show_real and can_prepare_here()) or str(current_preflight().get("phase", "")) in ["waiting", "starting", "launched"] or is_interrupted():
+		render_preflight(parent)
+	if not notice.is_empty(): _text(parent, notice, 13, UI.MUTED)
 	if not last_result.is_empty():
 		host._button(parent, "查看刚才的完整战报", open_saved.bind(last_result), false)
-	UI.label(parent, "本赛季的节奏", 18)
-	host._button(parent, "快速赛季 ›", host._navigate.bind("quick"), false)
+	_match_footer(parent)
+
+func _match_footer(parent: Node) -> void:
+	var recent: Array = CareerBridge.context.get("recent_matches", [])
+	if not recent.is_empty():
+		Kit.section(parent, UI, "最近比赛", "", 16)
+		for game_row in recent.slice(0, 5):
+			var series = game_row.get("series", [])
+			var score := "%s : %s" % [series[0], series[1]] if series is Array and series.size() == 2 else ""
+			var row_button := Button.new()
+			row_button.text = "%s %s %s" % [game_row.get("team_a", ""), score, game_row.get("team_b", "")]
+			row_button.focus_mode = Control.FOCUS_ALL
+			parent.add_child(row_button)
+			Kit.rich_row(row_button, UI, row_button.text, "%s · %s" % [Kit.short_date(str(game_row.get("date", ""))), game_row.get("event", "")], "", "", "gray", "match")
+			row_button.pressed.connect(host._load_detail.bind("match", str(game_row.get("id", ""))))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	parent.add_child(row)
+	UI.compact(host._button(row, "快速赛季 ›", host._navigate.bind("quick"), false))
+	UI.compact(host._button(row, "赛事日程 ›", host._navigate.bind("events"), false))
 
 func render_preflight(parent: Node) -> void:
 	var info := current_preflight()
 	var card := UI.card(parent)
-	UI.label(card, "进入 CS2 前的准备", 19)
+	_text(card, "进入 CS2 前的准备", 19)
 	if info.is_empty():
-		UI.label(card, "正在核对本场比赛、阵容与地图……", 13, UI.MUTED)
+		_text(card, "正在核对本场比赛、阵容与地图……", 13, UI.MUTED)
 		return
 	var blocked := str(info.get("block_reason", ""))
 	if not blocked.is_empty():
-		UI.label(card, blocked, 14, UI.MUTED)
+		_text(card, blocked, 14, UI.MUTED)
 		if not CareerBridge.context.get("stories", []).is_empty(): host._button(card, "查看赛前决定", host._open_phone.bind("stories"), false)
 	var veto: Dictionary = info.get("veto", {})
 	# The backend uses null for no active turn (in particular after BP completes).
@@ -157,17 +192,17 @@ func render_preflight(parent: Node) -> void:
 	if completed_veto and not steps.is_empty():
 		# Keep side/launch controls in view after a long BP. History expands only
 		# on an explicit click; status polling never changes scrolling or focus.
-		UI.label(card, "地图 BP 已完成 · %d 项记录" % steps.size(), 12, UI.MUTED)
+		_text(card, "地图 BP 已完成 · %d 项记录" % steps.size(), 12, UI.MUTED)
 	for step in steps if not completed_veto or veto_history_expanded else []:
 		var team_value = step.get("team")
 		var team_name := str(team_value) if team_value is String else ""
 		var step_label := str({"pick":"选图", "ban":"禁图", "decider":"决胜图"}.get(str(step.get("action", "")), "地图"))
 		var step_text := "%s · %s" % [step_label, step.get("map", "")]
 		if not team_name.is_empty(): step_text = team_name + " · " + step_text
-		UI.label(card, step_text, 12, UI.MUTED)
+		_text(card, step_text, 12, UI.MUTED)
 	var id := str(info.get("match_id", ""))
 	if not veto.is_empty() and not veto.get("complete", false) and turn is Dictionary:
-		UI.label(card, "%s · %s" % [turn.get("team", ""), "选择地图" if turn.get("action", "") == "pick" else "禁用地图"], 17)
+		_text(card, "%s · %s" % [turn.get("team", ""), "选择地图" if turn.get("action", "") == "pick" else "禁用地图"], 17)
 		var choices := HBoxContainer.new()
 		card.add_child(choices)
 		for map_name in veto.get("available", []):
@@ -177,12 +212,12 @@ func render_preflight(parent: Node) -> void:
 	var map_value = info.get("pending_map", "")
 	# null is the legitimate pre-BP state, not a map named "<null>".
 	var map_name := str(map_value.get("map", "")) if map_value is Dictionary else str(map_value) if map_value is String else ""
-	if not map_name.is_empty(): UI.label(card, "下一图 · " + map_name.trim_prefix("de_").capitalize(), 17)
+	if not map_name.is_empty(): _text(card, "下一图 · " + map_name.trim_prefix("de_").capitalize(), 17)
 	var phase := str(info.get("phase", ""))
 	var linked := current_connection()
 	if str(linked.get("status", "")) == "interrupted":
-		UI.label(card, str(linked.get("reason", "CS2 已退出，本场比赛尚未结束。")), 14, UI.MUTED)
-		UI.label(card, "重新进入会重开当前未完成地图；已完成的地图和战绩保留。也可以直接继续模拟或切换 RTS。", 13, UI.MUTED)
+		_text(card, str(linked.get("reason", "CS2 已退出，本场比赛尚未结束。")), 14, UI.MUTED)
+		_text(card, "重新进入会重开当前未完成地图；已完成的地图和战绩保留。也可以直接继续模拟或切换 RTS。", 13, UI.MUTED)
 		if bool(linked.get("can_resume", false)):
 			var resume: Button = host._button(card, "重新进入 CS2 · 重开当前图", resume_real.bind(id))
 			resume.name = "CareerMatchResumeCS2"
@@ -194,7 +229,7 @@ func render_preflight(parent: Node) -> void:
 			var rts: Button = host._button(card, "切换 RTS · 重开当前图", open_rts.bind(id), false)
 			rts.name = "CareerMatchResumeRTS"
 	elif phase in ["waiting", "starting", "launched"] or str(linked.get("status", "")) in ["waiting", "failed", "blocked"]:
-		UI.label(card, str(linked.get("reason", "CS2 正在进行。赛后会读取这一图的真实结果。")), 14, UI.MUTED)
+		_text(card, str(linked.get("reason", "CS2 正在进行。赛后会读取这一图的真实结果。")), 14, UI.MUTED)
 		if bool(linked.get("can_collect", phase in ["waiting", "starting", "launched"])):
 			host._button(card, "检查并录入 CS2 战绩", command.bind("collect", {"match_id":id}))
 		if bool(linked.get("can_retry", false)):
@@ -205,15 +240,14 @@ func render_preflight(parent: Node) -> void:
 		UI.primary(host._button(row, "CT 开场 · 进入 CS2", command.bind("launch", {"match_id":id, "side":"ct"})))
 		host._button(row, "T 开场 · 进入 CS2", command.bind("launch", {"match_id":id, "side":"t"}))
 	elif bool(info.get("can_launch", false)):
-		UI.label(card, str(linked.get("reason", "正在确认 CS2 已退出……")), 13, UI.MUTED)
+		_text(card, str(linked.get("reason", "正在确认 CS2 已退出……")), 13, UI.MUTED)
 	else:
 		var config: Dictionary = info.get("config", {})
 		var reason := str(linked.get("reason", config.get("reason", "")))
-		if not reason.is_empty() and reason != blocked: UI.label(card, reason, 13, UI.MUTED)
+		if not reason.is_empty() and reason != blocked: _text(card, reason, 13, UI.MUTED)
 	if completed_veto and not steps.is_empty():
 		host._button(card, "收起地图 BP 记录" if veto_history_expanded else "查看地图 BP 记录", toggle_veto_history, false)
-	UI.label(card, "路径、Bot Improver 难度和换肤来源在设置中配置。", 12, UI.MUTED)
-	host._button(card, "打开 CS2 设置", host._navigate.bind("settings"), false)
+	UI.compact(host._button(card, "CS2 设置 ›", host._navigate.bind("settings"), false))
 
 func toggle_veto_history() -> void:
 	veto_history_expanded = not veto_history_expanded
@@ -377,37 +411,50 @@ func render_reveal(parent: Node) -> void:
 		teams.add_theme_constant_override("separation", 10)
 		parent.add_child(teams)
 		TeamVisuals.badge(teams, str(result.get("team_a", "")), 28)
-		UI.label(teams, "%s  /  %s" % [result.get("team_a", ""), result.get("team_b", "")], 20)
+		_text(teams, "%s  /  %s" % [result.get("team_a", ""), result.get("team_b", "")], 20)
 		TeamVisuals.badge(teams, str(result.get("team_b", "")), 28)
 	var source_names := {"cs2":"CS2 实战", "rts":"RTS 指挥 · 简化模拟", "mixed":"系列赛 · 混合方式", "simulated":"模拟比赛"}
-	UI.label(parent, "%s · %s · %s" % [result.get("event", ""), result.get("date", ""), source_names.get(str(result.get("source", "")), "模拟比赛")], 12, UI.MUTED)
+	_text(parent, "%s · %s · %s" % [result.get("event", ""), result.get("date", ""), source_names.get(str(result.get("source", "")), "模拟比赛")], 12, UI.MUTED)
 	var maps: Array = result.get("maps", [])
 	if reveal_phase == "maps":
 		var revealed: Dictionary = reveal_maps[clampi(map_cursor, 0, reveal_maps.size() - 1)]
-		var stage := score_stage(parent, str(revealed.get("map", "")), 85)
+		var stage := score_stage(parent, str(revealed.get("map", "")), 96)
 		var score_row := HBoxContainer.new()
+		score_row.add_theme_constant_override("separation", 14)
 		stage.add_child(score_row)
-		score_label = UI.label(score_row, "", 32)
+		# Broadcast layout: team A · score · team B, details on the right.
+		var spacer := Control.new(); spacer.custom_minimum_size.x = 235; score_row.add_child(spacer)
+		var middle := HBoxContainer.new()
+		middle.alignment = BoxContainer.ALIGNMENT_CENTER
+		middle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		middle.add_theme_constant_override("separation", 14)
+		score_row.add_child(middle)
+		_score_team(middle, str(result.get("team_a", "")), true)
+		score_label = _text(middle, "", 34)
 		score_label.name = "CareerLiveScore"
+		score_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+		score_label.custom_minimum_size.x = 110
+		score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_score_team(middle, str(result.get("team_b", "")), false)
 		var stage_details := VBoxContainer.new()
 		stage_details.custom_minimum_size.x = 235
 		stage_details.size_flags_horizontal = Control.SIZE_SHRINK_END
 		stage_details.add_theme_constant_override("separation", 1)
 		score_row.add_child(stage_details)
-		series_label = UI.label(stage_details, "", 11, UI.MUTED)
-		phase_label = UI.label(stage_details, "", 12, UI.MUTED)
-		round_label = UI.label(stage_details, "", 11, UI.MUTED)
+		series_label = _text(stage_details, "", 11, UI.MUTED)
+		phase_label = _text(stage_details, "", 12, UI.MUTED)
+		round_label = _text(stage_details, "", 11, UI.MUTED)
 		for label in [series_label, phase_label, round_label]:
 			label.autowrap_mode = TextServer.AUTOWRAP_OFF
 			label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		var strip_heading := UI.label(parent, "回合结果   蓝：你方获胜   红：你方失利   ·   12 回合换边", 11, UI.MUTED)
+		var strip_heading := _text(parent, "回合结果   蓝：你方获胜   红：你方失利   ·   12 回合换边", 11, UI.MUTED)
 		strip_heading.name = "CareerRoundStripLegend"
 		stats_note = strip_heading
 		stats_note.autowrap_mode = TextServer.AUTOWRAP_OFF
 		stats_note.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		round_strip = RoundStrip.new()
 		parent.add_child(round_strip)
-		event_label = UI.label(parent, "", 12, UI.INK)
+		event_label = _text(parent, "", 12, UI.INK)
 		event_label.name = "CareerRoundEvent"
 		event_label.max_lines_visible = 1
 		event_label.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -416,12 +463,12 @@ func render_reveal(parent: Node) -> void:
 		paint_round()
 	else:
 		var stage := score_stage(parent, str(maps[-1].get("map", "")) if not maps.is_empty() else "", 64)
-		UI.label(stage, ("最终比分 · " if bool(result.get("played", true)) else "本图已录入 · 系列赛 ") + score_text(result.get("series", "")), 24, winner_color(str(result.get("winner", ""))))
+		_text(stage, ("最终比分 · " if bool(result.get("played", true)) else "本图已录入 · 系列赛 ") + score_text(result.get("series", "")), 24, winner_color(str(result.get("winner", ""))))
 		var recap: Array[String] = []
 		for map_row in maps: recap.append("%s %s" % [str(map_row.get("map", "")).trim_prefix("de_").capitalize(), score_text(map_row.get("score", ""))])
-		UI.label(stage, "  ·  ".join(recap), 12, UI.MUTED)
+		_text(stage, "  ·  ".join(recap), 12, UI.MUTED)
 		stats(parent, result.get("totals", []))
-		if not bool(result.get("data_complete", true)): UI.label(parent, "战绩仍有缺项；缺失的字段按原记录显示。", 12, UI.MUTED)
+		if not bool(result.get("data_complete", true)): _text(parent, "战绩仍有缺项；缺失的字段按原记录显示。", 12, UI.MUTED)
 		var actions := HBoxContainer.new()
 		parent.add_child(actions)
 		var next: Button = host._button(actions, "下一场" if quick_running else ("准备下一张 CS2 地图" if show_real else "继续"), continue_result, false)
@@ -431,13 +478,28 @@ func render_reveal(parent: Node) -> void:
 		UI.primary(next)
 		for state in ["normal", "hover", "pressed", "disabled"]: next.add_theme_stylebox_override(state, UI.style(UI.GREEN if state != "disabled" else UI.MINT, 5, 8))
 		if not continue_ready and not quick_running: next.text = "先看看本场表现 · 稍后继续"
-		if quick_running and not continue_ready: UI.label(actions, "%.0f 秒后自动继续" % STATS_SECONDS, 12, UI.MUTED)
+		if quick_running and not continue_ready: _text(actions, "%.0f 秒后自动继续" % STATS_SECONDS, 12, UI.MUTED)
 		if quick_running: host._button(actions, "暂停快速赛季", pause_quick, false)
 		var is_rts := str(result.get("source", "")) == "rts" or (not maps.is_empty() and str(maps[-1].get("source", "")) == "rts")
 		if not bool(result.get("played", true)) and is_rts:
 			var resume_rts: Button = host._button(actions, "下一张继续 RTS", Callable(host.rts_room, "resume_series"), false)
 			resume_rts.name = "CareerMatchResumeRTS"
 			resume_rts.disabled = not continue_ready or not host.rts_room.has_method("resume_series")
+
+func _score_team(parent: Node, team: String, left: bool) -> void:
+	var box := HBoxContainer.new()
+	box.add_theme_constant_override("separation", 8)
+	box.alignment = BoxContainer.ALIGNMENT_END if left else BoxContainer.ALIGNMENT_BEGIN
+	box.custom_minimum_size.x = 200
+	parent.add_child(box)
+	var name_label := _text(box, team, 17)
+	name_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT if left else HORIZONTAL_ALIGNMENT_LEFT
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var mark := TeamVisuals.badge(box, team, 40)
+	if mark and left: box.move_child(mark, box.get_child_count() - 1)
+	elif mark: box.move_child(mark, 0)
 
 func score_stage(parent: Node, map_name: String, height: int) -> VBoxContainer:
 	var winner := ""
@@ -469,13 +531,13 @@ func score_stage(parent: Node, map_name: String, height: int) -> VBoxContainer:
 			card.add_child(art)
 			var veil := ColorRect.new()
 			veil.name = "CareerScoreTint"
-			veil.color = Color(surface_color, 0.82)
+			veil.color = Color(surface_color, 0.74)
 			veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			card.add_child(veil)
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 2)
 	card.add_child(column)
-	if reveal_phase == "maps": UI.label(column, "第 %d 图 · %s" % [int(reveal_maps[map_cursor].get("index", map_cursor)) + 1, map_name.trim_prefix("de_").capitalize()], 13, UI.MUTED)
+	if reveal_phase == "maps": _text(column, "第 %d 图 · %s" % [int(reveal_maps[map_cursor].get("index", map_cursor)) + 1, map_name.trim_prefix("de_").capitalize()], 13, UI.MUTED)
 	return column
 
 func winner_color(winner: String) -> Color:
@@ -524,7 +586,12 @@ static func score_text(value: Variant) -> String:
 		var left := str(int(value[0])) if typeof(value[0]) in [TYPE_INT, TYPE_FLOAT] else str(value[0])
 		var right := str(int(value[1])) if typeof(value[1]) in [TYPE_INT, TYPE_FLOAT] else str(value[1])
 		return "%s : %s" % [left, right]
-	return str(value)
+	# Saved string scores ("13-9") use the same broadcast spacing.
+	var text := str(value)
+	var parts := text.split("-")
+	if parts.size() == 2 and parts[0].strip_edges().is_valid_int() and parts[1].strip_edges().is_valid_int():
+		return "%s : %s" % [parts[0].strip_edges(), parts[1].strip_edges()]
+	return text
 
 func stats(parent: Node, rows: Array, caption: String = "系列赛完整战绩") -> void:
 	var own := str(result.get("player_id", CareerBridge.context.get("player", {}).get("id", "")))
@@ -589,29 +656,29 @@ func render_quick(parent: Node) -> void:
 		render_reveal(parent)
 		return
 	var state := quick_state()
-	UI.label(parent, "快速赛季", 25)
-	UI.label(parent, "一场场展开比赛，赛后留一点时间看完整数据。", 14, UI.MUTED)
-	UI.label(parent, "%s 赛季 · %s" % [state.get("year", str(CareerBridge.context.get("date", "")).left(4)), "快速模式" if state.get("mode", "normal") == "quick" else "正常模式"], 18)
+	_text(parent, "快速赛季", 25)
+	_text(parent, "一场场展开比赛，赛后留一点时间看完整数据。", 14, UI.MUTED)
+	_text(parent, "%s 赛季 · %s" % [state.get("year", str(CareerBridge.context.get("date", "")).left(4)), "快速模式" if state.get("mode", "normal") == "quick" else "正常模式"], 18)
 	if bool(state.get("can_choose", state.get("choice_required", false))):
 		var row := HBoxContainer.new()
 		parent.add_child(row)
 		var season_label := "下赛季" if state.get("season_phase", "") == "end" else "本赛季"
 		UI.primary(host._button(row, season_label + "使用快速模式", choose_mode.bind(true)))
 		host._button(row, season_label + "正常进行", choose_mode.bind(false))
-	if not str(state.get("block_reason", "")).is_empty(): UI.label(parent, str(state.block_reason), 14, UI.MUTED)
+	if not str(state.get("block_reason", "")).is_empty(): _text(parent, str(state.block_reason), 14, UI.MUTED)
 	if is_interrupted():
 		render_preflight(parent)
 	if state.get("mode", "normal") == "quick":
 		if break_pending(state):
 			host._button(parent, "结束这次休赛停留，继续赛季", resume_quick)
 		elif quick_running:
-			UI.label(parent, "快速赛季正在进行。", 16)
+			_text(parent, "快速赛季正在进行。", 16)
 			host._button(parent, "暂停快速赛季", pause_quick, false)
 		elif not bool(state.get("choice_required", false)):
 			UI.primary(host._button(parent, "开始 / 继续快速赛季", start_quick))
 	if not CareerBridge.context.get("stories", []).is_empty(): host._button(parent, "查看待处理的队内事件", host._open_phone.bind("stories"), false)
 	host._button(parent, "职业比赛中心", host._navigate.bind("career_match"), false)
-	if not notice.is_empty(): UI.label(parent, notice, 13, UI.MUTED)
+	if not notice.is_empty(): _text(parent, notice, 13, UI.MUTED)
 
 func choose_mode(enabled: bool) -> void:
 	var state := quick_state()

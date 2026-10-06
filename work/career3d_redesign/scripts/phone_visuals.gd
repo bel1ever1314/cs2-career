@@ -128,6 +128,12 @@ class Landscape extends Control:
 		# Match the original rotated hills, including the sun peeking over the ridge.
 		ellipse(Vector2(w * .30, h + 10), Vector2(w * .50, 105), Color("cee1d2"), deg_to_rad(-11))
 		ellipse(Vector2(w * .75, h + 22), Vector2(w * .60, 120), Color("dae8d8"), deg_to_rad(15))
+		# Let the hills settle into the page instead of ending on a hard clip line.
+		var fade := minf(h * .3, 30.0)
+		var ground := Color("f8f4e9")
+		var clear := Color(ground, 0.0)
+		draw_polygon(PackedVector2Array([Vector2(0, h - fade), Vector2(w, h - fade), Vector2(w, h), Vector2(0, h)]),
+			PackedColorArray([clear, clear, ground, ground]))
 
 static func icon(kind: String, dimensions: Vector2 = Vector2(26, 26)) -> Control:
 	var glyph := Glyph.new()

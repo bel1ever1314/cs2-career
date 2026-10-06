@@ -9,6 +9,7 @@ signal wake_requested
 signal growth_changed
 const Feedback = preload("res://scripts/career_feedback.gd")
 const SleepTransition = preload("res://scripts/sleep_transition.gd")
+const Fmt = preload("res://scripts/ui_format.gd")
 var feedback: CanvasLayer
 var sleep_transition: CanvasLayer
 var sleeping := false
@@ -211,6 +212,10 @@ func _response(result: int,code: int,_headers: PackedStringArray,body: PackedByt
 	var out: Variant = null
 	if result == HTTPRequest.RESULT_SUCCESS and parsed.parse(body.get_string_from_utf8()) == OK:
 		out = parsed.data
+		# Display projections: integral JSON numbers become ints ("#1", not "#1.0").
+		# Tactics/RTS payloads keep their exact parsed form for round-trips.
+		if out is Dictionary and not (path.contains("/tactics") or path.contains("/rts")):
+			out = Fmt.normalize(out)
 	if result!=HTTPRequest.RESULT_SUCCESS or not out is Dictionary:
 		var discarded := queued_command.duplicate(true)
 		queued_command.clear()
@@ -292,6 +297,7 @@ func _return_from_loaded_career() -> void:
 	if not closing and get_tree().current_scene != null: Travel.go("bedroom", false)
 
 func _apply_context(value: Dictionary) -> void:
+	Fmt.normalize(value)
 	var old_date: String=str(context.get("date",""))
 	var old_personal: Dictionary = context.get("personal", {})
 	var new_personal: Dictionary = value.get("personal", {})

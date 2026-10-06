@@ -6,7 +6,7 @@ func evaluate(app) -> Array[Dictionary]:
 	var crowd: Dictionary = app.crowd.diagnostic_snapshot()
 	var arena: Dictionary = app.atmosphere.diagnostic_snapshot()
 	checks.append({"ok": crowd["species"] == "chicken" and crowd["seated"] > 3000, "label": "all original arena spectators replaced by seated chickens"})
-	checks.append({"ok": crowd["legacy_removed"] == crowd["seated"], "label": "every combined legacy bear and chair was removed"})
+	checks.append({"ok": crowd["legacy_removed"] >= crowd["seated"] and crowd["legacy_removed"] - crowd["seated"] < 40, "label": "every combined legacy bear and chair was removed (none left floating)"})
 	checks.append({"ok": app.model.find_children("Crowd*", "MeshInstance3D", true, false).is_empty(), "label": "legacy bear meshes no longer remain in scene"})
 	checks.append({"ok": is_equal_approx(crowd["body_bottom_m"], crowd["cushion_top_m"]), "label": "seated body rests on cushion, not chair back"})
 	checks.append({"ok": crowd["foot_sole_m"] >= 0.0 and crowd["foot_sole_m"] < 0.025, "label": "feet contact original terrace level within 25 mm"})

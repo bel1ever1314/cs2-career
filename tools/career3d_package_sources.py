@@ -19,7 +19,7 @@ import tempfile
 from typing import Mapping
 
 
-VERSION = "1.7.1"
+VERSION = "1.7.2"
 PROJECT = "work/career3d_redesign"
 RTS_PROJECT = "work/career_rts"
 DEFAULT_ASSET_ROOT = Path("E:/CS2CareerTools/Career3DRedesign/assets")

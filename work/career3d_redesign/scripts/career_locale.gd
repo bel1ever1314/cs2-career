@@ -147,10 +147,24 @@ func _preferences_path() -> String:
 	return "user://ui_preferences.json"
 
 func render_picker(parent: Node, compact: bool = false) -> OptionButton:
+	# Devices use a light paper surface; the default theme colour was white and
+	# made this heading invisible. Phone pages also need their side margins.
+	var holder: Node = parent
+	if parent.get_meta("phone_edge", false):
+		var margins := MarginContainer.new()
+		margins.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		margins.add_theme_constant_override("margin_left", 19)
+		margins.add_theme_constant_override("margin_right", 19)
+		parent.add_child(margins)
+		holder = VBoxContainer.new()
+		holder.add_theme_constant_override("separation", 6)
+		margins.add_child(holder)
 	var label := Label.new()
+	label.name = "CareerLanguageHeading"
 	label.text = "界面语言"
 	label.add_theme_font_size_override("font_size", 14 if compact else 16)
-	parent.add_child(label)
+	label.add_theme_color_override("font_color", Color("293e35"))
+	holder.add_child(label)
 	var picker := OptionButton.new()
 	picker.name = "CareerLanguageChoice"
 	picker.add_item("简体中文")
@@ -159,6 +173,6 @@ func render_picker(parent: Node, compact: bool = false) -> OptionButton:
 	picker.set_item_metadata(1, "en")
 	picker.select(1 if language == "en" else 0)
 	picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	parent.add_child(picker)
+	holder.add_child(picker)
 	picker.item_selected.connect(func(index: int): set_language(str(picker.get_item_metadata(index))))
 	return picker

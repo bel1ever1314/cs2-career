@@ -2,11 +2,16 @@ extends Node3D
 const Player = preload("res://scripts/chicken_player.gd")
 const Interactions = preload("res://scripts/club_interactions.gd")
 const CollisionBuilder = preload("res://scripts/club_collision.gd")
+const Hud = preload("res://scripts/world_hud.gd")
 const ClubLife = preload("res://scripts/club_life.gd")
 const Dialogue = preload("res://scripts/npc_dialogue.gd")
 const ClubBoard = preload("res://scripts/club_notice_board.gd")
 const TrophyDisplay = preload("res://scripts/club_trophy_display.gd")
 const SceneTiers = preload("res://scripts/scene_tiers.gd")
+const Kit = preload("res://scripts/stage_kit.gd")
+const Grounds = preload("res://scripts/club_grounds.gd")
+var grounds: Node3D
+var grounds_key := ""
 var club_board: ClubBoard
 var trophy_display: TrophyDisplay
 var life: ClubLife
@@ -46,6 +51,12 @@ var testing := false
 var warm_elapsed := 0.0
 var computer_display: MeshInstance3D
 var overheads: Array[MeshInstance3D] = []
+## Tall meshes that may stand between the camera and the chicken.
+var occluders: Array = []
+var occluder_cells: Dictionary = {}
+var occluder_signature := ""
+var faded_occluders: Dictionary = {}
+const OCCLUDER_CELL := 2.0
 var device_kind := ""
 var environment_tier := "academy"
 
@@ -60,7 +71,8 @@ func _ready() -> void:
 	_environment()
 	player = Player.new()
 	player.name = "ControllableChicken"
-	player.position = Vector3(-.75,.23,6.65)
+	# Start a step inside the gate: the overhead entrance sign hid the chicken.
+	player.position = Vector3(-.75,.23,5.45)
 	player.test_mode = testing
 	add_child(player)
 	player.recovered.connect(func(): _toast("已回到大厅。"))
@@ -189,7 +201,7 @@ func _environment() -> void:
 	var world := WorldEnvironment.new()
 	environment = Environment.new()
 	environment.background_mode = Environment.BG_COLOR
-	environment.background_color = Color("b6c5b9")
+	environment.background_color = Color("9fd7dc")
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color("f7ecd7")
 	environment.ambient_light_energy = .40
@@ -211,12 +223,15 @@ func _environment() -> void:
 		var light := OmniLight3D.new()
 		light.position=pos; light.omni_range=9; light.light_color=Color("ffe5bd"); light.light_energy=.12
 		add_child(light); warm_lights.append(light)
-	var ground := MeshInstance3D.new()
+	var ground := MeshInstance3D.new(); ground.name="SageGround"
 	var plane := PlaneMesh.new(); plane.size=Vector2(250,250); ground.mesh=plane
 	ground.position.y=-.47
 	var mat:=StandardMaterial3D.new(); mat.albedo_color=Color("b6c5b9"); mat.roughness=1
 	ground.material_override=mat; add_child(ground)
 	camera=Camera3D.new(); camera.projection=Camera3D.PROJECTION_ORTHOGONAL
+	# The follow camera is placed every rendered frame from the interpolated
+	# chicken. Engine-side interpolation on top of that caused jitter/warnings.
+	camera.physics_interpolation_mode=Node.PHYSICS_INTERPOLATION_MODE_OFF
 	camera.near=.1; camera.far=200; camera.current=true; add_child(camera)
 
 func _prepare_props() -> void:
@@ -234,6 +249,9 @@ func _prepare_props() -> void:
 			if mesh.global_position.x>-4.2: computer_display=mesh
 
 func _style(color: Color) -> StyleBoxFlat:
+	# Dark HUD panels share the world glass look; light ones are paper notes.
+	if color.v < .4: return Hud.glass(18, 12)
+	if color.v > .85: return Hud.paper(18, 12)
 	var style:=StyleBoxFlat.new(); style.bg_color=color
 	style.corner_radius_top_left=12; style.corner_radius_top_right=12
 	style.corner_radius_bottom_left=12; style.corner_radius_bottom_right=12
@@ -246,7 +264,7 @@ func _text(parent: Node,value: String,size: int=17) -> Label:
 	parent.add_child(label); return label
 
 func _hud() -> void:
-	var canvas:=CanvasLayer.new(); add_child(canvas)
+	var canvas:=CanvasLayer.new(); canvas.name="WorldHud"; add_child(canvas)
 	controls_root=Control.new(); controls_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	controls_root.mouse_filter=Control.MOUSE_FILTER_IGNORE; canvas.add_child(controls_root)
 	var top:=PanelContainer.new(); top.position=Vector2(24,22)
@@ -264,22 +282,17 @@ func _hud() -> void:
 	action_progress=ProgressBar.new(); action_progress.custom_minimum_size.y=7; action_progress.show_percentage=false
 	action_progress.max_value=1.0; stack.add_child(action_progress); action_progress.visible=false
 	action_label=_text(stack,"",15)
-	var shortcuts:=PanelContainer.new();controls_root.add_child(shortcuts)
-	shortcuts.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	shortcuts.offset_left=-260;shortcuts.offset_right=-24;shortcuts.offset_top=-75;shortcuts.offset_bottom=-24
-	shortcuts.add_theme_stylebox_override("panel",_style(Color(.10,.19,.19,.95)))
-	var row:=HBoxContainer.new(); row.add_theme_constant_override("separation",10); shortcuts.add_child(row)
-	var phone_button:=Button.new(); phone_button.text="P 手机"; phone_button.pressed.connect(func():Phone.present()); row.add_child(phone_button)
-	phone_button.focus_mode=Control.FOCUS_NONE
-	var help_button:=Button.new(); help_button.text="F1 帮助"; help_button.focus_mode=Control.FOCUS_NONE
-	help_button.pressed.connect(_toggle_help); row.add_child(help_button)
+	var row:=Hud.hint_bar(controls_root)
+	Hud.key_button(row,"P","手机",func():Phone.present())
+	Hud.key_button(row,"F1","帮助",_toggle_help)
+	Hud.key_button(row,"Tab","鸟瞰",func():overview=not overview)
 	toast_panel=PanelContainer.new(); controls_root.add_child(toast_panel)
 	toast_panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	toast_panel.offset_left=-455; toast_panel.offset_right=-24; toast_panel.offset_top=22; toast_panel.offset_bottom=140
 	toast_panel.add_theme_stylebox_override("panel",_style(Color(.97,.92,.79,.97)))
 	toast_panel.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	toast_label=Label.new(); toast_label.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
-	toast_label.custom_minimum_size=Vector2(390,70); toast_label.add_theme_font_size_override("font_size",17)
+	toast_label.custom_minimum_size=Vector2(390,0); toast_label.add_theme_font_size_override("font_size",17)
 	toast_label.add_theme_color_override("font_color",Color("284640")); toast_panel.add_child(toast_label)
 	help_panel=PanelContainer.new(); controls_root.add_child(help_panel)
 	help_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
@@ -309,6 +322,7 @@ func _process(delta: float) -> void:
 	warm_elapsed+=delta
 	if CareerBridge.connected and int(warm_elapsed*2)!=int((warm_elapsed-delta)*2):_update_stats()
 	_camera_update(delta)
+	_update_occlusion(delta)
 	# Fade nearby lintels so doorways do not hide the small character.
 	for mesh in overheads:
 		var p: Vector3=(mesh.global_transform*mesh.get_aabb()).get_center()
@@ -340,6 +354,58 @@ func _process(delta: float) -> void:
 	if room!=room_previous:
 		room_label.text=room; room_previous=room
 
+func _collect_occluders() -> void:
+	# Built once per club layout (tier changes rebuild the annex).
+	occluders.clear(); occluder_cells.clear()
+	var roots: Array[Node] = [model]
+	var annex := get_node_or_null(SceneTiers.CLUB_ROOT)
+	if annex: roots.append(annex)
+	for root in roots:
+		for node in root.find_children("*","MeshInstance3D",true,false):
+			var mesh := node as MeshInstance3D
+			if mesh in overheads or not mesh.is_visible_in_tree(): continue
+			var box: AABB = mesh.global_transform*mesh.get_aabb()
+			# Floors, rugs and seat-height furniture never hide the chicken.
+			if box.end.y < 1.15 or box.size.y < .45: continue
+			var index := occluders.size()
+			occluders.append([mesh, box.grow(.10)])
+			for cx in range(floori(box.position.x/OCCLUDER_CELL), floori(box.end.x/OCCLUDER_CELL)+1):
+				for cz in range(floori(box.position.z/OCCLUDER_CELL), floori(box.end.z/OCCLUDER_CELL)+1):
+					var key := Vector2i(cx,cz)
+					if not occluder_cells.has(key): occluder_cells[key] = []
+					occluder_cells[key].append(index)
+
+func _update_occlusion(delta: float) -> void:
+	var signature := environment_tier+":"+str(get_node_or_null(SceneTiers.CLUB_ROOT) != null)
+	if signature != occluder_signature:
+		occluder_signature = signature
+		for mesh in faded_occluders:
+			if is_instance_valid(mesh): (mesh as MeshInstance3D).transparency = 0.0
+		faded_occluders.clear()
+		_collect_occluders()
+	var blocked := {}
+	if not overview and not CareerBridge.phone_open:
+		var eye: Vector3 = player.get_global_transform_interpolated().origin+Vector3(0,.55,0)
+		var toward: Vector3 = camera.global_transform.basis.z
+		var reach := eye+toward*9.0
+		var seen := {}
+		for step in range(10):
+			var probe: Vector3 = eye.lerp(reach, step/9.0)
+			for dx in [-1,0,1]:
+				var key := Vector2i(floori(probe.x/OCCLUDER_CELL)+dx, floori(probe.z/OCCLUDER_CELL))
+				for index in occluder_cells.get(key, []):
+					if seen.has(index): continue
+					seen[index] = true
+					var entry: Array = occluders[index]
+					if (entry[1] as AABB).intersects_segment(eye, reach) and is_instance_valid(entry[0]):
+						blocked[entry[0]] = true
+	for mesh in blocked: faded_occluders[mesh] = true
+	for mesh in faded_occluders.keys():
+		if not is_instance_valid(mesh): faded_occluders.erase(mesh); continue
+		var geometry := mesh as MeshInstance3D
+		geometry.transparency = move_toward(geometry.transparency, .78 if blocked.has(mesh) else 0.0, delta*4.0)
+		if geometry.transparency <= 0.0 and not blocked.has(mesh): faded_occluders.erase(mesh)
+
 func world_target() -> Dictionary:
 	var item:=interactions.reachable("computer")
 	if item.is_empty():item=interactions.nearest()
@@ -357,10 +423,11 @@ func room_at(pos: Vector3) -> String:
 
 func _camera_update(delta: float,instant: bool=false) -> void:
 	var tier_view := SceneTiers.club_view(environment_tier)
-	var desired: Vector3=tier_view.focus if overview else player.position+Vector3(0,.70,0)
+	var desired: Vector3=tier_view.focus if overview else player.get_global_transform_interpolated().origin+Vector3(0,.70,0)
 	var factor:=1.0 if instant else 1-exp(-9*delta)
 	camera_focus=camera_focus.lerp(desired,factor)
-	camera.size=lerpf(camera.size,float(tier_view.size) if overview else camera_zoom,factor)
+	# Overview frames the building itself; the old size left it small in a sea of ground.
+	camera.size=lerpf(camera.size,float(tier_view.size)*.76 if overview else camera_zoom,factor)
 	camera.position=camera_focus+Vector3(sin(camera_yaw)*cos(camera_pitch),sin(camera_pitch),cos(camera_yaw)*cos(camera_pitch))*65
 	camera.look_at(camera_focus,Vector3.UP)
 
@@ -414,6 +481,13 @@ func _toggle_help() -> void:
 
 func _toast(text: String,seconds: float=5.0) -> void:
 	toast_label.text=text;toast_seconds=seconds
+	# Size the note to its message: one short line no longer sits in a big empty box.
+	var font: Font=toast_label.get_theme_font("font")
+	var width: float=font.get_string_size(Locale.text(text),HORIZONTAL_ALIGNMENT_LEFT,-1,17).x if font else 390.0
+	width=clampf(width+4,120,390)
+	toast_label.custom_minimum_size=Vector2(width,0)
+	toast_panel.offset_left=-24-width-36; toast_panel.offset_bottom=toast_panel.offset_top
+	toast_panel.reset_size()
 
 func _update_stats() -> void:
 	stats_label.text=CareerBridge.clock_text()
@@ -423,9 +497,59 @@ func _career_changed() -> void:
 	var club_environment: Dictionary = CareerBridge.context.get("environment",{}).get("club",{})
 	environment_tier = str(club_environment.get("tier","academy"))
 	SceneTiers.apply_club(self,model,environment_tier,club_environment.get("facilities",{}))
+	_build_grounds()
 	if is_instance_valid(trophy_display): trophy_display.refresh(CareerBridge.context)
 	if is_instance_valid(club_board): club_board.refresh()
+	_club_signage()
 	_update_stats()
+
+## The club sits on a small island: grass, trees, flowers, a path and a sign.
+func _build_grounds() -> void:
+	var building := get_node_or_null(SceneTiers.CLUB_ROOT)
+	var area: Rect2 = building.footprint if building else Rect2(-12.3,-8.9,24.6,18.5)
+	var team := str(CareerBridge.context.get("team", {}).get("name", "")).strip_edges()
+	var key := str(area)+"|"+team
+	if key == grounds_key: return
+	grounds_key = key
+	if not is_instance_valid(grounds):
+		grounds = Grounds.new(); add_child(grounds)
+	grounds.build(area, team)
+	var old_ground := get_node_or_null("SageGround")
+	if old_ground: old_ground.visible = false
+
+## The baked GLB says "ROOKIE CLUB / ROOKIE ESPORTS". Once the career's team
+## is known, those two text meshes give way to the real club name and mark.
+var signage_team := ""
+func _club_signage() -> void:
+	var team := str(CareerBridge.context.get("team", {}).get("name", "")).strip_edges()
+	if team.is_empty() or team == signage_team: return
+	signage_team = team
+	var specs := {"Club reception title": [Vector3(-1.13,.90,3.20), .0040, team.to_upper(), Color("fbf3dd")],
+		"Entry sign text": [Vector3(-.72,3.03,8.99), .0044, team.to_upper(), Color("fbf3dd")]}
+	for node in model.find_children("*", "Node3D", true, false):
+		var id := str(node.name).replace("_", " ")
+		if specs.has(id) and node is VisualInstance3D: node.visible = false
+	for id in specs:
+		var spec: Array = specs[id]
+		var label := get_node_or_null(NodePath("TeamSign_" + id.replace(" ", ""))) as Label3D
+		if label == null:
+			label = Label3D.new(); label.name = "TeamSign_" + id.replace(" ", ""); add_child(label)
+			label.font = Hud.Base.font()
+			label.font_size = 64; label.outline_size = 0
+			label.double_sided = false
+		label.text = spec[2]; label.position = spec[0]; label.pixel_size = spec[1]; label.modulate = spec[3]
+		var logo := get_node_or_null(NodePath("TeamSignLogo_" + id.replace(" ", ""))) as Sprite3D
+		var mark := Kit.logo_texture(team, 256)
+		if logo == null and mark:
+			logo = Sprite3D.new(); logo.name = "TeamSignLogo_" + id.replace(" ", ""); add_child(logo)
+		if logo:
+			logo.visible = mark != null
+			logo.texture = mark
+			if mark:
+				var height := .26 if id == "Entry sign text" else .22
+				logo.pixel_size = height / float(maxi(1, mark.get_height()))
+				var width: float = float(label.text.length()) * float(spec[1]) * 64.0 * .62
+				logo.position = spec[0] + Vector3(-(width * .5 + height * .9), 0, .005)
 
 func save_session() -> void:
 	Travel.club_session={"values":interactions.values.duplicate(),"cooldowns":interactions.cooldowns.duplicate(),"clock":interactions.cooldown_clock,"completed":interactions.completed.duplicate(),"npcs":life.snapshot()}
@@ -451,6 +575,9 @@ func set_phone_open(opened: bool) -> void:
 
 func set_device_open(opened: bool,kind: String) -> void:
 	if not is_instance_valid(player):return
+	# The world HUD steps aside while a device fills the screen.
+	var hud_layer:=get_node_or_null("WorldHud") as CanvasLayer
+	if hud_layer: hud_layer.visible=not opened
 	if opened:
 		device_kind=kind;player.velocity=Vector3.ZERO;player.locked=true
 		if kind=="computer":

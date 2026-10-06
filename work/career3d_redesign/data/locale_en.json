@@ -243,7 +243,7 @@
     "全场": "Series",
     "全场汇总": "Series totals",
     "CS2 实战": "Played in CS2",
-    "模拟比赛": "Simulation",
+    "模拟比赛": "Simulate",
     "查看赛事晋级路径 →": "View tournament bracket →",
     "伤害": "Damage",
     "首杀/首死": "Opening K/D",
@@ -1415,13 +1415,10 @@
     "结果已保存，轮播结束后可处理饰品。": "The result is saved. Manage the item after the animation.",
     "开箱结果 · ": "Case result · ",
     "结果已保存，关闭窗口也不会重新抽取。": "The result is saved. Closing this window will not reroll it.",
-    "立即出售 · ¥%s": "Sell now · ¥%s",
     "‹ 返回列表": "‹ Back to list",
     "卸下 ": "Unequip ",
     "装备 ": "Equip ",
-    "出售 · ¥%s": "Sell · ¥%s",
     "购买并入库": "Buy and add to inventory",
-    "武器箱与钥匙 · ¥%d": "Case and key · ¥%d",
     "库存还没有饰品。": "Your inventory is empty.",
     "收件箱很安静。新的赛事邀请会出现在这里。": "No messages yet. New tournament invitations will appear here.",
     "教练的邮件": "Coach's message",
@@ -2622,7 +2619,6 @@
     "旋转 90°": "Rotate 90°",
     "取消移动": "Cancel movement",
     "已购买 %d · 已摆放 %d": "Owned %d · Placed %d",
-    "购买 $%d": "Buy $%d",
     "摆放": "Place",
     "使用": "Use",
     "房间里的家具": "Furniture in your room",
@@ -2739,7 +2735,7 @@
     "C4  %d 秒": "C4  %d seconds",
     "C4 已下包 · %s 点": "C4 planted · %s site",
     "MR12 · 第 13 回合换边": "MR12 · Switch sides at round 13",
-    "亲自上场": "Play",
+    "亲自上场": "Play it yourself",
     "全场观战": "Spectate",
     " · 已暂停": " · Paused",
     " · 全部可见": " · Both teams visible",
@@ -2908,12 +2904,156 @@
     "插件加载入口已关闭。\n%s": "Plugin loading is disabled.\n%s",
     "Steam 的 CS2 启动选项仍含 -insecure；请在 Steam → CS2 → 属性 → 启动选项中移除后再打排位。": "CS2's Steam launch options still contain -insecure. Remove it under Steam → CS2 → Properties → Launch Options before playing ranked.",
     "暂时无法确认 Steam 的 CS2 启动选项，请在 Steam 属性中检查。": "CS2's Steam launch options could not be confirmed. Check them in Steam Properties.",
+    "立即出售 · %s": "Sell now · %s",
+    "出售 · %s": "Sell · %s",
+    "武器箱与钥匙 · %s": "Case and key · %s",
+    "个人余额 ": "Personal funds ",
+    "购买 %s": "Buy %s",
+    " · 今天": " · Today",
+    " · 比赛日 ": " · Match day ",
+    " 开赛": " starts",
+    "%d 位嘉宾": "%d guests",
+    "%d 冠": "%d titles",
+    "%d 封": "%d mails",
+    "%d 封待回复": "%d awaiting reply",
+    "%d 项进行中或即将开始": "%d live or upcoming",
+    "%s · Top10 %s · Top20 %s · MVP %s · EVP %s · 总评分 %s": "%s · Top10 %s · Top20 %s · MVP %s · EVP %s · Score %s",
+    "%s 岁 · %s": "Age %s · %s",
+    "%s 张地图": "%s maps",
+    "%s 点可分配": "%s points to assign",
+    "5 vs 5 · 小型线下比赛 · 你的席位位于前排中央": "5 vs 5 · Small LAN event · Your seat is front row centre",
+    "5 vs 5 · 选手已入座": "5 vs 5 · Players seated",
+    "A 级": "A tier",
+    "S 级": "S tier",
+    "下一场 · %s%s": "Next · %s%s",
+    "下一场比赛 · %s%s": "Next match · %s%s",
+    "下月 ": "Next month ",
+    "世界排名 #%s": "World rank #%s",
+    "世界排名前十战队现役阵容": "Current rosters of the world top 10",
+    "主持人：年度前三名，有请！": "Host: please welcome the year's top three!",
+    "主持人：年度第 %d 名 —— %s。": "Host: number %d of the year — %s.",
+    "主持人：年度第 %d 名 —— %s（%s）。": "Host: number %d of the year — %s (%s).",
+    "主持人：欢迎来到 %s 年度选手颁奖。先回顾年度 Top20，再依次揭晓第三名、第二名与第一名。": "Host: Welcome to the %s annual player awards. First the Top 20 countdown, then third, second and first place.",
+    "交互": "Interact",
+    "你的席位 ↓": "Your seat ↓",
+    "你的年度荣誉": "Your annual honour",
+    "全部已处理": "All handled",
+    "共 %d 封": "%d in total",
+    "典礼即将开始": "The ceremony is about to begin",
+    "冠军舞台 · 自由参观": "Champions stage · Free visit",
+    "参赛安排": "Event schedule",
+    "台上仅显示已归档的年度前三。": "Only the archived top three are shown on stage.",
+    "在邮件里确认赛事邀请后，赛程会出现在这里。": "Accept event invitations in your mail and the schedule appears here.",
+    "完成全年赛事并确认进入下一赛季后，这里会显示正式归档的二十位选手。": "Finish the season's events and confirm the next season to see the twenty archived players here.",
+    "完整榜单暂未提供": "Full list not available yet",
+    "小跑": "Jog",
+    "尚无年度正式 Top20": "No official annual Top 20 yet",
+    "已报名": "Registered",
+    "帮助": "Help",
+    "年度 Top20 · 第 %d 名": "Annual Top 20 · #%d",
+    "年度 Top20 倒数中 · 左侧墙面显示完整榜单": "Top 20 countdown · full list on the left wall",
+    "年度 Top20 正式榜单 · 前三名现场领奖": "Official annual Top 20 · top three receive awards on stage",
+    "年度第一名": "Player of the Year",
+    "年度第二名": "Annual #2",
+    "年度第三名": "Annual #3",
+    "年度前三名现场领奖": "The top three receive awards on stage",
+    "年度选手": "Player of the Year",
+    "年度选手颁奖典礼": "Annual Player Awards",
+    "开始匹配后，打完的每一场都会留在这里。": "Start matchmaking and every finished match will be kept here.",
+    "当前一线战队选手 · 嘉宾席": "Current top-tier players · Guest seating",
+    "当前能力": "Current ability",
+    "待回复邮件": "Mail awaiting reply",
+    "成功率 %.0f%%": "Success %.0f%%",
+    "手机": "Phone",
+    "打完第一场职业比赛后，战报会出现在这里。": "Match reports appear here after your first pro match.",
+    "接替 %s · 修正 %+d": "Replaces %s · Modifier %+d",
+    "收件箱很安静": "Your inbox is quiet",
+    "新的赛事邀请会出现在这里。": "New event invitations will appear here.",
+    "暂无新闻": "No news yet",
+    "暂无赛事": "No events yet",
+    "最新报道 · ": "Latest · ",
+    "查看邀请": "View invitations",
+    "正式归档 · 生涯年度结算": "Official archive · Career year-end",
+    "状态 %s": "Form %s",
+    "确认赛事邀请后，赛程会出现在这里。": "Accept event invitations and the schedule appears here.",
+    "确认邀请后，报名的赛事会出现在这里。": "Events you register for appear here after accepting invitations.",
+    "示例席位": "Sample seat",
+    "穿过中央通道进入内场，沿座位旁的过道可走到舞台。\n原创入场配乐 · 场内声 · 欢呼": "Walk through the central tunnel into the arena; the aisles beside the seats lead to the stage.\nOriginal entrance music · Crowd · Cheers",
+    "线下比赛": "LAN match",
+    "胜 / 负": "W / L",
+    "能力 ": "Ability ",
+    "舞台灯光": "Stage lights",
+    "试训通过并确认加盟后，记录会保存在这里。": "Records are kept here after you pass a trial and confirm a move.",
+    "赛事新闻：": "Event news: ",
+    "走动": "Walk",
+    "还没有天梯战绩": "No ladder record yet",
+    "还没有排定的比赛": "No matches scheduled",
+    "还没有正式转会": "No official transfers yet",
+    "还没有比赛记录": "No match records yet",
+    "这个月开始的赛事": "Events starting this month",
+    "这个月没有赛事开赛": "No events start this month",
+    "进行中与即将开始 %d 项 · 已结束 %d 项": "%d live or upcoming · %d finished",
+    "预览典礼 · 示例姓名不代表真实年度结果": "Preview ceremony · Sample names are not real annual results",
+    "预览席位 #%d": "Preview seat #%d",
+    "鸟瞰": "Overview",
+    " 入场": " walk out",
+    "%s 年度颁奖礼": "%s Annual Awards",
+    "CS2 设置 ›": "CS2 settings ›",
+    "E 跳过倒数，直接揭晓前三": "E Skip countdown to the top three",
+    "主持人：年度%s名是——": "Host: and the year's number %s is—",
+    "主持人：年度%s名，%s！请上台领奖。": "Host: the year's number %s, %s! Please come up to the stage.",
+    "主持人：年度第 %d 名……": "Host: number %d of the year…",
+    "主持人：预览席位 #%d 是——": "Host: preview seat #%d is—",
+    "二十个名字已经封存，揭晓时刻由你决定。": "Twenty names are sealed. You choose when to reveal them.",
+    "俯视地图，指挥队伍打完": "Command your team from above",
+    "全部揭晓": "Reveal all",
+    "典礼现场揭晓": "Revealed at the ceremony",
+    "前往颁奖现场揭晓": "Reveal at the ceremony",
+    "去比赛电脑 · 模拟或上场": "Go to the match PC · simulate or play",
+    "和队友一起穿过中央通道入场": "Walk in through the central tunnel with your team",
+    "在这里揭晓": "Reveal here",
+    "场边指挥": "Command",
+    "带着奖杯回到观礼通道": "Carry your trophy back to the aisle",
+    "年度%s名": "Annual #%s",
+    "年度颁奖礼邀请函": "Annual awards invitation",
+    "总决赛": "Grand final",
+    "找到“你的席位”，按 E 坐下": "Find \"Your seat\" and press E",
+    "接受赛事邀请后，赛程会出现在这里。": "Accept an event invitation and your schedule appears here.",
+    "推进到比赛日": "Skip to match day",
+    "本赛季 · 对 VRS Top30": "This season · vs VRS Top30",
+    "正在启动 CS2……": "Launching CS2…",
+    "正在读取 CS2 战绩……": "Reading CS2 stats…",
+    "正式归档": "Official archive",
+    "比赛当天早上去现场": "Go to the venue on match morning",
+    "直接出结果，看逐回合战报": "Instant result with round-by-round report",
+    "睡到比赛日": "Sleep until match day",
+    "稍后再看": "Later",
+    "胜者组": "Upper bracket",
+    "设施用俱乐部资金 · 家具用个人资金": "Facilities use club funds · furniture uses personal funds",
+    "败者组": "Lower bracket",
+    "赛事日程 ›": "Schedule ›",
+    "走上舞台，到你的领奖台前": "Walk up to your podium on stage",
+    "走到奖杯前，从右侧通道上舞台": "Walk to the trophy, then up the right-hand stairs",
+    "跳过中间的日子": "Skip the days in between",
+    "还没有下一场比赛": "No upcoming match",
+    "还没有年度结果，这是一场用示例姓名的预览典礼。": "No annual results yet. This is a preview ceremony with sample names.",
+    "还没有比赛数据": "No match data yet",
+    "进入 CS2 打这场比赛": "Play this match in CS2",
+    "队友已入座 · 到你的空位按 E": "Teammates seated · press E at your seat",
+    "BotProfile 来源": "BotProfile source",
+    "生涯能力模板": "Career ability templates",
+    "我的 VPK 模板": "My VPK templates",
+    "自定义 botprofile.vpk 的完整路径": "Full path to your custom botprofile.vpk",
+    "读取你的 Default 和模板参数，原 VPK 不改动；本场选手姓名与战绩仍由生涯管理。": "Uses your Default and template parameters without changing the original VPK. Career still manages match identities and results.",
+    "比赛回传／战术组件需要更新。点击“安装填写目录的人机增强”即可使用随程序提供的新版，无需重新下载人机包。": "The match and tactics plugin needs updating. Click Install Bot Improver from this folder to install the bundled update. No Bot Improver download is needed.",
     "路线结束后": "After the route",
     "自动：CT 留守，T 自主行动": "Auto: CT holds, T resumes native AI",
     "留守最后位置": "Hold the final position",
     "恢复原生行动": "Resume native AI",
     "路线结束方式无效。": "Invalid route ending.",
     "中途 0 秒不停留；最后按结束方式行动。留守时仍会射击，受伤、无线电或炸弹任务可接管。": "Zero-wait intermediate points stay continuous. The final point follows the route ending. Holding preserves shooting; damage, radio and bomb objectives can take over.",
+    "2026.0 年": "2026",
+    "比赛回传／战术组件需要更新，请先在设置里安装填写目录的人机增强。": "The match and tactics plugin needs updating. Install Bot Improver from the configured folder in Settings first.",
     "自定义房间已关闭；没有计算积分或生涯奖励。": "Custom lobby closed; no rating points or career rewards awarded.",
     "比赛已结束。": "Match finished.",
     "人机增强": "Bot Improver",
@@ -3672,6 +3812,11 @@
     "· 追加路点": "· Add waypoint",
     "· 前往标记位置": "· Move to marked position",
     "获胜": "Win",
+    "· 今天": "· Today",
+    "· 比赛日": "· Match day",
+    "开赛": "starts",
+    "下月": "Next month",
+    "最新报道 ·": "Latest ·",
     "请在设置中点击“安装填写目录的人机增强”。": "Click Install Bot Improver from selected directory in Settings.",
     "另一个路径未找到，可手动填写。": "The other path was not found and can be entered manually."
   },
@@ -4052,6 +4197,15 @@
       "prefix": "你唱得不太准，队友笑得比寿星还响。"
     },
     {
+      "source": "主持人：欢迎来到 %s 年度选手颁奖。先回顾年度 Top20，再依次揭晓第三名、第二名与第一名。",
+      "pattern": "^主持人：欢迎来到\\ ([\\s\\S]+?)\\ 年度选手颁奖。先回顾年度\\ Top20，再依次揭晓第三名、第二名与第一名。$",
+      "replacement": "Host: Welcome to the {0} annual player awards. First the Top 20 countdown, then third, second and first place.",
+      "keys": [
+        "0"
+      ],
+      "prefix": "主持人：欢迎来到 "
+    },
+    {
       "source": "管理层最终选择更换{target}。他收好设备离开，临走只说：‘希望你们下一次能把问题解决在服务器里。’",
       "pattern": "^管理层最终选择更换([\\s\\S]+?)。他收好设备离开，临走只说：‘希望你们下一次能把问题解决在服务器里。’$",
       "replacement": "Management decided to replace {target}. He packed his equipment and left with one parting remark: 'Next time, I hope you can settle your problems on the server.'",
@@ -4068,6 +4222,20 @@
         "path"
       ],
       "prefix": "人机增强目录缺少 "
+    },
+    {
+      "source": "%s · Top10 %s · Top20 %s · MVP %s · EVP %s · 总评分 %s",
+      "pattern": "^([\\s\\S]+?)\\ ·\\ Top10\\ ([\\s\\S]+?)\\ ·\\ Top20\\ ([\\s\\S]+?)\\ ·\\ MVP\\ ([\\s\\S]+?)\\ ·\\ EVP\\ ([\\s\\S]+?)\\ ·\\ 总评分\\ ([\\s\\S]+?)$",
+      "replacement": "{0} · Top10 {1} · Top20 {2} · MVP {3} · EVP {4} · Score {5}",
+      "keys": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "prefix": ""
     },
     {
       "source": "Rating %s · ADR %s · KAST %s · %s 图 · %s / %s / %s",
@@ -4627,6 +4795,16 @@
       "prefix": "已选 "
     },
     {
+      "source": "进行中与即将开始 %d 项 · 已结束 %d 项",
+      "pattern": "^进行中与即将开始\\ ([+-]?[\\d,.]+)\\ 项\\ ·\\ 已结束\\ ([+-]?[\\d,.]+)\\ 项$",
+      "replacement": "{0} live or upcoming · {1} finished",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "进行中与即将开始 "
+    },
+    {
       "source": "随包人机增强包含非运行文件或链接，未安装：%s",
       "pattern": "^随包人机增强包含非运行文件或链接，未安装：([\\s\\S]+?)$",
       "replacement": "The bundled Bot Improver contains a non-runtime file or a link. Nothing was installed: {0}",
@@ -4685,6 +4863,17 @@
         "1"
       ],
       "prefix": "创建房间 · A "
+    },
+    {
+      "source": "主持人：年度第 %d 名 —— %s（%s）。",
+      "pattern": "^主持人：年度第\\ ([+-]?[\\d,.]+)\\ 名\\ ——\\ ([\\s\\S]+?)（([\\s\\S]+?)）。$",
+      "replacement": "Host: number {0} of the year — {1} ({2}).",
+      "keys": [
+        "0",
+        "1",
+        "2"
+      ],
+      "prefix": "主持人：年度第 "
     },
     {
       "source": "安装未完成；安装前备份保留在 {path}。{error}",
@@ -4947,6 +5136,26 @@
       "prefix": "地图 BP 已完成 · "
     },
     {
+      "source": "主持人：年度第 %d 名 —— %s。",
+      "pattern": "^主持人：年度第\\ ([+-]?[\\d,.]+)\\ 名\\ ——\\ ([\\s\\S]+?)。$",
+      "replacement": "Host: number {0} of the year — {1}.",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "主持人：年度第 "
+    },
+    {
+      "source": "主持人：年度%s名，%s！请上台领奖。",
+      "pattern": "^主持人：年度([\\s\\S]+?)名，([\\s\\S]+?)！请上台领奖。$",
+      "replacement": "Host: the year's number {0}, {1}! Please come up to the stage.",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "主持人：年度"
+    },
+    {
       "source": "兼容组件校验失败：{name}，没有安装。",
       "pattern": "^兼容组件校验失败：([\\s\\S]+?)，没有安装。$",
       "replacement": "Compatibility component verification failed: {name}. Nothing was installed.",
@@ -4991,6 +5200,15 @@
         "1"
       ],
       "prefix": "购买 "
+    },
+    {
+      "source": "年度 Top20 · 第 %d 名",
+      "pattern": "^年度\\ Top20\\ ·\\ 第\\ ([+-]?[\\d,.]+)\\ 名$",
+      "replacement": "Annual Top 20 · #{0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "年度 Top20 · 第 "
     },
     {
       "source": "%s尚未安装到所选 CS2 目录。",
@@ -5089,6 +5307,15 @@
         "3"
       ],
       "prefix": "比赛结束 · "
+    },
+    {
+      "source": "主持人：预览席位 #%d 是——",
+      "pattern": "^主持人：预览席位\\ \\#([+-]?[\\d,.]+)\\ 是——$",
+      "replacement": "Host: preview seat #{0} is—",
+      "keys": [
+        "0"
+      ],
+      "prefix": "主持人：预览席位 #"
     },
     {
       "source": "请完全退出 CS2 后再{action}。",
@@ -5303,6 +5530,15 @@
       "prefix": "已购买 "
     },
     {
+      "source": "主持人：年度第 %d 名……",
+      "pattern": "^主持人：年度第\\ ([+-]?[\\d,.]+)\\ 名……$",
+      "replacement": "Host: number {0} of the year…",
+      "keys": [
+        "0"
+      ],
+      "prefix": "主持人：年度第 "
+    },
+    {
       "source": "未知 CS2 设置选项：%s",
       "pattern": "^未知\\ CS2\\ 设置选项：([\\s\\S]+?)$",
       "replacement": "Unknown CS2 setting: {0}",
@@ -5438,6 +5674,16 @@
       "prefix": "插件加载入口已关闭。\n"
     },
     {
+      "source": "接替 %s · 修正 %+d",
+      "pattern": "^接替\\ ([\\s\\S]+?)\\ ·\\ 修正\\ ([+-]?[\\d,.]+)$",
+      "replacement": "Replaces {0} · Modifier {1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "接替 "
+    },
+    {
       "source": "RTS 战绩计数无效：%s",
       "pattern": "^RTS\\ 战绩计数无效：([\\s\\S]+?)$",
       "replacement": "Invalid RTS results count: {0}",
@@ -5472,15 +5718,6 @@
         "date"
       ],
       "prefix": "下一次申请日期："
-    },
-    {
-      "source": "武器箱与钥匙 · ¥%d",
-      "pattern": "^武器箱与钥匙\\ ·\\ ¥([+-]?[\\d,.]+)$",
-      "replacement": "Case and key · ¥{0}",
-      "keys": [
-        "0"
-      ],
-      "prefix": "武器箱与钥匙 · ¥"
     },
     {
       "source": "%s · 已保存 %s 人",
@@ -5593,6 +5830,24 @@
         "0"
       ],
       "prefix": "C4 已安放在 "
+    },
+    {
+      "source": "%d 项进行中或即将开始",
+      "pattern": "^([+-]?[\\d,.]+)\\ 项进行中或即将开始$",
+      "replacement": "{0} live or upcoming",
+      "keys": [
+        "0"
+      ],
+      "prefix": ""
+    },
+    {
+      "source": "主持人：年度%s名是——",
+      "pattern": "^主持人：年度([\\s\\S]+?)名是——$",
+      "replacement": "Host: and the year's number {0} is—",
+      "keys": [
+        "0"
+      ],
+      "prefix": "主持人：年度"
     },
     {
       "source": "存档包含无效数值：{value}",
@@ -5783,6 +6038,25 @@
       "prefix": "本局换肤未同步："
     },
     {
+      "source": "武器箱与钥匙 · %s",
+      "pattern": "^武器箱与钥匙\\ ·\\ ([\\s\\S]+?)$",
+      "replacement": "Case and key · {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "武器箱与钥匙 · "
+    },
+    {
+      "source": "下一场比赛 · %s%s",
+      "pattern": "^下一场比赛\\ ·\\ ([\\s\\S]+?)([\\s\\S]+?)$",
+      "replacement": "Next match · {0}{1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "下一场比赛 · "
+    },
+    {
       "source": "当前最多能借 $%s。",
       "pattern": "^当前最多能借\\ \\$([\\s\\S]+?)。$",
       "replacement": "You can currently borrow up to ${0}.",
@@ -5880,15 +6154,6 @@
         "0"
       ],
       "prefix": "自由属性点 · "
-    },
-    {
-      "source": "立即出售 · ¥%s",
-      "pattern": "^立即出售\\ ·\\ ¥([\\s\\S]+?)$",
-      "replacement": "Sell now · ¥{0}",
-      "keys": [
-        "0"
-      ],
-      "prefix": "立即出售 · ¥"
     },
     {
       "source": "你的天梯积分：%+d",
@@ -6012,6 +6277,15 @@
         "0"
       ],
       "prefix": "本局换肤未同步："
+    },
+    {
+      "source": "成功率 %.0f%%",
+      "pattern": "^成功率\\ ([+-]?[\\d,.]+)%$",
+      "replacement": "Success {0}%",
+      "keys": [
+        "0"
+      ],
+      "prefix": "成功率 "
     },
     {
       "source": "%s BP 已保留。",
@@ -6221,6 +6495,15 @@
       "prefix": ""
     },
     {
+      "source": "最新报道 · {tail}",
+      "pattern": "^最新报道\\ ·\\ ([\\s\\S]+)$",
+      "replacement": "Latest · {tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "最新报道 · "
+    },
+    {
       "source": "已预览「%s」，%s",
       "pattern": "^已预览「([\\s\\S]+?)」，([\\s\\S]+?)$",
       "replacement": "Previewing \"{0}\". {1}",
@@ -6340,6 +6623,25 @@
         "name"
       ],
       "prefix": "生日快乐，"
+    },
+    {
+      "source": "立即出售 · %s",
+      "pattern": "^立即出售\\ ·\\ ([\\s\\S]+?)$",
+      "replacement": "Sell now · {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "立即出售 · "
+    },
+    {
+      "source": "下一场 · %s%s",
+      "pattern": "^下一场\\ ·\\ ([\\s\\S]+?)([\\s\\S]+?)$",
+      "replacement": "Next · {0}{1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "下一场 · "
     },
     {
       "source": "%s · 赛事荣誉",
@@ -6468,15 +6770,6 @@
       "prefix": ""
     },
     {
-      "source": "出售 · ¥%s",
-      "pattern": "^出售\\ ·\\ ¥([\\s\\S]+?)$",
-      "replacement": "Sell · ¥{0}",
-      "keys": [
-        "0"
-      ],
-      "prefix": "出售 · ¥"
-    },
-    {
       "source": "自由属性点 %d",
       "pattern": "^自由属性点\\ ([+-]?[\\d,.]+)$",
       "replacement": "Available attribute points {0}",
@@ -6517,6 +6810,43 @@
       "source": "%s的俱乐部电脑",
       "pattern": "^([\\s\\S]+?)的俱乐部电脑$",
       "replacement": "{0}'s club workstation",
+      "keys": [
+        "0"
+      ],
+      "prefix": ""
+    },
+    {
+      "source": "%s 岁 · %s",
+      "pattern": "^([\\s\\S]+?)\\ 岁\\ ·\\ ([\\s\\S]+?)$",
+      "replacement": "Age {0} · {1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": ""
+    },
+    {
+      "source": "世界排名 #%s",
+      "pattern": "^世界排名\\ \\#([\\s\\S]+?)$",
+      "replacement": "World rank #{0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "世界排名 #"
+    },
+    {
+      "source": "预览席位 #%d",
+      "pattern": "^预览席位\\ \\#([+-]?[\\d,.]+)$",
+      "replacement": "Preview seat #{0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "预览席位 #"
+    },
+    {
+      "source": "%s 年度颁奖礼",
+      "pattern": "^([\\s\\S]+?)\\ 年度颁奖礼$",
+      "replacement": "{0} Annual Awards",
       "keys": [
         "0"
       ],
@@ -6622,6 +6952,33 @@
       "prefix": "比赛地点："
     },
     {
+      "source": "个人余额 {tail}",
+      "pattern": "^个人余额\\ ([\\s\\S]+)$",
+      "replacement": "Personal funds {tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "个人余额 "
+    },
+    {
+      "source": "{head} · 今天",
+      "pattern": "^([\\s\\S]+?)\\ ·\\ 今天$",
+      "replacement": "{head} · Today",
+      "keys": [
+        "head"
+      ],
+      "prefix": ""
+    },
+    {
+      "source": "赛事新闻：{tail}",
+      "pattern": "^赛事新闻：([\\s\\S]+)$",
+      "replacement": "Event news: {tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "赛事新闻："
+    },
+    {
       "source": "{name} 的生日",
       "pattern": "^([\\s\\S]+?)\\ 的生日$",
       "replacement": "{name}'s birthday",
@@ -6707,6 +7064,33 @@
       "source": "%s的宿舍电脑",
       "pattern": "^([\\s\\S]+?)的宿舍电脑$",
       "replacement": "{0}'s home computer",
+      "keys": [
+        "0"
+      ],
+      "prefix": ""
+    },
+    {
+      "source": "出售 · %s",
+      "pattern": "^出售\\ ·\\ ([\\s\\S]+?)$",
+      "replacement": "Sell · {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "出售 · "
+    },
+    {
+      "source": "%d 封待回复",
+      "pattern": "^([+-]?[\\d,.]+)\\ 封待回复$",
+      "replacement": "{0} awaiting reply",
+      "keys": [
+        "0"
+      ],
+      "prefix": ""
+    },
+    {
+      "source": "%s 点可分配",
+      "pattern": "^([\\s\\S]+?)\\ 点可分配$",
+      "replacement": "{0} points to assign",
       "keys": [
         "0"
       ],
@@ -6831,15 +7215,6 @@
       "prefix": ""
     },
     {
-      "source": "购买 $%d",
-      "pattern": "^购买\\ \\$([+-]?[\\d,.]+)$",
-      "replacement": "Buy ${0}",
-      "keys": [
-        "0"
-      ],
-      "prefix": "购买 $"
-    },
-    {
       "source": "%s 使用%s",
       "pattern": "^([\\s\\S]+?)\\ 使用([\\s\\S]+?)$",
       "replacement": "{0} used {1}",
@@ -6875,6 +7250,33 @@
         "0"
       ],
       "prefix": "晚上好，"
+    },
+    {
+      "source": "%d 位嘉宾",
+      "pattern": "^([+-]?[\\d,.]+)\\ 位嘉宾$",
+      "replacement": "{0} guests",
+      "keys": [
+        "0"
+      ],
+      "prefix": ""
+    },
+    {
+      "source": "%s 张地图",
+      "pattern": "^([\\s\\S]+?)\\ 张地图$",
+      "replacement": "{0} maps",
+      "keys": [
+        "0"
+      ],
+      "prefix": ""
+    },
+    {
+      "source": "共 %d 封",
+      "pattern": "^共\\ ([+-]?[\\d,.]+)\\ 封$",
+      "replacement": "{0} in total",
+      "keys": [
+        "0"
+      ],
+      "prefix": "共 "
     },
     {
       "source": "{axis} 下限",
@@ -6985,6 +7387,42 @@
       "prefix": ""
     },
     {
+      "source": "{head} 开赛",
+      "pattern": "^([\\s\\S]+?)\\ 开赛$",
+      "replacement": "{head} starts",
+      "keys": [
+        "head"
+      ],
+      "prefix": ""
+    },
+    {
+      "source": "下月 {tail}",
+      "pattern": "^下月\\ ([\\s\\S]+)$",
+      "replacement": "Next month {tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "下月 "
+    },
+    {
+      "source": "能力 {tail}",
+      "pattern": "^能力\\ ([\\s\\S]+)$",
+      "replacement": "Ability {tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "能力 "
+    },
+    {
+      "source": "{head} 入场",
+      "pattern": "^([\\s\\S]+?)\\ 入场$",
+      "replacement": "{head} walk out",
+      "keys": [
+        "head"
+      ],
+      "prefix": ""
+    },
+    {
       "source": "位置 %d",
       "pattern": "^位置\\ ([+-]?[\\d,.]+)$",
       "replacement": "Slot {0}",
@@ -7039,6 +7477,33 @@
       "prefix": "—— "
     },
     {
+      "source": "购买 %s",
+      "pattern": "^购买\\ ([\\s\\S]+?)$",
+      "replacement": "Buy {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "购买 "
+    },
+    {
+      "source": "状态 %s",
+      "pattern": "^状态\\ ([\\s\\S]+?)$",
+      "replacement": "Form {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "状态 "
+    },
+    {
+      "source": "年度%s名",
+      "pattern": "^年度([\\s\\S]+?)名$",
+      "replacement": "Annual #{0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "年度"
+    },
+    {
       "source": "%s 组",
       "pattern": "^([\\s\\S]+?)\\ 组$",
       "replacement": "Group {0}",
@@ -7051,6 +7516,24 @@
       "source": "%s 篇",
       "pattern": "^([\\s\\S]+?)\\ 篇$",
       "replacement": "{0} articles",
+      "keys": [
+        "0"
+      ],
+      "prefix": ""
+    },
+    {
+      "source": "%d 冠",
+      "pattern": "^([+-]?[\\d,.]+)\\ 冠$",
+      "replacement": "{0} titles",
+      "keys": [
+        "0"
+      ],
+      "prefix": ""
+    },
+    {
+      "source": "%d 封",
+      "pattern": "^([+-]?[\\d,.]+)\\ 封$",
+      "replacement": "{0} mails",
       "keys": [
         "0"
       ],

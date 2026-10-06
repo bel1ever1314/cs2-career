@@ -40,7 +40,7 @@ class Package3DTests(unittest.TestCase):
                     'preview/licenses/runtime/LICENSE.txt', 'preview/game/data/career_link.json'})
 
     def test_release_version_matches_source_stager(self):
-        self.assertEqual(VERSION, '1.7.1')
+        self.assertEqual(VERSION, '1.7.2')
         self.assertEqual(VERSION, source_pkg.VERSION)
 
     def legal_fixture(self, base):

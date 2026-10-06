@@ -1,6 +1,9 @@
 extends RefCounted
+const Kit = preload("res://scripts/ui_kit.gd")
+const Fmt = preload("res://scripts/ui_format.gd")
 ## Native money and transfers views. CareerBridge supplies every quote and mutation.
 const UI = preload("res://scripts/computer_ui.gd")
+const TeamVisuals = preload("res://scripts/team_visuals.gd")
 var host
 var transfer_source := "free"
 var transfer_search := ""
@@ -16,7 +19,7 @@ func attach(value: CanvasLayer) -> void:
 	host = value
 
 static func money(value) -> String:
-	return "$%s" % int(value) if typeof(value) in [TYPE_INT, TYPE_FLOAT] else "—"
+	return preload("res://scripts/ui_format.gd").money(value)
 
 static func numeric(value, digits: int = 1) -> String:
 	if typeof(value) not in [TYPE_INT, TYPE_FLOAT]:
@@ -33,7 +36,6 @@ func render_operations() -> void:
 	var ops: Dictionary = CareerBridge.context.get("operations", {})
 	var finance: Dictionary = CareerBridge.context.get("finance", {})
 	_label(host.content, "经营与财务", 25)
-	_label(host.content, "工资与奖金自动入账。俱乐部和个人的资金各自记账。", 14, UI.MUTED)
 	if ops.is_empty():
 		_label(host.content, "经营资料还没有载入。")
 		return
@@ -61,7 +63,6 @@ func render_operations() -> void:
 		_label(box, "借款 · " + str(loan.get("kind_label", "")), 19)
 		var cap := int(loan.get("cap", 0))
 		_label(box, "可借额度 " + money(cap) + " · 月息 " + numeric(float(loan.get("rate", 0)) * 100) + "%", 14)
-		_label(box, "借款进入俱乐部还是个人账户，沿用当前生涯合同规则。", 13, UI.MUTED)
 		_cash_form(box, "borrow", "申请借款", cap, cap > 0)
 	if not ops.get("unsigned", false):
 		var ledger := UI.card(host.content)
@@ -86,7 +87,7 @@ func _render_facilities() -> void:
 	box.name = "ClubFacilities"
 	_label(box, "俱乐部设施", 23)
 	_label(box, Locale.field(club, "tier_name") + " · " + money(club.get("balance", 0)), 18)
-	_label(box, "设施升级从俱乐部账户扣款，家具装修使用个人资金。", 14, UI.MUTED)
+	_label(box, "设施用俱乐部资金 · 家具用个人资金", 14, UI.MUTED)
 	var blocked := str(environment.get("blocked", ""))
 	if not blocked.is_empty(): _label(box, blocked, 14, Color("a25746"))
 	var next_tier: Variant = club.get("next_tier")
@@ -208,9 +209,22 @@ func render_transfers() -> void:
 		var box := UI.card(host.content)
 		var row := HBoxContainer.new()
 		box.add_child(row)
+		row.add_theme_constant_override("separation", 10)
 		var player_key := str(item.get("player_id", ""))
-		_button(row, str(item.get("name", "")), host._load_detail.bind("player", player_key), false).size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_label(row, "%s · 能力 %s · %s 岁 · %s" % [Phone.ROLES.get(item.get("role", ""), item.get("role", "")), numeric(item.get("ability")), item.get("age", "—"), item.get("seller", "自由球员")], 14, UI.MUTED)
+		var seller := str(item.get("seller", "自由球员"))
+		TeamVisuals.badge(row, seller if not str(item.get("seller_id", "")).is_empty() else "", 30)
+		var name_button := _button(row, str(item.get("name", "")), host._load_detail.bind("player", player_key), false)
+		UI.transparent(name_button)
+		UI.compact(name_button)
+		name_button.add_theme_font_size_override("font_size", 18)
+		for state in ["font_color", "font_hover_color", "font_focus_color"]: name_button.add_theme_color_override(state, UI.INK)
+		Kit.chip(row, str(Phone.ROLES.get(item.get("role", ""), item.get("role", ""))), "green")
+		Kit.chip(row, "能力 " + Fmt.score(item.get("ability")), "blue")
+		var facts := _label(row, "%s 岁 · %s" % [Fmt.integer(item.get("age")), seller], 14, UI.MUTED)
+		facts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		facts.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		facts.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		facts.autowrap_mode = TextServer.AUTOWRAP_OFF
 		var prices := HBoxContainer.new()
 		prices.add_theme_constant_override("separation", 12)
 		box.add_child(prices)
@@ -359,8 +373,10 @@ func _render_personal(data: Dictionary) -> void:
 		for offer in offers:
 			var mail_id := str(offer.get("id", ""))
 			var offer_status := str(offer.get("status", ""))
-			var offer_button := _button(box, str(offer.get("title", offer.get("team", "入队邀约"))) + " · " + str(offer.get("date", "")) + " · " + str({"":"状态未载入", "open":"待决定", "expired":"已过期", "accepted":"已接受", "declined":"已拒绝", "read":"已读"}.get(offer_status, offer_status)), host._open_phone_mail.bind(mail_id), false)
+			var status_text := str({"":"状态未载入", "open":"待决定", "expired":"已过期", "accepted":"已接受", "declined":"已拒绝", "read":"已读"}.get(offer_status, offer_status))
+			var offer_button := _button(box, str(offer.get("title", offer.get("team", "入队邀约"))) + " · " + str(offer.get("date", "")) + " · " + status_text, host._open_phone_mail.bind(mail_id), false)
 			offer_button.disabled = mail_id.is_empty()
+			Kit.rich_row(offer_button, UI, str(offer.get("title", offer.get("team", "入队邀约"))), str(offer.get("date", "")), "", status_text, "amber" if offer_status == "open" else "gray", "mail", str(offer.get("team", "")))
 		if data.get("pending"):
 			_button(box, "处理当前加盟决定", host._open_phone.bind("stories"), false)
 	_filters()
@@ -380,19 +396,31 @@ func _render_personal(data: Dictionary) -> void:
 	for item in _paged(rows):
 		var box := UI.card(host.content)
 		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
 		box.add_child(row)
-		_button(row, str(item.get("team", "")), host._load_detail.bind("team", str(item.get("team_id", ""))), false).size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_label(row, "%s · 接替 %s · 修正 %+d · %.0f%%" % [Phone.ROLES.get(item.get("role", ""), item.get("role", "")), item.get("replace", ""), int(item.get("modifier", 0)), float(item.get("chance", 0)) * 100], 14)
-		var apply := _button(row, "申请试训", _ask_application.bind(item))
+		TeamVisuals.badge(row, str(item.get("team", "")), 30)
+		var team_button := _button(row, str(item.get("team", "")), host._load_detail.bind("team", str(item.get("team_id", ""))), false)
+		UI.transparent(team_button)
+		UI.compact(team_button)
+		team_button.add_theme_font_size_override("font_size", 18)
+		for state in ["font_color", "font_hover_color", "font_focus_color"]: team_button.add_theme_color_override(state, UI.INK)
+		Kit.chip(row, str(Phone.ROLES.get(item.get("role", ""), item.get("role", ""))), "green")
+		var chance := float(item.get("chance", 0))
+		Kit.chip(row, "成功率 %.0f%%" % (chance * 100), "green" if chance >= .5 else ("amber" if chance >= .2 else "red"))
+		var terms := _label(row, "接替 %s · 修正 %+d" % [item.get("replace", ""), int(item.get("modifier", 0))], 14, UI.MUTED)
+		terms.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		terms.autowrap_mode = TextServer.AUTOWRAP_OFF
+		terms.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		var apply := UI.compact(_button(row, "申请试训", _ask_application.bind(item)))
 		apply.disabled = not str(item.get("blocked", "")).is_empty()
 		if not str(item.get("blocked", "")).is_empty():
 			_label(box, str(item["blocked"]), 13, UI.MUTED)
 	_pager(rows.size())
-	_label(host.content, "转会经历", 19)
+	Kit.section(host.content, UI, "转会经历", "", 19)
 	for record in data.get("history", []):
 		_label(host.content, "%s · %s → %s · %s" % [record.get("date", ""), record.get("old_team", ""), record.get("new_team", ""), Phone.ROLES.get(record.get("transfer_role", ""), record.get("transfer_role", ""))], 14)
 	if data.get("history", []).is_empty():
-		_label(host.content, "还没有正式转会。", 14, UI.MUTED)
+		Kit.empty_state(host.content, UI, "profile", "还没有正式转会", "试训通过并确认加盟后，记录会保存在这里。")
 
 static func _date_text(value) -> String:
 	return str(value) if not str(value).is_empty() else "无"

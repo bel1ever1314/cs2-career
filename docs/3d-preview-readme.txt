@@ -1,4 +1,12 @@
-CS2 Career 1.7.1
+CS2 Career 1.7.2
+
+1.7.2 更新
+战术按当前地图分别加载，不同地图可以使用相同的战术名称和编号。
+调整到点保位接口的兼容检查，配套插件需要更新时会在进比赛前提示。
+设置新增“我的 VPK 模板”：选择自己的 botprofile.vpk，沿用其 Default／Template 参数，
+本场选手姓名和身份仍由生涯管理。比赛文件单独生成，不覆盖原 VPK。
+Rating 不再限制在 2.5，旧比赛记录保持原样。
+修复终场战绩被退出后的不完整记录覆盖，以及结果副本选择的问题。
 
 这次可以走进自己的宿舍和俱乐部了。打开手机看消息、日历和个人资料，
 坐到电脑前安排比赛、设计战术，也可以进入场馆亲自打下一场。
@@ -58,6 +66,10 @@ https://github.com/ed0ard/CS2-Bot-Improver/releases
 可以主动点击“检查人机增强更新”；它不会自动下载或替换现有组件。
 
 English
+1.7.2 loads tactics per map, supports user-selected VPK templates without
+overwriting their source, removes the 2.5 Rating cap for new results, and fixes
+finished-result selection and incomplete snapshots after disconnecting.
+Custom VPK templates retain Career's match roster and stable player identities.
 Extract the whole folder and run Launch-CS2Career.cmd. Python and Godot are included.
 For actual CS2 matches, install Steam and CS2. The friends all-in-one includes
 Bot Improver: check your paths in Settings and select Install bundled Bot Improver.
