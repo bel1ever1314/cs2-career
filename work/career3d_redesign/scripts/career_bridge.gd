@@ -11,6 +11,7 @@ const Feedback = preload("res://scripts/career_feedback.gd")
 const SleepTransition = preload("res://scripts/sleep_transition.gd")
 const Fmt = preload("res://scripts/ui_format.gd")
 const ReadQueue = preload("res://scripts/career_read_queue.gd")
+const BackgroundBudget = preload("res://scripts/background_budget.gd")
 var reads := ReadQueue.new()
 var connection_generation := 0
 var request_sequence := 0
@@ -103,6 +104,7 @@ func _ready() -> void:
 		set_process(false)
 		return
 	feedback = Feedback.new()
+	add_child(BackgroundBudget.new())
 	feedback.name = "CareerFeedback"
 	add_child(feedback)
 	sleep_transition = SleepTransition.new()
@@ -234,7 +236,14 @@ func command(path: String,body: Dictionary={}) -> bool:
 	return _send(path,body)
 
 func _flush_queued() -> void:
-	if busy or not connected: return
+	if busy: return
+	if not connected:
+		# A queued click has not reached the service. Never carry it across a
+		# reconnection and silently execute it in a different match state.
+		var discarded := queued_command.duplicate(true)
+		queued_command.clear()
+		if not discarded.is_empty(): command_finished.emit(str(discarded.path), {"ok":false, "msg":message, "not_sent":true})
+		return
 	if queued_command.is_empty():
 		var next := reads.take(Time.get_ticks_msec())
 		if not next.is_empty(): _send(next, {}, false)

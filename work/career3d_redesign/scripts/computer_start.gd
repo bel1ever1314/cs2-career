@@ -95,13 +95,7 @@ func render_appearance(parent: Node) -> void:
 		if str(player.player_id) == player_id: player_name = str(player.name)
 	var identity := "%s · %s" % [str(draft.name), str(draft.org)] if draft.mode == "create" else "%s · %s" % [player_name, str(current_team().get("name", ""))]
 	UI.label(parent, identity, 14, UI.GREEN)
-	var pace := CheckButton.new()
-	pace.name = "CareerStartQuick"
-	pace.text = "快速赛季开局"
-	UI.transparent(pace)
-	pace.button_pressed = bool(draft.quick_mode)
-	pace.toggled.connect(func(value: bool): draft.quick_mode = value)
-	parent.add_child(pace)
+	UI.label(parent, "比赛默认逐图模拟，可以随时暂停或亲自上场。", 14, UI.MUTED)
 	avatar.render(host, parent)
 	var actions := HBoxContainer.new()
 	parent.add_child(actions)
@@ -251,6 +245,8 @@ func finished(path: String, result: Dictionary) -> bool:
 				if host.screen.visible and host.active_page == "start": host._rebuild()
 				return true
 			host.close_computer()
+			# Creation returns to free activity; progression starts only on request.
+			host.active_page = "desktop"
 			CareerBridge.clock_minutes = 480
 			CareerBridge.clock_held = false
 			Travel.go("bedroom", false)
@@ -291,6 +287,8 @@ func ask_create() -> void:
 func create() -> void:
 	if submitting: return
 	var payload := draft.duplicate(true)
+	payload["quick_mode"] = true
+	payload["unified_pace"] = true
 	if payload.mode == "join": payload.merge({"team_id":team_id, "player_id":player_id})
 	else:
 		payload["draft_id"] = attribute_draw.current().get("draft_id", "")

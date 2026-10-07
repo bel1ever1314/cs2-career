@@ -65,9 +65,10 @@ public sealed partial class CareerMatchPlugin
     {
         if (_customPlaybook is null)
             throw new InvalidDataException($"本地战术库未就绪：{_customPlaybookState}");
-        if (!TacticalMapCatalog.Matches(_customPlaybook.Map, Server.MapName)
-            || _request is null || !TacticalMapCatalog.Matches(_customPlaybook.Map, _request.Map))
-            throw new InvalidDataException($"地图未对齐：游戏 {Server.MapName}，对局 {_request?.Map ?? "未载入"}，战术库 {_customPlaybook.Map}。退出 CS2 后同步当前对局战术；无需改战术名");
+        // Routes belong to the loaded map, not the scheduled result contract.
+        // Result validation separately rejects scores from a different map.
+        if (!TacticalMapCatalog.Matches(_customPlaybook.Map, Server.MapName))
+            throw new InvalidDataException($"地图未对齐：游戏 {Server.MapName}，战术库 {_customPlaybook.Map}。请同步实际游戏地图的战术库；无需改战术名");
         var tactic = _customPlaybook.Tactics.FirstOrDefault(t => t.Id == plan.TacticId)
             ?? throw new InvalidDataException($"{_customPlaybook.Map} 没有战术 {plan.TacticId}。请同步此地图的战术库");
         if (tactic.Side != plan.Side) throw new InvalidDataException("战术阵营与当前 T/CT 不一致");
@@ -263,7 +264,6 @@ public sealed partial class CareerMatchPlugin
         if (!_roundLive || _resultWritten || InWarmup() || _customPlaybook is null
             || !TacticalMapCatalog.Matches(_customPlaybook.Map, Server.MapName) || !_setupDone
             || _request is not { Active: true, Observer: false } || !string.IsNullOrEmpty(_contractError)
-            || !TacticalMapCatalog.Matches(_customPlaybook.Map, _request.Map)
             || plan.MatchNonce != _sessionNonce || plan.Round != _tacticalEpoch)
         { StopCustomTactic("round_inactive"); return; }
         try

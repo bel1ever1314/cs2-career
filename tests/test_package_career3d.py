@@ -130,6 +130,7 @@ class Package3DTests(unittest.TestCase):
             'THIRD_PARTY_NOTICES.md': 'ordinary third-party notice\n',
             'docs/3d-preview-readme.txt': 'CS2 Career 1.7.0-preview.2 ordinary release\n',
             'docs/skin-tools-interface.zh-CN.txt': 'optional skin tools\n',
+            'docs/map-form-test.zh-CN.txt': 'map training and BP guide\n',
             'licenses/runtime/Python.txt': 'retained license\n',
             'cs2career/__init__.py': '# career engine\n',
             'tools/career3d_service.py': '# current backend source\n',
@@ -139,6 +140,7 @@ class Package3DTests(unittest.TestCase):
             source_pkg.PROJECT + '/data/career_link.json': '{}\n',
             source_pkg.PROJECT + '/data/ui_style.json': '{}\n',
             source_pkg.PROJECT + '/scenes/tiers/bedroom.tscn': '[gd_scene format=3]\n',
+            source_pkg.PROJECT + '/assets/branding/career_icon.svg': '<svg xmlns="http://www.w3.org/2000/svg"/>',
             source_pkg.RTS_PROJECT + '/project.godot': 'config_version=5\n',
         }
         for relative, content in files.items():
@@ -146,6 +148,7 @@ class Package3DTests(unittest.TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(content, encoding='utf-8')
         (root / 'vendor/CareerMatch/CareerMatch.dll').write_bytes(b'MZ current tactics.17')
+        (root / source_pkg.PROJECT / 'assets/branding/career_boot.png').write_bytes(b'fixture boot image')
         for relative in pkg.RUNTIME_VENDOR_FILES:
             target = root / 'vendor' / relative
             if not target.exists():
@@ -276,6 +279,8 @@ class Package3DTests(unittest.TestCase):
                 self.assertEqual(archive.read(prefix + '测试版说明.txt'), readme)
                 self.assertIn('CS2 Career 1.7.0-preview.2', archive.read(prefix + 'game/project.godot').decode('utf-8'))
                 self.assertEqual(archive.read(prefix + 'game/scenes/tiers/bedroom.tscn'), b'[gd_scene format=3]\n')
+                self.assertEqual(archive.read(prefix + 'game/assets/branding/career_boot.png'), b'fixture boot image')
+                self.assertIn(prefix + 'game/assets/branding/career_icon.svg', archive.namelist())
                 self.assertEqual(archive.read(prefix + 'LICENSE'), (source / 'LICENSE').read_bytes())
                 self.assertFalse(any('/game/runtime/' in name or '/mod/' in name or 'bot-runtime' in name
                                      or '/third_party/' in name for name in archive.namelist()))

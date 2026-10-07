@@ -17,6 +17,17 @@ const DesktopUI = preload("res://scripts/computer_ui.gd")
 const Kit = preload("res://scripts/ui_kit.gd")
 const Fmt = preload("res://scripts/ui_format.gd")
 
+func roster_date(parent: Node, row: Dictionary, compact: bool) -> void:
+	var provenance = row.get("data_provenance", {})
+	if not provenance is Dictionary or provenance.get("roster_policy", "") != "opening_complete":
+		return
+	var day := str(provenance.get("roster_as_of", ""))
+	if day.is_empty():
+		return
+	var ui = PhoneUI if compact else DesktopUI
+	ui.label(parent, Locale.message("roster.opening_date", {"date": day}), 13, ui.MUTED)
+
+
 func mail_list(parent: Node, rows: Array, compact: bool, button: Callable, phone_row: Callable = Callable()) -> void:
 	var ui = PhoneUI if compact else DesktopUI
 	var list := VBoxContainer.new()

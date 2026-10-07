@@ -228,10 +228,11 @@ Scenario("logged CT deficit: 910 has 2250, torzsi has 8150 and a primary", () =>
     var receiver = Player(patch, 4250, role: "awp", hidden: true); receiver.PlayerName = "910";
     FakeWorld.AddWeapon(donor, "weapon_ak47"); FakeWorld.AddWeapon(receiver, "weapon_usp_silencer");
     patch.Schedule(); patch.Advance(102f);
-    Check(receiver.GiveCalls.Count == 0, "Do not fund somebody who can still buy their own rifle");
+    Check(receiver.GiveCalls.SequenceEqual(new[] {"weapon_awp"}) && donor.InGameMoneyServices!.Account == 3400,
+        "Sniper cannot afford AWP: funded donor now supplies role-appropriate weapon immediately");
     receiver.InGameMoneyServices!.Account = 2250;
     patch.Advance(103f);
-    Check(receiver.GiveCalls.Count == 1 && donor.InGameMoneyServices!.Account == 5250, "Next freeze-time review funds the real deficit");
+    Check(receiver.GiveCalls.Count == 1 && donor.InGameMoneyServices!.Account == 3400, "Next freeze-time review never duplicates the AWP gift");
     Check(receiver.InGameMoneyServices.Account == 2250, "Receiver's AWP savings remain theirs");
     patch.Advance(104f); patch.GiveAgain();
     Check(receiver.GiveCalls.Count == 1, "Later checks never issue a second gun");
@@ -422,6 +423,58 @@ Scenario("M4 correction permits a new real purchase next round", () => {
         FakeWorld.AddWeapon(p, "weapon_famas"); patch.Purchased(p, "weapon_famas"); Server.RunNextFrame();
     }
     Check(p.GiveCalls.Count == 2 && p.InGameMoneyServices!.Account == 3400, "Per-round dedup resets, not a permanent lockout");
+});
+
+foreach (int side in new[] {2, 3})
+foreach (bool human in new[] {false, true})
+foreach (int money in new[] {0, 3000, 4749})
+Scenario($"sniper gift side={side} human={human} money={money}", () => {
+    var patch = new BotBuyPatch.BotBuyPatch(); patch.HumanRole("{\"human_role\":\"awp\"}");
+    var donor = Player(patch, 4750, side, hidden: true);
+    var receiver = Player(patch, money, side, bot: !human, role: "awp");
+    FakeWorld.AddWeapon(donor, "weapon_ak47");
+    patch.Schedule(); patch.Advance(102); patch.GiveAgain();
+    Check(receiver.GiveCalls.SequenceEqual(new[] {"weapon_awp"}), "Sniper receives one AWP, even with rifle-level savings");
+    Check(donor.InGameMoneyServices!.Account == 0 && receiver.InGameMoneyServices!.Account == money,
+        "Only donor pays 4750, receiver's savings untouched");
+    Check(patch.SwapCalls == 0, "No equipment removed");
+});
+
+foreach (string guard in new[] {"has_rifle", "affords_awp", "multiple_humans", "observer", "old_request", "takeover", "rifle_duty"})
+Scenario("sniper gift guard: " + guard, () => {
+    var patch = new BotBuyPatch.BotBuyPatch();
+    patch.HumanRole(guard == "observer" ? "{\"human_role\":\"awp\",\"observer\":true}"
+        : guard == "old_request" ? "{}" : "{\"human_role\":\"awp\"}");
+    var donor = Player(patch, 8000, hidden: true);
+    var receiver = Player(patch, guard == "affords_awp" ? 4750 : 500, bot: guard == "rifle_duty", role: "awp");
+    FakeWorld.AddWeapon(donor, "weapon_m4a1");
+    if (guard == "has_rifle") FakeWorld.AddWeapon(receiver, "weapon_m4a1");
+    if (guard == "multiple_humans") Player(patch, 16000, bot: false);
+    if (guard == "takeover") receiver.ControllingBot = true;
+    if (guard == "rifle_duty") patch.AssignDuty(receiver, "rifle");
+    patch.Schedule(); patch.Advance(102);
+    Check(!receiver.GiveCalls.Contains("weapon_awp"), "No guessed human role, unwanted upgrade or stale duty");
+});
+
+foreach (int recipientMoney in new[] {500, 3000})
+Scenario("underfunded AWP donor fallback " + recipientMoney, () => {
+    var patch = new BotBuyPatch.BotBuyPatch(); patch.HumanRole("{\"human_role\":\"awp\"}");
+    var donor = Player(patch, 4749); var receiver = Player(patch, recipientMoney, bot: false);
+    FakeWorld.AddWeapon(donor, "weapon_m4a1");
+    patch.Schedule(); patch.Advance(102);
+    Check(!receiver.GiveCalls.Contains("weapon_awp"), "Never overdraft for AWP");
+    Check(receiver.GiveCalls.Count == (recipientMoney < 2900 ? 1 : 0), "Rifle fallback only if recipient cannot buy their own");
+});
+
+Scenario("sniper failed grant is unpaid and can retry", () => {
+    var patch = new BotBuyPatch.BotBuyPatch(); patch.HumanRole("{\"human_role\":\"awp\"}");
+    var donor = Player(patch, 4750); var receiver = Player(patch, 0, bot: false);
+    FakeWorld.AddWeapon(donor, "weapon_m4a1"); receiver.GiveBehavior = (_, _) => SpawnMode.Zero;
+    patch.Schedule(); patch.Advance(102);
+    Check(donor.InGameMoneyServices!.Account == 4750, "Failed AWP does not spend money");
+    receiver.GiveBehavior = null; patch.Advance(103); patch.GiveAgain();
+    Check(Inventory(receiver).Contains("weapon_awp") && donor.InGameMoneyServices.Account == 0,
+        "Retry succeeds and charges once");
 });
 
 Console.WriteLine($"BotBuy runtime: {scenarios} scenarios, {checks} checks, {failures.Count} failures.");

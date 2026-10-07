@@ -69,7 +69,7 @@ PRIVATE_FILENAMES = frozenset({
 })
 TOOL_FILES = frozenset({
     "build_plugins.ps1", "build_skin_art.py", "build_team_avatars.py",
-    "build_team_logo_avatars.gd",
+    "build_team_logo_avatars.gd", "build_career_brand.gd",
     "build_inspect_catalog.py", "run_tests.py", "Launch-CS2Career.cmd",
     "sync_career_rts.ps1", "deploy_career_rts.ps1", "deploy_career3d_redesign.ps1",
     "godot_source_snapshots.gdignore", "transfer_ui_fixture.py", "career_matrix.py",
@@ -197,6 +197,7 @@ def source_files(root: Path) -> list[Path]:
         selected.extend(_walk(root, folder))
     selected.extend(_walk(root, "tools/audio", frozenset({".py", ".md", ".txt", ".json"})))
     selected.extend(_walk(root, PROJECT + "/assets/audio", frozenset({".ogg", ".wav", ".mid", ".json", ".txt", ".md"})))
+    selected.extend(_walk(root, PROJECT + "/assets/branding", frozenset({".png", ".svg"})))
     extension_readme = root / "extensions/README.md"
     if extension_readme.exists():
         _check_file(extension_readme, "extensions/README.md", root)

@@ -59,6 +59,14 @@ func save_settings() -> void:
 func set_music_volume(value: float) -> void:
 	music_volume = clampf(value, 0.0, 1.0)
 
+func stop_scene_music() -> void:
+	# Quiet destinations must not inherit the previous room's crossfade tail.
+	# This is scene-local playback state, not a change to saved sound settings.
+	track = ""; resting = 0.0; plays = 0; last_position = 0.0
+	for i in range(decks.size()):
+		decks[i].stop(); decks[i].volume_db = -80.0
+		deck_track[i] = ""; deck_gain[i] = 0.0; deck_target[i] = 0.0
+
 static func is_night(minutes: float) -> bool:
 	return minutes < DAY_START or minutes >= NIGHT_START
 

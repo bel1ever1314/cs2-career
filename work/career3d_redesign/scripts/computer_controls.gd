@@ -22,9 +22,11 @@ var ranking_board := "top20"
 var ranking_year := 0
 var ranking_page := 1
 var ranking_search := ""
+var mark_editor = preload("res://scripts/team_mark_editor.gd").new()
 
 func attach(value: Node) -> void:
 	host = value
+	mark_editor.host = value
 
 func _label(parent: Node, value: String, size: int = 14, color: Color = UI.INK) -> Label:
 	return host._label(parent, value, size, color)
@@ -124,6 +126,7 @@ func _choice(parent: Node, name: String, choices: Array, selected: String, callb
 func _management(data: Dictionary) -> void:
 	_label(host.content, "阵容与合同", 25)
 	_label(host.content, str(data.get("team", "自由身")), 16, UI.MUTED)
+	mark_editor.render(host.content, data)
 	var roster: Array = data.get("roster", [])
 	var signature := JSON.stringify(roster)
 	if signature != role_signature:
@@ -185,6 +188,19 @@ func _role_changed(value: String, player: String, roster: Array) -> void:
 func _training(data: Dictionary) -> void:
 	_label(host.content, "训练与成长", 25)
 	_label(host.content, str(data.get("rule", "")), 14, UI.MUTED)
+	var focus := UI.card(host.content)
+	focus.name = "MapFocusTraining"
+	_label(focus, "专项练图", 19)
+	_label(focus, "每天选一张，跨日结算一次。越熟练提升越慢，不增加个人属性。", 13, UI.MUTED)
+	var task: Dictionary = data.get("map_practice", {})
+	if not task.is_empty():
+		_label(focus, "%s · %s · %s" % [task.get("date", ""), str(task.get("map", "")).capitalize(), "已完成" if task.get("settled", false) else "已安排"], 13)
+	var focus_options: Array = []
+	for code in data.get("maps", []): focus_options.append({"id":str(code), "label":str(code).capitalize()})
+	_choice(focus, "MapFocusChoice", focus_options, training_map, func(value: String): training_map = value)
+	var focus_button := _button(focus, "安排今天的专项练图", func(): _command("training/map-focus", {"map":training_map}))
+	focus_button.name = "ScheduleMapFocus"
+	focus_button.disabled = focus_button.disabled or bool(data.get("pending", false))
 	var card := UI.card(host.content)
 	_label(card, "%s · 全队心态 %s" % [data.get("date", ""), data.get("mentality", "—")], 18)
 	_label(card, "今天已结算训练奖励。" if data.get("today_rewarded", false) else "今天尚未结算训练奖励。", 14)
@@ -216,6 +232,7 @@ func _training(data: Dictionary) -> void:
 			_label(card, str(data.get("config", {}).get("reason", "请先完成游戏设置。")), 13, UI.MUTED)
 			_button(card, "打开 CS2 设置", host._navigate.bind("settings"), false)
 	if not str(data.get("reason", "")).is_empty(): _label(card, str(data["reason"]), 13, UI.MUTED)
+	preload("res://scripts/map_form_panel.gd").mount(host.content, data.get("map_performance", []))
 	var personal: Dictionary = data.get("personal", {})
 	var growth := UI.card(host.content)
 	_label(growth, "属性培养 · %s 点可分配" % preload("res://scripts/ui_format.gd").score(personal.get("attr_points", 0)), 19)

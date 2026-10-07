@@ -45,6 +45,7 @@ func _config_from(settings: Dictionary) -> Dictionary:
 	# The current backend only supports the classic controller. Legacy natural
 	# preferences must not silently re-enable a retired experiment on save.
 	merged["bot_movement"] = "classic"
+	merged["bot_identity"] = "player"
 	merged["real_skins"] = settings.get("real_skins", raw.get("real_skins", false))
 	merged["steam_id"] = settings.get("steam_id", raw.get("steam_id", ""))
 	return merged
@@ -63,6 +64,12 @@ func render(host: Node, parent: Node, compact: bool = false) -> void:
 	UI.label(parent, "CS2 与人机增强", 19 if compact else 25)
 	UI.label(parent, "使用你配置的 Bot Improver 发行包与难度，安装时加入本项目的兼容修复。", 12, UI.MUTED)
 	var received: Dictionary = CareerBridge.context.get("settings", {})
+	# Settings stay editable during a match; the backend says when they apply.
+	var apply_note := str(received.get("apply_note", ""))
+	if not apply_note.is_empty():
+		var live_note := UI.label(parent, apply_note, 13, UI.AMBER)
+		live_note.name = "DeviceSettingsLiveMatchNote"
+		live_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var setup: Dictionary = received.get("setup", received.get("config", {}).get("setup", {}))
 	var diagnostics: Dictionary = received.get("config", {})
 	for category in [{"key":"path_errors", "title":"路径需要调整"}, {"key":"component_errors", "title":"组件需要安装或更新"}]:
@@ -148,7 +155,6 @@ func render(host: Node, parent: Node, compact: bool = false) -> void:
 	options(parent, "bot_nades", [{"id":"off", "name":"关闭"}, {"id":"less", "name":"偏少"}, {"id":"normal", "name":"正常"}, {"id":"more", "name":"偏多"}, {"id":"max", "name":"最多"}], "normal")
 	UI.label(parent, "调整人机使用道具的频率。", 12, UI.MUTED)
 	UI.label(parent, "队友与对手身份", 12, UI.MUTED)
-	options(parent, "bot_identity", [{"id":"player", "name":"选手身份 · 隐藏 BOT 标记"}, {"id":"bot", "name":"显示 BOT 标记"}], "player")
 	UI.label(parent, "只改变游戏内身份显示，不改变你控制的选手。", 12, UI.MUTED)
 	var movement := UI.label(parent, "移动控制 · 原版增强", 12, UI.MUTED)
 	movement.name = "DeviceBotMovementPreset"
@@ -241,6 +247,7 @@ func _send_settings() -> void:
 		var fallback := str(BOT_DEFAULTS.get(key, "Medium" if key == "difficulty" else ("career" if key == "skins_inventory_mode" else "")))
 		settings[key] = str(draft.get(key, fallback)).strip_edges()
 	settings["bot_movement"] = "classic"
+	settings["bot_identity"] = "player"
 	settings["skin_tools_enabled"] = draft.get("skin_tools_enabled", false) == true
 	var body := {"revision":int(CareerBridge.context.get("calendar", {}).get("revision", 0)), "settings":settings, "real_skins":bool(draft.get("real_skins", false)), "steam_id":str(draft.get("steam_id", "")).strip_edges()}
 	pending_path = "/api/3d/settings"

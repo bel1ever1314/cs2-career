@@ -27,6 +27,7 @@ def _busy(state, training=True):
 
 
 def management_context(state):
+    from .team_marks import context as mark_context
     from cs2career.world.roles import PLAYABLE_ROLES, ROLE_LABEL
     c, s = state.career, state.season
     team = c.my_team(s.teams) or {}
@@ -37,7 +38,7 @@ def management_context(state):
             selected.append(row)
     pending = c.personal_transfers.get('pending') or {}
     reason = _busy(state) or ('当前没有所属战队。' if not team else '')
-    return dict(team_id=team.get('id', ''), team=team.get('name', ''),
+    return dict(team_id=team.get('id', ''), team=team.get('name', ''), marks=mark_context(state),
         roster=[{key: deepcopy(p.get(key)) for key in
                  ('player_id', 'name', 'role', 'ability', 'age', 'you', 'roster_status')}
                 for p in team.get('players', [])],
@@ -49,6 +50,7 @@ def management_context(state):
 
 
 def training_context(state):
+    from cs2career.world import map_form
     from cs2career.services.activities import personal_context, config_status, team_directory
     from cs2career.arena import MAPS
     from cs2career.career.story_timing import public
@@ -59,6 +61,7 @@ def training_context(state):
         '需要有效生涯和完整五人阵容。' if c.over() or c.unsigned or len(team.get('players', [])) != 5 else '')
     session = c.training_session or {}
     return dict(date=s.date, team=team.get('name', ''), mentality=team.get('mentality'),
+        map_performance=map_form.public(team) if team else [], map_practice=deepcopy(team.get('map_practice') or {}),
         last_training=c.last_scrim, today_rewarded=c.last_scrim == s.date,
         pending=bool(session), session={key: session.get(key, '') for key in ('nonce', 'map', 'date', 'opponent', 'started_at')},
         launch_allowed=not reason, reason=reason, config=config_status(),
@@ -179,6 +182,9 @@ def _training_launch(state, body, *, dispatch=None, reward=True):
         (team, opponent, c.player_name, code, side, s.teams, deepcopy(c)),
         dict(purpose='series', request_override=request))
     c.remember_training(request)
+    from cs2career.world.map_form import expectation
+    c.training_session.update(opponent_id=opponent['id'], my_team=team['name'], opp=opponent['name'], side=side,
+                              map_expectation=expectation(team, opponent, code))
     return dict(reason=value['msg'], status='waiting')
 
 
@@ -190,6 +196,9 @@ def controls_command(state, action, body, *, dispatch=None):
         reason = _busy(state, training=action not in ('training/finish', 'training/cancel'))
         if reason:
             raise ValueError(reason)
+        if action == 'team-logo':
+            from .team_marks import command
+            return command(state, body)
         if action == 'roles':
             team = c.my_team(s.teams)
             mapping = body.get('roles')
@@ -209,6 +218,13 @@ def controls_command(state, action, body, *, dispatch=None):
                 raise ValueError('这封合同已经处理或失效，请刷新。')
             from cs2career.services.business import mail_command
             return mail_command(state, action.rsplit('/', 1)[1], body)
+        if action == 'training/map-focus':
+            from cs2career.world.map_form import schedule_practice
+            team = c.my_team(s.teams)
+            if not team or c.over() or c.unsigned:
+                raise ValueError('加入队伍后才能安排专项练图。')
+            schedule_practice(team, body.get('map', ''), s.date)
+            return dict(reason='专项练图已安排，跨日后结算；今天只训练这一张图。')
         if action == 'training/launch':
             return _training_launch(state, body, dispatch=dispatch)
         if action == 'training/finish':

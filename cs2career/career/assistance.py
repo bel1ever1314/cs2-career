@@ -15,6 +15,8 @@ def configure(c, s, body):
     rules = body.get('invites', c.assist.get('invites') or {})
     points = body.get('points', c.assist.get('points') or 'off')
     quick_mode = body.get('quick_mode', bool(c.assist.get('quick_mode')))
+    if c.assist.get('unified_pace'):
+        quick_mode = True  # Pace never changes growth/invitation rules in unified careers.
     if type(quick_mode) is not bool:
         raise ValueError('快速模式开关必须为是或否。')
     if not isinstance(rules, dict) or any(k not in LEVELS or v not in ('manual','accept','decline') for k,v in rules.items()):

@@ -2,8 +2,8 @@
   "schema_version": 1,
   "era": "2025",
   "as_of": "2025-01-08",
-  "revision": "2026-09-09.1",
-  "description": "独立2025开局世界。日期精度为日，含1月8日当日已公布变动；不自动重演开局之后的现实转会。seed为收录组织间的游戏排序，source_rank才是1月6日来源名次。部分转会期空缺用明确估算席位补足五人。",
+  "revision": "2026-10-07.opening.1",
+  "description": "独立开年世界：优先保留 1 月 8 日名单；空缺及相关转会链采用一月内首套可核对完整阵容，逐队标注实际公告或观察日期。seed 是游戏排序，不是这些阵容的实时 VRS。旧存档不迁移身份。",
   "teams": [
     {
       "id": "spirit",
@@ -65,17 +65,16 @@
       "seed": 2,
       "source_rank": 2,
       "rank_quality": "verified",
-      "observed_at": "2025-01-06",
-      "roster_quality": "partial",
+      "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": "NiKo已加盟Falcons，m0NESY仍在G2；HeavyGod在1月11日才加入，不能从Cloud9提前调入。 按开局日前的名单及公告核对身份；能力暂用旧2025目标值或同年代档位估算，尚未采集历史Rating窗口。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "HLTV 2025-01-06 排名与阵容快照（仅身份及名次，不是能力来源）",
-          "url": "https://www.hltv.org/ranking/teams/2025/january/6",
-          "observed_at": "2025-01-06"
+          "url": "https://www.hltv.org/news/40735/g2-announce-heavygod-signing",
+          "title": "g2 announce heavygod signing",
+          "published_at": "2025-01-11"
         }
       ],
       "players": [
@@ -104,13 +103,15 @@
           "ability_source": "legacy-2025-target-estimate"
         },
         {
-          "name": "G2 2025 slot5",
+          "name": "HeavyGod",
           "role": "rifle",
-          "ability": 82,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
+          "ability": 87,
+          "ability_source": "legacy-2025-target-estimate"
         }
-      ]
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2025-01-11",
+      "announced_at": "2025-01-11"
     },
     {
       "id": "navi",
@@ -278,17 +279,16 @@
       "seed": 6,
       "source_rank": 6,
       "rank_quality": "verified",
-      "observed_at": "2025-01-06",
-      "roster_quality": "partial",
+      "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": "ropz已于1月1日离开；EliGE于1月10日加盟，开局第五席暂缺。 按开局日前的名单及公告核对身份；能力暂用旧2025目标值或同年代档位估算，尚未采集历史Rating窗口。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "HLTV 2025-01-06 排名与阵容快照（仅身份及名次，不是能力来源）",
-          "url": "https://www.hltv.org/ranking/teams/2025/january/6",
-          "observed_at": "2025-01-06"
+          "url": "https://www.hltv.org/news/40721/faze-confirm-elige-signing",
+          "title": "faze confirm elige signing",
+          "published_at": "2025-01-10"
         }
       ],
       "players": [
@@ -317,13 +317,15 @@
           "ability_source": "legacy-2025-target-estimate"
         },
         {
-          "name": "FaZe 2025 slot5",
+          "name": "EliGE",
           "role": "rifle",
-          "ability": 79,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
+          "ability": 85,
+          "ability_source": "legacy-2025-target-estimate"
         }
-      ]
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2025-01-10",
+      "announced_at": "2025-01-10"
     },
     {
       "id": "the-mongolz",
@@ -704,17 +706,16 @@
       "seed": 14,
       "source_rank": 14,
       "rank_quality": "verified",
-      "observed_at": "2025-01-06",
-      "roster_quality": "partial",
+      "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": "按开局日前的名单及公告核对身份；能力暂用旧2025目标值或同年代档位估算，尚未采集历史Rating窗口。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "HLTV 2025-01-06 排名与阵容快照（仅身份及名次，不是能力来源）",
-          "url": "https://www.hltv.org/ranking/teams/2025/january/6",
-          "observed_at": "2025-01-06"
+          "url": "https://www.hltv.org/news/40732/pain-confirm-dav1deus-addition",
+          "title": "pain confirm dav1deus addition",
+          "published_at": "2025-01-10"
         }
       ],
       "players": [
@@ -743,13 +744,15 @@
           "ability_source": "same-era-band-estimate"
         },
         {
-          "name": "paiN 2025 slot5",
+          "name": "dav1deuS",
           "role": "rifle",
-          "ability": 76,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         }
-      ]
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2025-01-10",
+      "announced_at": "2025-01-10"
     },
     {
       "id": "3dmax",
@@ -811,17 +814,16 @@
       "seed": 16,
       "source_rank": 16,
       "rank_quality": "verified",
-      "observed_at": "2025-01-06",
-      "roster_quality": "partial",
+      "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": "按开局日前的名单及公告核对身份；能力暂用旧2025目标值或同年代档位估算，尚未采集历史Rating窗口。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "HLTV 2025-01-06 排名与阵容快照（仅身份及名次，不是能力来源）",
-          "url": "https://www.hltv.org/ranking/teams/2025/january/6",
-          "observed_at": "2025-01-06"
+          "url": "https://www.hltv.org/news/40719/complexity-add-cxzi-and-nicx",
+          "title": "complexity add cxzi and nicx",
+          "published_at": "2025-01-09"
         }
       ],
       "players": [
@@ -838,10 +840,10 @@
           "ability_source": "legacy-2025-target-estimate"
         },
         {
-          "name": "EliGE",
+          "name": "Cxzi",
           "role": "entry",
-          "ability": 85,
-          "ability_source": "legacy-2025-target-estimate"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
           "name": "Grim",
@@ -850,13 +852,15 @@
           "ability_source": "legacy-2025-target-estimate"
         },
         {
-          "name": "Complexity 2025 slot5",
+          "name": "nicx",
           "role": "rifle",
-          "ability": 76,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         }
-      ]
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2025-01-09",
+      "announced_at": "2025-01-09"
     },
     {
       "id": "virtus-pro",
@@ -918,27 +922,16 @@
       "seed": 18,
       "source_rank": 18,
       "rank_quality": "verified",
-      "observed_at": "2025-01-08",
-      "roster_quality": "partial",
+      "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": " 1月8日加入PR，同日volt被下放；REZ到1月9日才加盟，开局不能提前补入。 按开局日前的名单及公告核对身份；能力暂用旧2025目标值或同年代档位估算，尚未采集历史Rating窗口。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "HLTV 2025-01-06 排名与阵容快照（仅身份及名次，不是能力来源）",
-          "url": "https://www.hltv.org/ranking/teams/2025/january/6",
-          "observed_at": "2025-01-06"
-        },
-        {
-          "title": "GamerLegion sign PR",
-          "url": "https://www.hltv.org/news/40706/gamerlegion-sign-pr",
-          "observed_at": "2025-01-08"
-        },
-        {
-          "title": "GamerLegion bench volt",
-          "url": "https://www.hltv.org/news/40711/gamerlegion-bench-volt",
-          "observed_at": "2025-01-08"
+          "url": "https://www.hltv.org/news/40716/rez-joins-gamerlegion",
+          "title": "rez joins gamerlegion",
+          "published_at": "2025-01-09"
         }
       ],
       "players": [
@@ -967,13 +960,15 @@
           "ability_source": "legacy-2025-target-estimate"
         },
         {
-          "name": "GamerLegion 2025 slot5",
+          "name": "REZ",
           "role": "rifle",
-          "ability": 73,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
+          "ability": 85,
+          "ability_source": "legacy-2025-target-estimate"
         }
-      ]
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2025-01-09",
+      "announced_at": "2025-01-09"
     },
     {
       "id": "wildcard",
@@ -1088,17 +1083,16 @@
       "seed": 21,
       "source_rank": 21,
       "rank_quality": "verified",
-      "observed_at": "2025-01-06",
-      "roster_quality": "partial",
+      "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": "按开局日前的名单及公告核对身份；能力暂用旧2025目标值或同年代档位估算，尚未采集历史Rating窗口。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "HLTV 2025-01-06 排名与阵容快照（仅身份及名次，不是能力来源）",
-          "url": "https://www.hltv.org/ranking/teams/2025/january/6",
-          "observed_at": "2025-01-06"
+          "url": "https://www.hltv.org/news/40701/big-finalize-roster-with-hyped-and-kyuubii",
+          "title": "big finalize roster with hyped and kyuubii",
+          "published_at": "2025-01-10"
         }
       ],
       "players": [
@@ -1109,11 +1103,10 @@
           "ability_source": "same-era-band-estimate"
         },
         {
-          "name": "BIG 2025 slot2",
+          "name": "hyped",
           "role": "awp",
-          "ability": 80,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
           "name": "JDC",
@@ -1128,13 +1121,15 @@
           "ability_source": "same-era-band-estimate"
         },
         {
-          "name": "BIG 2025 slot5",
+          "name": "kyuubii",
           "role": "rifle",
-          "ability": 73,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         }
-      ]
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2025-01-10",
+      "announced_at": "2025-01-10"
     },
     {
       "id": "flyquest",
@@ -1255,17 +1250,16 @@
       "seed": 24,
       "source_rank": 24,
       "rank_quality": "verified",
-      "observed_at": "2025-01-06",
       "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": "按开局日前的名单及公告核对身份；能力暂用旧2025目标值或同年代档位估算，尚未采集历史Rating窗口。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "HLTV 2025-01-06 排名与阵容快照（仅身份及名次，不是能力来源）",
-          "url": "https://www.hltv.org/ranking/teams/2025/january/6",
-          "observed_at": "2025-01-06"
+          "url": "https://www.hltv.org/news/40870/imperial-confirm-chayjesus-signing",
+          "title": "imperial confirm chayjesus signing",
+          "published_at": "2025-01-30"
         }
       ],
       "players": [
@@ -1294,12 +1288,15 @@
           "ability_source": "legacy-2025-target-estimate"
         },
         {
-          "name": "felps",
+          "name": "chayJESUS",
           "role": "rifle",
-          "ability": 73,
-          "ability_source": "same-era-band-estimate"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         }
-      ]
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2025-01-30",
+      "announced_at": "2025-01-30"
     },
     {
       "id": "b8",
@@ -1355,23 +1352,22 @@
       ]
     },
     {
-      "id": "cloud9",
-      "name": "Cloud9",
+      "id": "betboom",
+      "name": "BetBoom",
       "region": "EU",
       "seed": 26,
-      "source_rank": 26,
+      "source_rank": 27,
       "rank_quality": "verified",
-      "observed_at": "2025-01-06",
-      "roster_quality": "partial",
+      "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": "按开局日前的名单及公告核对身份；能力暂用旧2025目标值或同年代档位估算，尚未采集历史Rating窗口。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "HLTV 2025-01-06 排名与阵容快照（仅身份及名次，不是能力来源）",
-          "url": "https://www.hltv.org/ranking/teams/2025/january/6",
-          "observed_at": "2025-01-06"
+          "url": "https://www.hltv.org/news/40722/ax1le-and-boombl4-depart-cloud9-for-betboom",
+          "title": "ax1le and boombl4 depart cloud9 for betboom",
+          "published_at": "2025-01-10"
         }
       ],
       "players": [
@@ -1380,61 +1376,6 @@
           "role": "igl",
           "ability": 70,
           "ability_source": "same-era-band-estimate"
-        },
-        {
-          "name": "Cloud9 2025 slot2",
-          "role": "awp",
-          "ability": 80,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
-        },
-        {
-          "name": "HeavyGod",
-          "role": "entry",
-          "ability": 87,
-          "ability_source": "legacy-2025-target-estimate"
-        },
-        {
-          "name": "Ax1Le",
-          "role": "lurk",
-          "ability": 75,
-          "ability_source": "same-era-band-estimate"
-        },
-        {
-          "name": "interz",
-          "role": "rifle",
-          "ability": 73,
-          "ability_source": "same-era-band-estimate"
-        }
-      ]
-    },
-    {
-      "id": "betboom",
-      "name": "BetBoom",
-      "region": "EU",
-      "seed": 27,
-      "source_rank": 27,
-      "rank_quality": "verified",
-      "observed_at": "2025-01-06",
-      "roster_quality": "partial",
-      "ability_quality": "estimated",
-      "roles_quality": "estimated",
-      "age_quality": "estimated",
-      "note": "按开局日前的名单及公告核对身份；能力暂用旧2025目标值或同年代档位估算，尚未采集历史Rating窗口。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
-      "sources": [
-        {
-          "title": "HLTV 2025-01-06 排名与阵容快照（仅身份及名次，不是能力来源）",
-          "url": "https://www.hltv.org/ranking/teams/2025/january/6",
-          "observed_at": "2025-01-06"
-        }
-      ],
-      "players": [
-        {
-          "name": "BetBoom 2025 slot1",
-          "role": "igl",
-          "ability": 70,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
         },
         {
           "name": "zorte",
@@ -1455,53 +1396,47 @@
           "ability_source": "same-era-band-estimate"
         },
         {
-          "name": "BetBoom 2025 slot5",
+          "name": "Ax1Le",
           "role": "rifle",
-          "ability": 73,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
+          "ability": 75,
+          "ability_source": "same-era-band-estimate"
         }
-      ]
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2025-01-10",
+      "announced_at": "2025-01-10"
     },
     {
       "id": "fnatic",
       "name": "fnatic",
       "region": "EU",
-      "seed": 28,
+      "seed": 27,
       "source_rank": 28,
       "rank_quality": "verified",
-      "observed_at": "2025-01-08",
-      "roster_quality": "partial",
+      "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": "按1月8日下放nawwk后的三人核心；不提前使用1月10日加盟的fear和Burmylov。 按开局日前的名单及公告核对身份；能力暂用旧2025目标值或同年代档位估算，尚未采集历史Rating窗口。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "HLTV 2025-01-06 排名与阵容快照（仅身份及名次，不是能力来源）",
-          "url": "https://www.hltv.org/ranking/teams/2025/january/6",
-          "observed_at": "2025-01-06"
-        },
-        {
-          "title": "nawwk benched by fnatic",
-          "url": "https://www.hltv.org/news/40707/nawwk-benched-by-fnatic",
-          "observed_at": "2025-01-08"
+          "url": "https://www.hltv.org/news/40729/fnatic-sign-fear-and-burmylov",
+          "title": "fnatic sign fear and burmylov",
+          "published_at": "2025-01-10"
         }
       ],
       "players": [
         {
-          "name": "fnatic 2025 slot1",
+          "name": "fEAR",
           "role": "igl",
-          "ability": 70,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
-          "name": "fnatic 2025 slot2",
+          "name": "Burmylov",
           "role": "awp",
-          "ability": 80,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
           "name": "MATYS",
@@ -1521,13 +1456,16 @@
           "ability": 73,
           "ability_source": "same-era-band-estimate"
         }
-      ]
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2025-01-10",
+      "announced_at": "2025-01-10"
     },
     {
       "id": "passion-ua",
       "name": "Passion UA",
       "region": "EU",
-      "seed": 29,
+      "seed": 28,
       "source_rank": 29,
       "rank_quality": "verified",
       "observed_at": "2025-01-06",
@@ -1580,26 +1518,19 @@
       "id": "9z",
       "name": "9z",
       "region": "AM",
-      "seed": 30,
+      "seed": 29,
       "source_rank": 30,
       "rank_quality": "verified",
-      "observed_at": "2025-01-06",
-      "roster_quality": "partial",
+      "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": "1月6日排名页虽列Luken，但当时只有转会报道，正式加盟公告为1月19日；开局保留四人核心和一个待补席位。 按开局日前的名单及公告核对身份；能力暂用旧2025目标值或同年代档位估算，尚未采集历史Rating窗口。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "HLTV 2025-01-06 排名与阵容快照（仅身份及名次，不是能力来源）",
-          "url": "https://www.hltv.org/ranking/teams/2025/january/6",
-          "observed_at": "2025-01-06"
-        },
-        {
-          "title": "Luken正式加盟公告（用于排除开局后的转会，不作为开局名单来源）",
           "url": "https://www.hltv.org/news/40795/official-luken-completes-9z-comeback",
-          "published_at": "2025-01-19",
-          "purpose": "exclusion"
+          "title": "official luken completes 9z comeback",
+          "published_at": "2025-01-19"
         }
       ],
       "players": [
@@ -1628,40 +1559,41 @@
           "ability_source": "same-era-band-estimate"
         },
         {
-          "name": "9z 2025 slot5",
+          "name": "Luken",
           "role": "rifle",
-          "ability": 69,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         }
-      ]
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2025-01-19",
+      "announced_at": "2025-01-19"
     },
     {
       "id": "nip",
       "name": "NiP",
       "region": "EU",
-      "seed": 31,
+      "seed": 30,
       "source_rank": 31,
       "rank_quality": "verified",
-      "observed_at": "2025-01-06",
-      "roster_quality": "partial",
+      "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": "按开局日前的名单及公告核对身份；能力暂用旧2025目标值或同年代档位估算，尚未采集历史Rating窗口。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "HLTV 2025-01-06 排名与阵容快照（仅身份及名次，不是能力来源）",
-          "url": "https://www.hltv.org/ranking/teams/2025/january/6",
-          "observed_at": "2025-01-06"
+          "url": "https://www.hltv.org/news/40767/official-nip-reveal-snappi-led-lineup",
+          "title": "official nip reveal snappi led lineup",
+          "published_at": "2025-01-15"
         }
       ],
       "players": [
         {
-          "name": "MisteM",
+          "name": "Snappi",
           "role": "igl",
-          "ability": 66,
-          "ability_source": "same-era-band-estimate"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
           "name": "r1nkle",
@@ -1670,53 +1602,53 @@
           "ability_source": "same-era-band-estimate"
         },
         {
-          "name": "REZ",
+          "name": "ewjerkz",
           "role": "entry",
-          "ability": 85,
-          "ability_source": "legacy-2025-target-estimate"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
-          "name": "isak",
+          "name": "arrozdoce",
           "role": "lurk",
-          "ability": 71,
-          "ability_source": "same-era-band-estimate"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
-          "name": "NiP 2025 slot5",
+          "name": "sjuush",
           "role": "rifle",
-          "ability": 69,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         }
-      ]
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2025-01-15",
+      "announced_at": "2025-01-15"
     },
     {
       "id": "red-canids",
       "name": "RED Canids",
       "region": "AM",
-      "seed": 32,
+      "seed": 31,
       "source_rank": 32,
       "rank_quality": "verified",
-      "observed_at": "2025-01-06",
-      "roster_quality": "partial",
+      "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": "按开局日前的名单及公告核对身份；能力暂用旧2025目标值或同年代档位估算，尚未采集历史Rating窗口。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "HLTV 2025-01-06 排名与阵容快照（仅身份及名次，不是能力来源）",
-          "url": "https://www.hltv.org/ranking/teams/2025/january/6",
-          "observed_at": "2025-01-06"
+          "url": "https://www.hltv.org/news/40809/red-canids-add-nyezin-betinho",
+          "title": "red canids add nyezin betinho",
+          "published_at": "2025-01-21"
         }
       ],
       "players": [
         {
-          "name": "RED Canids 2025 slot1",
+          "name": "coldzera",
           "role": "igl",
-          "ability": 66,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
+          "ability": 71,
+          "ability_source": "same-era-band-estimate"
         },
         {
           "name": "HEN1",
@@ -1731,80 +1663,82 @@
           "ability_source": "same-era-band-estimate"
         },
         {
-          "name": "coldzera",
+          "name": "nyezin",
           "role": "lurk",
-          "ability": 71,
-          "ability_source": "same-era-band-estimate"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
-          "name": "RED Canids 2025 slot5",
+          "name": "felps",
           "role": "rifle",
-          "ability": 69,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
+          "ability": 73,
+          "ability_source": "same-era-band-estimate"
         }
-      ]
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2025-01-21",
+      "announced_at": "2025-01-21"
     },
     {
       "id": "sangal",
       "name": "Sangal",
       "region": "EU",
-      "seed": 33,
+      "seed": 32,
       "source_rank": 33,
       "rank_quality": "verified",
-      "observed_at": "2025-01-06",
-      "roster_quality": "partial",
+      "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": "按开局日前的名单及公告核对身份；能力暂用旧2025目标值或同年代档位估算，尚未采集历史Rating窗口。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "HLTV 2025-01-06 排名与阵容快照（仅身份及名次，不是能力来源）",
-          "url": "https://www.hltv.org/ranking/teams/2025/january/6",
-          "observed_at": "2025-01-06"
+          "url": "https://www.hltv.org/news/40878/calyx-danistzz-headline-new-sangal-roster",
+          "title": "calyx danistzz headline new sangal roster",
+          "published_at": "2025-01-30"
         }
       ],
       "players": [
         {
-          "name": "LNZ",
+          "name": "kreaz",
           "role": "igl",
-          "ability": 66,
-          "ability_source": "same-era-band-estimate"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
-          "name": "Sangal 2025 slot2",
+          "name": "danistzz",
           "role": "awp",
-          "ability": 76,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
-          "name": "xfl0ud",
+          "name": "Calyx",
           "role": "entry",
-          "ability": 75,
-          "ability_source": "legacy-2025-target-estimate"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
-          "name": "yxngstxr",
+          "name": "Blytz",
           "role": "lurk",
-          "ability": 74,
-          "ability_source": "legacy-2025-target-estimate"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
-          "name": "Sangal 2025 slot5",
+          "name": "bnox",
           "role": "rifle",
-          "ability": 69,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         }
-      ]
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2025-01-30",
+      "announced_at": "2025-01-30"
     },
     {
       "id": "nemiga",
       "name": "Nemiga",
       "region": "EU",
-      "seed": 34,
+      "seed": 33,
       "source_rank": 34,
       "rank_quality": "verified",
       "observed_at": "2025-01-06",
@@ -1857,7 +1791,7 @@
       "id": "rare-atom",
       "name": "Rare Atom",
       "region": "AS",
-      "seed": 35,
+      "seed": 34,
       "source_rank": 35,
       "rank_quality": "verified",
       "observed_at": "2025-01-06",
@@ -1910,7 +1844,7 @@
       "id": "ence",
       "name": "ENCE",
       "region": "EU",
-      "seed": 36,
+      "seed": 35,
       "source_rank": 36,
       "rank_quality": "verified",
       "observed_at": "2025-01-06",
@@ -1963,7 +1897,7 @@
       "id": "bestia",
       "name": "BESTIA",
       "region": "AM",
-      "seed": 37,
+      "seed": 36,
       "source_rank": 37,
       "rank_quality": "verified",
       "observed_at": "2025-01-06",
@@ -2017,20 +1951,19 @@
       "id": "9-pandas",
       "name": "9 Pandas",
       "region": "EU",
-      "seed": 38,
+      "seed": 37,
       "source_rank": 38,
       "rank_quality": "verified",
-      "observed_at": "2025-01-06",
-      "roster_quality": "partial",
+      "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": "按开局日前的名单及公告核对身份；能力暂用旧2025目标值或同年代档位估算，尚未采集历史Rating窗口。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "HLTV 2025-01-06 排名与阵容快照（仅身份及名次，不是能力来源）",
-          "url": "https://www.hltv.org/ranking/teams/2025/january/6",
-          "observed_at": "2025-01-06"
+          "url": "https://www.hltv.org/news/40726/9-pandas-add-krad-and-alv",
+          "title": "9 pandas add krad and alv",
+          "published_at": "2025-01-10"
         }
       ],
       "players": [
@@ -2041,11 +1974,10 @@
           "ability_source": "same-era-band-estimate"
         },
         {
-          "name": "9 Pandas 2025 slot2",
+          "name": "Alv",
           "role": "awp",
-          "ability": 76,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
           "name": "r3salt",
@@ -2060,40 +1992,41 @@
           "ability_source": "same-era-band-estimate"
         },
         {
-          "name": "9 Pandas 2025 slot5",
+          "name": "Krad",
           "role": "rifle",
-          "ability": 69,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         }
-      ]
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2025-01-10",
+      "announced_at": "2025-01-10"
     },
     {
       "id": "tyloo",
       "name": "TYLOO",
       "region": "AS",
-      "seed": 39,
+      "seed": 38,
       "source_rank": 39,
       "rank_quality": "verified",
-      "observed_at": "2025-01-06",
-      "roster_quality": "partial",
+      "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": "按开局日前的名单及公告核对身份；能力暂用旧2025目标值或同年代档位估算，尚未采集历史Rating窗口。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "HLTV 2025-01-06 排名与阵容快照（仅身份及名次，不是能力来源）",
-          "url": "https://www.hltv.org/ranking/teams/2025/january/6",
-          "observed_at": "2025-01-06"
+          "url": "https://www.hltv.org/matches/2378505/tyloo-vs-chinggis-warriors-esl-challenger-league-season-49-asia-pacific",
+          "title": "tyloo vs chinggis warriors esl challenger league season 49 asia pacific",
+          "observed_at": "2025-01-22"
         }
       ],
       "players": [
         {
-          "name": "aumaN",
+          "name": "Attacker",
           "role": "igl",
-          "ability": 66,
-          "ability_source": "same-era-band-estimate"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
           "name": "Jee",
@@ -2102,10 +2035,10 @@
           "ability_source": "same-era-band-estimate"
         },
         {
-          "name": "Moseyuh",
+          "name": "JamYoung",
           "role": "entry",
-          "ability": 73,
-          "ability_source": "same-era-band-estimate"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
           "name": "Mercury",
@@ -2114,19 +2047,21 @@
           "ability_source": "same-era-band-estimate"
         },
         {
-          "name": "TYLOO 2025 slot5",
+          "name": "Moseyuh",
           "role": "rifle",
-          "ability": 69,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
+          "ability": 73,
+          "ability_source": "same-era-band-estimate"
         }
-      ]
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2025-01-22",
+      "observed_at": "2025-01-22"
     },
     {
       "id": "eclot",
       "name": "ECLOT",
       "region": "EU",
-      "seed": 40,
+      "seed": 39,
       "source_rank": 40,
       "rank_quality": "verified",
       "observed_at": "2025-01-08",
@@ -2184,7 +2119,7 @@
       "id": "monte",
       "name": "Monte",
       "region": "EU",
-      "seed": 41,
+      "seed": 40,
       "source_rank": 41,
       "rank_quality": "verified",
       "observed_at": "2025-01-06",
@@ -2237,7 +2172,7 @@
       "id": "navi-junior",
       "name": "NAVI Junior",
       "region": "EU",
-      "seed": 42,
+      "seed": 41,
       "source_rank": 42,
       "rank_quality": "verified",
       "observed_at": "2025-01-06",
@@ -2290,7 +2225,7 @@
       "id": "lynn-vision",
       "name": "Lynn Vision",
       "region": "AS",
-      "seed": 43,
+      "seed": 42,
       "source_rank": 43,
       "rank_quality": "verified",
       "observed_at": "2025-01-06",
@@ -2343,7 +2278,7 @@
       "id": "og",
       "name": "OG",
       "region": "EU",
-      "seed": 44,
+      "seed": 43,
       "source_rank": 44,
       "rank_quality": "verified",
       "observed_at": "2025-01-06",
@@ -2396,7 +2331,7 @@
       "id": "500",
       "name": "500",
       "region": "EU",
-      "seed": 45,
+      "seed": 44,
       "source_rank": 45,
       "rank_quality": "verified",
       "observed_at": "2025-01-06",
@@ -2449,7 +2384,7 @@
       "id": "spirit-academy",
       "name": "Spirit Academy",
       "region": "EU",
-      "seed": 46,
+      "seed": 45,
       "source_rank": 46,
       "rank_quality": "verified",
       "observed_at": "2025-01-06",
@@ -2502,7 +2437,7 @@
       "id": "atox",
       "name": "ATOX",
       "region": "AS",
-      "seed": 47,
+      "seed": 46,
       "source_rank": 47,
       "rank_quality": "verified",
       "observed_at": "2025-01-06",
@@ -2555,20 +2490,19 @@
       "id": "gun5",
       "name": "GUN5",
       "region": "EU",
-      "seed": 48,
+      "seed": 47,
       "source_rank": 48,
       "rank_quality": "verified",
-      "observed_at": "2025-01-06",
       "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": "按开局日前的名单及公告核对身份；能力暂用旧2025目标值或同年代档位估算，尚未采集历史Rating窗口。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "HLTV 2025-01-06 排名与阵容快照（仅身份及名次，不是能力来源）",
-          "url": "https://www.hltv.org/ranking/teams/2025/january/6",
-          "observed_at": "2025-01-06"
+          "url": "https://www.hltv.org/ranking/teams/2025/january/27",
+          "title": "27",
+          "observed_at": "2025-01-27"
         }
       ],
       "players": [
@@ -2591,24 +2525,27 @@
           "ability_source": "same-era-band-estimate"
         },
         {
-          "name": "tN1R",
+          "name": "Sdaim",
           "role": "lurk",
-          "ability": 68,
+          "ability": 66,
           "ability_source": "same-era-band-estimate"
         },
         {
-          "name": "Sdaim",
+          "name": "fineshine52",
           "role": "rifle",
-          "ability": 66,
+          "ability": 68,
           "ability_source": "same-era-band-estimate"
         }
-      ]
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2025-01-27",
+      "observed_at": "2025-01-27"
     },
     {
       "id": "nrg",
       "name": "NRG",
       "region": "AM",
-      "seed": 49,
+      "seed": 48,
       "source_rank": 50,
       "rank_quality": "verified",
       "observed_at": "2025-01-06",
@@ -2661,7 +2598,7 @@
       "id": "legacy",
       "name": "Legacy",
       "region": "AM",
-      "seed": 50,
+      "seed": 49,
       "source_rank": 51,
       "rank_quality": "verified",
       "observed_at": "2025-01-06",
@@ -2714,7 +2651,7 @@
       "id": "sinners",
       "name": "SINNERS",
       "region": "EU",
-      "seed": 51,
+      "seed": 50,
       "source_rank": 55,
       "rank_quality": "verified",
       "observed_at": "2025-01-07",
@@ -2772,7 +2709,7 @@
       "id": "9ine",
       "name": "9INE",
       "region": "EU",
-      "seed": 52,
+      "seed": 51,
       "source_rank": 56,
       "rank_quality": "verified",
       "observed_at": "2025-01-06",
@@ -2825,7 +2762,7 @@
       "id": "sharks",
       "name": "Sharks",
       "region": "AM",
-      "seed": 53,
+      "seed": 52,
       "source_rank": 58,
       "rank_quality": "verified",
       "observed_at": "2025-01-06",
@@ -2878,7 +2815,7 @@
       "id": "aurora",
       "name": "Aurora",
       "region": "EU",
-      "seed": 54,
+      "seed": 53,
       "source_rank": 60,
       "rank_quality": "verified",
       "observed_at": "2025-01-06",
@@ -2931,7 +2868,7 @@
       "id": "fluxo",
       "name": "Fluxo",
       "region": "AM",
-      "seed": 55,
+      "seed": 54,
       "source_rank": 61,
       "rank_quality": "verified",
       "observed_at": "2025-01-07",
@@ -2989,26 +2926,19 @@
       "id": "parivision",
       "name": "PARIVISION",
       "region": "EU",
-      "seed": 56,
+      "seed": 55,
       "source_rank": 65,
       "rank_quality": "verified",
-      "observed_at": "2025-01-06",
-      "roster_quality": "partial",
+      "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": "开局记录可确认Qikert、BELCHONOKK、ArtFr0st；Jame、TRAVIS、nota在1月13日才公布加入。两名缺席身份仍待补，不沿用2024的Jerry/X5G7V，也不提前使用Jame。 按开局日前的名单及公告核对身份；能力暂用旧2025目标值或同年代档位估算，尚未采集历史Rating窗口。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "HLTV 2025-01-06 排名与阵容快照（仅身份及名次，不是能力来源）",
-          "url": "https://www.hltv.org/ranking/teams/2025/january/6",
-          "observed_at": "2025-01-06"
-        },
-        {
-          "title": "PARIVISION 1月13日重组公告（用于排除未来名单）",
           "url": "https://www.hltv.org/news/40756/parivision-announce-revamped-lineup-featuring-jame",
-          "published_at": "2025-01-13",
-          "purpose": "exclusion"
+          "title": "parivision announce revamped lineup featuring jame",
+          "published_at": "2025-01-13"
         }
       ],
       "players": [
@@ -3019,10 +2949,10 @@
           "ability_source": "same-era-band-estimate"
         },
         {
-          "name": "ArtFr0st",
+          "name": "Jame",
           "role": "awp",
-          "ability": 73,
-          "ability_source": "same-era-band-estimate"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
           "name": "BELCHONOKK",
@@ -3031,39 +2961,39 @@
           "ability_source": "same-era-band-estimate"
         },
         {
-          "name": "PARIVISION 2025 slot4",
+          "name": "TRAVIS",
           "role": "lurk",
-          "ability": 68,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
-          "name": "PARIVISION 2025 slot5",
+          "name": "nota",
           "role": "rifle",
-          "ability": 66,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         }
-      ]
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2025-01-13",
+      "announced_at": "2025-01-13"
     },
     {
       "id": "hotu",
       "name": "HOTU",
       "region": "AS",
-      "seed": 57,
+      "seed": 56,
       "source_rank": 121,
       "rank_quality": "verified",
-      "observed_at": "2025-01-06",
       "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": "按开局日前的名单及公告核对身份；能力暂用旧2025目标值或同年代档位估算，尚未采集历史Rating窗口。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "HLTV 2025-01-06 排名与阵容快照（仅身份及名次，不是能力来源）",
-          "url": "https://www.hltv.org/ranking/teams/2025/january/6",
-          "observed_at": "2025-01-06"
+          "url": "https://www.hltv.org/ranking/teams/2025/january/27",
+          "title": "27",
+          "observed_at": "2025-01-27"
         }
       ],
       "players": [
@@ -3086,24 +3016,27 @@
           "ability_source": "same-era-band-estimate"
         },
         {
-          "name": "fineshine52",
+          "name": "lampada",
           "role": "lurk",
-          "ability": 68,
+          "ability": 66,
           "ability_source": "same-era-band-estimate"
         },
         {
-          "name": "lampada",
+          "name": "youka",
           "role": "rifle",
-          "ability": 66,
-          "ability_source": "same-era-band-estimate"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         }
-      ]
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2025-01-27",
+      "observed_at": "2025-01-27"
     },
     {
       "id": "chinggis-warriors",
       "name": "Chinggis Warriors",
       "region": "AS",
-      "seed": 58,
+      "seed": 57,
       "source_rank": 150,
       "rank_quality": "verified",
       "observed_at": "2025-01-06",
@@ -3156,59 +3089,62 @@
       "id": "heroic",
       "name": "HEROIC",
       "region": "EU",
-      "seed": 59,
+      "seed": 58,
       "source_rank": null,
       "rank_quality": "estimated",
-      "observed_at": "2025-01-08",
-      "roster_quality": "estimated",
+      "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": "1月8日最后一名主力sjuush离队，1月10日新阵容尚未公布。五名游戏占位不是真实签约名单；组织暂列收录世界末位，不伪造来源排名。 按开局日前的名单及公告核对身份；能力暂用旧2025目标值或同年代档位估算，尚未采集历史Rating窗口。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "sjuush leaves HEROIC",
-          "url": "https://www.hltv.org/news/40712/sjuush-leaves-heroic",
-          "observed_at": "2025-01-08"
+          "url": "https://www.hltv.org/news/40727/heroic-reveal-new-roster",
+          "title": "heroic reveal new roster",
+          "published_at": "2025-01-10"
         }
       ],
       "players": [
         {
-          "name": "HEROIC 2025 slot1",
+          "name": "LNZ",
           "role": "igl",
-          "ability": 63,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
-        },
-        {
-          "name": "HEROIC 2025 slot2",
-          "role": "awp",
-          "ability": 73,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
-        },
-        {
-          "name": "HEROIC 2025 slot3",
-          "role": "entry",
-          "ability": 70,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
-        },
-        {
-          "name": "HEROIC 2025 slot4",
-          "role": "lurk",
-          "ability": 68,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
-        },
-        {
-          "name": "HEROIC 2025 slot5",
-          "role": "rifle",
           "ability": 66,
-          "ability_source": "same-era-band-estimate",
-          "identity_quality": "estimated"
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "SunPayus",
+          "role": "awp",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "tN1R",
+          "role": "entry",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "xfl0ud",
+          "role": "lurk",
+          "ability": 75,
+          "ability_source": "legacy-2025-target-estimate"
+        },
+        {
+          "name": "yxngstxr",
+          "role": "rifle",
+          "ability": 74,
+          "ability_source": "legacy-2025-target-estimate"
         }
-      ]
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2025-01-10",
+      "announced_at": "2025-01-10"
+    }
+  ],
+  "excluded_teams": [
+    {
+      "name": "Cloud9",
+      "reason": "开年阵容解散，未取得完整新名单；interz 于 1 月 13 日离队。https://www.hltv.org/news/40761/cloud9-part-ways-with-interz"
     }
   ]
 }

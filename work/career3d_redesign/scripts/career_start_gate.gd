@@ -15,6 +15,7 @@ func _ready() -> void:
 	if Engine.is_editor_hint(): return
 	for flag in OS.get_cmdline_user_args():
 		if "test" in flag or "capture" in flag or flag == "--no-service": return
+	add_child(preload("res://scripts/career_startup.gd").new())
 	CareerBridge.changed.connect(_welcome)
 	if CareerBridge.connected: call_deferred("_welcome")
 

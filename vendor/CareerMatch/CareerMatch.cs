@@ -377,6 +377,7 @@ public sealed partial class CareerMatchPlugin : BasePlugin
     {
         PinObservers();
         if (!_setupDone || _request is not { Active: true } || !InWarmup()) return;
+        if (!_request.Observer) PinHumanSide();
         BindPlayerSlots();
         var ready = TeamScoreMapping.OpeningRosterReady(LiveTeamMembership())
             && AllSlots().Count(p => p.Team == CsTeam.CounterTerrorist) == 5
@@ -391,7 +392,7 @@ public sealed partial class CareerMatchPlugin : BasePlugin
             TraceIdentity("warmup_roster", new { ready, members = LiveTeamMembership(),
                 slots = AllSlots().Select(p => new { slot = p.Slot, name = p.PlayerName,
                     side = (int)p.Team, id = _slotIds.GetValueOrDefault(p.Slot) }).ToList() });
-            Server.PrintToChatAll($" \x04CareerMatch：{notice}\x01");
+            Server.PrintToChatAll($" \u0004CareerMatch：{notice}\u0001");
         }
     }
 
@@ -401,6 +402,10 @@ public sealed partial class CareerMatchPlugin : BasePlugin
         // pulling them back to the opening CT/T is the "keep swapping" bug.
         AddTimer(1.2f, ApplySideDuringWarmup);
         AddTimer(3.0f, ApplySideDuringWarmup);
+        if (@event.Userid is { IsValid: true, IsBot: false })
+        {
+            AddTimer(5.0f, AnnounceAssignment, TimerFlags.STOP_ON_MAPCHANGE);
+        }
         return HookResult.Continue;
     }
 
@@ -460,7 +465,7 @@ public sealed partial class CareerMatchPlugin : BasePlugin
 
         if (!string.IsNullOrEmpty(_contractError))
         {
-            Server.PrintToChatAll($" \x02CareerMatch 已阻止开赛：{_contractError}\x01");
+            Server.PrintToChatAll($" \u0002CareerMatch 已阻止开赛：{_contractError}\u0001");
             Server.PrintToConsole($"[CareerMatch] contract rejected: {_contractError}");
             Server.ExecuteCommand("bot_kick");
             Server.ExecuteCommand("mp_warmup_pausetimer 1");
@@ -478,7 +483,41 @@ public sealed partial class CareerMatchPlugin : BasePlugin
         AddTimer(6.0f, ApplySideDuringWarmup);
         AddTimer(8.0f, ApplySideDuringWarmup);
         AddTimer(10.0f, ClearStolenRounds);
-        AddTimer(WarmupSeconds + 3.0f, ReleaseHumanTeam);
+        AddTimer(WarmupSeconds + 3.0f, ReleaseHumanTeamAfterWarmup, TimerFlags.STOP_ON_MAPCHANGE);
+    }
+
+    private static string MapKey(string? name)
+    {
+        var key = (name ?? "").Trim().ToLowerInvariant();
+        return key.StartsWith("de_", StringComparison.Ordinal) ? key[3..] : key;
+    }
+
+    private void AnnounceAssignment()
+    {
+        if (_request is not { Active: true } || !string.IsNullOrEmpty(_contractError)) return;
+        if (MapKey(Server.MapName) != MapKey(_request.Map))
+            Server.PrintToChatAll($" \u0004CareerMatch：当前地图 {Server.MapName}，可使用该地图的战术；赛事安排为 {_request.Map}，本图战绩不录入该赛事。\u0001");
+        if (_request.Observer)
+        {
+            Server.PrintToChatAll($" \u0004CareerMatch：本场地图 {Server.MapName} · 你是观察者。\u0001");
+            return;
+        }
+        var ct = _request.HumanTeam.Trim().ToLowerInvariant() != "t";
+        var team = SafeCommandText(ct ? _request.Ct.Name : _request.T.Name);
+        Server.PrintToChatAll($" \u0004CareerMatch：本场地图 {Server.MapName} · 你在 {(ct ? "CT（反恐精英）" : "T（恐怖分子）")} 方开局 · {team}\u0001");
+    }
+
+    private void ReleaseHumanTeamAfterWarmup()
+    {
+        // The roster check pauses warmup until all ten are placed; releasing
+        // the side lock on a fixed timer let a slow-loading player pick the
+        // wrong side. Hold it until warmup has really ended.
+        if (InWarmup())
+        {
+            AddTimer(5.0f, ReleaseHumanTeamAfterWarmup, TimerFlags.STOP_ON_MAPCHANGE);
+            return;
+        }
+        ReleaseHumanTeam();
     }
 
     private void ResetBest()
@@ -861,15 +900,15 @@ public sealed partial class CareerMatchPlugin : BasePlugin
         var level = name.Equals("High", StringComparison.OrdinalIgnoreCase) ? "3/3"
             : name.Equals("Low", StringComparison.OrdinalIgnoreCase) ? "1/3"
             : "2/3";
-        Server.PrintToChatAll($" \x04Career 难度: {name} [{level}]\x01");
+        Server.PrintToChatAll($" \u0004Career 难度: {name} [{level}]\u0001");
         var tuning = _request?.BotProfile.DifficultyModel switch
         {
             "bot_improver_career_tuned_v2" => "原版增强参数 + 生涯个人微调",
             "custom_botprofile_templates_v1" => "自定义 VPK 模板 · 生涯阵容",
             _ => "旧版调校（下场重新生成）",
         };
-        Server.PrintToChatAll($" \x04{tuning}\x01");
-        Server.PrintToChatAll($" \x04本场 Bot 档案: {_request?.ExpectedBots}/{_request?.ExpectedBots} · {_request?.BotProfile.ShortHash}\x01");
+        Server.PrintToChatAll($" \u0004{tuning}\u0001");
+        Server.PrintToChatAll($" \u0004本场 Bot 档案: {_request?.ExpectedBots}/{_request?.ExpectedBots} · {_request?.BotProfile.ShortHash}\u0001");
         Server.PrintToConsole($"[CareerMatch] Difficulty {name} [{level}] model={_request?.BotProfile.DifficultyModel} preset={_request?.BotProfile.PresetSourceHash}");
     }
 
@@ -1016,6 +1055,15 @@ public sealed partial class CareerMatchPlugin : BasePlugin
 
         if (_request.Observer) { PinObservers(); ApplyBotNames(); return; }
 
+        PinHumanSide();
+        BindPlayerSlots();
+        ApplyBotNames();
+    }
+
+    // Warmup only: after halftime CS2 swaps sides on its own.
+    private void PinHumanSide()
+    {
+        if (_request is not { Active: true, Observer: false } || !InWarmup()) return;
         var humanWant = _request.HumanTeam.Trim().ToLowerInvariant() == "t"
             ? CsTeam.Terrorist
             : CsTeam.CounterTerrorist;
@@ -1044,9 +1092,6 @@ public sealed partial class CareerMatchPlugin : BasePlugin
                 }
             }
         }
-
-        BindPlayerSlots();
-        ApplyBotNames();
     }
 
     private void ApplyBotNames() => ApplyBotPresentation(namesOnly: false);

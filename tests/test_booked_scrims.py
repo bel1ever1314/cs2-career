@@ -85,7 +85,7 @@ class BookedScrimTests(unittest.TestCase):
         self.assertEqual('waiting', result['status'])
         self.assertEqual(self.booking['id'], result['context']['scrims']['pending']['booking_id'])
 
-    def test_collect_saves_ten_player_report_without_rewards_and_replays(self):
+    def test_collect_saves_report_and_map_learning_without_personal_rewards_and_replays(self):
         self.ready(); self.launch()
         body = self.finish_body()
         before = deepcopy((self.state.career.money, self.state.career.attr_points,
@@ -98,10 +98,18 @@ class BookedScrimTests(unittest.TestCase):
         self.assertEqual(10, sum(map(len, report['map']['players'].values())))
         self.assertEqual(report['teams'][0], report['map']['winner'])
         self.assertIsNone(self.session())
+        teams_after = deepcopy(self.state.season.teams)
+        for previous, current in zip(before[3], teams_after):
+            current.pop('map_form', None)
+            current['strong_maps'] = previous['strong_maps']
+            current['weak_maps'] = previous['weak_maps']
         self.assertEqual(before, (self.state.career.money, self.state.career.attr_points,
-                         self.state.career.last_scrim, self.state.season.teams, self.state.arena.data))
+                         self.state.career.last_scrim, teams_after, self.state.arena.data))
+        self.assertEqual(2, len(report['map']['map_form_changes']))
+        learned = deepcopy(self.state.season.teams)
         self.assertEqual(report, self.records(ApplicationState())[0]['report'])
         self.assertTrue(self.perform('collect', body)['replayed'])
+        self.assertEqual(learned, self.state.season.teams)
 
     def test_stale_or_incomplete_results_do_not_consume_booking(self):
         self.ready(); self.launch()

@@ -480,6 +480,106 @@
       "sha256": "a0c1fd1c71e8e7e33b9a2e503fdce043c517c7eebbd27e3f95a8c49b5400aea6",
       "original_sha256": "a0c1fd1c71e8e7e33b9a2e503fdce043c517c7eebbd27e3f95a8c49b5400aea6",
       "original_path": "source/c9.svg"
+    },
+    "Eternal Fire": {
+      "kind": "club_logo",
+      "path": "eter.svg",
+      "source": "https://raw.githubusercontent.com/Juknum/counter-strike-icons/85ec43bd170d0622db8eadf160e666c161976375/cs2/panorama/images/tournaments/teams/eter.svg",
+      "asset_code": "eter",
+      "source_commit": "85ec43bd170d0622db8eadf160e666c161976375",
+      "sha256": "9b79b513ddb10200ae9286fc96ef0e251f747412166b4f15642b08434d66aca4",
+      "original_sha256": "9b79b513ddb10200ae9286fc96ef0e251f747412166b4f15642b08434d66aca4",
+      "original_path": "source/eter.svg"
+    },
+    "Monte": {
+      "kind": "club_logo",
+      "path": "mont.svg",
+      "source": "https://raw.githubusercontent.com/Juknum/counter-strike-icons/85ec43bd170d0622db8eadf160e666c161976375/cs2/panorama/images/tournaments/teams/mont.svg",
+      "asset_code": "mont",
+      "source_commit": "85ec43bd170d0622db8eadf160e666c161976375",
+      "sha256": "eb87508222de055d35de621c8dff3dc81360b02d299de52018c615d81d802fcc",
+      "original_sha256": "eb87508222de055d35de621c8dff3dc81360b02d299de52018c615d81d802fcc",
+      "original_path": "source/mont.svg"
+    },
+    "Grayhound": {
+      "kind": "club_logo",
+      "path": "gray.svg",
+      "source": "https://raw.githubusercontent.com/Juknum/counter-strike-icons/85ec43bd170d0622db8eadf160e666c161976375/cs2/panorama/images/tournaments/teams/gray.svg",
+      "asset_code": "gray",
+      "source_commit": "85ec43bd170d0622db8eadf160e666c161976375",
+      "sha256": "773a5ec878345e03c30f2e0c34bf0b503184ac05c8facae4a34973be464e8313",
+      "original_sha256": "30489c5c103ca1ebe34847e52d830a15548286bf1300265756b0a69de7cfc865",
+      "original_path": "source/gray.svg"
+    },
+    "FORZE": {
+      "kind": "club_logo",
+      "path": "forz.svg",
+      "source": "https://raw.githubusercontent.com/Juknum/counter-strike-icons/85ec43bd170d0622db8eadf160e666c161976375/cs2/panorama/images/tournaments/teams/forz.svg",
+      "asset_code": "forz",
+      "source_commit": "85ec43bd170d0622db8eadf160e666c161976375",
+      "sha256": "dde80ac313ee2100e08d08e5f445e7ebf51349e32102ac52da60b0a87f87352b",
+      "original_sha256": "dde80ac313ee2100e08d08e5f445e7ebf51349e32102ac52da60b0a87f87352b",
+      "original_path": "source/forz.svg"
+    },
+    "Apeks": {
+      "kind": "club_logo",
+      "path": "apex.svg",
+      "source": "https://raw.githubusercontent.com/Juknum/counter-strike-icons/85ec43bd170d0622db8eadf160e666c161976375/cs2/panorama/images/tournaments/teams/apex.svg",
+      "asset_code": "apex",
+      "source_commit": "85ec43bd170d0622db8eadf160e666c161976375",
+      "sha256": "5dd42aaf2da7600a1d0e7edce3616502cf11f18ce25d94c74f86f9ff4f879307",
+      "original_sha256": "5dd42aaf2da7600a1d0e7edce3616502cf11f18ce25d94c74f86f9ff4f879307",
+      "original_path": "source/apex.svg"
+    },
+    "KOI": {
+      "kind": "club_logo",
+      "path": "koi.svg",
+      "source": "https://raw.githubusercontent.com/Juknum/counter-strike-icons/85ec43bd170d0622db8eadf160e666c161976375/cs2/panorama/images/tournaments/teams/koi.svg",
+      "asset_code": "koi",
+      "source_commit": "85ec43bd170d0622db8eadf160e666c161976375",
+      "sha256": "470bbe761279275f9544ed93f6bd5816776fa1643411d6db4ad834c4a7d45cb1",
+      "original_sha256": "470bbe761279275f9544ed93f6bd5816776fa1643411d6db4ad834c4a7d45cb1",
+      "original_path": "source/koi.svg"
+    },
+    "9 Pandas": {
+      "kind": "club_logo",
+      "path": "pand.svg",
+      "source": "https://raw.githubusercontent.com/Juknum/counter-strike-icons/85ec43bd170d0622db8eadf160e666c161976375/cs2/panorama/images/tournaments/teams/pand.svg",
+      "asset_code": "pand",
+      "source_commit": "85ec43bd170d0622db8eadf160e666c161976375",
+      "sha256": "659474e7dc78ee29f931219389d3d12b9b638e5342d3b3ed88b641c6b7d4dd3b",
+      "original_sha256": "659474e7dc78ee29f931219389d3d12b9b638e5342d3b3ed88b641c6b7d4dd3b",
+      "original_path": "source/pand.svg"
+    },
+    "Nemiga": {
+      "kind": "club_logo",
+      "path": "nemi.svg",
+      "source": "https://raw.githubusercontent.com/Juknum/counter-strike-icons/85ec43bd170d0622db8eadf160e666c161976375/cs2/panorama/images/tournaments/teams/nemi.svg",
+      "asset_code": "nemi",
+      "source_commit": "85ec43bd170d0622db8eadf160e666c161976375",
+      "sha256": "6495261a24d7f0755127952215320af617caa152b49f7402adc5843f742499b1",
+      "original_sha256": "6495261a24d7f0755127952215320af617caa152b49f7402adc5843f742499b1",
+      "original_path": "source/nemi.svg"
+    },
+    "RED Canids": {
+      "kind": "club_logo",
+      "path": "redc.svg",
+      "source": "https://raw.githubusercontent.com/Juknum/counter-strike-icons/85ec43bd170d0622db8eadf160e666c161976375/cs2/panorama/images/tournaments/teams/redc.svg",
+      "asset_code": "redc",
+      "source_commit": "85ec43bd170d0622db8eadf160e666c161976375",
+      "sha256": "0631660a7966b916ad82213e798bd8355e7844247daa1620489a222c2933d17c",
+      "original_sha256": "0631660a7966b916ad82213e798bd8355e7844247daa1620489a222c2933d17c",
+      "original_path": "source/redc.svg"
+    },
+    "Wildcard": {
+      "kind": "club_logo",
+      "path": "wcrd.svg",
+      "source": "https://raw.githubusercontent.com/Juknum/counter-strike-icons/85ec43bd170d0622db8eadf160e666c161976375/cs2/panorama/images/tournaments/teams/wcrd.svg",
+      "asset_code": "wcrd",
+      "source_commit": "85ec43bd170d0622db8eadf160e666c161976375",
+      "sha256": "2741f9eb55ce60b21098b697a9d8b3a8992bbc214d6d2736852979bfd5299c85",
+      "original_sha256": "2741f9eb55ce60b21098b697a9d8b3a8992bbc214d6d2736852979bfd5299c85",
+      "original_path": "source/wcrd.svg"
     }
   },
   "source_project": "https://github.com/Juknum/counter-strike-icons",

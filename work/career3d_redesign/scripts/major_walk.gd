@@ -219,6 +219,18 @@ func _competition_roster() -> void:
 		_plate(str(other[i].get("name","")),Vector3(opponent_seat.x,2.27,-16.205))
 	# Event and team names now live on the main LED board (_stage_boards).
 	_notice("和队友一起穿过中央通道入场")
+	# A visit is persisted per series, not per map or per application run.
+	if bool(Travel.match_visit.get("venue", {}).get("entry_completed", false)):
+		competition_phase = "ready"
+		for entry in allies:
+			var actor: Node3D = entry.actor
+			actor.position = entry.seat; actor.reset_physics_interpolation()
+			actor.locked = true; actor.seat_pose = true; actor.upper_body_action = "typing"
+			actor.face_toward(entry.screen)
+		player.position = player_station.approach; player.reset_physics_interpolation(); body_y = player.position.y
+		finish_intro()
+		atmosphere.settle_competition()
+		_notice("返回本场席位 · 按 E 入座，继续比赛")
 
 func _plate(text: String, at: Vector3) -> void:
 	var label:=_arena_sign(text,at,.0024)

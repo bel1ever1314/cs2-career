@@ -14,6 +14,7 @@ from .morale import after_series, mentality_mult
 from .rules import COMPETITIVE
 from .rating import career_rating, clamp, expected_dpr, expected_rating, skill_tier
 from ..world.ability import playing_ability, effective_form_delta
+from ..world import map_form
 
 RNG = random.Random(20260905)
 
@@ -227,15 +228,7 @@ def play_map(team_a: dict, team_b: dict, map_name: str) -> dict:
     validate_rosters(team_a, team_b)
     rows_a = snapshot_players(team_a, team_b, map_name)
     rows_b = snapshot_players(team_b, team_a, map_name)
-    def fit(team: dict) -> float:
-        base = float(team.get("map_adaptation", 65))
-        if map_name in team.get("strong_maps", []):
-            base += 25
-        elif map_name in team.get("weak_maps", []):
-            base -= 25
-        return clamp(base, 0, 100)
-
-    fit_a, fit_b = fit(team_a), fit(team_b)
+    fit_a, fit_b = map_form.rating(team_a, map_name), map_form.rating(team_b, map_name)
     score_a, fire_a, cmd_a = team_score(rows_a, team_a["command"], team_a.get("mentality", 70), fit_a)
     score_b, fire_b, cmd_b = team_score(rows_b, team_b["command"], team_b.get("mentality", 70), fit_b)
     if team_a.get("throwing"):
@@ -249,6 +242,7 @@ def play_map(team_a: dict, team_b: dict, map_name: str) -> dict:
         "source": "sim",
         "rules_id": COMPETITIVE.id,
         "map": map_name,
+        "map_expectation": map_form.expectation(team_a, team_b, map_name),
         "score": f"{s_a}-{s_b}",
         "rounds": rounds,
         "winner": team_a["name"] if s_a > s_b else team_b["name"],
@@ -265,11 +259,7 @@ def play_map(team_a: dict, team_b: dict, map_name: str) -> dict:
 
 
 def map_comfort(team: dict, map_name: str) -> float:
-    if map_name in team.get("strong_maps", []):
-        return 1.2
-    if map_name in team.get("weak_maps", []):
-        return -1.1
-    return 0.05
+    return map_form.comfort(team, map_name)
 
 
 def _noise(command: float) -> float:
@@ -373,7 +363,7 @@ def update_player_forms(teams: list[dict], ratings: list[dict]) -> None:
             player["form"] = round(float(player["ability"]) + player["form_delta"], 2)
 
 
-def play_series(team_a: dict, team_b: dict, maps: list[str], stage: str, best_of: int = 3) -> dict:
+def play_series(team_a: dict, team_b: dict, maps: list[str], stage: str, best_of: int = 3, *, on_map=None) -> dict:
     validate_rosters(team_a, team_b)
     veto = veto_maps(team_a, team_b, maps, best_of)
     need = best_of // 2 + 1
@@ -382,6 +372,8 @@ def play_series(team_a: dict, team_b: dict, maps: list[str], stage: str, best_of
     for map_name in veto["order"]:
         result = play_map(team_a, team_b, map_name)
         played.append(result)
+        if on_map is not None:
+            on_map(result, len(played) - 1)
         wins[result["winner"]] += 1
         if max(wins.values()) >= need:
             break

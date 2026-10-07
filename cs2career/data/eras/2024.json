@@ -2,8 +2,8 @@
   "schema_version": 1,
   "era": "2024",
   "as_of": "2024-01-08",
-  "revision": "2026-09-09.2",
-  "description": "独立2024开局组织与名单。seed是所收录战队间的游戏排序；source_rank才是来源中的真实排名，null代表未核验。并非整个世界所有职业组织。",
+  "revision": "2026-10-07.opening.1",
+  "description": "独立开年世界：优先保留 1 月 8 日名单；空缺及相关转会链采用一月内首套可核对完整阵容，逐队标注实际公告或观察日期。seed 是游戏排序，不是这些阵容的实时 VRS。旧存档不迁移身份。",
   "teams": [
     {
       "id": "vitality",
@@ -1556,17 +1556,16 @@
       "seed": 30,
       "source_rank": 30,
       "rank_quality": "verified",
-      "observed_at": "2024-01-08",
-      "roster_quality": "partial",
+      "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
-          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
-          "observed_at": "2024-01-08"
+          "url": "https://www.hltv.org/matches/2369227/forze-vs-heroic-pgl-cs2-major-copenhagen-2024-europe-rmr-closed-qualifier-b",
+          "title": "forze vs heroic pgl cs2 major copenhagen 2024 europe rmr closed qualifier b",
+          "observed_at": "2024-01-18"
         }
       ],
       "players": [
@@ -1577,8 +1576,8 @@
           "ability_source": "same-era-band-estimate"
         },
         {
-          "name": "tN1R",
-          "role": "rifle",
+          "name": "gokushima",
+          "role": "awp",
           "ability": 71,
           "ability_source": "same-era-band-estimate"
         },
@@ -1589,19 +1588,21 @@
           "ability_source": "same-era-band-estimate"
         },
         {
-          "name": "gokushima",
-          "role": "awp",
+          "name": "tN1R",
+          "role": "lurk",
           "ability": 71,
           "ability_source": "same-era-band-estimate"
         },
         {
-          "name": "FORZE 2024 slot5",
-          "role": "lurk",
-          "ability": 71,
-          "identity_quality": "estimated",
-          "ability_source": "same-era-band-estimate"
+          "name": "kelieN",
+          "role": "rifle",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         }
-      ]
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2024-01-18",
+      "observed_at": "2024-01-18"
     },
     {
       "id": "m80",
@@ -2352,23 +2353,34 @@
       "seed": 45,
       "source_rank": 120,
       "rank_quality": "verified",
-      "observed_at": "2024-01-08",
-      "roster_quality": "partial",
+      "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": "五人身份按日期核对；能力暂为旧2024目标值或同年代档位估算，未完成历史Rating窗口采集。五位置、年龄、七维、状态与地图偏好仍为游戏估算。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "HLTV 2024-01-08 排名与当日阵容快照（仅名单和名次，非能力来源）",
-          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
-          "observed_at": "2024-01-08"
+          "url": "https://www.hltv.org/matches/2369381/atox-vs-the-huns-pgl-cs2-major-copenhagen-2024-east-asia-rmr-closed-qualifier",
+          "title": "atox vs the huns pgl cs2 major copenhagen 2024 east asia rmr closed qualifier",
+          "observed_at": "2024-01-21"
         }
       ],
       "players": [
         {
           "name": "dobu",
           "role": "igl",
+          "ability": 68,
+          "ability_source": "same-era-band-estimate"
+        },
+        {
+          "name": "AccuracyTG",
+          "role": "awp",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "Zesta",
+          "role": "entry",
           "ability": 68,
           "ability_source": "same-era-band-estimate"
         },
@@ -2383,21 +2395,11 @@
           "role": "rifle",
           "ability": 68,
           "ability_source": "same-era-band-estimate"
-        },
-        {
-          "name": "Zesta",
-          "role": "entry",
-          "ability": 68,
-          "ability_source": "same-era-band-estimate"
-        },
-        {
-          "name": "ATOX 2024 slot5",
-          "role": "awp",
-          "ability": 68,
-          "identity_quality": "estimated",
-          "ability_source": "same-era-band-estimate"
         }
-      ]
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2024-01-21",
+      "observed_at": "2024-01-21"
     },
     {
       "id": "passion-ua",
@@ -2669,55 +2671,53 @@
       "seed": 51,
       "source_rank": null,
       "rank_quality": "estimated",
-      "observed_at": "2024-01-08",
-      "roster_quality": "estimated",
+      "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": "组织保留在游戏世界中；该日期的五人身份尚未核验，全部使用显式占位，不借用2026阵容。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "游戏收录组织清单，历史名单待核验",
-          "url": "https://www.hltv.org/ranking/teams/2024/january/8"
+          "url": "https://www.hltv.org/ranking/teams/2024/january/8",
+          "title": "8",
+          "observed_at": "2024-01-08"
         }
       ],
       "players": [
         {
-          "name": "Sharks 2024 slot1",
+          "name": "drg",
           "role": "igl",
-          "ability": 68,
-          "identity_quality": "estimated",
-          "ability_source": "same-era-band-estimate"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
-          "name": "Sharks 2024 slot2",
+          "name": "gafolo",
           "role": "awp",
-          "ability": 68,
-          "identity_quality": "estimated",
-          "ability_source": "same-era-band-estimate"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
-          "name": "Sharks 2024 slot3",
+          "name": "togs",
           "role": "entry",
-          "ability": 68,
-          "identity_quality": "estimated",
-          "ability_source": "same-era-band-estimate"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
-          "name": "Sharks 2024 slot4",
+          "name": "rdnzao",
           "role": "lurk",
-          "ability": 68,
-          "identity_quality": "estimated",
-          "ability_source": "same-era-band-estimate"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
-          "name": "Sharks 2024 slot5",
+          "name": "doc",
           "role": "rifle",
-          "ability": 68,
-          "identity_quality": "estimated",
-          "ability_source": "same-era-band-estimate"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         }
-      ]
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2024-01-08",
+      "observed_at": "2024-01-08"
     },
     {
       "id": "9ine",
@@ -2726,169 +2726,63 @@
       "seed": 52,
       "source_rank": null,
       "rank_quality": "estimated",
-      "observed_at": "2024-01-08",
-      "roster_quality": "estimated",
+      "roster_quality": "verified",
       "ability_quality": "estimated",
       "roles_quality": "estimated",
       "age_quality": "estimated",
-      "note": "组织保留在游戏世界中；该日期的五人身份尚未核验，全部使用显式占位，不借用2026阵容。",
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
       "sources": [
         {
-          "title": "游戏收录组织清单，历史名单待核验",
-          "url": "https://www.hltv.org/ranking/teams/2024/january/8"
+          "url": "https://www.hltv.org/news/37906/9ine-rebuild-roster-around-kei-mynio",
+          "title": "9ine rebuild roster around kei mynio",
+          "published_at": "2024-01-07"
         }
       ],
       "players": [
         {
-          "name": "9INE 2024 slot1",
+          "name": "mynio",
           "role": "igl",
-          "ability": 68,
-          "identity_quality": "estimated",
-          "ability_source": "same-era-band-estimate"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
-          "name": "9INE 2024 slot2",
+          "name": "mhL",
           "role": "awp",
-          "ability": 68,
-          "identity_quality": "estimated",
-          "ability_source": "same-era-band-estimate"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
-          "name": "9INE 2024 slot3",
+          "name": "tomiko",
           "role": "entry",
-          "ability": 68,
-          "identity_quality": "estimated",
-          "ability_source": "same-era-band-estimate"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
-          "name": "9INE 2024 slot4",
+          "name": "KEi",
           "role": "lurk",
-          "ability": 68,
-          "identity_quality": "estimated",
-          "ability_source": "same-era-band-estimate"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         },
         {
-          "name": "9INE 2024 slot5",
+          "name": "Bambosh",
           "role": "rifle",
-          "ability": 68,
-          "identity_quality": "estimated",
-          "ability_source": "same-era-band-estimate"
-        }
-      ]
-    },
-    {
-      "id": "hotu",
-      "name": "HOTU",
-      "region": "EU",
-      "seed": 53,
-      "source_rank": null,
-      "rank_quality": "estimated",
-      "observed_at": "2024-01-08",
-      "roster_quality": "estimated",
-      "ability_quality": "estimated",
-      "roles_quality": "estimated",
-      "age_quality": "estimated",
-      "note": "组织保留在游戏世界中；该日期的五人身份尚未核验，全部使用显式占位，不借用2026阵容。",
-      "sources": [
-        {
-          "title": "游戏收录组织清单，历史名单待核验",
-          "url": "https://www.hltv.org/ranking/teams/2024/january/8"
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
         }
       ],
-      "players": [
-        {
-          "name": "HOTU 2024 slot1",
-          "role": "igl",
-          "ability": 68,
-          "identity_quality": "estimated",
-          "ability_source": "same-era-band-estimate"
-        },
-        {
-          "name": "HOTU 2024 slot2",
-          "role": "awp",
-          "ability": 68,
-          "identity_quality": "estimated",
-          "ability_source": "same-era-band-estimate"
-        },
-        {
-          "name": "HOTU 2024 slot3",
-          "role": "entry",
-          "ability": 68,
-          "identity_quality": "estimated",
-          "ability_source": "same-era-band-estimate"
-        },
-        {
-          "name": "HOTU 2024 slot4",
-          "role": "lurk",
-          "ability": 68,
-          "identity_quality": "estimated",
-          "ability_source": "same-era-band-estimate"
-        },
-        {
-          "name": "HOTU 2024 slot5",
-          "role": "rifle",
-          "ability": 68,
-          "identity_quality": "estimated",
-          "ability_source": "same-era-band-estimate"
-        }
-      ]
-    },
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2024-01-07",
+      "announced_at": "2024-01-07"
+    }
+  ],
+  "excluded_teams": [
     {
-      "id": "chinggis-warriors",
       "name": "Chinggis Warriors",
-      "region": "AS",
-      "seed": 54,
-      "source_rank": null,
-      "rank_quality": "estimated",
-      "observed_at": "2024-01-08",
-      "roster_quality": "estimated",
-      "ability_quality": "estimated",
-      "roles_quality": "estimated",
-      "age_quality": "estimated",
-      "note": "组织保留在游戏世界中；该日期的五人身份尚未核验，全部使用显式占位，不借用2026阵容。",
-      "sources": [
-        {
-          "title": "游戏收录组织清单，历史名单待核验",
-          "url": "https://www.hltv.org/ranking/teams/2024/january/8"
-        }
-      ],
-      "players": [
-        {
-          "name": "Chinggis Warriors 2024 slot1",
-          "role": "igl",
-          "ability": 68,
-          "identity_quality": "estimated",
-          "ability_source": "same-era-band-estimate"
-        },
-        {
-          "name": "Chinggis Warriors 2024 slot2",
-          "role": "awp",
-          "ability": 68,
-          "identity_quality": "estimated",
-          "ability_source": "same-era-band-estimate"
-        },
-        {
-          "name": "Chinggis Warriors 2024 slot3",
-          "role": "entry",
-          "ability": 68,
-          "identity_quality": "estimated",
-          "ability_source": "same-era-band-estimate"
-        },
-        {
-          "name": "Chinggis Warriors 2024 slot4",
-          "role": "lurk",
-          "ability": 68,
-          "identity_quality": "estimated",
-          "ability_source": "same-era-band-estimate"
-        },
-        {
-          "name": "Chinggis Warriors 2024 slot5",
-          "role": "rifle",
-          "ability": 68,
-          "identity_quality": "estimated",
-          "ability_source": "same-era-band-estimate"
-        }
-      ]
+      "reason": "未取得可完整核对的开年五人名单；不以虚构 slot 补齐。仅从新建世界移除。"
+    },
+    {
+      "name": "HOTU",
+      "reason": "未取得可完整核对的开年五人名单；不以虚构 slot 补齐。仅从新建世界移除。"
     }
   ]
 }

@@ -6,6 +6,16 @@ ROOT = Path(__file__).resolve().parents[1] / 'vendor' / 'CareerMatch'
 
 
 class TacticalSafetyWiringTests(unittest.TestCase):
+    def test_tactics_follow_loaded_map_but_results_still_require_scheduled_map(self):
+        custom = (ROOT / 'CareerMatch.CustomTactics.cs').read_text('utf-8')
+        self.assertIn('TacticalMapCatalog.Matches(_customPlaybook.Map, Server.MapName)', custom)
+        self.assertNotIn('TacticalMapCatalog.Matches(_customPlaybook.Map, _request.Map)', custom)
+        plugin = (ROOT / 'CareerMatch.cs').read_text('utf-8')
+        self.assertIn('LoadCustomPlaybook(mapName)', plugin)
+        self.assertNotIn('RedirectToRequestedMap', plugin)
+        self.assertNotIn('changelevel ', plugin)
+        self.assertIn('if (!actualMap.Equals(wantedMap, StringComparison.OrdinalIgnoreCase)) return "地图与请求不匹配"', plugin)
+
     def test_damage_releases_before_stats_filter(self):
         source = (ROOT / 'CareerMatch.Events.cs').read_text('utf-8')
         hurt = source.split('private HookResult OnPlayerHurt(', 1)[1].split('private HookResult OnPlayerDeath(', 1)[0]

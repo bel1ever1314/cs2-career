@@ -15,7 +15,7 @@ namespace BotBuyPatch;
 public sealed partial class BotBuyPatch : BasePlugin
 {
     public override string ModuleName        => "BotBuyPatch";
-    public override string ModuleVersion => "1.0.12-career.10";
+    public override string ModuleVersion => "1.0.12-career.11";
     public override string ModuleAuthor      => "ed0ard";
     public override string ModuleDescription => "Enable bots to take more buy options";
 
@@ -33,12 +33,14 @@ public sealed partial class BotBuyPatch : BasePlugin
     private void RefreshCareerContext()
     {
         _careerActive = false; _careerRoles.Clear(); _careerSides.Clear(); _careerNonce = "";
+        _humanGiftRole = ""; _humanGiftSteamId = 0;
         try
         {
             var path = System.IO.Path.Combine(ModuleDirectory, "..", "CareerMatch", "match_request.json");
             if (!System.IO.File.Exists(path)) return;
             using var doc = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(path));
             var root = doc.RootElement;
+            ReadHumanGiftRole(root);
             _careerActive = root.TryGetProperty("active", out var active) && active.GetBoolean();
             if (!_careerActive) return;
             if (!root.TryGetProperty("map", out var map) || map.GetString() != Server.MapName)

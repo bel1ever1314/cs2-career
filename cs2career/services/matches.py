@@ -90,7 +90,54 @@ def _veto_public(state, match):
         'turn': turn, 'complete': complete, 'initialized': bool(match.get('veto'))}
 
 
+def series_maps(state, match):
+    """Every map of the series in play order, so the UI never has to guess.
+
+    state: done / live (a CS2 map is waiting for its result) / next / upcoming /
+    unneeded (the series was decided before this map).
+    """
+    from cs2career.cs2.result import to_cs2_map
+    veto = match.get('veto') or {}
+    order = list(veto.get('order') or [])
+    if not order or (match.get('career3d_veto') and not _veto_public(state, match)['complete']):
+        return []
+    steps = {row.get('map'): row for row in veto.get('steps') or [] if row.get('action') in ('pick', 'decider')}
+    played = list(match.get('maps') or [])
+    session = match.get('cs2_session') or {}
+    need = int(match.get('best_of', 3)) // 2 + 1
+    wins = {}
+    for box in played:
+        wins[box.get('winner')] = wins.get(box.get('winner'), 0) + 1
+    decided = bool(match.get('played')) or (max(wins.values()) if wins else 0) >= need
+    own = state.season.your_team_name()
+    rows = []
+    for index, name in enumerate(order):
+        step = steps.get(name, {})
+        row = {'index': index + 1, 'map': name, 'cs2_map': to_cs2_map(name),
+               'picked_by': step.get('team') or '', 'decider': step.get('action') == 'decider'}
+        if index < len(played):
+            box = played[index]
+            score = str(box.get('score', ''))
+            parts = score.split('-')
+            if own and own == match.get('team_b') and len(parts) == 2:
+                score = parts[1] + '-' + parts[0]  # always "your rounds - their rounds"
+            row.update(state='done', score=score, winner=box.get('winner', ''),
+                       won=box.get('winner') == own)
+        elif decided:
+            row['state'] = 'unneeded'
+        elif index == len(played):
+            live = bool(session) and session.get('map_index') == index
+            row['state'] = 'live' if live else 'next'
+            if live:
+                row['side'] = session.get('side', 'ct')
+        else:
+            row['state'] = 'upcoming'
+        rows.append(row)
+    return rows
+
+
 def match_preflight(state, ident='', check_running=False):
+    from .career_pace import map_key
     from cs2career.services.activities import config_status
     ev, match = _pair(state, ident)
     if not match:
@@ -110,16 +157,21 @@ def match_preflight(state, ident='', check_running=False):
         'ready' if veto['complete'] else 'veto' if veto['initialized'] else 'preflight'
     config = config_status()
     from cs2career.services.venues import venue_for, attendance_for
+    from cs2career.world.map_form import public as map_performance
+    performances = {t['name']: map_performance(t) for t in s.teams if t['name'] in (match['team_a'], match['team_b'])}
     venue = venue_for(state, ev, match)
     return {'match_id': match['id'], 'event': {'id': ev['id'], 'name': ev['name']},
         'identity': {'year': s.year, 'event_id': f'{s.year}:{ev["id"]}', 'match_id': match['id'],
                      'key': f'{s.year}:{ev["id"]}:{match["id"]}', 'human_id': venue['human_id']},
         'venue': venue, 'attendance': attendance_for(state, ev, match, venue),
         'team_a': match['team_a'], 'team_b': match['team_b'], 'date': match['date'],
+        'map_performance': performances,
         'best_of': match.get('best_of', 3), 'stage': match.get('stage', ''), 'series': s._live_series(match),
         'yours': yours, 'due': due, 'played': played, 'phase': phase, 'veto': veto,
         'pending_map': match.get('pending_map'), 'maps_done': len(match.get('maps') or []),
+        'map_key': map_key(state, ev, match),
         'side': (match.get('cs2_session') or match.get('career3d_launch') or {}).get('side', 'ct'),
+        'series_maps': series_maps(state, match),
         'session_pending': career_cs2_pending(state),
         'revision': _revision(state), 'can_simulate': due and not reason and not played,
         'can_launch': due and not played and not reason and phase == 'ready' and config['ready'],
@@ -474,7 +526,7 @@ def match_command(state, action, body, *, launch_handler=None, retire_request=No
     if not isinstance(body.get('match_id'), str) or not body['match_id']:
         raise ValueError('请提供明确的职业比赛 match_id。')
     ev, match = _pair(state, body['match_id'], True)
-    if action not in ('attend', 'preflight', 'veto', 'autoveto', 'simulate', 'launch', 'collect'):
+    if action not in ('attend', 'seated', 'preflight', 'veto', 'autoveto', 'simulate', 'launch', 'collect'):
         raise ValueError('没有这个职业比赛操作。')
     request_id = body.get('request_id')
     if request_id is not None and (not isinstance(request_id, str) or not 8 <= len(request_id) <= 100):
@@ -497,6 +549,12 @@ def match_command(state, action, body, *, launch_handler=None, retire_request=No
     if action == 'collect' and not match.get('cs2_session') and match.get('maps') and match['maps'][-1].get('source') == 'cs2':
         return {**_result_response(state, ev, match), 'replayed': True}
     _guard(state, body, optional=action == 'simulate')
+    if action in ('launch', 'simulate', 'preflight', 'veto', 'autoveto'):
+        from .career_pace import guard_map
+        guard_map(state, ev, match, body)
+        if action in ('launch', 'simulate') and 'map_key' in body:
+            from .career_pace import enable
+            enable(state)
     recovered = False
     if action in ('launch', 'simulate') and match.get('cs2_session'):
         # Repeated launch while the process is alive still means the same game,
@@ -516,7 +574,16 @@ def match_command(state, action, body, *, launch_handler=None, retire_request=No
                     'action': action, 'result': deepcopy(out)}])[-12:]
             return out
         recovered = True
-    if action == 'attend':
+    if action == 'seated':
+        if match.get('played') or not state.season.is_yours(match) or not state.season.yours_ready(match) or match['date'] > state.season.date:
+            raise ValueError('当前比赛尚未到入座时间。')
+        _identity(state, match)
+        plan = match.setdefault('career3d_attendance', {})
+        plan.update(mode='personal', match_identity=f'{state.season.year}:{ev["id"]}:{match["id"]}',
+                    player_id=state.arena.career_player_id(state), seated=True)
+        out = dict(reason='已记住本场席位，后续地图无需重新入场。', status='ready',
+                   preflight=match_preflight(state, match['id']))
+    elif action == 'attend':
         if not state.season.is_yours(match):
             raise ValueError('这不是你当前队伍的比赛。')
         if ev.get('status') not in ('live', 'upcoming'):
@@ -607,12 +674,13 @@ def quick_context(state):
     from cs2career.services.match_queries import due_player_match as _due_player_match
     from cs2career.services.venues import attendance_for
     personal = _due_player_match(state)
-    if not reason and personal and attendance_for(state, *personal)['planned']:
+    if not reason and personal and not c.assist.get('unified_pace') and attendance_for(state, *personal)['planned']:
         reason = attendance_for(state, *personal)['instruction']
     break_ack = bool(current and c.assist.get('quick_break_ack') == current['key'])
     phase = ('story' if c.story_queue else 'blocked') if reason else 'break' if current and not break_ack else \
         'choice' if domain['choice_required'] else domain['phase']
     return {**domain, 'season_phase': domain['phase'], 'phase': phase,
+        'unified_pace': bool(c.assist.get('unified_pace')),
         'mode': 'quick' if c.assist.get('quick_mode') else 'normal',
         'revision': _revision(state), 'counter': int(c.assist.get('step_counter') or 0),
         'break_key': (current or {}).get('key', ''),
@@ -637,7 +705,21 @@ def season_command(state, action, body, *, simulation_limit=None):
         raise ValueError('训练对局尚未完成，请先录入或取消训练。')
     if state.arena.pending:
         raise ValueError('天梯比赛尚未完成，暂时不能推进赛季。')
-    if action == 'mode':
+    if action == 'unify':
+        from .career_pace import enable
+        enable(state)
+        out = {'reason': '统一生涯节奏已启用。', 'status': 'saved'}
+    elif action == 'next-year':
+        from ..career.fast_mode import season_complete
+        if body.get('year') != s.year or not season_complete(s):
+            raise ValueError('请在本赛季结束后继续下一赛季。')
+        configure_season(c, s, True, s.year)
+        from .career_pace import enable
+        enable(state)
+        out = {'reason': '新赛季已开始。', 'status': 'saved'}
+    elif action == 'mode':
+        if c.assist.get('unified_pace'):
+            raise ValueError('统一生涯按地图选择玩法，不再切换赛季模式。')
         if _reason(state):
             raise ValueError(_reason(state))
         configure_season(c, s, body.get('quick_mode'), body.get('year'))

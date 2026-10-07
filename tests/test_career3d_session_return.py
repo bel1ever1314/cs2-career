@@ -63,7 +63,7 @@ class CareerSessionReturnTests(unittest.TestCase):
         self.assertEqual('waiting', out['status'])
         for key in ('read_only', 'resume_only', 'replayed'):
             self.assertTrue(out[key])
-        self.assertEqual('这场比赛正在进行，回到比赛电脑接续。', out['reason'])
+        self.assertEqual(out['preflight']['attendance']['instruction'], out['reason'])
         self.assertEqual('lan', out['preflight']['attendance']['return_destination'])
         self.assertEqual('frozen_match_rosters', out['preflight']['venue']['identity_source'])
         self.assertTrue(out['preflight']['venue']['travel_allowed'])

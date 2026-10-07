@@ -85,7 +85,7 @@ class CareerVenuePolicyTests(unittest.TestCase):
         self.event.update(id='blast-bounty', name='BLAST Premier Bounty Season 1 2026')
         self.match['stage'] = 'G1'
         early = self.venue()
-        self.assertEqual(('studio', 'online'), (early['scale'], early['real_venue_scale']))
+        self.assertEqual(('online', 'online'), (early['scale'], early['real_venue_scale']))
         self.match['stage'] = 'GF'
         final = self.venue()
         self.assertEqual(('arena', 'studio'), (final['scale'], final['real_venue_scale']))
@@ -94,6 +94,44 @@ class CareerVenuePolicyTests(unittest.TestCase):
         self.season.year = 2027
         self.assertEqual('', self.venue()['name'])
         self.assertFalse(self.venue()['verified'])
+
+    def test_bounty_online_phases_override_generic_stage_policy(self):
+        for year in (2025, 2026):
+            self.season.year = year
+            self.event.update(id='blast-bounty', name=f'BLAST Premier Bounty Season 1 {year}')
+            for stage in ('G1', 'G2', 'R32', 'RO32', 'R16', 'RO16'):
+                with self.subTest(year=year, stage=stage):
+                    self.match.update(stage=stage, phase='playoff' if stage.startswith('R') else 'groups')
+                    venue = self.venue()
+                    self.assertEqual(('online', 'club', False, False),
+                        (venue['scale'], venue['destination'], venue['should_walk'], venue['travel_allowed']))
+                    self.assertEqual('verified_online_phase', venue['venue_policy'])
+                    self.assertEqual('俱乐部训练室', venue['display_name'])
+            for stage in ('QF', 'SF', 'GF'):
+                self.match.update(stage=stage, phase='playoff')
+                self.assertEqual(('arena', 'major', True),
+                    tuple(self.venue()[key] for key in ('scale', 'destination', 'should_walk')))
+        self.match.update(stage='G1', phase='groups')
+        self.event['name'] = 'Different Cup 2026'
+        self.assertEqual('lan', self.venue()['destination'])
+        self.season.year = 2027
+        self.event['name'] = 'BLAST Premier Bounty Season 1 2027'
+        self.assertEqual('lan', self.venue()['destination'])
+
+    def test_frozen_bounty_lan_becomes_online_without_changing_progress(self):
+        saved = self.venue()
+        self.season.year = 2025
+        self.event.update(id='blast-bounty', name='BLAST Premier Bounty Season 1 2025')
+        self.match.update(career3d_venue=saved, veto={'order':['dust2', 'nuke', 'mirage']},
+                          maps=[{'map':'dust2', 'score':[13, 8]}])
+        before = deepcopy(self.match)
+        venue = self.venue()
+        self.assertEqual(('club', False, False),
+            (venue['destination'], venue['is_lan'], venue['should_walk']))
+        self.assertEqual('club', attendance_for(self.state, self.event, self.match)['destination'])
+        for key in ('players_a', 'players_b', 'human_id', 'match_identity'):
+            self.assertEqual(saved[key], venue[key])
+        self.assertEqual(before, self.match)
 
     def test_legacy_unknown_online_projection_keeps_frozen_ids_after_transfer_changes(self):
         original = self.venue()

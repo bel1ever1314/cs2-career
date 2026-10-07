@@ -34,6 +34,11 @@ public sealed partial class BotBuyPatch
     }
 
     public void AssignDuty(CCSPlayerController player, string duty) => _tacticalDuties[player.SteamID] = duty;
+    public void HumanRole(string json)
+    {
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        ReadHumanGiftRole(doc.RootElement);
+    }
     public void MarkPendingRefund(CBasePlayerWeapon weapon) => _refundingWeapons.Add(weapon.EntityHandle.Raw);
     public void MarkRoundStart(CCSPlayerController player, CBasePlayerWeapon weapon) =>
         _roundStartWeapons[player.Slot].Add(weapon.EntityHandle.Raw);

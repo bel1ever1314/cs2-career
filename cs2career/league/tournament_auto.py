@@ -102,7 +102,7 @@ def step(c, s, eid, token, expected=None, *, until=None, max_maps=None):
         if current['id']!=eid: return finish('paused','另一项赛事有你的待打比赛，请先处理。')
         kind=decisive(ev,match)
         approval=(c.assist.get('tournament') or {}).get('approval')
-        if kind and approval!=key(s,ev,match):
+        if kind and not c.assist.get('unified_pace') and approval!=key(s,ev,match):
             moment(c,s,ev,match,kind)
             return finish('decision','进入决赛，请选择。' if kind=='final' else '进入生死战，请选择。')
         reason=c.gate_match(s,match['id']) or blocker(c,s)

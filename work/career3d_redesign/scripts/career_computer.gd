@@ -34,6 +34,7 @@ var APPS: Array:
 var screen: Control
 var panel: PanelContainer
 var stand: PanelContainer
+var pace_footer: VBoxContainer
 var content: VBoxContainer
 var scroll: ScrollContainer
 var title: Label
@@ -194,6 +195,8 @@ func _ready() -> void:
 	content.add_theme_constant_override("separation", 12)
 	scroll.add_child(content)
 	scroll.resized.connect(_layout_desktop)
+	pace_footer = VBoxContainer.new()
+	layout.add_child(pace_footer)
 	# Desktop shortcuts belong to the monitor chrome, not the scrolling page.
 	# The stage takes spare height; this dock stays just above the taskbar.
 	desktop_shortcuts = MarginContainer.new()
@@ -325,6 +328,7 @@ func _fetch_start_options() -> void:
 	career_start.fetch()
 
 func reset_career_views() -> void:
+	match_center.pace.flow.reset()
 	_clear_action_feedback()
 	detail_intent_serial += 1
 	pending_detail_path = ""
@@ -375,11 +379,13 @@ func close_computer(release: bool = true) -> void:
 	_clear_action_feedback()
 	page_scroll[active_page] = scroll.scroll_vertical
 	detail_intent_serial += 1
+	match_center.pace.pause(false)
 	screen.visible = false
 	if release:
 		UI.device_closed(self)
 
 func _navigate(page: String, push: bool = true) -> void:
+	if page not in ["career_match", "quick", "rts"]: match_center.pace.pause(false)
 	if StartGate.requires_creation() and page not in ["start", "saves"]:
 		StartGate.remind()
 		return
@@ -550,6 +556,8 @@ func _rebuild() -> void:
 	var focus_text := str(focused.text) if focused is Button and content.is_ancestor_of(focused) else ""
 	var focus_key := str(focused.get_meta("stable_focus", "")) if focused is Button and content.is_ancestor_of(focused) else ""
 	UI.clear(content)
+	UI.clear(pace_footer)
+	match_center.pace.footer(pace_footer)
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL if active_page == "desktop" else Control.SIZE_FILL
 	content.add_theme_constant_override("separation", 6 if active_page in ["career_match", "quick", "tactics"] or (active_page == "battle" and match_center.is_presenting()) else 12)
 	action_buttons.clear()
@@ -1591,9 +1599,11 @@ func _load_detail(kind: String, id: String, span: String = "", page: int = 1) ->
 func _team() -> void:
 	var team_name := str(detail.get("name", ""))
 	TeamVisuals.banner(content, str(detail.get("name", Locale.source("page.team"))), team_name, Locale.source("page.team_details"))
+	SharedPages.new().roster_date(content, detail, false)
 	for field in ["region", "rank", "vrs", "money"]:
 		if detail.has(field):
 			_label(content, "%s：%s" % [{"region":Locale.source("device.region"), "rank":Locale.source("device.rank"), "vrs":"VRS", "money":Locale.source("device.funds")}.get(field, field), str(detail[field])])
+	preload("res://scripts/map_form_panel.gd").mount(content, detail.get("map_performance", []))
 	var roster: Array = detail.get("roster", detail.get("players", []))
 	for member in roster:
 		if member is Dictionary:
@@ -1601,6 +1611,7 @@ func _team() -> void:
 
 func _player() -> void:
 	TeamVisuals.banner(content, str(detail.get("name", Locale.source("page.player"))), str(detail.get("team", detail.get("last_team", ""))), str(detail.get("team", detail.get("last_team", ""))))
+	SharedPages.new().roster_date(content, detail, false)
 	_label(content, str(Phone.ROLES.get(detail.get("role", ""), detail.get("role", ""))) + (Locale.source("device.historical_profile") if detail.get("historical", false) else ""), 17, MUTED)
 	if not str(detail.get("team_id", "")).is_empty():
 		TeamVisuals.button_logo(_button(content, str(detail.get("team", "")), _load_detail.bind("team", str(detail["team_id"])), false), str(detail.get("team", "")))

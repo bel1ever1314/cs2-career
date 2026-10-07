@@ -34,6 +34,8 @@ func run(application) -> void:
 	get_tree().quit(0 if failures.is_empty() else 1)
 
 func _lan() -> void:
+	check(app.ambience == null and app._ambience_file().is_empty(),"ten-PC room does not start a background loop")
+	check(not Music.decks[0].playing and not Music.decks[1].playing,"no inherited club music in LAN room")
 	check(app.stations.size()==10,"10 computers / 5 vs 5")
 	check(app.has_node("GlassDivider") and app.diagnostic_snapshot()["spectators"]==0,"glass divider and no crowd")
 	await walk(Vector3(0,0,3.2));check(app.target=="A3","player seat E prompt")

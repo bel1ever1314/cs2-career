@@ -25,10 +25,14 @@ var request_pending := false
 var pending_action := ""
 var pending_match_id := ""
 var show_real := false
-var quick_running := false
+var pace = preload("res://scripts/career_pace_view.gd").new()
+var quick_running: bool:
+	get: return pace.flow.running
+	set(value): pace.flow.running = value
 var quick_elapsed := 0.0
 var poll_elapsed := 0.0
 var notice := ""
+var notice_sticky := false
 var textures: Dictionary = {}
 var command_sender: Callable
 var reveal: Dictionary = {}
@@ -52,6 +56,7 @@ var veto_history_expanded := false
 
 func attach(value: Node) -> void:
 	host = value
+	pace.attach(self)
 
 func current_game() -> Dictionary:
 	var game = CareerBridge.context.get("nextmatch", {})
@@ -115,11 +120,21 @@ func render(parent: Node) -> void:
 	if not str(game.get("stage", "")).is_empty(): details.append(_stage_name(str(game.get("stage", ""))))
 	details.append("BO%s" % game.get("best_of", 3))
 	if not str(plan.get("display_name", "")).is_empty(): details.append(str(plan.display_name))
-	Kit.match_hero(parent, UI, own, str(game.get("opponent", "")), str(game.get("event", "下一场比赛")), " · ".join(details), str(game.get("tier", game.get("event_type", ""))))
 	var due := bool(game.get("due", false))
+	var preparing := (due and pace.enabled()) or (due and show_real and can_prepare_here()) or str(current_preflight().get("phase", "")) in ["waiting", "starting", "launched"] or is_interrupted()
+	if preparing:
+		_text(parent, str(game.get("event", "")) + " · " + " · ".join(details), 13, UI.MUTED)
+		var teams := HFlowContainer.new()
+		teams.add_theme_constant_override("h_separation", 10)
+		parent.add_child(teams)
+		TeamVisuals.badge(teams, own, 28)
+		_text(teams, own + "  /  " + str(game.get("opponent", "")), 17)
+		TeamVisuals.badge(teams, str(game.get("opponent", "")), 28)
+	else:
+		Kit.match_hero(parent, UI, own, str(game.get("opponent", "")), str(game.get("event", "下一场比赛")), " · ".join(details), str(game.get("tier", game.get("event_type", ""))))
 	# Once at the venue, BP and launch are the primary action. Keep them above
 	# alternative modes so the side buttons stay visible in a 720p window.
-	if (due and show_real and can_prepare_here()) or str(current_preflight().get("phase", "")) in ["waiting", "starting", "launched"] or is_interrupted():
+	if preparing:
 		render_preflight(parent)
 	if request_pending:
 		var progress := "正在读取本场结果……"
@@ -128,20 +143,21 @@ func render(parent: Node) -> void:
 		elif pending_action == "collect": progress = "正在读取 CS2 战绩……"
 		_text(parent, progress, 14, UI.MUTED)
 	elif due:
-		var actions := HBoxContainer.new()
-		actions.add_theme_constant_override("separation", 12)
-		parent.add_child(actions)
-		var simulate: Button = host._button(actions, "模拟当前比赛", simulate_match.bind(str(game.get("id", ""))))
-		simulate.name = "CareerMatchSimulate"
-		if current_preflight().has("can_simulate"): simulate.disabled = simulate.disabled or not bool(current_connection().get("can_simulate", current_preflight().get("can_simulate", false)))
-		Kit.action_tile(simulate, UI, "模拟比赛", "直接出结果，看逐回合战报", true)
-		var play: Button = host._button(actions, "自己去 CS2 打", prepare_real.bind(str(game.get("id", ""))))
-		play.name = "CareerMatchPlayCS2"
-		Kit.action_tile(play, UI, "亲自上场", "进入 CS2 打这场比赛")
-		var rts: Button = host._button(actions, "RTS 指挥比赛", open_rts.bind(str(game.get("id", ""))))
-		rts.name = "CareerMatchPlayRTS"
-		if current_preflight().has("can_simulate"): rts.disabled = rts.disabled or not bool(current_connection().get("can_rts", current_preflight().get("can_simulate", false)))
-		Kit.action_tile(rts, UI, "场边指挥", "俯视地图，指挥队伍打完")
+		if not pace.enabled():
+			var actions := HBoxContainer.new()
+			actions.add_theme_constant_override("separation", 12)
+			parent.add_child(actions)
+			var simulate: Button = host._button(actions, "模拟当前地图", simulate_match.bind(str(game.get("id", ""))))
+			simulate.name = "CareerMatchSimulate"
+			if current_preflight().has("can_simulate"): simulate.disabled = simulate.disabled or not bool(current_connection().get("can_simulate", current_preflight().get("can_simulate", false)))
+			Kit.action_tile(simulate, UI, "模拟比赛", "直接出结果，看逐回合战报", true)
+			var play: Button = host._button(actions, "自己去 CS2 打", prepare_real.bind(str(game.get("id", ""))))
+			play.name = "CareerMatchPlayCS2"
+			Kit.action_tile(play, UI, "亲自上场", "进入 CS2 打这场比赛")
+			var rts: Button = host._button(actions, "RTS 指挥比赛", open_rts.bind(str(game.get("id", ""))))
+			rts.name = "CareerMatchPlayRTS"
+			if current_preflight().has("can_simulate"): rts.disabled = rts.disabled or not bool(current_connection().get("can_rts", current_preflight().get("can_simulate", false)))
+			Kit.action_tile(rts, UI, "场边指挥", "俯视地图，指挥队伍打完")
 	else:
 		var actions := HBoxContainer.new()
 		actions.add_theme_constant_override("separation", 12)
@@ -171,13 +187,20 @@ func _match_footer(parent: Node) -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	parent.add_child(row)
-	UI.compact(host._button(row, "快速赛季 ›", host._navigate.bind("quick"), false))
+	UI.compact(host._button(row, "生涯推进 ›", host._navigate.bind("quick"), false))
 	UI.compact(host._button(row, "赛事日程 ›", host._navigate.bind("events"), false))
+
+var bp_preview_map := ""
+
+func preview_bp(map_code: String) -> void:
+	bp_preview_map = map_code
+	host._rebuild()
 
 func render_preflight(parent: Node) -> void:
 	var info := current_preflight()
 	var card := UI.card(parent)
-	_text(card, "进入 CS2 前的准备", 19)
+	card.add_theme_constant_override("separation", 6)
+	if not pace.enabled(): _text(card, "进入 CS2 前的准备" if show_real else "比赛准备", 19)
 	if info.is_empty():
 		_text(card, "正在核对本场比赛、阵容与地图……", 13, UI.MUTED)
 		return
@@ -191,77 +214,274 @@ func render_preflight(parent: Node) -> void:
 	var turn = veto.get("turn")
 	var completed_veto := bool(veto.get("complete", false))
 	var steps: Array = veto.get("steps", [])
-	if completed_veto and not steps.is_empty():
+	var id := str(info.get("match_id", ""))
+	if not completed_veto and turn is Dictionary:
+		render_bp(card, info, turn)
+	elif not bool(veto.get("initialized", false)) and not bool(info.get("session_pending", false)):
+		render_before_bp(card, info)
+	var map_name := ""
+	if completed_veto or bool(info.get("session_pending", false)) or info.get("pending_map") is String:
+		map_name = render_current_map(card, info)
+	var map_title := map_label(map_name)
+	var phase := str(info.get("phase", ""))
+	var linked := current_connection()
+	if str(linked.get("status", "")) == "interrupted":
+		_text(card, str(linked.get("reason", "CS2 已退出，本场比赛尚未结束。")), 15)
+		var recovery := HFlowContainer.new()
+		recovery.add_theme_constant_override("h_separation", 8)
+		card.add_child(recovery)
+		if bool(linked.get("can_resume", false)):
+			var resume: Button = host._button(recovery, "重新进入 CS2 · 重开当前图", resume_real.bind(id))
+			resume.name = "CareerMatchResumeCS2"
+			UI.primary(resume)
+		if bool(linked.get("can_simulate", false)):
+			var simulate: Button = host._button(recovery, "模拟当前未完成地图", simulate_match.bind(id))
+			simulate.name = "CareerMatchResumeSimulate"
+		if bool(linked.get("can_rts", false)):
+			var rts: Button = host._button(recovery, "切换 RTS · 重开当前图", open_rts.bind(id), false)
+			rts.name = "CareerMatchResumeRTS"
+		_text(card, "重新进入会重开当前未完成地图；已完成的地图和战绩保留。", 12, UI.MUTED)
+	elif phase in ["waiting", "starting", "launched"] or str(linked.get("status", "")) in ["waiting", "failed", "blocked"]:
+		if not map_title.is_empty() and phase in ["waiting", "starting", "launched"]:
+			var guide := _text(card, "CS2 里请打 %s，阵营 %s。地图或阵营不对，这张图的战绩不会录入。" % [map_title, side_label(str(info.get("side", "ct")))], 15)
+			guide.name = "CareerMatchPlayGuide"
+			guide.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		var live_actions := HFlowContainer.new()
+		live_actions.add_theme_constant_override("h_separation", 8)
+		card.add_child(live_actions)
+		if bool(linked.get("can_collect", phase in ["waiting", "starting", "launched"])):
+			UI.primary(host._button(live_actions, "检查并录入 CS2 战绩", command.bind("collect", {"match_id":id})))
+		if bool(linked.get("can_retry", false)):
+			host._button(live_actions, "重试进入 CS2", command.bind("launch", {"match_id":id, "side":str(info.get("side", "ct"))}))
+		_text(card, str(linked.get("reason", "CS2 正在进行。赛后会读取这一图的真实结果。")), 13, UI.MUTED)
+	elif bool(info.get("can_launch", false)) and bool(linked.get("can_launch", false)) and (show_real or not pace.enabled()) and bool(info.get("venue", {}).get("should_walk", false)) and not can_prepare_here():
+		var destination := str(attendance().get("display_name", "比赛场馆"))
+		UI.primary(host._button(card, "前往 %s 入座" % destination, travel_real.bind(id)))
+		_text(card, "这是线下比赛，到你的选手席入座后再选择 CT／T 开场。", 13, UI.MUTED)
+	elif bool(info.get("can_launch", false)) and bool(linked.get("can_launch", false)) and (show_real or not pace.enabled()):
+		var row := HFlowContainer.new()
+		row.add_theme_constant_override("h_separation", 8)
+		card.add_child(row)
+		var ct_text := "CT 开场 · 进入 CS2 打 %s" % map_title if not map_title.is_empty() else "CT 开场 · 进入 CS2"
+		var t_text := "T 开场 · 进入 CS2 打 %s" % map_title if not map_title.is_empty() else "T 开场 · 进入 CS2"
+		UI.primary(host._button(row, ct_text, command.bind("launch", {"match_id":id, "side":"ct"})))
+		host._button(row, t_text, command.bind("launch", {"match_id":id, "side":"t"}))
+		if not map_title.is_empty():
+			var launch_steps := _text(card, "进入 CS2 后：与机器人游戏 → 竞技 → 选 %s，再加入你在这里选的开局阵营。" % map_title, 12, UI.MUTED)
+			launch_steps.name = "CareerMatchLaunchSteps"
+			launch_steps.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	elif bool(info.get("can_launch", false)) and (show_real or not pace.enabled()):
+		_text(card, str(linked.get("reason", "正在确认 CS2 已退出……")), 13, UI.MUTED)
+	elif not pace.enabled() or show_real:
+		var config: Dictionary = info.get("config", {})
+		var reason := str(linked.get("reason", config.get("reason", "")))
+		if not reason.is_empty() and reason != blocked: _text(card, reason, 13, UI.MUTED)
+	if completed_veto and not steps.is_empty() and not (info.get("series_maps", []) is Array and not info.get("series_maps", []).is_empty()):
 		# Keep side/launch controls in view after a long BP. History expands only
 		# on an explicit click; status polling never changes scrolling or focus.
 		_text(card, "地图 BP 已完成 · %d 项记录" % steps.size(), 12, UI.MUTED)
-	for step in steps if not completed_veto or veto_history_expanded else []:
+	for step in steps if veto_history_expanded else []:
 		var team_value = step.get("team")
 		var team_name := str(team_value) if team_value is String else ""
 		var step_label := str({"pick":"选图", "ban":"禁图", "decider":"决胜图"}.get(str(step.get("action", "")), "地图"))
 		var step_text := "%s · %s" % [step_label, step.get("map", "")]
 		if not team_name.is_empty(): step_text = team_name + " · " + step_text
 		_text(card, step_text, 12, UI.MUTED)
+	var links := HBoxContainer.new()
+	links.add_theme_constant_override("separation", 8)
+	card.add_child(links)
+	if not steps.is_empty():
+		UI.compact(host._button(links, "收起地图 BP 记录" if veto_history_expanded else "查看地图 BP 记录", toggle_veto_history, false))
+	UI.compact(host._button(links, "CS2 设置 ›", host._navigate.bind("settings"), false))
+
+## Before any BP: say what happens automatically and show both teams' maps.
+func render_before_bp(card: Node, info: Dictionary) -> void:
+	var intro := HBoxContainer.new()
+	intro.add_theme_constant_override("separation", 10)
+	card.add_child(intro)
+	var note := _text(intro, "第 1 图开始前由队长自动完成地图 BP。想自己选图，可以手动 BP。", 14)
+	note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var manual: Button = host._button(intro, "手动 BP", manual_bp, false)
+	manual.name = "CareerMatchManualBP"
+	UI.compact(manual)
+	var rows := map_matchup(info)
+	if rows.is_empty(): return
+	_text(card, "双方地图评价 · 你方 : 对手", 12, UI.MUTED)
+	var grid := HFlowContainer.new()
+	grid.name = "CareerMatchMapForm"
+	grid.add_theme_constant_override("h_separation", 6)
+	grid.add_theme_constant_override("v_separation", 6)
+	card.add_child(grid)
+	for row in rows:
+		var tile := Kit.chip(grid, "%s  %s" % [map_label(str(row.map)), row.text], str(row.tone), 13)
+		tile.tooltip_text = str(row.detail)
+
+## Manual BP: compare maps on the tiles, preview one, confirm it here.
+func render_bp(card: Node, info: Dictionary, turn: Dictionary) -> void:
+	var available: Array = info.get("veto", {}).get("available", [])
+	if bp_preview_map not in available: bp_preview_map = str(available[0]) if not available.is_empty() else ""
+	var mine := bool(turn.get("mine", false))
+	var picking := str(turn.get("action", "")) == "pick"
 	var id := str(info.get("match_id", ""))
-	if not veto.is_empty() and not veto.get("complete", false) and turn is Dictionary:
-		_text(card, "%s · %s" % [turn.get("team", ""), "选择地图" if turn.get("action", "") == "pick" else "禁用地图"], 17)
-		var choices := HBoxContainer.new()
-		card.add_child(choices)
-		for map_name in veto.get("available", []):
-			var button: Button = host._button(choices, str(map_name).trim_prefix("de_").capitalize(), command.bind("veto", {"match_id":id, "map":map_name}))
-			button.disabled = button.disabled or not bool(turn.get("mine", false))
-		host._button(card, "交给队长完成地图 BP", command.bind("autoveto", {"match_id":id}))
-	var map_value = info.get("pending_map", "")
-	# null is the legitimate pre-BP state, not a map named "<null>".
-	var map_name := str(map_value.get("map", "")) if map_value is Dictionary else str(map_value) if map_value is String else ""
-	if not map_name.is_empty(): _text(card, "下一图 · " + map_name.trim_prefix("de_").capitalize(), 17)
-	var phase := str(info.get("phase", ""))
-	var linked := current_connection()
-	if str(linked.get("status", "")) == "interrupted":
-		_text(card, str(linked.get("reason", "CS2 已退出，本场比赛尚未结束。")), 14, UI.MUTED)
-		_text(card, "重新进入会重开当前未完成地图；已完成的地图和战绩保留。也可以直接继续模拟或切换 RTS。", 13, UI.MUTED)
-		if bool(linked.get("can_resume", false)):
-			var resume: Button = host._button(card, "重新进入 CS2 · 重开当前图", resume_real.bind(id))
-			resume.name = "CareerMatchResumeCS2"
-			UI.primary(resume)
-		if bool(linked.get("can_simulate", false)):
-			var simulate: Button = host._button(card, "继续模拟剩余比赛", simulate_match.bind(id))
-			simulate.name = "CareerMatchResumeSimulate"
-		if bool(linked.get("can_rts", false)):
-			var rts: Button = host._button(card, "切换 RTS · 重开当前图", open_rts.bind(id), false)
-			rts.name = "CareerMatchResumeRTS"
-	elif phase in ["waiting", "starting", "launched"] or str(linked.get("status", "")) in ["waiting", "failed", "blocked"]:
-		_text(card, str(linked.get("reason", "CS2 正在进行。赛后会读取这一图的真实结果。")), 14, UI.MUTED)
-		if bool(linked.get("can_collect", phase in ["waiting", "starting", "launched"])):
-			host._button(card, "检查并录入 CS2 战绩", command.bind("collect", {"match_id":id}))
-		if bool(linked.get("can_retry", false)):
-			host._button(card, "重试进入 CS2", command.bind("launch", {"match_id":id, "side":str(info.get("side", "ct"))}))
-	elif bool(info.get("can_launch", false)) and bool(linked.get("can_launch", false)):
-		var row := HBoxContainer.new()
-		card.add_child(row)
-		UI.primary(host._button(row, "CT 开场 · 进入 CS2", command.bind("launch", {"match_id":id, "side":"ct"})))
-		host._button(row, "T 开场 · 进入 CS2", command.bind("launch", {"match_id":id, "side":"t"}))
-	elif bool(info.get("can_launch", false)):
-		_text(card, str(linked.get("reason", "正在确认 CS2 已退出……")), 13, UI.MUTED)
+	var rows := {}
+	for row in map_matchup(info): rows[str(row.map)] = row
+	if not bp_preview_map.is_empty():
+		var preview: Dictionary = rows.get(bp_preview_map.trim_prefix("de_"), {})
+		TeamVisuals.map_banner(card, bp_preview_map, str(preview.get("detail", "BP 地图预览 · %s / %s" % [info.get("team_a", ""), info.get("team_b", "")])), 72)
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 8)
+	card.add_child(head)
+	var title := ("轮到你方选图" if picking else "轮到你方禁图") if mine else "%s · %s" % [turn.get("team", ""), "选择地图" if picking else "禁用地图"]
+	var heading := _text(head, title, 17)
+	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var confirm: Button = host._button(head, ("确认选择 %s" if picking else "确认禁用 %s") % map_label(bp_preview_map), command.bind("veto", {"match_id":id, "map":bp_preview_map}))
+	confirm.name = "ConfirmVetoMap"
+	confirm.disabled = confirm.disabled or not mine or bp_preview_map.is_empty()
+	UI.compact(confirm)
+	if mine: UI.primary(confirm)
+	UI.compact(host._button(head, "交给队长完成 BP", command.bind("autoveto", {"match_id":id}), false))
+	var choices := HFlowContainer.new()
+	choices.add_theme_constant_override("h_separation", 6)
+	choices.add_theme_constant_override("v_separation", 6)
+	card.add_child(choices)
+	for map_name in available:
+		var row: Dictionary = rows.get(str(map_name).trim_prefix("de_"), {})
+		var caption := map_label(str(map_name)) + ("  " + str(row.text) if not row.is_empty() else "")
+		var button: Button = host._button(choices, caption, preview_bp.bind(str(map_name)), false)
+		button.name = "VetoPreview_" + str(map_name)
+		button.tooltip_text = str(row.get("detail", ""))
+		if str(map_name) == bp_preview_map: UI.primary(button)
+		elif str(row.get("tone", "")) == "green": button.add_theme_color_override("font_color", UI.GREEN)
+		elif str(row.get("tone", "")) == "red": button.add_theme_color_override("font_color", Color("a8594d"))
+	var done := HFlowContainer.new()
+	done.name = "CareerMatchVetoSoFar"
+	done.add_theme_constant_override("h_separation", 14)
+	for step in info.get("veto", {}).get("steps", []):
+		var who := str(step.get("team")) if step.get("team") is String else ""
+		var action := str(step.get("action", ""))
+		var text := "决胜 %s" % map_label(str(step.get("map", "")))
+		if action == "pick": text = "%s 选 %s" % [who, map_label(str(step.get("map", "")))]
+		elif action == "ban": text = "%s 禁 %s" % [who, map_label(str(step.get("map", "")))]
+		var entry := _text(done, text, 12, UI.MUTED)
+		entry.autowrap_mode = TextServer.AUTOWRAP_OFF
+		entry.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	if done.get_child_count() > 0: card.add_child(done)
+	else: done.free()
+
+## Both teams' current form for each map, own team first.
+func map_matchup(info: Dictionary) -> Array:
+	var performances = info.get("map_performance", {})
+	if not performances is Dictionary or performances.is_empty(): return []
+	var own := str(CareerBridge.context.get("team", {}).get("name", ""))
+	var opponent := str(info.get("team_b", "")) if own == str(info.get("team_a", "")) else str(info.get("team_a", ""))
+	if not performances.has(own): own = str(info.get("team_a", ""))
+	var lookup := func(team: String) -> Dictionary:
+		var by_map := {}
+		for item in performances.get(team, []): by_map[str(item.get("map", ""))] = item
+		return by_map
+	var mine: Dictionary = lookup.call(own)
+	var theirs: Dictionary = lookup.call(opponent)
+	var labels := {"strong":"强图", "neutral":"常规", "weak":"弱图"}
+	var out := []
+	for map_name in mine:
+		var a: Dictionary = mine[map_name]
+		var b: Dictionary = theirs.get(map_name, {})
+		var diff := float(a.get("rating", 0)) - float(b.get("rating", 0))
+		out.append({"map":map_name, "text":"%.0f : %.0f" % [float(a.get("rating", 0)), float(b.get("rating", 0))],
+			"tone":"green" if diff >= 3.0 else ("red" if diff <= -3.0 else "gray"),
+			"detail":"%s · %.1f · %s     /     %s · %.1f · %s" % [own, float(a.get("rating", 0)), labels.get(str(a.get("label", "neutral")), "常规"),
+				opponent, float(b.get("rating", 0)), labels.get(str(b.get("label", "neutral")), "常规")]})
+	return out
+
+## Scenic banner for the map in play plus the series order. Returns its code.
+func render_current_map(card: Node, info: Dictionary) -> String:
+	var listed = info.get("series_maps", [])
+	var rows: Array = listed if listed is Array else []
+	var current: Dictionary = {}
+	for row in rows:
+		if row is Dictionary and str(row.get("state", "")) in ["live", "next"]:
+			current = row
+			break
+	var pending = info.get("pending_map")
+	var code := str(current.get("map", "")) if not current.is_empty() else (str(pending.get("map", "")) if pending is Dictionary else str(pending) if pending is String else "")
+	if code.is_empty(): return ""
+	var number := int(current.get("index", int(info.get("maps_done", 0)) + 1))
+	var state := str(current.get("state", "next"))
+	var interrupted := str(current_connection().get("status", "")) == "interrupted"
+	var subtitle := ""
+	if interrupted: subtitle = "正在进行 · 第%d图 %s · CS2 已退出，本图未完成" % [number, map_label(code)]
+	elif state == "live": subtitle = "正在进行 · 第%d图 %s · 你在 %s 方" % [number, map_label(code), str(current.get("side", info.get("side", "ct"))).to_upper()]
 	else:
-		var config: Dictionary = info.get("config", {})
-		var reason := str(linked.get("reason", config.get("reason", "")))
-		if not reason.is_empty() and reason != blocked: _text(card, reason, 13, UI.MUTED)
-	if completed_veto and not steps.is_empty():
-		host._button(card, "收起地图 BP 记录" if veto_history_expanded else "查看地图 BP 记录", toggle_veto_history, false)
-	UI.compact(host._button(card, "CS2 设置 ›", host._navigate.bind("settings"), false))
+		var picked := str(current.get("picked_by", ""))
+		subtitle = "本图 · 第%d图 %s" % [number, map_label(code)]
+		if bool(current.get("decider", false)): subtitle = "本图 · 第%d图 %s · 决胜图" % [number, map_label(code)]
+		elif not picked.is_empty(): subtitle = "本图 · 第%d图 %s · %s 选图" % [number, map_label(code), picked]
+	var banner := TeamVisuals.map_banner(card, code, subtitle, 72)
+	banner.get_parent().name = "CareerMatchCurrentMap"
+	if not rows.is_empty(): series_strip(card, rows)
+	return code
+
+func series_strip(card: Node, rows: Array) -> void:
+	var strip := HBoxContainer.new()
+	strip.name = "CareerMatchSeriesMaps"
+	strip.add_theme_constant_override("separation", 22)
+	card.add_child(strip)
+	for row in rows:
+		if not row is Dictionary: continue
+		var state := str(row.get("state", ""))
+		var cell := HBoxContainer.new()
+		cell.name = "CareerMatchSeriesMap%d" % int(row.get("index", 0))
+		cell.add_theme_constant_override("separation", 6)
+		strip.add_child(cell)
+		var highlight := state in ["live", "next"]
+		var title := _text(cell, "第%d图 · %s" % [int(row.get("index", 0)), map_label(str(row.get("map", "")))], 12, UI.INK if highlight else UI.MUTED)
+		title.autowrap_mode = TextServer.AUTOWRAP_OFF
+		var detail := "决胜图" if bool(row.get("decider", false)) else "待定"
+		var color := UI.MUTED
+		if state == "done":
+			var won := bool(row.get("won", false))
+			detail = ("胜 %s" if won else "负 %s") % str(row.get("score", ""))
+			color = UI.GREEN if won else Color("a8594d")
+		elif state == "live":
+			detail = "正在进行"
+			color = UI.AMBER
+		elif state == "next":
+			detail = "本图"
+			color = UI.INK
+		elif state == "unneeded":
+			detail = "未进行"
+		var status := _text(cell, detail, 12, color)
+		status.autowrap_mode = TextServer.AUTOWRAP_OFF
+
+static func map_label(code: String) -> String:
+	return code.trim_prefix("de_").capitalize()
+
+static func side_label(side: String) -> String:
+	return "T（恐怖分子）" if side == "t" else "CT（反恐精英）"
 
 func toggle_veto_history() -> void:
 	veto_history_expanded = not veto_history_expanded
 	host._rebuild()
 
+func manual_bp() -> void:
+	pace.pause(false)
+	command("preflight", {"match_id":str(current_game().get("id", ""))})
+
 func simulate_match(id: String) -> void:
 	if request_pending or not result.is_empty() or id.is_empty(): return
+	if pace.enabled(): pace.flow.resume()
 	pending_match_id = id
-	command("simulate", {"match_id":id, "request_id":request_id("match", id)})
+	command("simulate", {"match_id":id, "request_id":request_id("match", id), "scope":"current_map", "map_key":str(current_preflight().get("map_key", ""))})
 
 func open_rts(id: String) -> void:
 	if request_pending or not result.is_empty() or id.is_empty(): return
+	pace.flow.arm("playing", str(current_preflight().get("map_key", "")))
+	pace.flow.next_mode = "rts"
+	if not can_prepare_here():
+		prepare_real(id)
+		return
+	pace.flow.next_mode = ""
 	host.rts_room.open_career(id)
 
 func resume_real(id: String) -> void:
@@ -324,21 +544,40 @@ func command(action: String, payload: Dictionary) -> void:
 			command("preflight", {"match_id":id})
 			return
 		if bool(venue.get("should_walk", false)) and Travel.has_method("is_match_seated") and not Travel.call("is_match_seated", venue, id):
-			notice = "先从门口前往 %s，再到你的选手席入座。" % attendance().get("display_name", "比赛场馆")
-			host._rebuild()
+			launch_blocked("先从门口前往 %s，再到你的选手席入座。" % attendance().get("display_name", "比赛场馆"))
 			return
 	var body := payload.duplicate(true)
+	if action in ["simulate", "launch", "veto", "autoveto", "preflight"]:
+		body["map_key"] = str(current_preflight().get("map_key", ""))
+	if not body.has("request_id"): body["request_id"] = request_id(action, str(body.get("match_id", "")))
 	body["revision"] = int(CareerBridge.context.get("calendar", {}).get("revision", 0))
 	if action == "collect": body["request_id"] = request_id("collect", str(body.get("match_id", "")))
 	notice = ""
+	notice_sticky = false
 	if send_command("/api/3d/match/" + action, body):
+		if action == "launch":
+			pace.flow.resume()
+			pace.flow.arm("playing", str(current_preflight().get("map_key", "")))
+		pace.flow.in_flight = true
 		request_pending = true
 		pending_action = action
 		host._rebuild()
+	elif action == "launch":
+		launch_blocked(CareerBridge.message if not CareerBridge.message.is_empty() else "启动请求未发出，请稍后重试。")
 	elif action == "preflight":
 		venue_after_preflight = ""
 		notice = CareerBridge.message if not CareerBridge.message.is_empty() else "比赛准备请求未发出，请稍后再试。"
 		Travel.finish_door_request(notice)
+
+func launch_blocked(reason: String) -> void:
+	pace.pause(false)
+	pace.flow.arm("paused", str(current_preflight().get("map_key", "")))
+	pace.flow.next_mode = ""
+	notice = reason
+	notice_sticky = true
+	CareerBridge.message = reason
+	CareerBridge.status_changed.emit()
+	host._rebuild()
 
 func send_command(path: String, body: Dictionary) -> bool:
 	if command_sender.is_valid(): return bool(command_sender.call(path, body.duplicate(true)))
@@ -355,6 +594,9 @@ func begin_reveal(snapshot: Dictionary, timeline: Dictionary = {}) -> void:
 		last_result = saved_results[key]
 		return
 	result = snapshot.duplicate(true)
+	pace.flow.in_flight = false
+	pace.flow.arm("reveal", pace.next_cursor())
+	if bool(snapshot.get("played", false)): pace.flow.clear_reservation()
 	saved_results[key] = result.duplicate(true)
 	last_result = result.duplicate(true)
 	if is_instance_valid(CareerBridge.feedback): CareerBridge.feedback.remember_venue_result(snapshot, preflight)
@@ -379,6 +621,7 @@ func reset_map_reveal() -> void:
 	reveal_elapsed = 0.0
 
 func open_saved(snapshot: Dictionary) -> void:
+	pace.pause(false)
 	result = snapshot.duplicate(true)
 	shown_maps = result.get("maps", []).size()
 	reveal_phase = "stats"
@@ -425,7 +668,7 @@ func render_reveal(parent: Node) -> void:
 		score_row.add_theme_constant_override("separation", 14)
 		stage.add_child(score_row)
 		# Broadcast layout: team A · score · team B, details on the right.
-		var spacer := Control.new(); spacer.custom_minimum_size.x = 235; score_row.add_child(spacer)
+		var spacer := Control.new(); score_row.add_child(spacer)
 		var middle := HBoxContainer.new()
 		middle.alignment = BoxContainer.ALIGNMENT_CENTER
 		middle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -439,7 +682,7 @@ func render_reveal(parent: Node) -> void:
 		score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_score_team(middle, str(result.get("team_b", "")), false)
 		var stage_details := VBoxContainer.new()
-		stage_details.custom_minimum_size.x = 235
+		stage_details.custom_minimum_size.x = 135
 		stage_details.size_flags_horizontal = Control.SIZE_SHRINK_END
 		stage_details.add_theme_constant_override("separation", 1)
 		score_row.add_child(stage_details)
@@ -469,30 +712,22 @@ func render_reveal(parent: Node) -> void:
 		var recap: Array[String] = []
 		for map_row in maps: recap.append("%s %s" % [str(map_row.get("map", "")).trim_prefix("de_").capitalize(), score_text(map_row.get("score", ""))])
 		_text(stage, "  ·  ".join(recap), 12, UI.MUTED)
+		if not bool(result.get("played", true)):
+			# The next map sits above the long table, next to the dock that starts it.
+			var info := current_preflight()
+			var next_map := str(info.get("pending_map", "")) if info.get("pending_map") is String else ""
+			if not next_map.is_empty():
+				var next_line := _text(parent, "下一张 · 第%d图 %s · 系列赛 %s" % [maps.size() + 1, map_label(next_map), score_text(result.get("series", ""))], 15)
+				next_line.name = "CareerMatchNextMap"
+		preload("res://scripts/map_form_panel.gd").changes(parent, maps)
 		stats(parent, result.get("totals", []))
 		if not bool(result.get("data_complete", true)): _text(parent, "战绩仍有缺项；缺失的字段按原记录显示。", 12, UI.MUTED)
-		var actions := HBoxContainer.new()
-		parent.add_child(actions)
-		var next: Button = host._button(actions, "下一场" if quick_running else ("准备下一张 CS2 地图" if show_real else "继续"), continue_result, false)
-		next.name = "CareerMatchContinue"
-		next.custom_minimum_size.y = 31
-		next.disabled = false if quick_running else not continue_ready
-		UI.primary(next)
-		for state in ["normal", "hover", "pressed", "disabled"]: next.add_theme_stylebox_override(state, UI.style(UI.GREEN if state != "disabled" else UI.MINT, 5, 8))
-		if not continue_ready and not quick_running: next.text = "先看看本场表现 · 稍后继续"
-		if quick_running and not continue_ready: _text(actions, "%.0f 秒后自动继续" % STATS_SECONDS, 12, UI.MUTED)
-		if quick_running: host._button(actions, "暂停快速赛季", pause_quick, false)
-		var is_rts := str(result.get("source", "")) == "rts" or (not maps.is_empty() and str(maps[-1].get("source", "")) == "rts")
-		if not bool(result.get("played", true)) and is_rts:
-			var resume_rts: Button = host._button(actions, "下一张继续 RTS", Callable(host.rts_room, "resume_series"), false)
-			resume_rts.name = "CareerMatchResumeRTS"
-			resume_rts.disabled = not continue_ready or not host.rts_room.has_method("resume_series")
 
 func _score_team(parent: Node, team: String, left: bool) -> void:
 	var box := HBoxContainer.new()
 	box.add_theme_constant_override("separation", 8)
 	box.alignment = BoxContainer.ALIGNMENT_END if left else BoxContainer.ALIGNMENT_BEGIN
-	box.custom_minimum_size.x = 200
+	box.custom_minimum_size.x = 130
 	parent.add_child(box)
 	var name_label := _text(box, team, 17)
 	name_label.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -636,13 +871,8 @@ func round_event_text(map_row: Dictionary) -> String:
 	return "  ·  ".join(parts)
 
 func continue_result() -> void:
-	if result.is_empty() or (not continue_ready and not (quick_running and reveal_phase == "stats")): return
-	var skipped_wait := quick_running and not continue_ready
-	result.clear()
-	reveal_phase = ""
-	quick_elapsed = 0.0
-	host._navigate("quick" if quick_running else "career_match", false)
-	if skipped_wait: quick_step()
+	pace.primary()
+
 
 func quick_state() -> Dictionary:
 	var quick = CareerBridge.context.get("quick", {})
@@ -654,47 +884,21 @@ func break_pending(state: Dictionary) -> bool:
 	return not bool(ack) if ack is bool else str(ack) != str(state.get("break_key", ""))
 
 func render_quick(parent: Node) -> void:
-	if not result.is_empty():
-		render_reveal(parent)
-		return
-	var state := quick_state()
-	_text(parent, "快速赛季", 25)
-	_text(parent, "一场场展开比赛，赛后留一点时间看完整数据。", 14, UI.MUTED)
-	_text(parent, "%s 赛季 · %s" % [state.get("year", str(CareerBridge.context.get("date", "")).left(4)), "快速模式" if state.get("mode", "normal") == "quick" else "正常模式"], 18)
-	if bool(state.get("can_choose", state.get("choice_required", false))):
-		var row := HBoxContainer.new()
-		parent.add_child(row)
-		var season_label := "下赛季" if state.get("season_phase", "") == "end" else "本赛季"
-		UI.primary(host._button(row, season_label + "使用快速模式", choose_mode.bind(true)))
-		host._button(row, season_label + "正常进行", choose_mode.bind(false))
-	if not str(state.get("block_reason", "")).is_empty(): _text(parent, str(state.block_reason), 14, UI.MUTED)
-	if is_interrupted():
-		render_preflight(parent)
-	if state.get("mode", "normal") == "quick":
-		if break_pending(state):
-			host._button(parent, "结束这次休赛停留，继续赛季", resume_quick)
-		elif quick_running:
-			_text(parent, "快速赛季正在进行。", 16)
-			host._button(parent, "暂停快速赛季", pause_quick, false)
-		elif not bool(state.get("choice_required", false)):
-			UI.primary(host._button(parent, "开始 / 继续快速赛季", start_quick))
-	if not CareerBridge.context.get("stories", []).is_empty(): host._button(parent, "查看待处理的队内事件", host._open_phone.bind("stories"), false)
-	host._button(parent, "职业比赛中心", host._navigate.bind("career_match"), false)
-	if not notice.is_empty(): _text(parent, notice, 13, UI.MUTED)
+	if not result.is_empty(): render_reveal(parent)
+	else: pace.render(parent)
 
-func choose_mode(enabled: bool) -> void:
-	var state := quick_state()
-	season_command("mode", {"year":int(state.get("year", str(CareerBridge.context.get("date", "2026")).left(4))), "quick_mode":enabled})
+
+func choose_mode(_enabled: bool) -> void:
+	pace.start()
+
 
 func start_quick() -> void:
-	if request_pending: return
-	quick_running = true
-	quick_elapsed = 0.0
-	quick_step()
+	pace.start()
+
 
 func pause_quick() -> void:
-	quick_running = false
-	host._rebuild()
+	pace.pause()
+
 
 func resume_quick() -> void:
 	season_command("resume", {"break_key":quick_state().get("break_key", "")})
@@ -712,52 +916,48 @@ func season_command(action: String, payload: Dictionary) -> void:
 		host._rebuild()
 
 func quick_step() -> void:
-	if CareerBridge.feedback_active: return
-	if not quick_running or request_pending or not result.is_empty() or CareerBridge.busy: return
-	if not CareerBridge.context.get("stories", []).is_empty():
-		quick_running = false
-		host._rebuild()
-		return
-	var linked := current_connection()
-	if str(linked.get("status", "")) == "interrupted" and bool(linked.get("can_simulate", false)):
-		simulate_match(str(current_game().get("id", "")))
-		return
-	# A CS2 map that is starting or live must not be overwritten by season/run.
-	# Polling below turns a verified process exit into a recoverable interruption.
-	var info := current_preflight()
-	var pending_map := str(info.get("phase", "")) in ["waiting", "starting", "launched"]
-	# A failed launch can retain its previous preparation phase without an
-	# active session. Do not let that stale label block the whole quick season.
-	if bool(info.get("session_pending", false)) or (pending_map and str(linked.get("status", "")) not in ["failed", "finished", "collected", "ready"]):
-		return
-	season_command("run", {})
+	pace.process(0.0)
+
 
 func finished(path: String, output: Dictionary) -> bool:
 	if not path.begins_with("/api/3d/match/") and not path.begins_with("/api/3d/season/"): return false
 	# Historical match detail GETs belong to the workstation's existing browser.
 	if path.begins_with("/api/3d/match?"): return false
 	var status_probe := path.begins_with("/api/3d/match/status")
+	if status_probe and outdated_status(output): return true
 	var old_view := JSON.stringify([preflight, connection, notice])
 	if not status_probe:
+		pace.finished(path, output)
 		request_pending = false
 		pending_action = ""
 	if output.get("result_summary", false):
 		quick_running = false
 		venue_after_preflight = ""
+		notice_sticky = false
 		notice = str(output.get("reason", output.get("msg", "操作已保存，请查看比赛记录。")))
 		if host.screen.visible: host._rebuild()
 		return true
 	if output.get("preflight") is Dictionary: preflight = output.preflight.duplicate(true)
 	if output.get("connection") is Dictionary: connection = output.connection.duplicate(true)
 	elif status_probe: connection = output.duplicate(true)
+	elif output.get("ok", false) and output.get("preflight") is Dictionary:
+		# A committed map/preparation owns the new cursor. A cached CS2 exit
+		# belongs to the previous map, even when this is still the same BO.
+		connection.clear()
 	if (output.has("connection") or status_probe) and connection.get("preflight") is Dictionary: preflight = connection.preflight.duplicate(true)
-	if path == "/api/3d/match/collect" and output.get("ok", false): connection.clear()
-	notice = str(output.get("reason", output.get("msg", "")))
+	# Background status reads must not erase the explanation for a rejected
+	# click. A new explicit command (or its result) owns this notice instead.
+	if not status_probe:
+		notice_sticky = not bool(output.get("ok", false)) or str(output.get("status", "")) in ["failed", "blocked", "paused"]
+	if not status_probe or not notice_sticky:
+		notice = str(output.get("reason", output.get("msg", "")))
 	if output.get("ok", false):
 		# Status success does not mean a match has finished: result is explicitly
 		# null until a real saved report exists. Continue connection/UI handling.
 		var snapshot = output.get("result")
-		if snapshot is Dictionary and not snapshot.is_empty() and snapshot.get("maps", []).size() > 0:
+		# Polling includes previously saved maps, not a newly settled result.
+		# Replaying those would hide recovery/side controls for the live map.
+		if not status_probe and snapshot is Dictionary and not snapshot.is_empty() and snapshot.get("maps", []).size() > 0:
 			var timeline = output.get("reveal")
 			begin_reveal(snapshot, timeline if timeline is Dictionary else {})
 	else:
@@ -766,7 +966,7 @@ func finished(path: String, output: Dictionary) -> bool:
 		host.call_deferred("_collect_career_result", str(output.get("match_id", current_preflight().get("match_id", ""))))
 	if path.begins_with("/api/3d/season/"):
 		var state: Dictionary = output.get("quick", quick_state())
-		if str(state.get("phase", "")) in ["paused", "blocked", "finished", "complete", "end", "break", "choice", "story"]: quick_running = false
+		if not pace.enabled() and str(state.get("phase", "")) in ["paused", "blocked", "finished", "complete", "end", "break", "choice", "story"]: quick_running = false
 		quick_elapsed = 0.0
 	if path == "/api/3d/match/attend" and output.get("ok", false):
 		call_deferred("finish_attendance", output.get("attendance", attendance()).duplicate(true))
@@ -794,7 +994,21 @@ func finished(path: String, output: Dictionary) -> bool:
 		else: host._rebuild()
 	return true
 
+func outdated_status(output: Dictionary) -> bool:
+	var id := str(current_game().get("id", ""))
+	if str(output.get("match_id", id)) != id: return true
+	var incoming = output.get("preflight")
+	if not incoming is Dictionary: return false
+	# A status request can finish after a command/context refresh. It cannot
+	# restore an older map or an older launch session on the same map.
+	for known in [preflight, CareerBridge.context.get("match_preflight", {})]:
+		if not known is Dictionary or str(known.get("match_id", "")) != id: continue
+		if incoming.has("revision") and known.has("revision") and int(incoming.revision) < int(known.revision): return true
+		if incoming.has("maps_done") and known.has("maps_done") and int(incoming.maps_done) < int(known.maps_done): return true
+	return false
+
 func process(delta: float) -> void:
+	pace.process(delta)
 	if CareerBridge.feedback_active: return
 	if not host.screen.visible or host.active_page not in ["career_match", "quick"]: return
 	if not result.is_empty():
@@ -804,14 +1018,8 @@ func process(delta: float) -> void:
 		reveal_elapsed += delta
 		if reveal_phase == "stats" and not continue_ready and reveal_elapsed >= STATS_SECONDS:
 			continue_ready = true
-			if quick_running: continue_result()
-			else: host._rebuild()
+			host._rebuild()
 		return
-	if quick_running:
-		quick_elapsed += delta
-		if quick_elapsed >= 0.8:
-			quick_elapsed = 0.0
-			quick_step()
 	var info := current_preflight()
 	if (show_real and str(info.get("phase", "")) == "ready") or str(info.get("phase", "")) in ["waiting", "starting", "launched"] or is_interrupted():
 		poll_elapsed += delta

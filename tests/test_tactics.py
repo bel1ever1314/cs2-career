@@ -571,7 +571,10 @@ class TacticalDeploymentTests(unittest.TestCase):
 
     def test_snapshot_deploy_is_validated_atomic_and_never_replaced_live(self):
         tactics.save_tactic(tactic())
-        self.assertEqual(2, launch._deploy_tactical_playbook(self.csgo))
+        self.assertEqual(len(tactics.SUPPORTED_MAPS) + 1, launch._deploy_tactical_playbook(self.csgo))
+        for code in tactics.SUPPORTED_MAPS:
+            book = launch.plugin_dir(self.csgo) / 'tactical_playbooks' / (code + '.json')
+            self.assertEqual(tactics.load_library(code), json.loads(book.read_bytes()))
         target = launch.plugin_dir(self.csgo) / "tactical_playbook.json"
         before = target.read_bytes()
         self.assertEqual(tactics.load_library(), json.loads(before))
@@ -592,7 +595,7 @@ class TacticalDeploymentTests(unittest.TestCase):
         value = movement_tactic("de_train")
         tactics.save_tactic(value, "de_train")
         package = tactics.load_library("de_train")
-        self.assertEqual(2, launch._deploy_tactical_playbook(self.csgo, package))
+        self.assertEqual(len(tactics.SUPPORTED_MAPS) + 1, launch._deploy_tactical_playbook(self.csgo, package))
         target = launch.plugin_dir(self.csgo) / "tactical_playbook.json"
         before = target.read_bytes()
         self.assertEqual(package, json.loads(before))

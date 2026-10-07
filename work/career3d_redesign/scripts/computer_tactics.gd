@@ -51,12 +51,19 @@ func library() -> Dictionary:
 
 func render(parent: Node) -> void:
 	controls.clear()
+	# First visit during a match day opens on that match's map.
+	if libraries.is_empty() and drafts.is_empty() and draft.is_empty() and not dirty:
+		var wanted := match_map()
+		if wanted in DEFAULT_MAPS: map_code = wanted
 	if draft.is_empty(): make_draft()
 	view = VBoxContainer.new()
 	view.name = "TacticsEditor"
 	view.add_theme_constant_override("separation", 7)
 	parent.add_child(view)
 	UI.label(view, "战术室 · 五个位置的路线", 21)
+	controls.map_banner = VBoxContainer.new()
+	controls.map_banner.name = "TacticsMapPhoto"
+	view.add_child(controls.map_banner)
 	UI.label(view, "点击地图添加路点；点击彩色点选中，拖动调整位置；右键设置观察方向。", 12, UI.MUTED)
 	var top := HBoxContainer.new()
 	view.add_child(top)
@@ -64,6 +71,13 @@ func render(parent: Node) -> void:
 	choice(top, "TacticsLibrary", [], "", load_selected_tactic)
 	choice(top, "TacticsFilter", [{"id":"all", "name":"全部阵营"}, {"id":"t", "name":"T 进攻"}, {"id":"ct", "name":"CT 防守"}], library_filter, filter_changed)
 	controls.TacticsLibrary.size_flags_stretch_ratio = 2
+	# Tactics only load on their own map: say which map the current match uses.
+	var match_row := HBoxContainer.new()
+	match_row.name = "TacticsMatchMap"
+	view.add_child(match_row)
+	controls.match_map_note = UI.label(match_row, "", 12, UI.MUTED)
+	controls.match_map_note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button(match_row, "TacticsUseMatchMap", "切换到本场地图", use_match_map)
 	var fields := HBoxContainer.new()
 	view.add_child(fields)
 	var id_column := VBoxContainer.new()
@@ -304,6 +318,10 @@ func refresh_library_controls() -> void:
 
 func refresh(update_values: bool = false) -> void:
 	if not has_view(): return
+	if controls.map_banner.get_meta("map", "") != map_code:
+		UI.clear(controls.map_banner)
+		preload("res://scripts/team_visuals.gd").map_banner(controls.map_banner, map_code, "当前编辑地图", 76)
+		controls.map_banner.set_meta("map", map_code)
 	syncing = true
 	if update_values:
 		if controls.TacticsId.text != str(draft.get("id", "")): controls.TacticsId.text = str(draft.get("id", ""))
@@ -328,6 +346,7 @@ func refresh(update_values: bool = false) -> void:
 	controls.TacticsCopyCommand.disabled = not valid_id(str(draft.get("id", "")))
 	var published: Dictionary = library().get("publication", {})
 	controls.TacticsSync.disabled = locked or not bool(published.get("can_sync", false)) or not bool(published.get("pending", true))
+	refresh_match_map()
 	refresh_copy_caption()
 	controls.TacticsHold.editable = not locked
 	controls.TacticsSave.disabled = locked or library().get("map_meta", {}).is_empty()
@@ -532,6 +551,41 @@ func change_map(value: String) -> void:
 		if not libraries.has(map_code): fetch()
 	if dirty: request_confirmation("当前草稿未保存。切换地图后将保留草稿，继续？", switch_map)
 	else: switch_map.call()
+
+## The map of the prepared CS2 request, else the current or next map of a
+## due series. Empty when no match needs tactics right now.
+func match_map() -> String:
+	var published: Dictionary = library().get("publication", {})
+	var prepared := str(published.get("prepared_map", ""))
+	if not prepared.is_empty(): return prepared
+	var info = CareerBridge.context.get("match_preflight", {})
+	if not info is Dictionary or not bool(info.get("due", false)) or bool(info.get("played", false)): return ""
+	var rows = info.get("series_maps", [])
+	for row in rows if rows is Array else []:
+		if row is Dictionary and str(row.get("state", "")) in ["live", "next"]: return str(row.get("cs2_map", ""))
+	return ""
+
+func refresh_match_map() -> void:
+	if not controls.has("match_map_note") or not controls.has("TacticsUseMatchMap"): return
+	var code := match_map()
+	var known := code in DEFAULT_MAPS
+	var title := code.trim_prefix("de_").capitalize()
+	var note: Label = controls.match_map_note
+	var use: Button = controls.TacticsUseMatchMap
+	note.visible = known
+	use.visible = known and code != map_code
+	if not known: return
+	if code == map_code:
+		note.text = "正在编辑本场比赛地图 %s。" % title
+		note.add_theme_color_override("font_color", UI.GREEN)
+	else:
+		note.text = "赛事安排为 %s；正在编辑 %s，进入该地图即可使用对应战术。" % [title, map_code.trim_prefix("de_").capitalize()]
+		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		note.add_theme_color_override("font_color", UI.AMBER)
+		use.text = "切换到 %s" % title
+
+func use_match_map() -> void:
+	change_map(match_map())
 
 func filter_changed(value: String) -> void:
 	library_filter = value

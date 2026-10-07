@@ -798,7 +798,9 @@ func _own_team() -> void:
 
 func _team() -> void:
 	var team: Dictionary = selected_team if not selected_team.is_empty() else CareerBridge.context.get("team", {})
+	SharedPages.new().roster_date(content, team, true)
 	TeamVisuals.banner(content, str(team.get("name", Locale.source("page.team"))), str(team.get("name", "")), Locale.source("device.region_value_rank_value") % [team.get("region", ""), team.get("rank", "—")])
+	preload("res://scripts/map_form_panel.gd").mount(content, team.get("map_performance", []))
 	var player_id := str(CareerBridge.context.get("player", {}).get("id", ""))
 	for member in team.get("roster", team.get("players", [])):
 		_list_row(content, str(member.get("name", "")) + (Locale.source("device.you") if str(member.get("player_id", member.get("id", ""))) == player_id else ""), Locale.source("device.value_ability_value") % [ROLES.get(member.get("role", ""), member.get("role", "")), Fmt.score(member.get("ability"))], _load_player.bind(str(member.get("player_id", member.get("id", "")))), str(member.get("name", "")).left(1), "", false, true, str(team.get("name", "")))
@@ -831,6 +833,7 @@ func _request_detail(kind: String, id: String) -> void:
 
 func _player() -> void:
 	var team_name := str(selected_player.get("team", selected_player.get("last_team", "")))
+	SharedPages.new().roster_date(content, selected_player, true)
 	TeamVisuals.banner(content, str(selected_player.get("name", Locale.source("page.player"))), team_name, str(ROLES.get(selected_player.get("role", ""), selected_player.get("role", ""))))
 	if not team_name.is_empty() and team_name != "<null>":
 		if not str(selected_player.get("team_id", "")).is_empty():
@@ -1004,17 +1007,13 @@ func _open_computer(page: String) -> void:
 	Computer.open_app(page, Computer.location)
 
 func _quick() -> void:
-	var state: Dictionary = CareerBridge.context.get("quick", {})
-	UI.label(content, Locale.source("page.quick"), 20)
-	UI.label(content, Locale.source("device.value_season_value") % [state.get("year", str(CareerBridge.context.get("date", "")).left(4)), Locale.source("device.quick_mode") if state.get("mode", "normal") == "quick" else Locale.source("device.normal_mode")], 14)
-	if bool(state.get("can_choose", state.get("choice_required", false))):
-		var season_label := Locale.source("device.next_season") if state.get("season_phase", "") == "end" else Locale.source("device.this_season")
-		_primary(_button(content, season_label + Locale.source("device.use_quick_mode"), Computer.match_center.choose_mode.bind(true)))
-		_button(content, season_label + Locale.source("device.normal_pace"), Computer.match_center.choose_mode.bind(false))
-	if not str(state.get("block_reason", "")).is_empty(): UI.label(content, str(state.block_reason), 13, UI.MUTED)
-
-	_primary(_button(content, Locale.source("device.open_quick_season_and_match_reports"), _open_computer.bind("quick"), false))
-	if not CareerBridge.context.get("stories", []).is_empty(): _button(content, Locale.source("device.resolve_team_events"), _route.bind("stories"), false)
+	UI.label(content, Locale.source("pace.title"), 23)
+	UI.label(content, Locale.source("pace.phone_hint"), 14, UI.MUTED)
+	_button(content, Locale.source("pace.open"), func(): close_phone(); Computer.open_app("quick", Computer.location), false)
+	if Computer.match_center.quick_running:
+		_button(content, Locale.source("pace.pause"), func(): Computer.match_center.pause_quick(); _rebuild(), false)
+	else:
+		_button(content, Locale.source("pace.resume"), func(): close_phone(); Computer.open_app("quick", Computer.location); Computer.match_center.start_quick(), false)
 
 func _fetch_device_settings() -> void:
 	Computer.device_settings.fetch()

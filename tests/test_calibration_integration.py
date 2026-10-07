@@ -27,7 +27,7 @@ class CalibrationIntegrationTests(unittest.TestCase):
     def setUpClass(cls):
         cls.world = build_teams('2026')
 
-    def selected(self, name='MiQ'):
+    def selected(self, name='donk'):
         return deepcopy(next(p for t in self.world for p in t['players'] if p['name'] == name))
 
     def test_all_opening_eras_match_their_exact_candidate_base(self):
@@ -69,9 +69,9 @@ class CalibrationIntegrationTests(unittest.TestCase):
         self.assertEqual(original, player['stats'])
 
     def test_miq_and_mongolz_axes_are_not_the_legacy_raw_style_percentiles(self):
-        miq = self.selected()
-        self.assertAlmostEqual(78.191, miq['ability'], places=3)
-        self.assertLess(miq['stats']['firepower'], 81)
+        miq = next(p for t in build_teams('2025') for p in t['players'] if p['name'] == 'MiQ')
+        self.assertEqual(lookup('MiQ', '2025', 'ATOX')['overall'], miq['stats']['ability'])
+        self.assertLess(miq['stats']['firepower'], 90)
         mongolz = next(t for t in self.world if t['name'] == 'The MongolZ')
         self.assertTrue(all(p['stats']['entrying'] < 100 for p in mongolz['players']))
 
@@ -108,9 +108,9 @@ class CalibrationIntegrationTests(unittest.TestCase):
         self.assertEqual(a['ability'], b['ability'])
 
     def test_simulation_and_nine_cs2_bots_use_same_position_view(self):
-        team = deepcopy(next(t for t in self.world if t['name'] == 'ATOX'))
+        team = deepcopy(next(t for t in self.world if t['name'] == 'Spirit'))
         opponent = deepcopy(next(t for t in self.world if t['name'] == 'Vitality'))
-        target = next(p for p in team['players'] if p['name'] == 'MiQ')
+        target = next(p for p in team['players'] if p['name'] == 'donk')
         target['role'] = 'awp'
         # A request boundary must not depend on a stale stored player.ability.
         expected = playing_ability(target)
@@ -181,7 +181,7 @@ class CalibrationIntegrationTests(unittest.TestCase):
             stack.enter_context(patch.object(Career, 'path', return_value=root / 'career.json'))
             stack.enter_context(patch('cs2career.paths.save_root', return_value=root))
             state = ApplicationState()
-            state.create_career(dict(era='2026', mode='join', team_id='atox', replace='MiQ', role='rifle'))
+            state.create_career(dict(era='2026', mode='join', team_id='spirit', replace='magixx', role='rifle'))
             player = state.career.my_player(state.season.teams)
             player['stats']['firepower'] += 1
             player['role'] = 'lurk'

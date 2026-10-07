@@ -32,6 +32,15 @@ def command(state, body):
             raise ValueError('这个请求编号已经用于其他操作。')
         return dict(prior['result'], replayed=True, result_summary=True)
     event, match = matches._pair(state, body.get('match_id', ''), True)
+    scope = body.get('scope', 'remaining_series')
+    if scope not in ('current_map', 'remaining_series'):
+        raise ValueError('请选择模拟当前图或剩余系列赛。')
+    if scope == 'current_map' and 'map_key' not in body:
+        raise ValueError('缺少当前地图编号，请刷新比赛。')
+    if scope == 'current_map':
+        matches._guard(state, body)
+    from .career_pace import guard_map
+    guard_map(state, event, match, body)
     start = len(match.get('maps') or [])
     current = dict(body)
     # At most seven maps in a supported BO7; the series itself stops at
@@ -56,7 +65,7 @@ def command(state, body):
             state.settle()
             from ..career.incidents import pending
             collected = out.get('status') == 'map_collected'
-            more = (not collected and not match.get('played') and len(match.get('maps') or []) > before
+            more = (scope != 'current_map' and not collected and not match.get('played') and len(match.get('maps') or []) > before
                     and bool(match.get('pending_map')) and not state.career.story_queue
                     and not pending(state.career) and step < 6)
             if match.get('maps'):

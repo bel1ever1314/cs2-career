@@ -96,7 +96,7 @@ class Arena:
         found={}
         for team in state.season.teams:
             for p in team['players']:
-                if p.get('player_id'):found[p['player_id']]={**deepcopy(p),'club':team['name'],'club_id':team['id']}
+                if p.get('player_id'):found[p['player_id']]={**deepcopy(p),'club':team['name'],'club_id':team['id'], 'club_marks':deepcopy(team.get('career_marks') or {})}
         for p in state.career.free:
             if p.get('player_id'):found.setdefault(p['player_id'],{**deepcopy(p),'club':'','club_id':''})
         you=getattr(state.career,'you_card',{}) or {}

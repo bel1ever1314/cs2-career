@@ -1,6 +1,12 @@
 {
   "schema_version": 1,
   "messages": {
+    "roster.opening_date": {"zh":"开年完整阵容 · 资料日期 {date}", "en":"Opening roster · Source date {date}"},
+    "pace.title": {"zh":"生涯推进", "en":"Career progression"},
+    "pace.phone_hint": {"zh":"默认逐图模拟，每张图之间都可以亲自上场或切换 RTS。", "en":"Simulate one map at a time, and take over in CS2 or RTS between maps."},
+    "pace.open": {"zh":"打开比赛与战报", "en":"Open matches and reports"},
+    "pace.pause": {"zh":"暂停推进", "en":"Pause progression"},
+    "pace.resume": {"zh":"继续推进", "en":"Continue progression"},
     "mail.inbox": {
       "zh": "收件箱",
       "en": "Inbox"
@@ -266,8 +272,8 @@
       "en": "Matches"
     },
     "page.quick": {
-      "zh": "快速赛季",
-      "en": "Quick season"
+      "zh": "生涯推进",
+      "en": "Career progression"
     },
     "page.profile": {
       "zh": "我的",
@@ -678,8 +684,8 @@
       "en": "Tournament news ›"
     },
     "device.quick_season": {
-      "zh": "快速赛季 ›",
-      "en": "Quick season ›"
+      "zh": "生涯推进 ›",
+      "en": "Career progression ›"
     },
     "device.next_match_2": {
       "zh": "下一场",

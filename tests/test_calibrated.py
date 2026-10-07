@@ -20,7 +20,7 @@ class CalibratedPackTests(unittest.TestCase):
     def test_pack_is_cached_and_recursively_immutable(self):
         pack = calibrated.load_calibrated_pack()
         self.assertIs(pack, calibrated.load_calibrated_pack())
-        self.assertEqual(1171, len(pack["records"]))
+        self.assertEqual(1141, len(pack["records"]))
         with self.assertRaises(TypeError):
             pack["model_version"] = "changed"
         with self.assertRaises(TypeError):
@@ -165,7 +165,7 @@ class CalibratedPackTests(unittest.TestCase):
 
     def test_only_five_people_have_annual_evidence_with_no_future_windows(self):
         anchors = [row for row in calibrated.load_calibrated_pack()["records"] if row["evidence"]["level"] == "annual_top30"]
-        self.assertEqual(15, len(anchors))
+        self.assertEqual(14, len(anchors))
         self.assertEqual({"MiQ", "donk", "NiKo", "ZywOo", "m0NESY"}, {row["canonical_name"] for row in anchors})
         self.assertEqual(5, len({row["hltv_id"] for row in anchors}))
         for row in anchors:
@@ -196,14 +196,14 @@ class CalibratedPackTests(unittest.TestCase):
             self.assertNotIn("adr", row["axes"])
 
     @unittest.skipUnless(promote_calibration_pack.DEFAULT_LAB.is_dir(), "isolated source lab unavailable")
-    def test_full_pack_and_5855_views_match_fresh_lab_without_source_writes(self):
+    def test_full_pack_and_all_views_match_fresh_lab_without_source_writes(self):
         lab = promote_calibration_pack.DEFAULT_LAB
         paths = [lab / "snapshot.json", lab / "parameters.json", lab / "calibration.py", lab / "report.json"]
         before = {path: hashlib.sha256(path.read_bytes()).hexdigest() for path in paths}
         pack = promote_calibration_pack.build_pack(lab)
         actual = json.loads(promote_calibration_pack.DEFAULT_OUTPUT.read_text(encoding="utf-8"))
         self.assertEqual(actual, pack)
-        self.assertEqual(5855, pack["coverage"]["position_views_checked"])
+        self.assertEqual(5705, pack["coverage"]["position_views_checked"])
         self.assertEqual(before, {path: hashlib.sha256(path.read_bytes()).hexdigest() for path in paths})
 
 

@@ -240,9 +240,11 @@ class Career3DExperienceTests(unittest.TestCase):
         match = event['matches'][0]
         match.update(stage='G1', played=False)
         group = venue_for(self.state, event, match)
-        self.assertEqual('studio', group['scale'])
+        # Known online Bounty rounds are played from the club computer.
+        self.assertEqual('online', group['scale'])
         self.assertEqual('online', group['real_venue_scale'])
-        self.assertTrue(group['travel_allowed'])
+        self.assertEqual('club', group['destination'])
+        self.assertFalse(group['travel_allowed'])
         match['stage'] = 'GF'
         final = venue_for(self.state, event, match)
         self.assertEqual('arena', final['scale'])
@@ -408,7 +410,7 @@ class Career3DExperienceTests(unittest.TestCase):
             season.finalize_top20()
 
     def test_2024_2025_rosters_have_calibrated_candidates_not_2026_aliases(self):
-        for era, expected in (('2024', 270), ('2025', 295)):
+        for era, expected in (('2024', 260), ('2025', 290)):
             teams = build_teams(era, int(era))
             players = [player for row in teams for player in row['players']]
             self.assertEqual(expected, len(players))

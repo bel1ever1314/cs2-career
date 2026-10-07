@@ -117,7 +117,7 @@ func remember_venue_result(snapshot: Dictionary, preflight: Dictionary) -> void:
 	if scene == null or scene.scene_file_path not in ["res://lan.tscn", "res://major_walk.tscn"]: return
 	var id := str(snapshot.get("match_id", snapshot.get("id", "")))
 	if not scene.has_method("match_seated") or not bool(scene.match_seated(id)): return
-	if Computer.match_center.quick_running or not bool(snapshot.get("played", false)): return
+	if not bool(snapshot.get("played", false)): return
 	var value: Variant = scene.get("roster_plan")
 	if not value is Dictionary or value.is_empty(): return
 	var venue: Dictionary = preflight.get("venue", {})

@@ -111,6 +111,7 @@ func configure(map: Dictionary, rosters: Dictionary, seed: int, knowledge: Dicti
 					return false
 			var p: Dictionary = {"id": pid, "name": str(card.get("name", pid)), "team": team, "side": team,
 				"index": index, "role": str(card.get("role", "rifle")), "ability": ability, "skills": skills,
+				"map_reaction": clampf(float(rosters.get("map_reaction", {}).get(team, 1.0)), 0.95, 1.05),
 				"has_kit": bool(card.get("kit", index < 2)), "human": pid == _human_id,
 				"weapon": "pistol", "primary_weapon": "", "inventory": {}, "reserve": 60, "money": 6000,
 				"smokes": 1, "flashes": 1, "utility_cooldown": 0.0, "flash_remaining": 0.0,
@@ -906,7 +907,7 @@ func _ai_tick(p: Dictionary, interactions: Array[Dictionary]) -> void:
 
 
 func reaction_seconds(p: Dictionary) -> float:
-	return lerpf(0.48, 0.13, float(p["skills"]["reaction"]) / 100.0)
+	return lerpf(0.48, 0.13, float(p["skills"]["reaction"]) / 100.0) * float(p.get("map_reaction", 1.0))
 
 
 func _postplant(p: Dictionary, interactions: Array[Dictionary]) -> void:

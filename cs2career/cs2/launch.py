@@ -9,6 +9,7 @@ Paths live in the save folder so a packaged build can be pointed at any install.
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 import hashlib
 import mmap
 import os
@@ -278,8 +279,9 @@ def _clean(cfg: dict) -> dict:
         cfg["bot_aim"] = DEFAULTS["bot_aim"]
     if cfg.get("bot_nades") not in NADE_MODES:
         cfg["bot_nades"] = DEFAULTS["bot_nades"]
-    if cfg.get("bot_identity") not in IDENTITY_MODES:
-        cfg["bot_identity"] = DEFAULTS["bot_identity"]
+    # Career always presents named competitors, never the engine's BOT badge.
+    # Normalize old preferences as well as newly saved settings.
+    cfg["bot_identity"] = "player"
     if cfg.get("bot_movement") not in MOVEMENT_MODES:
         cfg["bot_movement"] = DEFAULTS["bot_movement"]
     return cfg
@@ -1574,6 +1576,8 @@ def build_request(my_team: dict, opp: dict, player_name: str, map_code: str, sid
     enemies = _pick_bots(opp["players"], 5, used)
     mine = {"team_id": my_team["id"], "name": my_team["name"], "logo": my_team["id"][:4], "players": mates}
     theirs = {"team_id": opp["id"], "name": opp["name"], "logo": opp["id"][:4], "players": enemies}
+    mine['career_marks'] = deepcopy(my_team.get('career_marks') or {})
+    theirs['career_marks'] = deepcopy(opp.get('career_marks') or {})
     side = "t" if side == "t" else "ct"
     ct, t = (mine, theirs) if side == "ct" else (theirs, mine)
     return stamp({
@@ -1586,6 +1590,7 @@ def build_request(my_team: dict, opp: dict, player_name: str, map_code: str, sid
         "player": player_name,
         "human_player_id": next((p.get('player_id') for p in my_team['players'] if p['name']==player_name),None) or stable_player_id(player_name),
         "human_tactical_abilities": tactical_abilities(human or {"ability": 70}),
+        "human_role": (human or {}).get("role") or "rifle",
         # Always ask for a full 5v5 so the game backfills any name we dropped.
         "quota": 9,
         "nonce": uuid.uuid4().hex,
@@ -1606,6 +1611,7 @@ def build_lobby_request(ct: dict, t: dict, human_id: str, map_code: str, nonce: 
     request = stamp(dict(schema_version=2,active=True,map=map_code,nonce=nonce,observer=not bool(human_id),
         human_team=('ct' if human_id in [p['player_id'] for p in ct['players']] else 't') if human_id else 'spectator',
         human_player_id=human_id,player=human['name'] if human else '',quota=9 if human else 10,
+        human_role=(human.get('role') or 'rifle') if human else '',
         human_tactical_abilities=tactical_abilities(human) if human else {}), 'cs2')
     for side,team in (('ct',ct),('t',t)):
         request[side]=dict(team_id=team['id'],name=team['name'],logo='',
@@ -1614,7 +1620,8 @@ def build_lobby_request(ct: dict, t: dict, human_id: str, map_code: str, nonce: 
     # independently of match sides/roles and without changing Steam identity.
     # Keep this on the request: BotProfile rebuilds replace the player rows.
     request['avatar_teams'] = {p['player_id']: {
-        'team_id': p.get('club_id') or '', 'name': p.get('club') or ''}
+        'team_id': p.get('club_id') or '', 'name': p.get('club') or '',
+        'career_marks': deepcopy(p.get('club_marks') or {})}
         for p in roster if p['player_id'] != human_id}
     return request
 
@@ -1789,21 +1796,24 @@ def _copy_career_match(csgo: Path, mod_source: Path | None = None) -> int:
 
 
 def _deploy_tactical_playbook(csgo: Path, playbook: dict | None = None) -> int:
-    """Closed-game snapshot only; editor API writes never call this function."""
+    """Stage every map before launch; map changes use their own saved routes."""
     require_cs2_closed("部署地图战术库")
     from .. import tactics
     clean = tactics.load_library() if playbook is None else tactics.validate_library(playbook)
-    return _write_tactical_snapshots(plugin_dir(csgo), clean,
-        lambda: require_cs2_closed("部署地图战术库"))
+    libraries = [tactics.load_library(code) for code in tactics.SUPPORTED_MAPS if code != clean['map']]
+    libraries.append(clean)  # The legacy snapshot remains the scheduled map.
+    return sum(_write_tactical_snapshots(plugin_dir(csgo), book,
+        lambda: require_cs2_closed("部署地图战术库"), legacy=book['map'] == clean['map'])
+        for book in libraries)
 
 
-def _write_tactical_snapshots(folder: Path, clean: dict, guard) -> int:
+def _write_tactical_snapshots(folder: Path, clean: dict, guard, *, legacy=True) -> int:
     from .. import tactics
     from .profiles import _atomic_bytes
     blob = tactics.encode_library(clean)
     # Keep each map's snapshot separate; the legacy file remains for older
     # tools, but no longer decides which map the game-side reader executes.
-    targets = (folder / 'tactical_playbook.json', folder / 'tactical_playbooks' / (clean['map'] + '.json'))
+    targets = ([folder / 'tactical_playbook.json'] if legacy else []) + [folder / 'tactical_playbooks' / (clean['map'] + '.json')]
     changed = []
     try:
         for target in targets:
@@ -1874,17 +1884,15 @@ def tactical_publication(csgo: Path | None, map_code: str, sessions: list[dict],
             or len(players) != 10 or set(players) != set(expected) or len(set(players)) != 10
             or tactics.canonical_map(session.get("cs2_map") or session.get("map")) != prepared):
             return dict(out, status="session_mismatch", reason="战术已保存；游戏请求与当前会话 nonce、地图或十人身份不一致，未同步。")
-        map_target = folder / 'tactical_playbooks' / (prepared + '.json')
+        map_target = folder / 'tactical_playbooks' / (code + '.json')
         target = map_target if map_target.is_file() else folder / "tactical_playbook.json"
         published = None
         if target.is_file():
             with target.open("rb") as source:
                 published = tactics.validate_library(tactics.decode_json(source.read(tactics.MAX_BYTES + 1)))
             out["published_map"] = published["map"]
-            if published["map"] == prepared:
+            if published["map"] == code:
                 out["published_ids"] = [t["id"] for t in published["tactics"]]
-        if prepared != code:
-            return dict(out, status="map_mismatch", reason="战术已保存；当前对局是 %s，此地图下次开局自动同步。" % prepared)
         same = published == clean and map_target.is_file() and map_target.read_bytes() == tactics.encode_library(clean)
         live = cs2_is_live_strict()
         if live is not True and live is not False:
@@ -1902,8 +1910,8 @@ def tactical_publication(csgo: Path | None, map_code: str, sessions: list[dict],
             if read_request() != request_bytes:
                 raise ValueError("当前对局请求已变化，未发布战术；请刷新后再同步。")
         guard_snapshot()
-        _write_tactical_snapshots(folder, clean, guard_snapshot)
-        return dict(out, status="synced", published_map=prepared, published_ids=list(out["saved_ids"]), synced=True, pending=False,
+        _write_tactical_snapshots(folder, clean, guard_snapshot, legacy=code == prepared)
+        return dict(out, status="synced", published_map=code, published_ids=list(out["saved_ids"]), synced=True, pending=False,
                     reason="战术库已同步当前对局，不需重新准备或重置比赛。准备阶段使用已发布 ID。")
     except (OSError, ValueError, TypeError, AttributeError, RuntimeError) as exc:
         return dict(out, status="sync_error", can_sync=False, pending=True, synced=False,
@@ -1957,6 +1965,10 @@ def _safe_avatar_source(team: dict, *, use_legacy_crest: bool = True) -> tuple[P
     from .avatars import club_mark
     team_id = re.sub(r"[^a-z0-9-]", "", str(team.get("team_id") or "").lower())
     candidates = []
+    from ..services.team_marks import mark_path
+    custom = mark_path(team, 'avatar')
+    if custom:
+        candidates.append((custom, 'custom'))
     if team_id:
         # A logo explicitly uploaded by the user is allowed only when it also
         # meets BotHider's small, static PNG contract.
@@ -2193,8 +2205,12 @@ def prepare_game(
     _deploy_tactical_playbook(csgo, tactical_playbook)
     if existing_plugins:
         require_existing_plugin(csgo, 'BotBuy')
-    else:
-        _copy_botbuy_patch(csgo)
+    # A 3D handoff reuses the installed third-party runtime, but BotBuy is
+    # our bundled career adapter. Presence alone cannot distinguish an older
+    # adapter from this program's role/gift contract. Sync offline here, in
+    # the explicit post-commit launch stage (never a read/preflight). Equal
+    # hashes are a no-op; a locked/failed copy aborts before Steam dispatch.
+    _copy_botbuy_patch(csgo)
     match["bot_identity"] = opts["bot_identity"]
     from .natural_behavior import configure_match
     configure_match(match, opts.get("bot_movement", "classic"))
@@ -2327,7 +2343,7 @@ def start_match(
         f" · 行为{MOVEMENT_LABEL.get(match['movement_style']['active'], match['movement_style']['active'])}"
         f" · Bot档案 {match['bot_profile']['count']}/{match['bot_profile']['count']} · {match['bot_profile']['short_hash']}"
     )
-    tip = f"CS2 正在启动。进游戏后选：与机器人游戏 → 竞技 → {map_code}。"
+    tip = f"CS2 正在启动。进游戏后选：与机器人游戏 → 竞技 → {map_code}。其他地图可使用各自的战术，但战绩不会录入本场比赛。"
     fallback = str(match.get("movement_style", {}).get("fallback_reason") or "")
     skin_state = match.get("skin_status") or {}
     skin_tip = skin_state.get("reason", "") if skin_state.get("state") in (

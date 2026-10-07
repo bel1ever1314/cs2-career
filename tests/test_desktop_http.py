@@ -61,8 +61,8 @@ class HttpSessionTests(unittest.TestCase):
 
     def test_setup_exposes_dated_roster_and_unfinished_coverage_without_saving(self):
         result = self.request('/api/setup?era=2024', token=self.server.token)
-        self.assertEqual(22, result['data_coverage']['placeholder_players'])
-        self.assertEqual(47, result['data_coverage']['verified_rosters'])
+        self.assertEqual(0, result['data_coverage']['placeholder_players'])
+        self.assertEqual(51, result['data_coverage']['verified_rosters'])
         pari = next(t for t in result['teams'] if t['id'] == 'parivision')
         self.assertEqual('verified', pari['data_provenance']['status'])
         self.assertEqual('2024-01-08', pari['data_provenance']['as_of'])
@@ -72,15 +72,16 @@ class HttpSessionTests(unittest.TestCase):
 
     def test_setup_2025_serves_independent_rosters_and_discloses_vacancies(self):
         result = self.request('/api/setup?era=2025', token=self.server.token)
-        self.assertEqual(59, result['data_coverage']['teams'])
-        self.assertEqual(41, result['data_coverage']['verified_rosters'])
-        self.assertEqual(28, result['data_coverage']['placeholder_players'])
+        self.assertEqual(58, result['data_coverage']['teams'])
+        self.assertEqual(57, result['data_coverage']['verified_rosters'])
+        self.assertEqual(0, result['data_coverage']['placeholder_players'])
         by = {t['name']: t for t in result['teams']}
         self.assertIn('Eternal Fire', by)
         self.assertNotIn('FUT', by)
         self.assertIn('Spinx', {p['name'] for p in by['Vitality']['players']})
-        self.assertEqual('estimated', by['G2']['data_provenance']['status'])
-        self.assertEqual(1, by['G2']['data_provenance']['placeholder_count'])
+        self.assertEqual('verified', by['G2']['data_provenance']['status'])
+        self.assertEqual(0, by['G2']['data_provenance']['placeholder_count'])
+        self.assertEqual('2025-01-11', by['G2']['data_provenance']['roster_as_of'])
         self.assertEqual(65, by['PARIVISION']['data_provenance']['source_rank'])
         self.assertEqual('2025-01-08', by['PARIVISION']['data_provenance']['as_of'])
         self.assertEqual(0, self.saved)

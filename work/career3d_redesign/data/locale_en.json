@@ -3,7 +3,7 @@
   "phrases": {
     "快速生涯": "Quick career",
     "赛季": "Season",
-    "自动推进中": "Running automatically",
+    "自动推进中": "Auto-advancing",
     "本队赛程": "Our schedule",
     "等待本队下一站": "Waiting for our next event",
     "对手待定": "Opponent not confirmed",
@@ -3070,6 +3070,206 @@
     "已返回训练赛预约，可以重新进入 CS2 或模拟。": "Returned to the booking. You can re-enter CS2 or simulate.",
     "没有这个训练赛操作。": "Unknown practice action.",
     "还没到约定日期。": "The booked date has not arrived yet.",
+    "CS2 里请打 %s，阵营 %s。地图或阵营不对，这张图的战绩不会录入。": "In CS2, play %s on the %s side. A different map or side will not be recorded.",
+    "进入 CS2 后：与机器人游戏 → 竞技 → 选 %s，再加入你在这里选的开局阵营。": "In CS2: Play with Bots → Competitive → choose %s, then join the starting side you pick here.",
+    "CT 开场 · 进入 CS2 打 %s": "Start on CT · Play %s in CS2",
+    "T 开场 · 进入 CS2 打 %s": "Start on T · Play %s in CS2",
+    "T（恐怖分子）": "T (Terrorists)",
+    "CT（反恐精英）": "CT (Counter-Terrorists)",
+    "第%d图 · %s": "Map %d · %s",
+    "胜 %s": "Won %s",
+    "负 %s": "Lost %s",
+    "正在进行": "In progress",
+    "本图": "This map",
+    "未进行": "Not played",
+    "正在进行 · 第%d图 %s": "In progress · Map %d %s",
+    "本图 · 第%d图 %s": "This map · Map %d %s",
+    "切换到本场地图": "Switch to this match's map",
+    "正在编辑本场比赛地图 %s。": "Editing this match's map, %s.",
+    "赛事安排为 %s；正在编辑 %s，进入该地图即可使用对应战术。": "Scheduled map: %s. Editing %s; its tactics are available when playing that map.",
+    "切换到 %s": "Switch to %s",
+    "比赛进行中：正在打的这张图沿用开赛时的设置，保存后从下一张图开始生效。": "Match in progress: the current map keeps the settings it started with. Saved changes apply from the next map.",
+    "设置已保存。正在打的这张图沿用开赛时的设置，从下一张图开始生效。": "Settings saved. The current map keeps the settings it started with; changes apply from the next map.",
+    "比赛进行中不能修改 CS2 目录：这张图的战绩要从原目录读取。其他设置可以照常保存。": "The CS2 folder cannot change during a match: this map's result is read from the current folder. Other settings can still be saved.",
+    "请完全退出 CS2 后再修改 CS2 目录。其他设置可以照常保存。": "Fully exit CS2 before changing the CS2 folder. Other settings can still be saved.",
+    "队伍地图表现": "Team map form",
+    "强图": "Strong",
+    "弱图": "Weak",
+    "常规": "Regular",
+    "专项练图": "Map practice",
+    "每天选一张，跨日结算一次。越熟练提升越慢，不增加个人属性。": "Choose one map per day. Practice settles when the date advances, with diminishing gains and no individual attribute boosts.",
+    "安排今天的专项练图": "Schedule today's map practice",
+    "专项练图已安排，跨日后结算；今天只训练这一张图。": "Map practice scheduled. One map will be trained when the date advances.",
+    "今天的专项训练已经完成。": "Today's map practice is already complete.",
+    "加入队伍后才能安排专项练图。": "Join a team before scheduling map practice.",
+    "请选择有效的训练地图。": "Choose a valid practice map.",
+    "地图结果缺少有效胜方。": "The map result needs a valid winner.",
+    "训练赛获胜": "Practice win",
+    "训练赛失利": "Practice loss",
+    "正式比赛获胜": "Official match win",
+    "正式比赛失利": "Official match loss",
+    "长期 %.1f · 状态 %+.1f · 近 %d 图 %d 胜": "Base %.1f · Form %+.1f · Last %d maps: %d wins",
+    "本场安排 · 第 %d 图 · %s / %s": "Scheduled · Map %d · %s / %s",
+    "BP 地图预览 · %s / %s": "Veto map preview · %s / %s",
+    "确认选择 %s": "Confirm pick: %s",
+    "确认禁用 %s": "Confirm ban: %s",
+    "当前编辑地图": "Currently editing",
+    "已安排": "Scheduled",
+    "14 天未打或练图后逐渐生疏；比赛和专项练图可保持熟悉度。": "Familiarity fades after 14 inactive days. Matches and map practice keep it fresh.",
+    "已 %d 天未打或练图": "No matches or practice for %d days",
+    "长期未练图": "Map inactivity",
+    "生涯进行中": "Career in progress",
+    "比赛准备": "Match preparation",
+    "默认逐图模拟，随时接手下一张；暂停后可以自由活动。": "Simulate one map at a time. Take over the next map, or pause to explore.",
+    "继续下一赛季": "Continue to next season",
+    "Major 休赛期 · 可以分配属性点，未使用的点数会保留。": "Major break: allocate attribute points. Unspent points carry over.",
+    "分配属性点": "Allocate attribute points",
+    "结束休赛停留": "Finish the break",
+    "下一次推进会停在开赛准备阶段。": "The next advance stops at match preparation.",
+    "处理待办事项": "Review pending decisions",
+    "取消预约": "Cancel takeover",
+    "直接看本图结果": "Show this map's result",
+    "下一张图": "Next map",
+    "开始本图": "Start this map",
+    "继续 · ": "Continue · ",
+    "下一场自己打": "Play next match",
+    "下一图自己打": "Play next map",
+    "本图自己打": "Play this map",
+    "下一场 RTS": "Next match: RTS",
+    "下一图 RTS": "Next map: RTS",
+    "本图 RTS": "This map: RTS",
+    "已暂停 · 关闭电脑后可以自由活动": "Paused. Close the computer to explore.",
+    "下一图将由你亲自上场": "You will play the next map in CS2",
+    "下一图将由你 RTS 指挥": "You will command the next map in RTS",
+    "%d 秒后继续 · 可随时接手或暂停": "Continuing in %d seconds. Take over or pause at any time.",
+    "逐回合战报 · 可以提前预约下一图": "Round-by-round report. Reserve a takeover for the next map.",
+    "模拟当前地图": "Simulate this map",
+    "生涯推进 ›": "Career progression ›",
+    "手动 BP · 暂停倒计时": "Manual veto: pause countdown",
+    "模拟当前未完成地图": "Simulate the unfinished map",
+    "下一张 · 系列赛 ": "Next map · Series ",
+    "比赛默认逐图模拟，可以随时暂停或亲自上场。": "Matches simulate one map at a time. Pause or take over whenever you like.",
+    "返回本场席位 · 按 E 入座，继续比赛": "Return to your match seat. Press E to sit and continue.",
+    "返回本场席位 · 到你的空位按 E 入座": "Return to your match seat. Press E at your empty chair.",
+    "请先创建一段仍在进行的生涯。": "Create an active career first.",
+    "地图进度已变化，请刷新后选择；本次未执行。": "Map progress has changed. Refresh and choose again; nothing was executed.",
+    "请选择模拟当前图或剩余系列赛。": "Choose this map or the remaining series.",
+    "缺少当前地图编号，请刷新比赛。": "The map identity is missing. Refresh the match.",
+    "统一生涯节奏已启用。": "Unified career progression is enabled.",
+    "当前比赛尚未到入座时间。": "This match is not ready for you to take your seat.",
+    "已记住本场席位，后续地图无需重新入场。": "Your seat is saved for this series. Later maps do not repeat the entrance.",
+    "新赛季已开始。": "The new season has begun.",
+    "请在本赛季结束后继续下一赛季。": "Finish this season before continuing to the next one.",
+    "统一生涯按地图选择玩法，不再切换赛季模式。": "Choose how to play each map; season modes are no longer switched.",
+    "无效的赛程停止位置。": "Invalid calendar stopping point.",
+    "请先确认统一生涯节奏。": "Enable unified career progression first.",
+    "Major 休赛期到了，请先处理休赛安排。": "The Major break has arrived. Review your break plans first.",
+    "请先结束当前对局。": "Finish the current game first.",
+    "返回本场席位，继续当前比赛；已完成地图保留。": "Return to your match seat to continue. Completed maps are preserved.",
+    "比赛默认逐图模拟，每张图之间停 4 秒，可以接手 CS2、RTS 或暂停。暂停后可以自由活动。": "Matches simulate map by map with a 4-second pause between maps, where you can take over in CS2 or RTS, or pause. While paused you can move around freely.",
+    "完成后会自动继续": "Continues automatically when done",
+    "第 %d 图未完成 · CS2 已退出": "Map %d unfinished · CS2 exited",
+    "在上方选择：重新进入、模拟本图或改用 RTS。已完成的地图会保留。": "Choose above: re-enter, simulate this map or switch to RTS. Finished maps are kept.",
+    "第 %d 图 · %s 进行中": "Map %d · %s in progress",
+    "打完回到这里，在上方录入战绩。": "When you finish, come back and record the result above.",
+    "逐回合战报": "Round-by-round report",
+    "可以直接看结果，或提前预约下一图由你接手。": "Skip to the result, or book the next map for yourself now.",
+    "系列赛结束 · %s": "Series over · %s",
+    "%d 秒后进入下一场": "Next match in %d s",
+    "已暂停 · 点继续进入下一场": "Paused · continue to the next match",
+    "下一张 · 第 %d 图 %s": "Next · Map %d %s",
+    "%d 秒后自动模拟": "Simulating in %d s",
+    "已暂停 · 可以模拟或接手": "Paused · simulate or take over",
+    "模拟第 %d 图": "Simulate map %d",
+    "第 %d 图自己打": "Play map %d yourself",
+    "第 %d 图 RTS": "Map %d in RTS",
+    "暂无已到期的比赛": "No match due",
+    "推进赛程中……": "Advancing the schedule…",
+    "已暂停 · 继续后推进到下一场比赛日": "Paused · continue to advance to the next match day",
+    "地图 BP · 轮到你方选图": "Map veto · your pick",
+    "地图 BP · 轮到你方禁图": "Map veto · your ban",
+    "地图 BP · 等待 %s": "Map veto · waiting for %s",
+    "在上方点地图查看双方评价，再确认。": "Click a map above to compare both teams, then confirm.",
+    "第 %d 图 %s · 亲自上场": "Map %d %s · playing yourself",
+    "在上方选择 CT 或 T 开场，进入 CS2。": "Choose a CT or T start above to enter CS2.",
+    "改为模拟本图": "Simulate this map instead",
+    "改用 RTS": "Switch to RTS",
+    "第 %d 图 · 等待 BP": "Map %d · awaiting veto",
+    "%d 秒后由队长自动 BP 并模拟": "Captain vetoes and simulates in %d s",
+    "已暂停 · 可以模拟、接手，或在上方手动 BP": "Paused · simulate, take over, or veto manually above",
+    "下一图由你亲自上场": "You will play the next map yourself",
+    "下一图由你 RTS 指挥": "You will command the next map in RTS",
+    "自动推进": "Auto-advance",
+    "重新进入会重开当前未完成地图；已完成的地图和战绩保留。": "Re-entering restarts the unfinished map; finished maps and stats are kept.",
+    "第 1 图开始前由队长自动完成地图 BP。想自己选图，可以手动 BP。": "The captain completes the map veto before map 1. Use manual veto to choose maps yourself.",
+    "手动 BP": "Manual veto",
+    "双方地图评价 · 你方 : 对手": "Map ratings · you : opponent",
+    "轮到你方选图": "Your pick",
+    "轮到你方禁图": "Your ban",
+    "交给队长完成 BP": "Let the captain finish the veto",
+    "决胜 %s": "Decider %s",
+    "%s 选 %s": "%s picked %s",
+    "%s 禁 %s": "%s banned %s",
+    "正在进行 · 第%d图 %s · CS2 已退出，本图未完成": "In progress · Map %d %s · CS2 exited, map unfinished",
+    "正在进行 · 第%d图 %s · 你在 %s 方": "In progress · Map %d %s · you are on %s",
+    "本图 · 第%d图 %s · 决胜图": "This map · Map %d %s · decider",
+    "本图 · 第%d图 %s · %s 选图": "This map · Map %d %s · picked by %s",
+    "下一张 · 第%d图 %s · 系列赛 %s": "Next · Map %d %s · series %s",
+    "CS2 生涯模拟器": "CS2 Career Simulator",
+    "正在载入生涯……": "Loading your career…",
+    "正在准备生涯数据……": "Preparing career data…",
+    "正在启动生涯后台……": "Starting the career service…",
+    "查看界面": "Open interface",
+    "自建战队队标": "Custom team logo",
+    "上传后用于队伍资料、场馆和比赛头像。也可以单独选择 CS2 内的头像。": "Use your logo in team profiles, venues and match avatars, or choose a separate CS2 avatar.",
+    "上传队标（同时用于 CS2）": "Upload team logo (also for CS2)",
+    "单独设置 CS2 头像": "Set a separate CS2 avatar",
+    "PNG / JPG / WebP，最大 8 MB；本地保存。CS2 内沿用灰黑半透明底，下一次开赛生效。": "PNG / JPG / WebP, up to 8 MB, stored locally. CS2 uses a translucent graphite tile from the next match.",
+    "选择战队队标": "Choose team logo",
+    "选择 CS2 头像": "Choose CS2 avatar",
+    "请选择 PNG、JPG 或 WebP 图片。": "Choose a PNG, JPG or WebP image.",
+    "图片无法读取，或超过 8 MB。": "The image could not be read or exceeds 8 MB.",
+    "图片无法读取，宽高请不超过 4096 像素。": "The image could not be read. Width and height must not exceed 4096 pixels.",
+    "这张图片完全透明，请选择有内容的队标。": "This image is fully transparent. Choose a visible logo.",
+    "队标预览": "Logo preview",
+    "确认使用这张队标？": "Use this team logo?",
+    "生涯队标": "Career logo",
+    "所选图片": "Selected image",
+    "CS2 顶部 / 计分板": "CS2 HUD / Scoreboard",
+    "保存队标": "Save logo",
+    "能力 · 当前": "Ability · Current",
+    "左侧为已收下的数值 · ↑ 表示高于当前值，悬停可看差值。": "Your saved values are on the left. An up arrow marks improvements; hover to see the difference.",
+    "当前已收下：%s": "Current selection: %s",
+    "尚未选择这项能力": "No value selected yet",
+    "比当前 %s 提高 +%s": "Above current %s by +%s",
+    "比当前 %s 降低 %s": "Below current %s by %s",
+    "与当前 %s 持平": "Equal to current %s",
+    "尚未选择，可作为这项能力的初始值": "No value chosen yet; this can be your starting value.",
+    "队标已保存，CS2 顶部与计分板头像将在下一次开赛时同步。": "Logo saved. CS2 HUD and scoreboard avatars will update at the next match.",
+    "线下比赛 · 等待入座": "LAN match · Waiting to take your seat",
+    "在上方前往比赛场馆，到你的选手席入座。": "Use the venue button above and take your player seat.",
+    "前往 %s 入座": "Go to %s and take your seat",
+    "这是线下比赛，到你的选手席入座后再选择 CT／T 开场。": "This is a LAN match. Take your player seat before choosing CT or T.",
+    "启动请求未发出，请稍后重试。": "The launch request was not sent. Please try again shortly.",
+    "退出游戏": "Exit game",
+    "*.png,*.jpg,*.jpeg,*.webp ; 队标图片": "*.png,*.jpg,*.jpeg,*.webp ; Team logo images",
+    "请选择有效的静态 PNG 图片。": "Choose a valid static PNG image.",
+    "PNG 数据不完整。": "The PNG data is incomplete.",
+    "队标图片太大，请重新选择。": "The logo image is too large. Please choose another.",
+    "只能修改自己创建并管理的战队队标。": "You can only change the logo of a team you created and manage.",
+    "当前队伍已变化，请刷新后重新选择图片。": "Your team has changed. Refresh and select the image again.",
+    "请选择队标或 CS2 头像。": "Choose a team logo or CS2 avatar.",
+    "PNG 校验失败。": "The PNG checksum is invalid.",
+    "PNG 缺少尺寸。": "The PNG is missing its dimensions.",
+    "PNG 像素数据无效。": "The PNG pixel data is invalid.",
+    "队标图片编码无效。": "The logo image encoding is invalid.",
+    "自建战队可以在这里设置队标。": "Set your custom team's logo here.",
+    "队标保存位置异常，请检查存档目录。": "The logo destination is invalid. Please check the save folder.",
+    "PNG 尺寸无效。": "The PNG dimensions are invalid.",
+    "请重新选择图片，由程序生成队标尺寸。": "Choose the image again so the game can resize it.",
+    "PNG 图像块顺序无效。": "The PNG image chunks are out of order.",
+    "PNG 结尾无效。": "The PNG end chunk is invalid.",
+    "只接受程序生成的静态 PNG，不支持动画或附加内容。": "Only a game-normalized static PNG is accepted, without animation or extra content.",
     "BotProfile 来源": "BotProfile source",
     "生涯能力模板": "Career ability templates",
     "我的 VPK 模板": "My VPK templates",
@@ -3799,6 +3999,12 @@
     "比分不符合本场 MR12／MR3 终场规则，未结算。": "The score does not meet this match's MR12/MR3 final-score rules. No result was recorded.",
     "战术已保存，正在同步到游戏目录。": "Tactics saved. Syncing to the game directory.",
     "现有 %s 组件缺失；请先在设置里安装人机增强。": "The installed %s component is missing. Install Bot Improver from Settings first.",
+    "开年完整阵容 · 资料日期 {date}": "Opening roster · Source date {date}",
+    "生涯推进": "Career progression",
+    "默认逐图模拟，每张图之间都可以亲自上场或切换 RTS。": "Simulate one map at a time, and take over in CS2 or RTS between maps.",
+    "打开比赛与战报": "Open matches and reports",
+    "暂停推进": "Pause progression",
+    "继续推进": "Continue progression",
     "{team} · 加盟邀请": "{team} · Contract invitation",
     "自由属性点 · {count}": "Attribute points · {count}",
     "醒来：{day} 08:00": "Wake up: {day} 08:00",
@@ -3881,6 +4087,8 @@
     "开赛": "starts",
     "下月": "Next month",
     "最新报道 ·": "Latest ·",
+    "继续 ·": "Continue ·",
+    "下一张 · 系列赛": "Next map · Series",
     "请在设置中点击“安装填写目录的人机增强”。": "Click Install Bot Improver from selected directory in Settings.",
     "另一个路径未找到，可手动填写。": "The other path was not found and can be entered manually."
   },
@@ -4362,6 +4570,15 @@
       "prefix": "Top10 "
     },
     {
+      "source": "进入 CS2 后：与机器人游戏 → 竞技 → 选 %s，再加入你在这里选的开局阵营。",
+      "pattern": "^进入\\ CS2\\ 后：与机器人游戏\\ →\\ 竞技\\ →\\ 选\\ ([\\s\\S]+?)，再加入你在这里选的开局阵营。$",
+      "replacement": "In CS2: Play with Bots → Competitive → choose {0}, then join the starting side you pick here.",
+      "keys": [
+        "0"
+      ],
+      "prefix": "进入 CS2 后：与机器人游戏 → 竞技 → 选 "
+    },
+    {
       "source": "已更新并安装随包人机增强（{count} 个文件）。后续开赛使用兼容副本。安装前备份：{path}",
       "pattern": "^已更新并安装随包人机增强（([\\s\\S]+?)\\ 个文件）。后续开赛使用兼容副本。安装前备份：([\\s\\S]+?)$",
       "replacement": "Updated and installed bundled Bot Improver ({count} files). Future matches will use the compatible copy. Pre-installation backup: {path}",
@@ -4469,6 +4686,16 @@
       "prefix": ""
     },
     {
+      "source": "CS2 里请打 %s，阵营 %s。地图或阵营不对，这张图的战绩不会录入。",
+      "pattern": "^CS2\\ 里请打\\ ([\\s\\S]+?)，阵营\\ ([\\s\\S]+?)。地图或阵营不对，这张图的战绩不会录入。$",
+      "replacement": "In CS2, play {0} on the {1} side. A different map or side will not be recorded.",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "CS2 里请打 "
+    },
+    {
       "source": "免费入库 {added} 件配装；跳过 {skipped} 件已导入物品。赠送外观不可出售。",
       "pattern": "^免费入库\\ ([\\s\\S]+?)\\ 件配装；跳过\\ ([\\s\\S]+?)\\ 件已导入物品。赠送外观不可出售。$",
       "replacement": "Added {added} free loadout items to your inventory; skipped {skipped} previously imported items. Gifted appearances cannot be sold.",
@@ -4547,6 +4774,16 @@
       "prefix": "已装备 CT 侧 "
     },
     {
+      "source": "赛事安排为 %s；正在编辑 %s，进入该地图即可使用对应战术。",
+      "pattern": "^赛事安排为\\ ([\\s\\S]+?)；正在编辑\\ ([\\s\\S]+?)，进入该地图即可使用对应战术。$",
+      "replacement": "Scheduled map: {0}. Editing {1}; its tactics are available when playing that map.",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "赛事安排为 "
+    },
+    {
       "source": "{partner}告诉你：‘今天不需要再逞强，我陪你把这段时间过完。’",
       "pattern": "^([\\s\\S]+?)告诉你：‘今天不需要再逞强，我陪你把这段时间过完。’$",
       "replacement": "{partner} tells you, 'You don't have to push through it today. I'll be here while you recover.'",
@@ -4573,6 +4810,28 @@
         "1"
       ],
       "prefix": ""
+    },
+    {
+      "source": "长期 %.1f · 状态 %+.1f · 近 %d 图 %d 胜",
+      "pattern": "^长期\\ ([+-]?[\\d,.]+)\\ ·\\ 状态\\ ([+-]?[\\d,.]+)\\ ·\\ 近\\ ([+-]?[\\d,.]+)\\ 图\\ ([+-]?[\\d,.]+)\\ 胜$",
+      "replacement": "Base {0} · Form {1} · Last {2} maps: {3} wins",
+      "keys": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "prefix": "长期 "
+    },
+    {
+      "source": "正在进行 · 第%d图 %s · CS2 已退出，本图未完成",
+      "pattern": "^正在进行\\ ·\\ 第([+-]?[\\d,.]+)图\\ ([\\s\\S]+?)\\ ·\\ CS2\\ 已退出，本图未完成$",
+      "replacement": "In progress · Map {0} {1} · CS2 exited, map unfinished",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "正在进行 · 第"
     },
     {
       "source": "已用 {price} 游戏币购买 {name} 配装，{count} 件物品已入库。",
@@ -4931,6 +5190,17 @@
       "prefix": "已保留完成地图，重新进入当前未结束地图。"
     },
     {
+      "source": "正在进行 · 第%d图 %s · 你在 %s 方",
+      "pattern": "^正在进行\\ ·\\ 第([+-]?[\\d,.]+)图\\ ([\\s\\S]+?)\\ ·\\ 你在\\ ([\\s\\S]+?)\\ 方$",
+      "replacement": "In progress · Map {0} {1} · you are on {2}",
+      "keys": [
+        "0",
+        "1",
+        "2"
+      ],
+      "prefix": "正在进行 · 第"
+    },
+    {
       "source": "击杀 {k} / 死亡 {d} / 助攻 {a}",
       "pattern": "^击杀\\ ([\\s\\S]+?)\\ /\\ 死亡\\ ([\\s\\S]+?)\\ /\\ 助攻\\ ([\\s\\S]+?)$",
       "replacement": "Kills {k} / Deaths {d} / Assists {a}",
@@ -4984,6 +5254,17 @@
       "prefix": "主持人：年度第 "
     },
     {
+      "source": "本场安排 · 第 %d 图 · %s / %s",
+      "pattern": "^本场安排\\ ·\\ 第\\ ([+-]?[\\d,.]+)\\ 图\\ ·\\ ([\\s\\S]+?)\\ /\\ ([\\s\\S]+?)$",
+      "replacement": "Scheduled · Map {0} · {1} / {2}",
+      "keys": [
+        "0",
+        "1",
+        "2"
+      ],
+      "prefix": "本场安排 · 第 "
+    },
+    {
       "source": "安装未完成；安装前备份保留在 {path}。{error}",
       "pattern": "^安装未完成；安装前备份保留在\\ ([\\s\\S]+?)。([\\s\\S]+?)$",
       "replacement": "Installation did not complete. The pre-installation backup remains at {path}. {error}",
@@ -5032,6 +5313,17 @@
         "2"
       ],
       "prefix": "已抽 "
+    },
+    {
+      "source": "下一张 · 第%d图 %s · 系列赛 %s",
+      "pattern": "^下一张\\ ·\\ 第([+-]?[\\d,.]+)图\\ ([\\s\\S]+?)\\ ·\\ 系列赛\\ ([\\s\\S]+?)$",
+      "replacement": "Next · Map {0} {1} · series {2}",
+      "keys": [
+        "0",
+        "1",
+        "2"
+      ],
+      "prefix": "下一张 · 第"
     },
     {
       "source": "已检测到 %s，路径已填入，保存后生效。",
@@ -5136,6 +5428,24 @@
         "3"
       ],
       "prefix": ""
+    },
+    {
+      "source": "CT 开场 · 进入 CS2 打 %s",
+      "pattern": "^CT\\ 开场\\ ·\\ 进入\\ CS2\\ 打\\ ([\\s\\S]+?)$",
+      "replacement": "Start on CT · Play {0} in CS2",
+      "keys": [
+        "0"
+      ],
+      "prefix": "CT 开场 · 进入 CS2 打 "
+    },
+    {
+      "source": "第 %d 图未完成 · CS2 已退出",
+      "pattern": "^第\\ ([+-]?[\\d,.]+)\\ 图未完成\\ ·\\ CS2\\ 已退出$",
+      "replacement": "Map {0} unfinished · CS2 exited",
+      "keys": [
+        "0"
+      ],
+      "prefix": "第 "
     },
     {
       "source": "安装文件目标被目录占用，未安装：{path}",
@@ -5274,6 +5584,35 @@
       "prefix": "主持人：年度"
     },
     {
+      "source": "T 开场 · 进入 CS2 打 %s",
+      "pattern": "^T\\ 开场\\ ·\\ 进入\\ CS2\\ 打\\ ([\\s\\S]+?)$",
+      "replacement": "Start on T · Play {0} in CS2",
+      "keys": [
+        "0"
+      ],
+      "prefix": "T 开场 · 进入 CS2 打 "
+    },
+    {
+      "source": "%d 秒后继续 · 可随时接手或暂停",
+      "pattern": "^([+-]?[\\d,.]+)\\ 秒后继续\\ ·\\ 可随时接手或暂停$",
+      "replacement": "Continuing in {0} seconds. Take over or pause at any time.",
+      "keys": [
+        "0"
+      ],
+      "prefix": ""
+    },
+    {
+      "source": "本图 · 第%d图 %s · %s 选图",
+      "pattern": "^本图\\ ·\\ 第([+-]?[\\d,.]+)图\\ ([\\s\\S]+?)\\ ·\\ ([\\s\\S]+?)\\ 选图$",
+      "replacement": "This map · Map {0} {1} · picked by {2}",
+      "keys": [
+        "0",
+        "1",
+        "2"
+      ],
+      "prefix": "本图 · 第"
+    },
+    {
       "source": "兼容组件校验失败：{name}，没有安装。",
       "pattern": "^兼容组件校验失败：([\\s\\S]+?)，没有安装。$",
       "replacement": "Compatibility component verification failed: {name}. Nothing was installed.",
@@ -5329,6 +5668,25 @@
       "prefix": "年度 Top20 · 第 "
     },
     {
+      "source": "%d 秒后由队长自动 BP 并模拟",
+      "pattern": "^([+-]?[\\d,.]+)\\ 秒后由队长自动\\ BP\\ 并模拟$",
+      "replacement": "Captain vetoes and simulates in {0} s",
+      "keys": [
+        "0"
+      ],
+      "prefix": ""
+    },
+    {
+      "source": "本图 · 第%d图 %s · 决胜图",
+      "pattern": "^本图\\ ·\\ 第([+-]?[\\d,.]+)图\\ ([\\s\\S]+?)\\ ·\\ 决胜图$",
+      "replacement": "This map · Map {0} {1} · decider",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "本图 · 第"
+    },
+    {
       "source": "%s尚未安装到所选 CS2 目录。",
       "pattern": "^([\\s\\S]+?)尚未安装到所选\\ CS2\\ 目录。$",
       "replacement": "{0} is not installed in the selected CS2 directory.",
@@ -5345,6 +5703,15 @@
         "path"
       ],
       "prefix": "安装前备份核对失败，未安装："
+    },
+    {
+      "source": "开年完整阵容 · 资料日期 {date}",
+      "pattern": "^开年完整阵容\\ ·\\ 资料日期\\ ([\\s\\S]+?)$",
+      "replacement": "Opening roster · Source date {date}",
+      "keys": [
+        "date"
+      ],
+      "prefix": "开年完整阵容 · 资料日期 "
     },
     {
       "source": "调整与培养 · %s 点自由属性",
@@ -5436,6 +5803,16 @@
       "prefix": "主持人：预览席位 #"
     },
     {
+      "source": "BP 地图预览 · %s / %s",
+      "pattern": "^BP\\ 地图预览\\ ·\\ ([\\s\\S]+?)\\ /\\ ([\\s\\S]+?)$",
+      "replacement": "Veto map preview · {0} / {1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "BP 地图预览 · "
+    },
+    {
       "source": "请完全退出 CS2 后再{action}。",
       "pattern": "^请完全退出\\ CS2\\ 后再([\\s\\S]+?)。$",
       "replacement": "Fully exit CS2 before you {action}.",
@@ -5510,6 +5887,16 @@
         "0"
       ],
       "prefix": "继续抽队伍 · 剩余 "
+    },
+    {
+      "source": "第 %d 图 %s · 亲自上场",
+      "pattern": "^第\\ ([+-]?[\\d,.]+)\\ 图\\ ([\\s\\S]+?)\\ ·\\ 亲自上场$",
+      "replacement": "Map {0} {1} · playing yourself",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "第 "
     },
     {
       "source": "先睡到 %s，早上前往「%s」。",
@@ -5655,6 +6042,44 @@
         "0"
       ],
       "prefix": "主持人：年度第 "
+    },
+    {
+      "source": "正在编辑本场比赛地图 %s。",
+      "pattern": "^正在编辑本场比赛地图\\ ([\\s\\S]+?)。$",
+      "replacement": "Editing this match's map, {0}.",
+      "keys": [
+        "0"
+      ],
+      "prefix": "正在编辑本场比赛地图 "
+    },
+    {
+      "source": "第 %d 图 · %s 进行中",
+      "pattern": "^第\\ ([+-]?[\\d,.]+)\\ 图\\ ·\\ ([\\s\\S]+?)\\ 进行中$",
+      "replacement": "Map {0} · {1} in progress",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "第 "
+    },
+    {
+      "source": "下一张 · 第 %d 图 %s",
+      "pattern": "^下一张\\ ·\\ 第\\ ([+-]?[\\d,.]+)\\ 图\\ ([\\s\\S]+?)$",
+      "replacement": "Next · Map {0} {1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "下一张 · 第 "
+    },
+    {
+      "source": "第 %d 图 · 等待 BP",
+      "pattern": "^第\\ ([+-]?[\\d,.]+)\\ 图\\ ·\\ 等待\\ BP$",
+      "replacement": "Map {0} · awaiting veto",
+      "keys": [
+        "0"
+      ],
+      "prefix": "第 "
     },
     {
       "source": "未知 CS2 设置选项：%s",
@@ -5811,6 +6236,25 @@
       "prefix": "接替 "
     },
     {
+      "source": "正在进行 · 第%d图 %s",
+      "pattern": "^正在进行\\ ·\\ 第([+-]?[\\d,.]+)图\\ ([\\s\\S]+?)$",
+      "replacement": "In progress · Map {0} {1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "正在进行 · 第"
+    },
+    {
+      "source": "地图 BP · 等待 %s",
+      "pattern": "^地图\\ BP\\ ·\\ 等待\\ ([\\s\\S]+?)$",
+      "replacement": "Map veto · waiting for {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "地图 BP · 等待 "
+    },
+    {
       "source": "RTS 战绩计数无效：%s",
       "pattern": "^RTS\\ 战绩计数无效：([\\s\\S]+?)$",
       "replacement": "Invalid RTS results count: {0}",
@@ -5836,6 +6280,15 @@
         "tail"
       ],
       "prefix": "当前不能保存或读档："
+    },
+    {
+      "source": "下一张 · 系列赛 {tail}",
+      "pattern": "^下一张\\ ·\\ 系列赛\\ ([\\s\\S]+)$",
+      "replacement": "Next map · Series {tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "下一张 · 系列赛 "
     },
     {
       "source": "下一次申请日期：{date}。",
@@ -5975,6 +6428,16 @@
         "0"
       ],
       "prefix": "主持人：年度"
+    },
+    {
+      "source": "比当前 %s 提高 +%s",
+      "pattern": "^比当前\\ ([\\s\\S]+?)\\ 提高\\ \\+([\\s\\S]+?)$",
+      "replacement": "Above current {0} by +{1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "比当前 "
     },
     {
       "source": "存档包含无效数值：{value}",
@@ -6191,6 +6654,35 @@
         "1"
       ],
       "prefix": "下一场比赛 · "
+    },
+    {
+      "source": "本图 · 第%d图 %s",
+      "pattern": "^本图\\ ·\\ 第([+-]?[\\d,.]+)图\\ ([\\s\\S]+?)$",
+      "replacement": "This map · Map {0} {1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "本图 · 第"
+    },
+    {
+      "source": "已 %d 天未打或练图",
+      "pattern": "^已\\ ([+-]?[\\d,.]+)\\ 天未打或练图$",
+      "replacement": "No matches or practice for {0} days",
+      "keys": [
+        "0"
+      ],
+      "prefix": "已 "
+    },
+    {
+      "source": "比当前 %s 降低 %s",
+      "pattern": "^比当前\\ ([\\s\\S]+?)\\ 降低\\ ([\\s\\S]+?)$",
+      "replacement": "Below current {0} by {1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "比当前 "
     },
     {
       "source": "当前最多能借 $%s。",
@@ -6431,6 +6923,33 @@
         "0"
       ],
       "prefix": "成功率 "
+    },
+    {
+      "source": "系列赛结束 · %s",
+      "pattern": "^系列赛结束\\ ·\\ ([\\s\\S]+?)$",
+      "replacement": "Series over · {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "系列赛结束 · "
+    },
+    {
+      "source": "%d 秒后进入下一场",
+      "pattern": "^([+-]?[\\d,.]+)\\ 秒后进入下一场$",
+      "replacement": "Next match in {0} s",
+      "keys": [
+        "0"
+      ],
+      "prefix": ""
+    },
+    {
+      "source": "第 %d 图 RTS",
+      "pattern": "^第\\ ([+-]?[\\d,.]+)\\ 图\\ RTS$",
+      "replacement": "Map {0} in RTS",
+      "keys": [
+        "0"
+      ],
+      "prefix": "第 "
     },
     {
       "source": "%s BP 已保留。",
@@ -6818,6 +7337,33 @@
       "prefix": "下一场 · "
     },
     {
+      "source": "%d 秒后自动模拟",
+      "pattern": "^([+-]?[\\d,.]+)\\ 秒后自动模拟$",
+      "replacement": "Simulating in {0} s",
+      "keys": [
+        "0"
+      ],
+      "prefix": ""
+    },
+    {
+      "source": "第 %d 图自己打",
+      "pattern": "^第\\ ([+-]?[\\d,.]+)\\ 图自己打$",
+      "replacement": "Play map {0} yourself",
+      "keys": [
+        "0"
+      ],
+      "prefix": "第 "
+    },
+    {
+      "source": "与当前 %s 持平",
+      "pattern": "^与当前\\ ([\\s\\S]+?)\\ 持平$",
+      "replacement": "Equal to current {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "与当前 "
+    },
+    {
       "source": "%s · 赛事荣誉",
       "pattern": "^([\\s\\S]+?)\\ ·\\ 赛事荣誉$",
       "replacement": "{0} · Tournament honours",
@@ -7027,6 +7573,43 @@
       "prefix": ""
     },
     {
+      "source": "第%d图 · %s",
+      "pattern": "^第([+-]?[\\d,.]+)图\\ ·\\ ([\\s\\S]+?)$",
+      "replacement": "Map {0} · {1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "第"
+    },
+    {
+      "source": "模拟第 %d 图",
+      "pattern": "^模拟第\\ ([+-]?[\\d,.]+)\\ 图$",
+      "replacement": "Simulate map {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "模拟第 "
+    },
+    {
+      "source": "当前已收下：%s",
+      "pattern": "^当前已收下：([\\s\\S]+?)$",
+      "replacement": "Current selection: {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "当前已收下："
+    },
+    {
+      "source": "前往 %s 入座",
+      "pattern": "^前往\\ ([\\s\\S]+?)\\ 入座$",
+      "replacement": "Go to {0} and take your seat",
+      "keys": [
+        "0"
+      ],
+      "prefix": "前往 "
+    },
+    {
       "source": "{count} 封待回复",
       "pattern": "^([\\s\\S]+?)\\ 封待回复$",
       "replacement": "{count} awaiting reply",
@@ -7162,6 +7745,15 @@
       "prefix": "赛事新闻："
     },
     {
+      "source": "继续 · {tail}",
+      "pattern": "^继续\\ ·\\ ([\\s\\S]+)$",
+      "replacement": "Continue · {tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "继续 · "
+    },
+    {
       "source": "{name} 的生日",
       "pattern": "^([\\s\\S]+?)\\ 的生日$",
       "replacement": "{name}'s birthday",
@@ -7278,6 +7870,24 @@
         "0"
       ],
       "prefix": ""
+    },
+    {
+      "source": "确认选择 %s",
+      "pattern": "^确认选择\\ ([\\s\\S]+?)$",
+      "replacement": "Confirm pick: {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "确认选择 "
+    },
+    {
+      "source": "确认禁用 %s",
+      "pattern": "^确认禁用\\ ([\\s\\S]+?)$",
+      "replacement": "Confirm ban: {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "确认禁用 "
     },
     {
       "source": "{name} 配装包",
@@ -7469,6 +8079,35 @@
         "0"
       ],
       "prefix": "共 "
+    },
+    {
+      "source": "切换到 %s",
+      "pattern": "^切换到\\ ([\\s\\S]+?)$",
+      "replacement": "Switch to {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "切换到 "
+    },
+    {
+      "source": "%s 选 %s",
+      "pattern": "^([\\s\\S]+?)\\ 选\\ ([\\s\\S]+?)$",
+      "replacement": "{0} picked {1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": ""
+    },
+    {
+      "source": "%s 禁 %s",
+      "pattern": "^([\\s\\S]+?)\\ 禁\\ ([\\s\\S]+?)$",
+      "replacement": "{0} banned {1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": ""
     },
     {
       "source": "{axis} 下限",
@@ -7705,6 +8344,15 @@
       "prefix": "年度"
     },
     {
+      "source": "决胜 %s",
+      "pattern": "^决胜\\ ([\\s\\S]+?)$",
+      "replacement": "Decider {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "决胜 "
+    },
+    {
       "source": "%s 组",
       "pattern": "^([\\s\\S]+?)\\ 组$",
       "replacement": "Group {0}",
@@ -7739,6 +8387,24 @@
         "0"
       ],
       "prefix": ""
+    },
+    {
+      "source": "胜 %s",
+      "pattern": "^胜\\ ([\\s\\S]+?)$",
+      "replacement": "Won {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "胜 "
+    },
+    {
+      "source": "负 %s",
+      "pattern": "^负\\ ([\\s\\S]+?)$",
+      "replacement": "Lost {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "负 "
     }
   ]
 }

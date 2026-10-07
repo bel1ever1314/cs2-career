@@ -63,7 +63,7 @@ func fixture(complete: bool) -> Dictionary:
 
 func reset(info: Dictionary) -> void:
 	center.preflight.clear(); center.connection.clear(); center.result.clear()
-	center.show_real = false; center.request_pending = false; center.notice = ""
+	center.show_real = false; center.request_pending = false; center.notice = ""; center.notice_sticky = false
 	center.venue_after_preflight = ""
 	CareerBridge.context = {"date":"2026-07-21", "calendar":{"revision":18},
 		"player":{"id":"fixture-player", "name":"Fixture player"}, "team":{"name":"Vitality"}, "inbox":[], "stories":[],
@@ -157,6 +157,7 @@ func run() -> void:
 	check(not text_present("<null>") and not text_present("下一图"), "pending_map=null never appears as a fake next map")
 	check(Computer.content.find_children("*", "Button", true, false).filter(func(node): return "交给队长" in node.text).size() == 1, "one automatic veto action is shown")
 	click("Mirage")
+	click("确认禁用")
 	check(commands[-1].path == "/api/3d/match/veto" and commands[-1].body.map == "mirage", "actual map button sends the veto command")
 	info = fixture(true)
 	Computer._finished("/api/3d/match/veto", {"ok":true,"status":"ready","reason":"比赛准备已保存。","preflight":info,"result":null})

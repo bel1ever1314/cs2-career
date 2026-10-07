@@ -209,6 +209,10 @@ def stage_game(source, target, engine, media_config, *, version=VERSION):
     for name in MODELS:
         target.joinpath('assets').mkdir(exist_ok=True)
         shutil.copy2(project / 'assets' / name, target / 'assets' / name)
+    branding = project / 'assets/branding'
+    if branding.is_dir():
+        shutil.copytree(branding, target / 'assets/branding',
+                        ignore=shutil.ignore_patterns('*.import'))
     for item in (project / 'assets/audio').iterdir():
         if item.name.startswith('arena_entrance'):
             continue  # Retired cue stays in authoring history, never runtime audio.
@@ -419,6 +423,7 @@ def main(argv=None):
     stage_game(source, package / 'game', args.engine, media, version=args.version)
     shutil.copy2(source / 'LICENSE', package / 'LICENSE')
     shutil.copy2(source / 'docs/skin-tools-interface.zh-CN.txt', package / '饰品工具接口说明.txt')
+    shutil.copy2(source / 'docs/map-form-test.zh-CN.txt', package / '地图训练说明.txt')
     (package / '测试版说明.txt').write_text(preview_readme, encoding='utf-8', newline='\n')
     for name in ('开始游戏.cmd', 'Launch-CS2Career.cmd'):
         (package / name).write_bytes(launch_cmd().encode('ascii'))

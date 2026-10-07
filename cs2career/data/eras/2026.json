@@ -1,0 +1,2556 @@
+{
+  "schema_version": 1,
+  "era": "2026",
+  "as_of": "2026-01-08",
+  "teams": [
+    {
+      "id": "furia",
+      "name": "FURIA",
+      "region": "AM",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "FalleN",
+          "role": "igl",
+          "ability": 75.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "molodoy",
+          "role": "awp",
+          "ability": 89.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "YEKINDAR",
+          "role": "entry",
+          "ability": 82.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "KSCERATO",
+          "role": "lurk",
+          "ability": 85.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "yuurih",
+          "role": "rifle",
+          "ability": 79.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 1
+    },
+    {
+      "id": "vitality",
+      "name": "Vitality",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "apEX",
+          "role": "igl",
+          "ability": 80.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "ZywOo",
+          "role": "awp",
+          "ability": 98.076,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "flameZ",
+          "role": "entry",
+          "ability": 85.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "ropz",
+          "role": "lurk",
+          "ability": 89.8,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "mezii",
+          "role": "rifle",
+          "ability": 78.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 2
+    },
+    {
+      "id": "falcons",
+      "name": "Falcons",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "kyxsan",
+          "role": "igl",
+          "ability": 78.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "m0NESY",
+          "role": "awp",
+          "ability": 96.647,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "kyousuke",
+          "role": "entry",
+          "ability": 94.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "NiKo",
+          "role": "lurk",
+          "ability": 91.102,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "TeSeS",
+          "role": "rifle",
+          "ability": 81.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 3
+    },
+    {
+      "id": "spirit",
+      "name": "Spirit",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "magixx",
+          "role": "igl",
+          "ability": 77.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "sh1ro",
+          "role": "awp",
+          "ability": 91.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "donk",
+          "role": "entry",
+          "ability": 98.697,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "zont1x",
+          "role": "lurk",
+          "ability": 77.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "tN1R",
+          "role": "rifle",
+          "ability": 80.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 4
+    },
+    {
+      "id": "navi",
+      "name": "NAVI",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "Aleksib",
+          "role": "igl",
+          "ability": 77.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "w0nderful",
+          "role": "awp",
+          "ability": 89.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "iM",
+          "role": "entry",
+          "ability": 83.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "b1t",
+          "role": "lurk",
+          "ability": 82.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "makazze",
+          "role": "rifle",
+          "ability": 82.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 5
+    },
+    {
+      "id": "mouz",
+      "name": "MOUZ",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "Brollan",
+          "role": "igl",
+          "ability": 79.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "torzsi",
+          "role": "awp",
+          "ability": 86.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "xertioN",
+          "role": "entry",
+          "ability": 86.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Spinx",
+          "role": "lurk",
+          "ability": 84.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Jimpphat",
+          "role": "rifle",
+          "ability": 82.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 6
+    },
+    {
+      "id": "faze",
+      "name": "FaZe",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "karrigan",
+          "role": "igl",
+          "ability": 76.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "broky",
+          "role": "awp",
+          "ability": 72.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "jcobbb",
+          "role": "entry",
+          "ability": 82.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "frozen",
+          "role": "lurk",
+          "ability": 82.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Twistzz",
+          "role": "rifle",
+          "ability": 83.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 7
+    },
+    {
+      "id": "the-mongolz",
+      "name": "The MongolZ",
+      "region": "AS",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "bLitz",
+          "role": "igl",
+          "ability": 83.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "910",
+          "role": "awp",
+          "ability": 85.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Techno",
+          "role": "entry",
+          "ability": 74.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "mzinho",
+          "role": "lurk",
+          "ability": 59.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "cobrazera",
+          "role": "rifle",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 8
+    },
+    {
+      "id": "aurora",
+      "name": "Aurora",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "MAJ3R",
+          "role": "igl",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "woxic",
+          "role": "awp",
+          "ability": 85.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "XANTARES",
+          "role": "entry",
+          "ability": 84.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Wicadia",
+          "role": "lurk",
+          "ability": 84.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "soulfly",
+          "role": "rifle",
+          "ability": 61.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 9
+    },
+    {
+      "id": "b8",
+      "name": "B8",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "npl",
+          "role": "igl",
+          "ability": 86.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "segukawa",
+          "role": "awp",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "kensizor",
+          "role": "entry",
+          "ability": 84.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "esenthial",
+          "role": "lurk",
+          "ability": 80.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "alex666",
+          "role": "rifle",
+          "ability": 75.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-16",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/news/43650/b8-announce-segukawa-as-headtr1ck-replacement",
+          "title": "b8 announce segukawa as headtr1ck replacement",
+          "published_at": "2026-01-16"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "announced_at": "2026-01-16",
+      "seed": 10
+    },
+    {
+      "id": "legacy",
+      "name": "Legacy",
+      "region": "AM",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "lux",
+          "role": "igl",
+          "ability": 78.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "saadzin",
+          "role": "awp",
+          "ability": 76.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "dumau",
+          "role": "entry",
+          "ability": 84.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "latto",
+          "role": "lurk",
+          "ability": 81.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "n1ssim",
+          "role": "rifle",
+          "ability": 72.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 11
+    },
+    {
+      "id": "g2",
+      "name": "G2",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "huNter-",
+          "role": "igl",
+          "ability": 83.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "SunPayus",
+          "role": "awp",
+          "ability": 70.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "malbsMd",
+          "role": "entry",
+          "ability": 77.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "HeavyGod",
+          "role": "lurk",
+          "ability": 80.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "MATYS",
+          "role": "rifle",
+          "ability": 79.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 12
+    },
+    {
+      "id": "liquid",
+      "name": "Liquid",
+      "region": "AM",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "siuhy",
+          "role": "igl",
+          "ability": 60.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "ultimate",
+          "role": "awp",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "EliGE",
+          "role": "entry",
+          "ability": 86.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "NAF",
+          "role": "lurk",
+          "ability": 78.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "NertZ",
+          "role": "rifle",
+          "ability": 81.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 13
+    },
+    {
+      "id": "3dmax",
+      "name": "3DMAX",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "Graviti",
+          "role": "igl",
+          "ability": 75.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Maka",
+          "role": "awp",
+          "ability": 77.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Ex3rcice",
+          "role": "entry",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "bodyy",
+          "role": "lurk",
+          "ability": 74.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Lucky",
+          "role": "rifle",
+          "ability": 76.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 14
+    },
+    {
+      "id": "astralis",
+      "name": "Astralis",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "HooXi",
+          "role": "igl",
+          "ability": 75.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "phzy",
+          "role": "awp",
+          "ability": 80.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Staehr",
+          "role": "entry",
+          "ability": 87.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "jabbi",
+          "role": "lurk",
+          "ability": 80.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "ryu",
+          "role": "rifle",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-08",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/news/43587/official-astralis-sign-phzy-and-ryu",
+          "title": "official astralis sign phzy and ryu",
+          "published_at": "2026-01-08"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "announced_at": "2026-01-08",
+      "seed": 15
+    },
+    {
+      "id": "parivision",
+      "name": "PARIVISION",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "Jame",
+          "role": "awp",
+          "ability": 78.0,
+          "ability_source": "preserved-same-era-candidate",
+          "is_igl": true
+        },
+        {
+          "name": "BELCHONOKK",
+          "role": "rifle",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "xiELO",
+          "role": "entry",
+          "ability": 80.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "nota",
+          "role": "lurk",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "zweih",
+          "role": "rifle",
+          "ability": 78.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 16
+    },
+    {
+      "id": "heroic",
+      "name": "HEROIC",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "Chr1zN",
+          "role": "igl",
+          "ability": 78.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Alkaren",
+          "role": "awp",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "susp",
+          "role": "entry",
+          "ability": 80.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "xfl0ud",
+          "role": "lurk",
+          "ability": 87.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "nilo",
+          "role": "rifle",
+          "ability": 81.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-07",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/news/43583/heroic-sign-susp",
+          "title": "heroic sign susp",
+          "published_at": "2026-01-07"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "announced_at": "2026-01-07",
+      "seed": 17
+    },
+    {
+      "id": "pain",
+      "name": "paiN",
+      "region": "AM",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "biguzera",
+          "role": "igl",
+          "ability": 78.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "nqz",
+          "role": "awp",
+          "ability": 81.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "snow",
+          "role": "entry",
+          "ability": 76.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "vsm",
+          "role": "lurk",
+          "ability": 76.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "piriajr",
+          "role": "rifle",
+          "ability": 73.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-09",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/news/43595/official-pain-sign-vsm-and-piriajr",
+          "title": "official pain sign vsm and piriajr",
+          "published_at": "2026-01-09"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "announced_at": "2026-01-09",
+      "seed": 18
+    },
+    {
+      "id": "fut",
+      "name": "FUT",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "Krabeni",
+          "role": "igl",
+          "ability": 80.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "cmtry",
+          "role": "awp",
+          "ability": 79.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "lauNX",
+          "role": "entry",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "dziugss",
+          "role": "lurk",
+          "ability": 85.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "dem0n",
+          "role": "rifle",
+          "ability": 87.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 19
+    },
+    {
+      "id": "nip",
+      "name": "NiP",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "Snappi",
+          "role": "igl",
+          "ability": 72.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "r1nkle",
+          "role": "awp",
+          "ability": 81.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "xKacpersky",
+          "role": "entry",
+          "ability": 81.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "sjuush",
+          "role": "lurk",
+          "ability": 77.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "cairne",
+          "role": "rifle",
+          "ability": 80.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-11",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/news/43597/nip-complete-roster-with-cairne",
+          "title": "nip complete roster with cairne",
+          "published_at": "2026-01-11"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "announced_at": "2026-01-11",
+      "seed": 20
+    },
+    {
+      "id": "passion-ua",
+      "name": "Passion UA",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "JT",
+          "role": "igl",
+          "ability": 77.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "hallzerk",
+          "role": "awp",
+          "ability": 82.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "nicx",
+          "role": "entry",
+          "ability": 76.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Grim",
+          "role": "lurk",
+          "ability": 79.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Kvem",
+          "role": "rifle",
+          "ability": 76.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 21
+    },
+    {
+      "id": "saw",
+      "name": "SAW",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "SYDOX",
+          "role": "igl",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70",
+          "roster_status": "stand_in"
+        },
+        {
+          "name": "jERK0z",
+          "role": "awp",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "tuxa",
+          "role": "entry",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "Moretz",
+          "role": "lurk",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "blaze",
+          "role": "rifle",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "provisional",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/news/43571/saw-unveil-new-squad-with-exsad-quartet",
+          "title": "saw unveil new squad with exsad quartet",
+          "published_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。 SYDOX 是已公告的开年赛事代打，不标为正式签约选手。",
+      "announced_at": "2026-01-05",
+      "seed": 22
+    },
+    {
+      "id": "nrg",
+      "name": "NRG",
+      "region": "AM",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "nitr0",
+          "role": "igl",
+          "ability": 77.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "oSee",
+          "role": "awp",
+          "ability": 59.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Sonic",
+          "role": "entry",
+          "ability": 82.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "br0",
+          "role": "lurk",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "Jeorge",
+          "role": "rifle",
+          "ability": 78.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 23
+    },
+    {
+      "id": "gamerlegion",
+      "name": "GamerLegion",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "Snax",
+          "role": "igl",
+          "ability": 74.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "hypex",
+          "role": "awp",
+          "ability": 81.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "PR",
+          "role": "entry",
+          "ability": 79.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Tauson",
+          "role": "lurk",
+          "ability": 79.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "REZ",
+          "role": "rifle",
+          "ability": 82.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 24
+    },
+    {
+      "id": "imperial",
+      "name": "Imperial",
+      "region": "AM",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "VINI",
+          "role": "igl",
+          "ability": 74.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "try",
+          "role": "awp",
+          "ability": 90.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "noway",
+          "role": "entry",
+          "ability": 76.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "skullz",
+          "role": "lurk",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "chelo",
+          "role": "rifle",
+          "ability": 75.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 25
+    },
+    {
+      "id": "betboom",
+      "name": "BetBoom",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "Boombl4",
+          "role": "igl",
+          "ability": 79.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "ArtFr0st",
+          "role": "awp",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "Magnojez",
+          "role": "entry",
+          "ability": 82.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "S1ren",
+          "role": "lurk",
+          "ability": 80.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "d1Ledez",
+          "role": "rifle",
+          "ability": 80.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 26
+    },
+    {
+      "id": "hotu",
+      "name": "HOTU",
+      "region": "AS",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "n0rb3r7",
+          "role": "igl",
+          "ability": 77.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "mizu",
+          "role": "awp",
+          "ability": 81.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "dukefissura",
+          "role": "entry",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "frontales",
+          "role": "lurk",
+          "ability": 81.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "kAlash",
+          "role": "rifle",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 27
+    },
+    {
+      "id": "m80",
+      "name": "M80",
+      "region": "AM",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "s1n",
+          "role": "igl",
+          "ability": 73.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "slaxz-",
+          "role": "awp",
+          "ability": 81.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Lake",
+          "role": "entry",
+          "ability": 81.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "swisher",
+          "role": "lurk",
+          "ability": 76.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "JBa",
+          "role": "rifle",
+          "ability": 77.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 28
+    },
+    {
+      "id": "fnatic",
+      "name": "fnatic",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "fEAR",
+          "role": "igl",
+          "ability": 73.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "jambo",
+          "role": "awp",
+          "ability": 80.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Maden",
+          "role": "entry",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "jackasmo",
+          "role": "lurk",
+          "ability": 77.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "KRIMZ",
+          "role": "rifle",
+          "ability": 77.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-09",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/news/43594/fnatic-sign-maden-to-replace-blamef",
+          "title": "fnatic sign maden to replace blamef",
+          "published_at": "2026-01-09"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "announced_at": "2026-01-09",
+      "seed": 29
+    },
+    {
+      "id": "flyquest",
+      "name": "FlyQuest",
+      "region": "AS",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "INS",
+          "role": "igl",
+          "ability": 76.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "story",
+          "role": "awp",
+          "ability": 77.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Vexite",
+          "role": "entry",
+          "ability": 80.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "jks",
+          "role": "lurk",
+          "ability": 78.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "nettik",
+          "role": "rifle",
+          "ability": 76.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 30
+    },
+    {
+      "id": "9ine",
+      "name": "9INE",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "raalz",
+          "role": "igl",
+          "ability": 72.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "shield",
+          "role": "awp",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "bnox",
+          "role": "entry",
+          "ability": 74.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "kraghen",
+          "role": "lurk",
+          "ability": 74.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "cej0t",
+          "role": "rifle",
+          "ability": 74.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-30",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/news/43760/9ine-confirm-shield-signing",
+          "title": "9ine confirm shield signing",
+          "published_at": "2026-01-30"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "announced_at": "2026-01-30",
+      "seed": 31
+    },
+    {
+      "id": "big",
+      "name": "BIG",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "blameF",
+          "role": "igl",
+          "ability": 81.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "gr1ks",
+          "role": "awp",
+          "ability": 82.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "JDC",
+          "role": "entry",
+          "ability": 79.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "faveN",
+          "role": "lurk",
+          "ability": 78.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "tabseN",
+          "role": "rifle",
+          "ability": 76.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-09",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/news/43593/faven-completes-big-roster",
+          "title": "faven completes big roster",
+          "published_at": "2026-01-09"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "announced_at": "2026-01-09",
+      "seed": 32
+    },
+    {
+      "id": "fluxo",
+      "name": "Fluxo",
+      "region": "AM",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "exit",
+          "role": "igl",
+          "ability": 75.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "zevy",
+          "role": "awp",
+          "ability": 74.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Lucaozy",
+          "role": "entry",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "decenty",
+          "role": "lurk",
+          "ability": 75.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "kye",
+          "role": "rifle",
+          "ability": 72.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-20",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/news/43675/fluxo-sign-exit",
+          "title": "fluxo sign exit",
+          "published_at": "2026-01-20"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "announced_at": "2026-01-20",
+      "seed": 33
+    },
+    {
+      "id": "ence",
+      "name": "ENCE",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "sdy",
+          "role": "igl",
+          "ability": 74.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "podi",
+          "role": "awp",
+          "ability": 75.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "F1KU",
+          "role": "entry",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "Neityu",
+          "role": "lurk",
+          "ability": 77.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "kRaSnaL",
+          "role": "rifle",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-06",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/news/43575/ence-sign-f1ku-and-krasnal",
+          "title": "ence sign f1ku and krasnal",
+          "published_at": "2026-01-06"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "announced_at": "2026-01-06",
+      "seed": 34
+    },
+    {
+      "id": "sinners",
+      "name": "SINNERS",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "beastik",
+          "role": "igl",
+          "ability": 72.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "MoDo",
+          "role": "awp",
+          "ability": 76.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "kisserek",
+          "role": "entry",
+          "ability": 75.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "SHOCK",
+          "role": "lurk",
+          "ability": 73.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "stressarN",
+          "role": "rifle",
+          "ability": 78.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 35
+    },
+    {
+      "id": "bestia",
+      "name": "BESTIA",
+      "region": "AM",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "Noktse",
+          "role": "igl",
+          "ability": 75.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "cass1n",
+          "role": "awp",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "tomaszin",
+          "role": "entry",
+          "ability": 76.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "timo",
+          "role": "lurk",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "buda",
+          "role": "rifle",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 36
+    },
+    {
+      "id": "lynn-vision",
+      "name": "Lynn Vision",
+      "region": "AS",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "Westmelon",
+          "role": "igl",
+          "ability": 82.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "z4KR",
+          "role": "awp",
+          "ability": 79.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Starry",
+          "role": "entry",
+          "ability": 82.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "EmiliaQAQ",
+          "role": "lurk",
+          "ability": 75.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "C4LLM3SU3",
+          "role": "rifle",
+          "ability": 76.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 37
+    },
+    {
+      "id": "sharks",
+      "name": "Sharks",
+      "region": "AM",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "doc",
+          "role": "igl",
+          "ability": 79.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "gafolo",
+          "role": "awp",
+          "ability": 73.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "rdnzao",
+          "role": "entry",
+          "ability": 74.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "koala",
+          "role": "lurk",
+          "ability": 73.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "maxxkor",
+          "role": "rifle",
+          "ability": 74.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 38
+    },
+    {
+      "id": "og",
+      "name": "OG",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "cadiaN",
+          "role": "awp",
+          "ability": 75.0,
+          "ability_source": "preserved-same-era-candidate",
+          "is_igl": true
+        },
+        {
+          "name": "spooke",
+          "role": "entry",
+          "ability": 74.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "arrozdoce",
+          "role": "lurk",
+          "ability": 74.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "adamb",
+          "role": "rifle",
+          "ability": 75.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "FL4MUS",
+          "role": "rifle",
+          "ability": 78.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 39
+    },
+    {
+      "id": "virtus-pro",
+      "name": "Virtus.pro",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "Perfecto",
+          "role": "igl",
+          "ability": 62.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "b1st",
+          "role": "awp",
+          "ability": 78.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "FL1T",
+          "role": "entry",
+          "ability": 62.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "fame",
+          "role": "lurk",
+          "ability": 63.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "tO0RO",
+          "role": "rifle",
+          "ability": 74.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 40
+    },
+    {
+      "id": "mibr",
+      "name": "MIBR",
+      "region": "AM",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "LNZ",
+          "role": "igl",
+          "ability": 76.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "kl1m",
+          "role": "awp",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "insani",
+          "role": "entry",
+          "ability": 84.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "venomzera",
+          "role": "lurk",
+          "ability": 82.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "brnz4n",
+          "role": "rifle",
+          "ability": 79.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-13",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/news/43627/mibr-sign-lnz-and-venomzera",
+          "title": "mibr sign lnz and venomzera",
+          "published_at": "2026-01-13"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "announced_at": "2026-01-13",
+      "seed": 41
+    },
+    {
+      "id": "rare-atom",
+      "name": "Rare Atom",
+      "region": "AS",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "Summer",
+          "role": "igl",
+          "ability": 73.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "chengking",
+          "role": "awp",
+          "ability": 74.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "L1haNg",
+          "role": "entry",
+          "ability": 76.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "ChildKing",
+          "role": "lurk",
+          "ability": 74.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Tiger",
+          "role": "rifle",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 42
+    },
+    {
+      "id": "tyloo",
+      "name": "TYLOO",
+      "region": "AS",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "JamYoung",
+          "role": "igl",
+          "ability": 80.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Jee",
+          "role": "awp",
+          "ability": 80.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Moseyuh",
+          "role": "entry",
+          "ability": 76.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Mercury",
+          "role": "lurk",
+          "ability": 78.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Zero",
+          "role": "rifle",
+          "ability": 79.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-09",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/news/43590/tyloo-add-zero",
+          "title": "tyloo add zero",
+          "published_at": "2026-01-09"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "announced_at": "2026-01-09",
+      "seed": 43
+    },
+    {
+      "id": "9z",
+      "name": "9z",
+      "region": "AM",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "max",
+          "role": "igl",
+          "ability": 75.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "HUASOPEEK",
+          "role": "awp",
+          "ability": 83.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "meyern",
+          "role": "entry",
+          "ability": 79.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "dgt",
+          "role": "lurk",
+          "ability": 82.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "luchov",
+          "role": "rifle",
+          "ability": 85.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-16",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/news/43643/dgt-returns-to-9z",
+          "title": "dgt returns to 9z",
+          "published_at": "2026-01-16"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "announced_at": "2026-01-16",
+      "seed": 44
+    },
+    {
+      "id": "chinggis-warriors",
+      "name": "Chinggis Warriors",
+      "region": "AS",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "ROUX",
+          "role": "igl",
+          "ability": 70.0,
+          "ability_source": "unmeasured-neutral-prior-70"
+        },
+        {
+          "name": "cool4st",
+          "role": "awp",
+          "ability": 76.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "Efire",
+          "role": "entry",
+          "ability": 74.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "yAmi",
+          "role": "lurk",
+          "ability": 72.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "tikuak",
+          "role": "rifle",
+          "ability": 79.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-05",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/ranking/teams/2026/january/5",
+          "title": "5",
+          "observed_at": "2026-01-05"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "observed_at": "2026-01-05",
+      "seed": 45
+    },
+    {
+      "id": "100-thieves",
+      "name": "100 Thieves",
+      "region": "EU",
+      "rank_quality": "legacy-vrs-game-seed",
+      "source_rank": null,
+      "players": [
+        {
+          "name": "Ag1l",
+          "role": "igl",
+          "ability": 74.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "device",
+          "role": "awp",
+          "ability": 83.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "rain",
+          "role": "entry",
+          "ability": 74.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "sirah",
+          "role": "lurk",
+          "ability": 76.0,
+          "ability_source": "preserved-same-era-candidate"
+        },
+        {
+          "name": "poiii",
+          "role": "rifle",
+          "ability": 79.0,
+          "ability_source": "preserved-same-era-candidate"
+        }
+      ],
+      "roster_policy": "opening_complete",
+      "roster_as_of": "2026-01-06",
+      "roster_quality": "verified",
+      "ability_quality": "estimated",
+      "roles_quality": "estimated",
+      "age_quality": "estimated",
+      "sources": [
+        {
+          "url": "https://www.hltv.org/news/43578/official-100-thieves-unveil-device-signing",
+          "title": "official 100 thieves unveil device signing",
+          "published_at": "2026-01-06"
+        }
+      ],
+      "note": "采用开年首套可核对的完整名单。能力沿用同年代校准值；新增未测选手采用中性先验，身份来源不用于生成实测能力。",
+      "announced_at": "2026-01-06",
+      "seed": 46
+    }
+  ],
+  "excluded_teams": [
+    {
+      "name": "ATOX",
+      "reason": "未取得该组织 2026 开年的完整有效阵容；不沿用年中阵容或虚构补位。仅从新建世界移除。"
+    },
+    {
+      "name": "Luminosity",
+      "reason": "未取得该组织 2026 开年的完整有效阵容；不沿用年中阵容或虚构补位。仅从新建世界移除。"
+    },
+    {
+      "name": "Complexity",
+      "reason": "未取得该组织 2026 开年的完整有效阵容；不沿用年中阵容或虚构补位。仅从新建世界移除。"
+    }
+  ],
+  "revision": "2026-10-07.opening.1",
+  "description": "独立开年世界：优先保留 1 月 8 日名单；空缺及相关转会链采用一月内首套可核对完整阵容，逐队标注实际公告或观察日期。seed 是游戏排序，不是这些阵容的实时 VRS。旧存档不迁移身份。"
+}

@@ -148,6 +148,7 @@ func render(parent: VBoxContainer) -> void:
 func command(action: String, payload: Dictionary) -> void:
 	if not pending_action.is_empty(): return
 	var body := payload.duplicate(true)
+	if action == "start": body["map_key"] = str(host.match_center.current_preflight().get("map_key", ""))
 	body["revision"] = int(CareerBridge.context.get("calendar", {}).get("revision", 0))
 	if action.begins_with("arena_"): body["arena_revision"] = int(CareerBridge.context.get("ladder", {}).get("revision", 0))
 	var accepted: bool = bool(command_sender.call("/api/3d/rts/" + action, body.duplicate(true))) if command_sender.is_valid() else CareerBridge.command("/api/3d/rts/" + action, body)
@@ -180,6 +181,7 @@ func received(path: String, result: Dictionary) -> void:
 		series_finished = result.get("status", "") == "finished"
 		if action == "arena_submit": arena_result = result.get("arena_result", {}).duplicate(true)
 		elif result.get("result") is Dictionary:
+			if result.get("preflight") is Dictionary: host.match_center.preflight = result.preflight.duplicate(true)
 			host.match_center.begin_reveal(result.result, result.get("reveal", {}))
 		frozen.clear()
 		if is_instance_valid(session):
@@ -253,7 +255,11 @@ func close_session() -> bool:
 	elif series_finished or host.match_center.is_presenting():
 		# RTS has already shown the real rounds. Return to their saved table,
 		# rather than replaying those same scores as another slow simulation.
-		if not host.match_center.result.is_empty(): host.match_center.open_saved(host.match_center.result)
+		if not host.match_center.result.is_empty():
+			host.match_center.reveal_phase = "stats"
+			host.match_center.pace.flow.resume()
+			host.match_center.pace.flow.completed(bool(host.match_center.result.get("played", false)), host.match_center.pace.next_cursor())
+			host._navigate("career_match")
 		else: host._navigate("career_match")
 	else: host._rebuild()
 	return true

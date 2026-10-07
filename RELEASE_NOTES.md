@@ -1,6 +1,15 @@
-# 1.7.2（2026-10-06 更新）
+# 1.7.2（2026-10-07 更新）
 
 这次把最近的修改整理回 1.7.2，直接更新原来的下载包，不再增加版本后缀。
+
+- **一场比赛，逐图决定怎么玩。** 在电脑里点“推进”才开始，创建人物后不会直接开赛。可以先模拟一图，下一图自己进 CS2 或切到 RTS；图间保留战报和选择时间，随时暂停去处理日常。
+- **退出后接着打。** 修复反复读取战绩时旧战报挤掉比赛入口，以及改用模拟后下一图仍显示“未完成”的问题。已完成地图保留，当前图可以重新进入、模拟或切换 RTS。
+- **练出自己的强图。** 专项练图、训练赛和正式比赛会逐渐改变队伍的地图表现，长时间不打也会生疏；BP 会参考双方最新的强弱图。准备、选图和战术页补上地图实景展示。
+- **补齐三个年代的开年阵容。** 2024、2025、2026 数据包清理占位选手，以开年首次完整阵容补齐名单，并显示实际阵容日期。新生涯使用新名单，旧档不改队伍和赛果。
+- **队标和开局更完整。** 补充俱乐部队标，自建队伍可以上传队标与游戏内头像；抽取能力时能对照当前数值，启动画面也换成了生涯自己的界面。
+- **场馆、声音与配枪。** 保留新的界面和配乐，小型十台电脑场地关闭背景音乐，修正自己的机位被占用；队友发枪按位置优先照顾主狙，进入 CS2 后降低后台 3D 场景的运行开销。Bot 姓名一直显示，隐藏 Bot 身份，不再来回切换。
+
+上一轮 1.7.2 的更新也全部保留：
 
 - **游戏内队标头像。** 天梯和自定义里的 Bot 使用所属俱乐部的队标，改用深色底；没有队标的保持原样，真人仍用自己的 Steam 头像。
 - **更新战术兼容。** 适配这次 CS2 更新后的导航与朝向接口，修复有战术却提示接口未就绪的问题。
@@ -24,6 +33,15 @@
 ## English
 
 The existing 1.7.2 downloads have been refreshed; no extra version suffix is used.
+
+- Choose how to play each map: simulate, enter CS2, or command in RTS. Progression starts when you choose it at the computer, not immediately after creating a player.
+- Fixed repeated result checks replaying old reports and stale CS2 exit state blocking the next map after simulation. Completed maps remain saved.
+- Map practice, scrims, match results and inactivity shape team map form, which also informs veto decisions. Preparation, veto and tactic pages show map artwork.
+- Completed the opening rosters for 2024, 2025 and 2026, removed placeholder players and added actual roster dates. Existing careers keep their rosters and results.
+- Added more club logos, custom-team logo and avatar uploads, ability comparisons during the opening draw, and Career's own startup screen.
+- Retained the new visuals and music, disabled background music in small ten-PC LAN rooms, reserved the player's seat, improved role-aware AWP drops, and reduced background 3D rendering while CS2 runs. Bot names stay visible while bot identity stays hidden.
+
+The previous 1.7.2 refresh is also included:
 
 - Club-logo bot avatars in ladder and custom matches now use a dark background, with default avatars retained for clubs without artwork. Human Steam avatars stay unchanged.
 - Updated tactical navigation and look interfaces for the latest reviewed CS2 build.

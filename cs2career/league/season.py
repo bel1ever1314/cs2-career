@@ -592,6 +592,8 @@ class Season:
             "opp": opp["name"],
             "map_index": len(match.get("maps") or []),
         }
+        from ..world.map_form import expectation
+        new_session['map_expectation'] = expectation(mine, opp, pending)
         out = launch(
             mine, opp, self.career.player_name, to_cs2_map(pending), side, self.teams, self.career
         )
@@ -632,6 +634,8 @@ class Season:
         a = _find(self.teams, match["team_a"])
         b = _find(self.teams, match["team_b"])
         box = cs2_to_map(result, session, a, b, self.career.player_name)
+        if session.get('map_expectation'):
+            box['map_expectation'] = session['map_expectation']
         maps = match.setdefault("maps", [])
         idx = session.get("map_index")
         if idx is None:
@@ -643,6 +647,8 @@ class Season:
         else:
             maps.append(box)
         match["last_ended_at"] = stamp
+        from ..world.map_form import settle_map
+        settle_map(self, match, idx)
         match["cs2_session"] = None
         n = idx + 1
         from .phases import emit
@@ -687,6 +693,8 @@ class Season:
             stamp_simulation(box, 'career', self.year, ev['id'], match['id'], len(maps))
             box["source"] = "sim"
             maps.append(box)
+            from ..world.map_form import settle_map
+            settle_map(self, match, len(maps) - 1)
             wins[box["winner"]] = wins.get(box["winner"], 0) + 1
             from .phases import emit
             emit(self, ev, match, 'map_finished', len(maps)-1)
@@ -753,7 +761,9 @@ class Season:
         match["rank_a_at_match"] = rank.get(match["team_a"], 99)
         match["rank_b_at_match"] = rank.get(match["team_b"], 99)
         best_of = match.get("best_of", 3)
-        series = play_series(a, b, MAPS, match["stage"], best_of)
+        from ..world.map_form import apply_result
+        series = play_series(a, b, MAPS, match["stage"], best_of,
+                             on_map=lambda box, index: apply_result(a, b, box, self.date))
 
         match["played"] = True
         match["winner"] = series["winner"]
@@ -836,7 +846,8 @@ class Season:
         return bool(self.career and self.career.assist.get('quick_mode') and self.events
                     and all(ev.get('status') == 'done' for ev in self.events))
 
-    def next_stage(self, *, stop_at_season_end: bool = False, until: str | None = None) -> str:
+    def next_stage(self, *, stop_at_season_end: bool = False, until: str | None = None,
+                   prepare_only: bool = False) -> str:
         if until is not None and (_d(until).isoformat() != until or until < self.date or _d(until).year != self.year):
             raise ValueError('Calendar boundary must be in the current season and not before today')
         calendar_pause = self._calendar_pause()
@@ -867,6 +878,8 @@ class Season:
                 if stop_at_season_end or self._await_quick_season_choice():
                     return f"{self.year} 赛季的全部赛程已完成。请选择下一赛季的模式。"
                 return self.roll_year()
+            from ..world.map_form import advance_calendar
+            advance_calendar(self.teams, self.date, nxt)
             self.date = nxt
             self.ensure_live()
             jumped = True
@@ -885,8 +898,8 @@ class Season:
             for ev in {id(p[0]): p[0] for p in pending}.values():
                 self.advance_event(ev)
 
-        yours = self.your_series()
-        if yours:
+        yours = self.find_your_series() if prepare_only else self.your_series()
+        if yours and not prepare_only:
             ev, match = yours
             self.open_your_series(ev, match)
 
@@ -948,6 +961,8 @@ class Season:
         # The shortcut must use the same calendar stops as normal/quick play.
         if self.career and self.career.next_calendar_day(self, nxt['dates'][0]):
             return self.next_stage()
+        from ..world.map_form import advance_calendar
+        advance_calendar(self.teams, self.date, nxt['dates'][0])
         self.date = nxt["dates"][0]
         self.ensure_live()
         for ev in self.events:
@@ -1017,6 +1032,8 @@ class Season:
         self.qualified = {}
         self.player_all = {}
         self.player_event = {}
+        from ..world.map_form import advance_calendar
+        advance_calendar(self.teams, self.date, cal['start'])
         self.date = cal["start"]
         for t in self.teams:
             t["series_streak"] = 0

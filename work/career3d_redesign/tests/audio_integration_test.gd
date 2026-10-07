@@ -61,6 +61,12 @@ func run() -> void:
 	music._start("club_night")
 	await frames(5)
 	check(music.deck_target[1 - music.active] == 0.0 and music.deck_target[music.active] == 1.0, "switching crossfades the previous deck out")
+	music.stop_scene_music()
+	check(not decks[0].playing and not decks[1].playing and music.deck_gain == [0.0, 0.0], "quiet scene stops both decks immediately, including crossfade tails")
+	check(music.music_volume == saved[1] and CareerBridge.sound_volume == saved[2] and CareerBridge.sound_muted == saved[3], "quiet scene does not overwrite player audio preferences")
+	var lan := preload("res://scripts/lan_venue.gd").new()
+	check(lan._ambience_file().is_empty(), "ten-PC LAN room has no looping background bed")
+	lan.free()
 
 	# Opener cue file agrees with the beat grid.
 	var cue := Audio.cue("major_final")

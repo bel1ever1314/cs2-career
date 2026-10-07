@@ -13,8 +13,9 @@ class IndependentEraTests(unittest.TestCase):
     def test_2025_independent_world_does_not_rebrand_or_use_future_transfers(self):
         teams = {t['name']: t for t in build_teams('2025')}
         names = {n: {p['name'] for p in t['players']} for n, t in teams.items()}
-        self.assertEqual(59, len(teams))
-        self.assertTrue({'Eternal Fire', 'Aurora', 'Cloud9', 'Wildcard', 'NAVI Junior', 'Spirit Academy'} <= teams.keys())
+        self.assertEqual(58, len(teams))
+        self.assertTrue({'Eternal Fire', 'Aurora', 'Wildcard', 'NAVI Junior', 'Spirit Academy'} <= teams.keys())
+        self.assertNotIn('Cloud9', teams)
         self.assertFalse({'FUT', '100 Thieves', 'Luminosity', 'Grayhound'} & teams.keys())
         self.assertIn('XANTARES', names['Eternal Fire'])
         self.assertEqual({'clax', 'KENSI', 'Patsi', 'Norwi', 'gr1ks'}, names['Aurora'])
@@ -23,22 +24,23 @@ class IndependentEraTests(unittest.TestCase):
         self.assertIn('Spinx', names['Vitality'])
         self.assertNotIn('ropz', names['Vitality'])
         self.assertNotIn('s1mple', names['FaZe'])
-        self.assertIn('EliGE', names['Complexity'])
-        self.assertIn('HeavyGod', names['Cloud9'])
+        self.assertIn('EliGE', names['FaZe'])
+        self.assertIn('HeavyGod', names['G2'])
         self.assertIn('siuhy', names['MOUZ'])
-        self.assertNotIn('Jame', names['PARIVISION'])
-        self.assertNotIn('Luken', names['9z'])
-        self.assertTrue(all('2025 slot' in p for p in names['HEROIC']))
+        self.assertIn('Jame', names['PARIVISION'])
+        self.assertIn('Luken', names['9z'])
+        self.assertEqual({'LNZ', 'SunPayus', 'tN1R', 'xfl0ud', 'yxngstxr'}, names['HEROIC'])
 
-    def test_2025_includes_same_day_moves_but_not_next_day(self):
+    def test_2025_opening_completion_resolves_transfer_chains(self):
         teams = build_teams('2025')
         apply_roles(teams, '2025')
         by = {t['name']: t for t in teams}
         names = {n: {p['name'] for p in t['players']} for n, t in by.items()}
         self.assertIn('PR', names['GamerLegion'])
-        self.assertFalse({'volt', 'REZ'} & names['GamerLegion'])
-        self.assertIn('REZ', names['NiP'])
-        self.assertFalse({'nawwk', 'fear', 'Burmylov'} & names['fnatic'])
+        self.assertNotIn('volt', names['GamerLegion'])
+        self.assertIn('REZ', names['GamerLegion'])
+        self.assertIn('Snappi', names['NiP'])
+        self.assertTrue({'fEAR', 'Burmylov'} <= names['fnatic'])
         self.assertEqual({'forsyy', 'nbqq', 'Dytor', 'M1key', 'The eLiVe'}, names['ECLOT'])
         self.assertEqual({'beastik', 'SHOCK', 'MoriiSko', 'ZEDKO', 'Pepo'}, names['SINNERS'])
         self.assertIn('history', names['Fluxo'])
@@ -108,7 +110,7 @@ class IndependentEraTests(unittest.TestCase):
     def test_no_2026_axes_are_read_by_entire_2024_world(self):
         with patch('cs2career.world.ability.stats_for', side_effect=AssertionError('future statistics read')):
             teams = build_teams('2024')
-        self.assertEqual(54, len(teams))
+        self.assertEqual(52, len(teams))
         self.assertTrue(all(t['era_provenance']['ability_quality'] == 'estimated' for t in teams))
 
     def test_manifest_rejects_cross_team_case_alias_future_and_bad_reference(self):

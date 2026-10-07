@@ -13,6 +13,7 @@
     <Compile Include="../../vendor/BotBuy/BotBuy.CareerRules.cs" Link="BotBuy.CareerRules.cs" />
     <Compile Include="../../vendor/BotBuy/BotBuy.M4Preference.cs" Link="BotBuy.M4Preference.cs" />
     <Compile Include="../../vendor/BotBuy/BotBuy.TeamGifts.cs" Link="BotBuy.TeamGifts.cs" />
+    <Compile Include="../../vendor/BotBuy/BotBuy.GiftRoles.cs" Link="BotBuy.GiftRoles.cs" />
     <Compile Include="../../vendor/BotBuy/BotBuy.WeaponIdentity.cs" Link="BotBuy.WeaponIdentity.cs" />
     <Compile Include="../../vendor/BotBuy/CareerWeaponPolicy.cs" Link="CareerWeaponPolicy.cs" />
     <Compile Include="../../vendor/BotBuy/TacticalBuyPlan.cs" Link="TacticalBuyPlan.cs" />

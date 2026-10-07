@@ -275,6 +275,11 @@ def rts_command(state, action, body):
             return {**_result_response(state, ev, match, '这张 RTS 地图已保存。'), 'replayed': True}
     _guard(state, body)
     if action == 'start':
+        from cs2career.services.career_pace import guard_map
+        guard_map(state, ev, match, body)
+        if 'map_key' in body:
+            from cs2career.services.career_pace import enable
+            enable(state)
         if body.get('side', 't') not in ('ct', 't'):
             raise ValueError('请选择 CT 或 T 开局。')
         session = match.get('career3d_rts')
@@ -309,6 +314,14 @@ def rts_command(state, action, body):
         session = {'nonce': uuid4().hex, 'match_id': match['id'], 'map': 'de_' + name,
                    'map_index': len(match.get('maps') or []), 'rosters': rosters, 'roster_hash': _hash(rosters),
                    'commanded_side': 'ct' if ct_team == mine else 't', 'player_id': match['career3d_identity']['player_id']}
+        from cs2career.world.map_form import reaction_factor, expectation
+        teams = {t['name']: t for t in state.season.teams}
+        session['rosters']['map_reaction'] = {side: reaction_factor(teams[team], name)
+            for side, team in rosters['team_names'].items()}
+        # Modifiers are frozen beside the roster; roster identity hashes exclude
+        # them so external map learning cannot invalidate a running RTS session.
+        session['roster_hash'] = _hash(_rosters(state, match, ct_team))
+        session['map_expectation'] = expectation(teams[match['team_a']], teams[match['team_b']], name)
         from cs2career.engine.sessions import stamp
         stamp(session, 'rts')
         session['seed'] = int(session['nonce'][:8], 16) % 2147483647
@@ -323,7 +336,11 @@ def rts_command(state, action, body):
     if session['map_index'] != len(match.get('maps') or []) or session['roster_hash'] != _hash(_rosters(state, match, session['rosters']['team_names']['ct'])):
         raise ValueError('比赛进度或阵容已变化，不能覆盖战绩。')
     box = map_box(body.get('report'), session, match)
+    if session.get('map_expectation'):
+        box['map_expectation'] = session['map_expectation']
     match.setdefault('maps', []).append(box)
+    from cs2career.world.map_form import settle_map
+    settle_map(state.season, match, session['map_index'])
     match.pop('career3d_rts', None)
     from cs2career.league.phases import emit
     emit(state.season, ev, match, 'map_finished', session['map_index'])

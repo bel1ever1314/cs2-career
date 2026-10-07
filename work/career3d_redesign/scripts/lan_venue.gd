@@ -114,10 +114,10 @@ func _build_station(row: Dictionary) -> void:
 	Kit.merge_children(assembly)
 	# The frozen preflight roster populates these seats after the room is built.
 
-func _ambience_file() -> String: return "crowd_lan_room.ogg"
-func _ambience_trim() -> float: return 0.9
+func _ambience_file() -> String: return ""
 
 func _venue_ready() -> void:
+	Music.stop_scene_music()
 	if not CareerBridge.changed.is_connected(_draw_match_board): CareerBridge.changed.connect(_draw_match_board)
 	roster_plan = Roster.plan(Travel.match_visit)
 	if not roster_plan.is_empty():

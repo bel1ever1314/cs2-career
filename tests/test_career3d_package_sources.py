@@ -16,6 +16,13 @@ spec.loader.exec_module(pkg)
 
 
 class Career3DSourcePackageTests(unittest.TestCase):
+    def test_game_branding_and_its_reproducible_builder_ship_in_source(self):
+        root = Path(__file__).resolve().parents[1]
+        selected = {path.relative_to(root).as_posix() for path in pkg.source_files(root)}
+        for path in (pkg.PROJECT + '/assets/branding/career_boot.png',
+                     pkg.PROJECT + '/assets/branding/career_icon.svg', 'tools/build_career_brand.gd'):
+            self.assertIn(path, selected)
+
     def test_canonical_audio_and_builders_are_shipped_without_import_cache(self):
         with tempfile.TemporaryDirectory() as folder:
             base = Path(folder)

@@ -31,7 +31,20 @@ def validate_rosters(raw):
             announced = date.fromisoformat(row.get('announced_at') or row['observed_at'])
         except (KeyError, TypeError, ValueError) as exc:
             raise ValueError('阵容补丁缺少有效日期') from exc
-        if as_of != date(int(era), 1, 8) or announced > as_of:
+        policy = row.get('roster_policy', 'strict_snapshot')
+        if policy not in ('strict_snapshot', 'opening_complete'):
+            raise ValueError('未知的开局阵容策略')
+        cutoff = as_of
+        if policy == 'opening_complete':
+            try:
+                cutoff = date.fromisoformat(row['roster_as_of'])
+            except (KeyError, TypeError, ValueError) as exc:
+                raise ValueError('开年完整阵容必须标注实际日期') from exc
+            if not date(int(era), 1, 1) <= cutoff <= date(int(era), 1, 31):
+                raise ValueError('开年完整阵容只接受同年一月名单')
+            if announced != cutoff:
+                raise ValueError('阵容实际日期必须与公告或出场记录一致')
+        if as_of != date(int(era), 1, 8) or announced > cutoff:
             raise ValueError('阵容公告晚于开局日期，不能提前使用未来阵容')
         people = row.get('players')
         if not isinstance(people, list) or len(people) != 5:
@@ -67,10 +80,14 @@ def validate_rosters(raw):
                     source_day = date.fromisoformat(source[field])
                 except (TypeError, ValueError) as exc:
                     raise ValueError('阵容来源日期无效') from exc
-                if source_day > as_of and source.get('purpose') != 'exclusion':
+                if source_day > cutoff and source.get('purpose') != 'exclusion':
                     raise ValueError('开局名单不能使用未来来源；排除证据须明确标注')
         if all(s.get('purpose') == 'exclusion' for s in sources):
             raise ValueError('开局名单至少需要一个非排除用途的来源')
+        if policy == 'opening_complete' and not any(
+                s.get('purpose') != 'exclusion' and
+                cutoff.isoformat() in (s.get('published_at'), s.get('observed_at')) for s in sources):
+            raise ValueError('开年完整阵容缺少对应实际日期的来源')
         if (era, team) in out:
             raise ValueError('重复的年代战队补丁')
         out[era, team] = deepcopy(row)
@@ -185,7 +202,11 @@ def quality_view(row, *, team=False):
         note = '当前名单来自旧版内置表，仍需检查开局日期、阵容和属性来源，不能视为完整历史快照。'
     else:
         status, label, note = 'unknown', '', ''
+    roster_day = provenance.get('roster_as_of') or provenance.get('announced_at') or provenance.get('observed_at')
+    if provenance.get('roster_policy') == 'opening_complete':
+        note = f'开年完整阵容 · 实际资料日期 {roster_day}。' + note
     return {'status': status, 'label': label, 'note': note, 'placeholder_count': slots,
+            'roster_as_of': roster_day, 'roster_policy': provenance.get('roster_policy', 'strict_snapshot'),
             'as_of': provenance.get('as_of'), 'sources': provenance.get('sources', []), 'source': source,
             'source_rank': provenance.get('source_rank'), 'game_seed': provenance.get('seed'),
             'revision': provenance.get('revision')}

@@ -62,29 +62,23 @@ class EraProvenanceTests(unittest.TestCase):
         self.assertIsNone(presentation.inspect(ApplicationDouble(career=career, season=season), 'player', player_id('Patsi')))
 
     def test_coverage_does_not_claim_legacy_curated_is_verified(self):
-        expected = {'2024': (47, 22), '2025': (41, 28), '2026': (0, 1)}
+        expected = {'2024': (51, 0), '2025': (57, 0), '2026': (45, 0)}
         for era, (verified, placeholders) in expected.items():
             with self.subTest(era=era):
                 result = coverage(build_teams(era))
                 self.assertEqual(verified, result['verified_rosters'])
                 self.assertEqual(placeholders, result['placeholder_players'])
-                self.assertEqual({'2024': 54, '2025': 59, '2026': 49}[era], result['teams'])
-                if era == '2024':
-                    self.assertEqual(1, result['provisional_teams'])
-                    self.assertEqual(6, result['estimated_teams'])
-                elif era == '2025':
-                    self.assertEqual(1, result['provisional_teams'])
-                    self.assertEqual(17, result['estimated_teams'])
-                    self.assertEqual(0, result['unverified_teams'])
-                else:
-                    self.assertGreater(result['unverified_teams'], 0)
+                self.assertEqual({'2024': 52, '2025': 58, '2026': 46}[era], result['teams'])
+                self.assertEqual(1, result['provisional_teams'])
+                self.assertEqual(0, result['estimated_teams'])
+                self.assertEqual(0, result['unverified_teams'])
 
     def test_correction_does_not_leak_to_other_era_or_read_future_axes(self):
         self.assertTrue(correction_for('2025', 'PARIVISION'))
         rows, _, quality = roster_for('2025', 'PARIVISION', [('future', 100)], 43)
         self.assertEqual('mixed', quality)
-        self.assertEqual({'Qikert', 'BELCHONOKK', 'ArtFr0st'}, {name for name, _ in rows if '2025 slot' not in name})
-        self.assertEqual(2, sum('2025 slot' in name for name, _ in rows))
+        self.assertEqual({'Qikert', 'BELCHONOKK', 'Jame', 'TRAVIS', 'nota'}, {name for name, _ in rows})
+        self.assertEqual(0, sum('2025 slot' in name for name, _ in rows))
         from cs2career.world import ability
         original = ability.stats_for
         def guard(name, *args):

@@ -108,6 +108,7 @@ func run() -> void:
 	draw_ui.popup.hide()
 	await settle()
 	check(draw_ui.candidates.size() == 35 and draw_ui.unrevealed_draw_id.is_empty(), "reveal exposes five players and seven real ability slots")
+	check(str(named("CareerCurrent_opening").text).contains("—") and not draw_ui.candidates[16].button.text.contains("↑"), "unfilled current value is empty, not a fictional zero baseline")
 	await capture("team_draw_pending")
 	Computer.scroll.scroll_vertical = 250
 	await settle()
@@ -119,6 +120,7 @@ func run() -> void:
 	await settle()
 	check(button.get_instance_id() == before_id and Computer.scroll.scroll_vertical == before_scroll, "clicking value keeps same controls and exact scrollbar position")
 	check(CareerBridge.queued_command.is_empty() and draw_ui.pending_path.is_empty(), "value click only previews and does not consume the draw")
+	check(str(named("CareerCurrent_opening").text).contains("—"), "preview never changes committed current column")
 	check(not (named("CareerTeamDrawCommit") as Button).disabled and draw_ui.commit_button.text.contains(candidate.choice.source_player), "chosen value provides explicit commit feedback")
 	busy(true)
 	draw_ui.commit()
@@ -132,6 +134,10 @@ func run() -> void:
 	await settle()
 	check(button.get_instance_id() == before_id and Computer.scroll.scroll_vertical == before_scroll, "saved selection updates in place without scrolling to top")
 	check(draw_ui.current().axes[3].selected_value == 72 and draw_ui.history.text.contains(first_team.name), "collected ability and history show committed source")
+	check(str(named("CareerCurrent_opening").text).contains("72"), "left column displays committed value next to ability")
+	for index in range(5):
+		check(draw_ui.candidates[15 + index].button.text.contains("↑") == (index > 1), "only strictly higher candidates receive an arrow " + str(index))
+	check(draw_ui.candidates[17].button.tooltip_text.contains("+2"), "hover explains the exact improvement")
 	check(not draw_ui.roll_button.disabled and draw_ui.commit_button.disabled, "one committed value unlocks next draw and seals previous team")
 	check((named("CareerStartNext") as Button).disabled, "one ability is insufficient for appearance")
 	await capture("team_draw_selection")

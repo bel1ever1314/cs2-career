@@ -1,4 +1,4 @@
-"""Pinned-logo sanitizer and all 48 generated asset provenance checks."""
+"""Pinned-logo sanitizer and generated asset provenance checks."""
 import hashlib
 import json
 import os
@@ -40,7 +40,8 @@ def main():
             continue
         raise AssertionError('Sanitizer accepted executable/external SVG content')
     manifest = json.loads(Path('E:/CS2CareerTools/Career3DMedia/teams/team-media.json').read_text('utf-8'))
-    assert set(manifest['team_backgrounds']) == set(CODES)
+    expected = set(CODES)
+    assert set(manifest['team_backgrounds']) == expected
     for name, code in CODES.items():
         row = manifest['team_backgrounds'][name]
         original, derivative = Path(row['original_path']).read_bytes(), Path(row['path']).read_bytes()
@@ -53,9 +54,9 @@ def main():
     try:
         os.environ['CS2CAREER3D_MEDIA_CONFIG'] = str(ROOT / 'work/career3d_redesign/data/media.json')
         projection = resource_context()['media']
-        assert set(projection['team_backgrounds']) == set(CODES)
-        assert set(projection['team_sources']) == set(CODES)
-        for name in CODES:
+        assert set(projection['team_backgrounds']) == expected
+        assert set(projection['team_sources']) == expected
+        for name in expected:
             assert Path(projection['team_backgrounds'][name]) == Path(manifest['team_backgrounds'][name]['path'])
             assert projection['team_sources'][name] == manifest['team_backgrounds'][name]['source']
     finally:
@@ -63,11 +64,11 @@ def main():
             os.environ.pop('CS2CAREER3D_MEDIA_CONFIG', None)
         else:
             os.environ['CS2CAREER3D_MEDIA_CONFIG'] = previous_config
-    print(json.dumps(dict(ok=True, logos=len(CODES), checks=[
+    print(json.dumps(dict(ok=True, logos=len(expected), checks=[
         'plain drawing is byte-preserved; fixed Adobe namespaces/PGF metadata sanitize without altering paths/groups',
         'scripts, arbitrary entities, foreign bodies, external href/CSS/processing instructions are rejected',
-        'all 48 explicit club mappings retain original bytes/hash, derivative hash and pinned source attribution',
-        'read-only media projection retains all 48 exact names, paths and pinned source URLs']), ensure_ascii=False))
+        'explicit club mappings retain original bytes/hash, derivative hash and source attribution',
+        'read-only media projection retains exact names, paths and source URLs']), ensure_ascii=False))
 
 
 if __name__ == '__main__':

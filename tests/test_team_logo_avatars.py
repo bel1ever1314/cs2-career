@@ -47,7 +47,7 @@ class TeamLogoAvatarTests(unittest.TestCase):
         self.assertEqual(catalog['schema_version'], 1)
         self.assertEqual(catalog['appearance'], 'graphite_translucent_v1')
         self.assertEqual(catalog['background'], '202428b3')
-        self.assertEqual(len(catalog['teams']), 48)
+        self.assertEqual(len(catalog['teams']), 58)
         hashes = set()
         for row in catalog['teams'].values():
             with self.subTest(team=row['name']):
@@ -62,7 +62,7 @@ class TeamLogoAvatarTests(unittest.TestCase):
                 self.assertTrue(row['source'].startswith('https://raw.githubusercontent.com/Juknum/'))
                 self.assertEqual(len(row['source_sha256']), 64)
                 hashes.add(row['sha256'])
-        self.assertEqual(len(hashes), 48)
+        self.assertEqual(len(hashes), 58)
 
     def test_only_dark_marks_receive_a_local_contrast_keyline(self):
         catalog = json.loads(data_file('team_logo_avatars/manifest.json').read_text('utf-8'))

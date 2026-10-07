@@ -257,7 +257,7 @@ class EraPackTests(unittest.TestCase):
     def test_all_runtime_rosters_have_five_unique_players_not_historical_verification(self):
         for era in ("2024", "2025", "2026"):
             teams = build_teams(era)
-            self.assertEqual(len(teams), {'2024': 54, '2025': 59, '2026': 49}[era])
+            self.assertEqual(len(teams), {'2024': 52, '2025': 58, '2026': 46}[era])
             players = [p for team in teams for p in team["players"]]
             self.assertEqual(len(players), len(teams) * 5)
             self.assertEqual(len({p["player_id"] for p in players}), len(players))
@@ -282,7 +282,8 @@ class EraPackTests(unittest.TestCase):
         ropz = next(player for player in vitality["players"] if player["name"] == "ropz")
         self.assertGreaterEqual(ropz["ability"], 89)
         self.assertLessEqual(ropz["ability"], 91)
-        self.assertLess(ropz["form_delta"], 0)
+        # A dated opening world must not import undated modern recent form.
+        self.assertEqual(0, ropz["form_delta"])
 
     def test_bundled_gamedata_contract(self):
         path = vendor_root() / "InventorySimulator" / "gamedata" / "inventory-simulator.json"

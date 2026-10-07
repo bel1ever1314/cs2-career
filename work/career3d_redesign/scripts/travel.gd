@@ -179,7 +179,9 @@ func go_match(venue: Dictionary, match_id: String) -> bool:
 	var destination := str(venue.get("destination", venue.get("kind", "")))
 	var scene := get_tree().current_scene
 	if scene != null and scene.scene_file_path == SCENES[destination] and str(match_visit.get("match_id", "")) == match_id:
-		return false
+		Computer.close_computer()
+		menu.set_notice("返回本场席位 · 到你的空位按 E 入座")
+		return true
 	match_visit = {"match_id":match_id, "destination":destination, "venue":venue.duplicate(true)}
 	go(destination)
 	return true

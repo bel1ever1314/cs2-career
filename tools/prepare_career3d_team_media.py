@@ -21,7 +21,10 @@ CODES = {'Falcons':'fal','Vitality':'vita','Spirit':'spir','FURIA':'furi','NAVI'
          'Virtus.pro':'vp','100 Thieves':'thv','Rare Atom':'ratm','SINNERS':'sinn',
          'Fluxo':'flux','9INE':'nein','Luminosity':'lumi','Sharks':'shrk','ENCE':'ence',
          'fnatic':'fntc','SAW':'saw','Passion UA':'psnu','Complexity':'col','BESTIA':'bes',
-         'Chinggis Warriors':'cw','Cloud9':'c9'}
+         'Chinggis Warriors':'cw','Cloud9':'c9',
+         'Eternal Fire':'eter','Monte':'mont','Grayhound':'gray','FORZE':'forz',
+         'Apeks':'apex','KOI':'koi','9 Pandas':'pand','Nemiga':'nemi',
+         'RED Canids':'redc','Wildcard':'wcrd'}
 
 ADOBE_NAMESPACES = {
     'ns_extend':'http://ns.adobe.com/Extensibility/1.0/',

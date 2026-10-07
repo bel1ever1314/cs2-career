@@ -45,6 +45,12 @@ func run() -> void:
 			var page = Pages.new()
 			var host := VBoxContainer.new()
 			root.add_child(host)
+			var roster := {"data_provenance":{"roster_policy":"opening_complete", "roster_as_of":"2026-01-09"}}
+			var roster_before := roster.duplicate(true)
+			page.roster_date(host, roster, compact)
+			check(host.get_child_count() == 1 and host.get_child(0).text.contains("2026-01-09"), "actual roster date on both devices and languages")
+			check(roster == roster_before, "roster label is read-only")
+			host.get_child(0).free()
 			page.mail_action.connect(func(action, letter): intents.append([action, letter.id]))
 			page.mail_content(host, context.inbox[0], compact, button)
 			var accept: Button = host.get_child(1)

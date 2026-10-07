@@ -188,8 +188,10 @@ def _snapshot_targets(game: Path, mod: Path, cfg: dict, real_skins: bool) -> lis
     for name in ('CareerMatch', 'BotBuy'):
         targets.update(css / 'plugins' / name / (name + suffix) for suffix in ('.dll', '.deps.json'))
     targets.add(css / 'plugins/CareerMatch/tactical_playbook.json')
-    # install_mod publishes the default map alongside its legacy snapshot.
-    targets.add(css / 'plugins/CareerMatch/tactical_playbooks/de_dust2.json')
+    # Installation stages every map, so rollback must cover every snapshot.
+    from cs2career.tactics import SUPPORTED_MAPS
+    targets.update(css / 'plugins/CareerMatch/tactical_playbooks' / (code + '.json')
+                   for code in SUPPORTED_MAPS)
     bridge = game / css / 'plugins/InvsimCareer'
     if bridge.exists():
         _under_game(game, bridge.relative_to(game))

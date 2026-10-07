@@ -181,8 +181,28 @@ class Career3DConfigPathTests(unittest.TestCase):
             activities.settings_command(self.state, {'revision': 6, 'settings': self.cfg})
         self.process.return_value = True
         with self.assertRaisesRegex(ValueError, '完全退出 CS2'):
-            activities.settings_command(self.state, {'revision': 7, 'settings': {'difficulty': 'High'}})
+            activities.settings_command(self.state, {'revision': 7, 'settings': {'csgo_path': str(self.root)}})
         self.assertEqual(original, self.settings.read_bytes())
+
+    def test_running_game_or_waiting_map_still_saves_preferences_for_the_next_map(self):
+        # Each launched map freezes its own settings; saving only writes cs2.json.
+        self.process.return_value = True
+        result = activities.settings_command(self.state, {'revision': 7, 'settings': {**self.cfg, 'difficulty': 'High'}})
+        self.assertEqual('High', json.loads(self.settings.read_text('utf-8'))['difficulty'])
+        self.assertEqual('', result['settings']['apply_note'])
+        self.process.return_value = False
+        match = {'id': 'm1', 'played': False, 'cs2_session': {'nonce': 'n1', 'map_index': 1}}
+        self.state.season.events.append({'matches': [match]})
+        result = activities.settings_command(self.state, {'revision': 7, 'settings': {**self.cfg, 'bot_aim': 'head'}})
+        self.assertEqual('head', json.loads(self.settings.read_text('utf-8'))['bot_aim'])
+        self.assertIn('下一张图', result['reason'])
+        self.assertTrue(result['settings']['live_match'])
+        self.assertIn('下一张图', result['settings']['apply_note'])
+        # Unchanged paths in the full form are not a change of game folder.
+        before = self.settings.read_bytes()
+        with self.assertRaisesRegex(ValueError, 'CS2 目录'):
+            activities.settings_command(self.state, {'revision': 7, 'settings': {**self.cfg, 'csgo_path': str(self.root)}})
+        self.assertEqual(before, self.settings.read_bytes())
 
     def test_optional_skin_account_error_is_not_reported_as_a_path_error(self):
         original = self.settings.read_bytes()

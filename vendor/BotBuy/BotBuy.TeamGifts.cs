@@ -17,6 +17,7 @@ public sealed partial class BotBuyPatch
     {
         var players = Utilities.FindAllEntitiesByDesignerName<CCSPlayerController>("cs_player_controller")
             .Where(p => p.IsValid).ToList();
+        BindHumanGiftRecipient(players);
         foreach (var player in players)
         {
             var pawn = player.PlayerPawn.Value;
@@ -64,8 +65,9 @@ public sealed partial class BotBuyPatch
             || _giftedPawns.Contains(expected) || HasPrimaryWeapon(player)) return false;
         // Use CURRENT buying power, not the pre-purchase poor-player cohort
         // (which is still used by upstream's armor/defuser policy).
-        int riflePrice = TacticalBuyPolicy.PrimaryPrice(CareerWeaponPolicy.Rifle(team == CsTeam.CounterTerrorist, 0));
-        if (player.InGameMoneyServices.Account >= riflePrice) return false;
+        int desiredPrice = WantsSniperGift(player) ? TacticalBuyPolicy.AwpPrice
+            : TacticalBuyPolicy.PrimaryPrice(CareerWeaponPolicy.Rifle(team == CsTeam.CounterTerrorist, 0));
+        if (player.InGameMoneyServices.Account >= desiredPrice) return false;
         // Receiving does not spend the human's money or replace their equipment.
         // Do not use bot-only CanModify here (also covers human-controlled bots).
         return !_careerActive || pawn.InBuyZone;
@@ -79,7 +81,8 @@ public sealed partial class BotBuyPatch
         foreach (var team in new[] { CsTeam.CounterTerrorist, CsTeam.Terrorist })
         {
             var poor = players.Where(p => CanReceiveTeamWeapon(p, team))
-                .OrderBy(p => p.InGameMoneyServices!.Account).ThenBy(p => p.Slot).ToArray();
+                .OrderByDescending(WantsSniperGift)
+                .ThenBy(p => p.InGameMoneyServices!.Account).ThenBy(p => p.Slot).ToArray();
             var failedThisCheck = new HashSet<uint>();
             int index = 0;
             foreach (var donor in players.Where(p => p.IsValid && p.Team == team)
@@ -89,14 +92,20 @@ public sealed partial class BotBuyPatch
                 int given = _giftDonorCounts.GetValueOrDefault(donorPawn);
                 while (given < 3 && index < poor.Length)
                 {
-                    string gun = CareerWeaponPolicy.Rifle(team == CsTeam.CounterTerrorist, Random.Shared.NextSingle());
-                    int price = TacticalBuyPolicy.PrimaryPrice(gun);
                     // Spending remains bot-only; BotHider identities use our verified roster.
                     if (!CanModify(donor) || donor.Team != team || donor.InGameMoneyServices is null
-                        || donor.InGameMoneyServices.Account < price || !HasPrimaryWeapon(donor)
+                        || !HasPrimaryWeapon(donor)
                         || (_careerActive && !CanCareerPurchase(donor))) break;
+                    var candidate = poor[index];
+                    string gun = WantsSniperGift(candidate) && donor.InGameMoneyServices.Account >= TacticalBuyPolicy.AwpPrice
+                        ? "weapon_awp" : CareerWeaponPolicy.Rifle(team == CsTeam.CounterTerrorist, Random.Shared.NextSingle());
+                    int price = TacticalBuyPolicy.PrimaryPrice(gun);
+                    if (donor.InGameMoneyServices.Account < price) break;
                     var recipient = poor[index++];
                     if (!CanReceiveTeamWeapon(recipient, team)) continue;
+                    // No affordable AWP donor: retain the rifle fallback only
+                    // for someone unable to buy that rifle themselves.
+                    if (recipient.InGameMoneyServices!.Account >= price) continue;
                     var handle = recipient.GiveNamedItem(gun);
                     if (handle == IntPtr.Zero || !new CEntityInstance(handle).IsValid)
                     {

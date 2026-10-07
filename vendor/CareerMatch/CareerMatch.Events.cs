@@ -168,7 +168,7 @@ public sealed partial class CareerMatchPlugin
                 if (!ResolveControl(humanId, eventBotId, "takeover_next_frame"))
                 {
                     _health.StatisticsError = "无法唯一确认接管的选手，已暂停该角色记账并阻止录入；请保留接管日志";
-                    Server.PrintToChatAll($" \x02CareerMatch：{_health.StatisticsError}\x01");
+                    Server.PrintToChatAll($" \u0002CareerMatch：{_health.StatisticsError}\u0001");
                 }
             });
         }

@@ -67,10 +67,12 @@ class TacticalAbilityTests(unittest.TestCase):
 
     def test_request_builders_include_bot_and_human_scores_without_roster_changes(self):
         a, b = self.specialist_team("A"), self.specialist_team("B")
+        a["players"][0]["role"] = "awp"
         before = deepcopy((a, b))
         for request in (launch.build_request(a, b, "A0", "de_nuke", "t"),
                         launch.build_lobby_request(a, b, "p_a_0", "de_nuke", "fixed")):
             self.assertEqual(arena_roles.tactical_abilities(a["players"][0]), request["human_tactical_abilities"])
+            self.assertEqual("awp", request["human_role"])
             by_id = {player["player_id"]: player for team in (a, b) for player in team["players"]}
             bots = request["ct"]["players"]+request["t"]["players"]
             self.assertEqual(9, len(bots))
@@ -81,6 +83,7 @@ class TacticalAbilityTests(unittest.TestCase):
                 self.assertEqual(source["stats"], bot["stats"])
         observer = launch.build_lobby_request(a, b, "", "de_nuke", "observer")
         self.assertEqual({}, observer["human_tactical_abilities"])
+        self.assertEqual("", observer["human_role"])
         self.assertEqual(10, len(observer["ct"]["players"]+observer["t"]["players"]))
         self.assertEqual(before, (a, b))
 

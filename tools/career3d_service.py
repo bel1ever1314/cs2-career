@@ -179,9 +179,11 @@ def read_context(state, display_hour=8) -> dict:
     from cs2career.services.feedback import feedback_context
     from tools.career3d_trophies import trophy_context
     from cs2career.services.environment import environment_context
+    from cs2career.world.map_form import public as map_performance
     return {"ok": True, "protocol_version": PROTOCOL_VERSION, "isolated": True,
             "player": _player(you), "team": {"id": mine.get("id", ""), "name": mine.get("name", ""),
               "region": mine.get("region", ""), "rank": ranking, "money": mine.get("money", 0),
+              "map_performance": map_performance(mine) if mine else [],
               "roster": [_player(p) for p in mine.get("players", [])]},
             "date": s.date, "nextmatch": nextmatch, "stories": stories,
             "mode": "quick" if c.assist.get("quick_mode") else "normal",
@@ -200,7 +202,7 @@ def read_context(state, display_hour=8) -> dict:
             'feedback': feedback_context(state),
             'club_trophies': trophy_context(state),
             'environment': environment_context(state),
-            **resource_context(), **device_context(state), **startup_context(state), **rts_context(state), **social_context(state)}
+            **resource_context(state), **device_context(state), **startup_context(state), **rts_context(state), **social_context(state)}
 
 
 def _pause(state):

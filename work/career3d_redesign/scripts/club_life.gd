@@ -36,6 +36,7 @@ func setup(actor,audit: Array,saved: Dictionary={}) -> void:
 		else:data["sites"][id]["target"]=navigation.world(c)
 	assert(invalid_sites.is_empty(),"Some NPC sites are inaccessible: "+str(invalid_sites))
 	for row in data["npcs"]:
+		if _player_site(str(row["schedule"][0][0])):continue
 		var npc:=Actor.new();npc.definition=row.duplicate(true);npc.manager=self;npc.name="NPC_"+str(row["id"])
 		var site_id: String=row["schedule"][0][0];var site: Dictionary=data["sites"][site_id]
 		npc.position=site["target"];add_child(npc);roster.append(npc)
@@ -85,6 +86,7 @@ func bind_career(context: Dictionary) -> void:
 				var definition: Dictionary={}
 				for candidate in data["npcs"]:
 					if str(candidate["id"]) in STAFF or str(candidate["id"]) in used:continue
+					if _player_site(str(candidate["schedule"][0][0])):continue
 					if reservations.has(str(candidate["schedule"][0][0])):continue
 					if definition.is_empty():definition=candidate.duplicate(true)
 					if ROLE_KEYS.get(str(candidate["role"]).to_lower(),"rifle")==key:
@@ -110,6 +112,9 @@ func bind_career(context: Dictionary) -> void:
 	career_context={"player":{"id":player_id},"team":{"id":bound_team_id,"roster":teammates.duplicate(true)}}
 
 func vec(a: Array) -> Vector3:return Vector3(a[0],a[1],a[2])
+
+func _player_site(id: String) -> bool:
+	return bool(data["sites"].get(id,{}).get("player_only",false))
 
 func _physics_process(delta: float) -> void:
 	if player==null or not enabled or held:return
@@ -149,6 +154,7 @@ func _next(npc: Actor) -> void:
 	for offset in range(1,schedule.size()+1):
 		var candidate: int=(npc.schedule_index+offset)%schedule.size()
 		var site: String=schedule[candidate][0]
+		if _player_site(site):continue
 		if site==npc.site_id:continue
 		if not reservations.has(site) or reservations[site]==npc.npc_id:
 			next_index=candidate;requested=site;break
@@ -166,6 +172,8 @@ func _next(npc: Actor) -> void:
 	npc.finished_jobs+=1;npc.start_route(points,target)
 
 func _arrived(npc: Actor) -> void:
+	if _player_site(npc.site_id):
+		_next(npc);return
 	var site: Dictionary=data["sites"][npc.site_id]
 	if npc.position.distance_to(site["target"])>.30 or not clear_of_people(npc.position,npc,.46):
 		npc.test_direction=Vector3.ZERO;return
@@ -273,10 +281,26 @@ func snapshot() -> Dictionary:
 func restore(saved: Dictionary) -> void:
 	if saved.has("career") and not saved["career"].is_empty() and saved["career"]!=career_context:bind_career(saved["career"])
 	clock=float(saved.get("clock",0));reservations.clear()
+	# Claim valid saved destinations before relocating an obsolete player-seat
+	# occupant, so its fallback cannot steal another teammate's saved station.
+	for npc in roster:
+		var site_id: String=str(saved.get("npcs",{}).get(npc.npc_id,{}).get("site",npc.site_id))
+		if not _player_site(site_id):reservations[site_id]=npc.npc_id
 	for npc in roster:
 		var row: Dictionary=saved.get("npcs",{}).get(npc.npc_id,{})
 		if row.is_empty():reservations[npc.site_id]=npc.npc_id;continue
 		npc.bond=int(row["bond"]);npc.topics=row["topics"].duplicate();npc.encourage_at=float(row["encourage_at"])
+		# Old scene snapshots may place a teammate in the player's seat. Keep
+		# their identity/bond, but start an allowed activity when re-entering.
+		if _player_site(str(row["site"])):
+			for i in range(npc.definition["schedule"].size()):
+				var fallback: String=npc.definition["schedule"][i][0]
+				if _player_site(fallback) or reservations.has(fallback):continue
+				npc.schedule_index=i;reservations[fallback]=npc.npc_id
+				npc.position=data["sites"][fallback]["target"];npc.reset_physics_interpolation()
+				npc.start_job(fallback,data["sites"][fallback],float(npc.definition["schedule"][i][1]))
+				break
+			continue
 		npc.schedule_index=int(row["index"]);npc.site_id=str(row["site"]);reservations[npc.site_id]=npc.npc_id
 		var site: Dictionary=data["sites"][npc.site_id]
 		npc.position=vec(row["approach"] if row["state"]=="doing" and site.has("seat") else row["position"])

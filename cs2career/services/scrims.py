@@ -65,6 +65,10 @@ def _finish(state, row, session, raw):
         raise ValueError('训练地图不匹配，未录入战报。')
     own, other = row['teams_snapshot']
     mp = cs2_to_map(raw, session, own, other, session['player'])
+    from ..world.map_form import apply_result, expectation
+    mp['map_expectation'] = session.get('map_expectation') or expectation(own, other, session['map'])
+    teams = {t['id']: t for t in state.season.teams}
+    apply_result(teams[own['id']], teams[other['id']], mp, state.season.date, practice=True)
     report = dict(id=row['id'], date=state.season.date, source='cs2', map=mp,
                   teams=[own['name'], other['name']], human_id=row['human_id'])
     _retire(state, session)

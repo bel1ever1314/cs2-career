@@ -1,17 +1,21 @@
 """Identity-bound venue facts and stage-based career presentation.
 
 The playable scene follows the career's policy: qualifiers/CCT-level events
-are online, other early stages use ten-player LAN rooms, and their playoffs use
-arenas. Physical venue facts remain edition/phase scoped independently of that
-presentation, and reading a legacy fixture never replaces its frozen roster.
+and verified online phases are online, other early stages use ten-player LAN
+rooms, and their playoffs use arenas. Physical venue facts remain edition/phase
+scoped, and reading a legacy fixture never replaces its frozen roster.
 """
 from copy import deepcopy
 
-VENUE_POLICY_VERSION = '20261003.1'
+VENUE_POLICY_VERSION = '20261007.1'
 PLAYOFF_STAGES = frozenset(('R16', 'QF', 'SF', 'GF'))
 
 # Exact edition names protect recurring event IDs and future fictional seasons.
 KNOWN = {
+    (2025, 'blast-bounty'): dict(event_name='BLAST Premier Bounty Season 1 2025',
+        studio='BLAST Studios Copenhagen', city='Copenhagen', country='Denmark',
+        online_groups=True, online_stages=('R32', 'RO32', 'R16', 'RO16'),
+        source_url='https://blast.tv/cs/news/bounty-season-1-quarterfinal-schedule'),
     (2024, 'major-2'): dict(event_name='Perfect World Shanghai Major 2024',
         arena='浦发银行东方体育中心', studio='上海世博中心', city='上海', country='中国',
         source_url='https://www.csgo.com.cn/article/details/20240906/225749.html'),
@@ -36,6 +40,7 @@ KNOWN = {
         source_url='https://blast.tv/cs/news/blast-premier-open-rotterdam-coming-in-march-2026'),
     (2026, 'blast-bounty'): dict(event_name='BLAST Premier Bounty Season 1 2026',
         studio='BLAST Studio, Malta', city='Malta', country='Malta', online_groups=True,
+        online_stages=('R32', 'RO32', 'R16', 'RO16'),
         source_url='https://blast.tv/cs/tournaments/bounty-2026-season-1'),
 }
 
@@ -47,16 +52,20 @@ def _venue_details(year, event, match):
     playoff = (str(match.get('stage', '')).upper() in PLAYOFF_STAGES
                or str(match.get('phase', '')).lower() == 'playoff')
     kind = str(event.get('type', '')).lower()
-    online = kind in ('qual', 'cct') or 'challenger league' in event.get('name', '').lower()
-    scale = 'online' if online else 'arena' if playoff else 'studio'
     known = KNOWN.get((year, event['id'])) or {}
     if known.get('event_name') != event['name']:
         known = {}
+    # Bounty's opening elimination rounds are online too. A generic R16
+    # playoff label must not force an edition's online phase into a venue.
+    online_phase = bool(known.get('online_groups') and
+                        (not playoff or str(match.get('stage', '')).upper() in known.get('online_stages', ())))
+    online = online_phase or kind in ('qual', 'cct') or 'challenger league' in event.get('name', '').lower()
+    scale = 'online' if online else 'arena' if playoff else 'studio'
 
     real_scale, name = 'unknown', ''
     city, country = known.get('city', ''), known.get('country', '')
     if known:
-        if known.get('online_groups') and not playoff:
+        if online_phase:
             real_scale = 'online'
         elif playoff and known.get('arena'):
             real_scale, name = 'arena', known['arena']
@@ -69,10 +78,10 @@ def _venue_details(year, event, match):
     return dict(destination='club' if online else 'major' if playoff else 'lan', capacity=capacity,
         scale=scale, is_lan=not online, name=name, verified=bool(name),
         city=city, country=country, source_url=known.get('source_url', ''),
-        real_venue_phase='playoffs' if playoff else 'early_stages',
+        real_venue_phase='playoffs' if playoff and not online_phase else 'early_stages',
         real_venue_scale=real_scale, real_venue_name=name,
         venue_policy_version=VENUE_POLICY_VERSION,
-        venue_policy='online_qualifier_or_cct' if online else
+        venue_policy='verified_online_phase' if online_phase else 'online_qualifier_or_cct' if online else
                      'playoff_arena' if playoff else 'early_stage_ten_player_lan',
         note='比赛场景按赛制分阶段呈现；对阵及赛程来自生涯模拟。')
 
@@ -87,6 +96,10 @@ def _arrival_details(state, match, venue):
                                 '大型场馆' if destination == 'major' else '俱乐部训练室')
     venue.update(display_name=label, visit_destination=destination, due=due,
                  match_date=match['date'], should_walk=bool(venue['travel_allowed'] and due))
+    plan = match.get('career3d_attendance') or {}
+    venue['entry_completed'] = bool(plan.get('seated') and
+        plan.get('match_identity') == venue.get('match_identity') and
+        plan.get('player_id') == state.arena.career_player_id(state))
     return venue
 
 
@@ -97,7 +110,7 @@ def attendance_for(state, event, match, venue=None):
     yours = s.is_yours(match)
     done = bool(match.get('played'))
     due = bool(yours and not done and match['date'] <= s.date and s.yours_ready(match))
-    progress = bool(match.get('cs2_session') or match.get('career3d_rts') or match.get('maps'))
+    progress = bool(match.get('cs2_session') or match.get('career3d_rts') or match.get('maps') or venue.get('entry_completed'))
     phase = ('finished' if done else 'in_progress' if progress else
              'scheduled' if match['date'] > s.date else 'today' if match['date'] == s.date else 'overdue')
     plan = match.get('career3d_attendance') or {}
@@ -110,7 +123,7 @@ def attendance_for(state, event, match, venue=None):
     if done:
         instruction = '这场比赛已经结束，可以查看战报。'
     elif progress:
-        instruction = '这场比赛正在进行，回到比赛电脑接续。'
+        instruction = '返回本场席位，继续当前比赛；已完成地图保留。'
     elif match['date'] > s.date:
         instruction = f'先睡到 {match["date"]}，早上前往「{label}」。'
     elif destination == 'club':

@@ -56,6 +56,53 @@ func arena_room(mode: String) -> Dictionary:
 			room.roster[player.id] = player.duplicate(true)
 	return room
 
+func verify_map_transition(center) -> void:
+	CareerBridge.context = context()
+	CareerBridge.context.quick.unified_pace = true
+	var first: Dictionary = CareerBridge.context.match_preflight.duplicate(true)
+	first.merge({"map_key":"2026:fixture:interrupted-match:0", "maps_done":0, "session_pending":true, "revision":17}, true)
+	CareerBridge.context.match_preflight = first.duplicate(true)
+	center.result.clear(); center.saved_results.clear(); center.request_pending = false
+	center.preflight = first.duplicate(true); center.connection = linked("interrupted-match")
+	center.pace.flow.reset()
+	Computer._navigate("career_match", false)
+	var exited := linked("interrupted-match")
+	exited.preflight = first.duplicate(true)
+	var before := commands.size()
+	for index in range(3):
+		center.finished("/api/3d/match/collect", {"ok":true, "status":"waiting", "connection":exited, "replayed":true})
+		check(center.is_interrupted() and button("CareerMatchResumeSimulate") != null, "empty collection retains recovery options " + str(index))
+	check(commands.size() == before and center.result.is_empty(), "repeated empty collection never simulates or replays a map")
+	center.finished("/api/3d/match/status?id=interrupted-match", {"ok":true, "preflight":first, "status":"interrupted", "match_id":"interrupted-match", "can_simulate":true, "can_resume":true})
+	center.simulate_match("interrupted-match")
+	center.simulate_match("interrupted-match")
+	check(commands.size() == before + 1 and commands[-1].body.scope == "current_map", "rapid recovery clicks dispatch exactly one map")
+	var next := first.duplicate(true)
+	next.merge({"map_key":"2026:fixture:interrupted-match:1", "maps_done":1, "phase":"ready", "pending_map":"nuke", "session_pending":false, "revision":18}, true)
+	var report := {"match_id":"interrupted-match", "result_id":"transition-report", "played":false,
+		"team_a":"Own", "team_b":"Other", "series":"1-0", "source":"simulated", "totals":[],
+		"maps":[{"index":0, "map":"dust2", "score":"13-8", "winner":"Own", "source":"sim"}]}
+	CareerBridge.context.match_preflight = next.duplicate(true)
+	CareerBridge.context.calendar.revision = 18
+	center.finished("/api/3d/match/simulate", {"ok":true, "status":"paused", "preflight":next, "result":report})
+	check(not center.is_interrupted() and center.connection.is_empty(), "simulated map retires the cached CS2 interruption")
+	center.reveal_phase = "stats"
+	check(center.pace.plan().primary == "模拟第 2 图", "report offers simulation of map two")
+	center.finished("/api/3d/match/status?id=interrupted-match", {"ok":true, "preflight":first, "status":"interrupted", "match_id":"interrupted-match"})
+	check(center.current_preflight().map_key == next.map_key and not center.is_interrupted(), "late map-one status cannot restore an old interruption")
+	center.pace.primary()
+	check(commands.size() == before + 2 and commands[-1].body.map_key == next.map_key, "next-map button dispatches map two without replaying map one")
+	center.request_pending = false; center.pace.flow.reset(); center.result.clear(); center.saved_results.clear()
+	var second := next.duplicate(true)
+	second.phase = "launched"; second.session_pending = true
+	CareerBridge.context.match_preflight = second.duplicate(true)
+	center.preflight = second.duplicate(true)
+	var waiting := linked("interrupted-match", "waiting")
+	waiting.preflight = second; waiting.result = report; waiting.ok = true
+	center.finished("/api/3d/match/status?id=interrupted-match", waiting)
+	check(center.result.is_empty() and center.saved_results.is_empty(), "polling map two never opens map one's saved report")
+	center.result.clear(); center.connection.clear(); center.preflight.clear(); center.request_pending = false
+
 func run() -> void:
 	if not "--no-service" in OS.get_cmdline_user_args():
 		get_tree().quit(2); return
@@ -89,8 +136,11 @@ func run() -> void:
 	check(commands[-1].path == "/api/3d/rts/start" and commands[-1].body.match_id == "interrupted-match", "career RTS requests recovery from the backend")
 	Computer.rts_room.pending_action = ""
 	Computer._navigate("quick", false)
+	CareerBridge.context.quick.unified_pace = true
+	center.pace.flow.reset()
+	var interrupted_count := commands.size()
 	center.start_quick()
-	check(commands[-1].path == "/api/3d/match/simulate", "quick continuation first resolves the interrupted map instead of season/run")
+	check(commands.size() == interrupted_count and not center.quick_running, "interrupted map requires an explicit recovery choice")
 	center.request_pending = false; center.quick_running = false
 	center.connection = linked("interrupted-match", "starting")
 	Computer._navigate("career_match", false)
@@ -104,14 +154,17 @@ func run() -> void:
 	center.quick_step()
 	check(commands.size() == before, "a failed connection with an actual pending map cannot be overwritten")
 	center.preflight.session_pending = false
-	center.quick_step()
-	check(commands.size() == before + 1 and commands[-1].path == "/api/3d/season/run", "a stale failed launch phase without a session does not block the season")
+	center.preflight.map_key = "2026:fixture:interrupted-match:0"
+	center.start_quick()
+	center.process(4.01)
+	check(commands.size() == before + 1 and commands[-1].path == "/api/3d/match/simulate" and commands[-1].body.scope == "current_map", "a stale failed launch does not block explicit current-map continuation")
 	center.request_pending = false
 	center.quick_running = false
 	center.connection = linked("interrupted-match", "waiting")
 	center.connection.result_ready = true; center.connection.can_collect = true
 	Computer._rebuild()
 	check(button("CareerMatchResumeCS2") == null and button("CareerMatchResumeSimulate") == null, "a returned valid result is not presented as restartable")
+	verify_map_transition(center)
 	var cards: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://rts/data/rosters.json"))
 	var room := arena_room("custom")
 	var state := {"revision":9, "lobby":room, "maps":["dust2"], "rts_rosters":cards, "history":[], "connection":linked(room.id)}

@@ -904,6 +904,16 @@ class Career:
             raise ValueError('训练未结算：' + error)
         if not session.get('map') or to_sim_map(raw.get('map','')) != session['map']:
             raise ValueError('训练地图不匹配，未发放训练加成。')
+        from ..cs2.result import cs2_to_map
+        from ..world.map_form import apply_result
+        opponent = next((t for t in season.teams if t['id'] == session.get('opponent_id')), None)
+        map_note = ''
+        if opponent:
+            box = cs2_to_map(raw, session, team, opponent, self.player_name)
+            if session.get('map_expectation'):
+                box['map_expectation'] = session['map_expectation']
+            change = apply_result(team, opponent, box, season.date, practice=True)[0]
+            map_note = f" {session['map']} {change['delta']:+.2f}。"
         before = float(team.get("mentality") or 70)
         gain = scrim_mentality_gain(before)
         self.last_scrim = season.date
@@ -913,6 +923,7 @@ class Career:
         else:
             after = shift_mentality(team, gain)
             msg = f"训练赛打完。心态 +{gain:.2f} → {after:.1f}（边际递减，不涨个人能力）。"
+        msg += map_note
         self.log.append(msg)
         self.save()
         return msg
@@ -2253,6 +2264,7 @@ class Career:
             return None
         table = {r["name"]: r for r in season.vrs.table(season.teams, season.date)}
         row = table.get(team["name"]) or {}
+        from ..world.map_form import public as map_performance
         return {
             "kind": "team",
             "id": team["id"],
@@ -2265,6 +2277,7 @@ class Career:
             "vrs": row.get("vrs"),
             "strong_maps": team.get("strong_maps") or [],
             "weak_maps": team.get("weak_maps") or [],
+            "map_performance": map_performance(team),
             "crest": crest(team),
             "players": team["players"],
             "honours": awards.team_honours(season.records(include_matches=False), team["name"]),

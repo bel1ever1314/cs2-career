@@ -191,6 +191,69 @@ class DeploymentTests(unittest.TestCase):
             with self.assertRaises(PermissionError): season.launch_your_map('m')
         self.assertNotIn('cs2_session',match)
 
+    def _existing_buy_fixture(self):
+        from test_v15_core import fake_team
+        for relative in ('addons/metamod', 'addons/counterstrikesharp', 'addons/BotHider'):
+            (self.csgo / relative).mkdir(parents=True, exist_ok=True)
+        mod = self.root / 'mod'; mod.mkdir()
+        launch._copy_career_match(self.csgo)
+        target = launch._plugin_live(self.csgo, 'BotBuy')
+        target.mkdir(parents=True)
+        (target / 'BotBuy.dll').write_bytes(b'installed-career.10')
+        (target / 'BotBuy.deps.json').write_text('{}', encoding='utf-8')
+        a, b = fake_team('A', 90), fake_team('B', 86)
+        a['players'][0]['role'] = 'awp'
+        return mod, target, a, b
+
+    def test_3d_existing_plugins_refreshes_bundled_buy_offline_before_match(self):
+        mod, target, a, b = self._existing_buy_fixture()
+        # This exact presence-only check previously passed while CS2 loaded
+        # career.10 and ignored the new human_role=awp request.
+        launch.require_existing_plugin(self.csgo, 'BotBuy')
+        self.assertEqual(b'installed-career.10', (target / 'BotBuy.dll').read_bytes())
+        for suffix in ('dll', 'deps.json'):
+            (target / ('BotBuy.' + suffix + '.career-backup')).write_bytes(b'original-upstream-backup')
+        personal = self.csgo / 'cfg/autoexec.cfg'
+        personal.parent.mkdir(parents=True); personal.write_bytes(b'player crosshair and keys')
+        settings = self.csgo / 'addons/counterstrikesharp/configs/plugins/BotBuy/BotBuy.json'
+        settings.parent.mkdir(parents=True); settings.write_bytes(b'personal settings')
+        with patch.object(launch.urllib.request, 'urlopen', side_effect=AssertionError('no network')), \
+             patch.object(launch, 'install_mod', side_effect=AssertionError('no full reinstall')), \
+             patch.object(launch, '_prepare_match_skins', return_value={}), \
+             patch.object(launch, 'launch_cs2', side_effect=AssertionError('no Steam launch')):
+            before = None
+            for _ in range(2):
+                request = launch.build_request(a, b, 'A0', 'de_anubis', 't')
+                launch.prepare_game(self.csgo, mod, request, dict(launch.DEFAULTS), existing_plugins=True)
+                saved = json.loads((self.dst / 'match_request.json').read_text('utf-8'))
+                self.assertEqual('awp', saved['human_role'])
+                for name in ('BotBuy.dll', 'BotBuy.deps.json'):
+                    self.assertEqual((launch.vendor_root() / 'BotBuy' / name).read_bytes(), (target / name).read_bytes())
+                    self.assertEqual(b'original-upstream-backup', (target / (name + '.career-backup')).read_bytes())
+                stamps = [(target / name).stat().st_mtime_ns for name in ('BotBuy.dll', 'BotBuy.deps.json')]
+                if before is not None:
+                    self.assertEqual(before, stamps, 'Unchanged adapter must not be rewritten on the next launch')
+                before = stamps
+        self.assertEqual(b'player crosshair and keys', personal.read_bytes())
+        self.assertEqual(b'personal settings', settings.read_bytes())
+
+    def test_3d_locked_buy_update_prevents_steam_dispatch(self):
+        mod, target, a, b = self._existing_buy_fixture()
+        steam = self.root / 'steam.exe'; steam.write_bytes(b'fixture only')
+        cfg = dict(launch.DEFAULTS, steam_exe=str(steam), csgo_path=str(self.csgo), mod_source_path=str(mod))
+        request = launch.build_request(a, b, 'A0', 'de_anubis', 't')
+        with patch.object(launch, '_arm_cs2_environment', return_value='generation'), \
+             patch.object(launch, '_finish_cs2_environment') as restore, \
+             patch.object(launch, '_spawn_cs2_environment_watch'), \
+             patch.object(launch, '_copy_botbuy_patch', side_effect=PermissionError('locked BotBuy.dll')), \
+             patch.object(launch, 'launch_cs2') as steam_start:
+            with self.assertRaisesRegex(PermissionError, 'locked BotBuy'):
+                launch.start_match(a, b, 'A0', 'de_anubis', 't', config=cfg,
+                                   request_override=request, existing_plugins=True)
+            steam_start.assert_not_called()
+            restore.assert_called_once_with(self.csgo, 'generation')
+        self.assertEqual(b'installed-career.10', (target / 'BotBuy.dll').read_bytes())
+
     def test_observer_full_prepare_ten_avatars_and_quota(self):
         from cs2career.cs2.profiles import active_manifest
         from test_v15_core import fake_team

@@ -397,7 +397,28 @@ def settings_context(state):
     return {**cfg, 'revision': int(state.career.incident_state.get('career3d_service', {}).get('revision', 0)),
             'real_skins': bool(state.career.real_skins), 'steam_id': state.career.steam_id,
             'config': config_status(), 'setup': setup_context(), 'environment': environment_context(cfg),
-            'loadout_status': _skin_loadout_context(state.career, cfg), 'isolated': True}
+            'loadout_status': _skin_loadout_context(state.career, cfg), 'isolated': True,
+            **_live_settings(state)}
+
+
+# Each launched map freezes its own copy of these settings, and saving only
+# writes cs2.json. A running CS2 or a series map waiting for its result is
+# therefore no reason to refuse a preference; it applies from the next map.
+# The game folder is different: the waiting map's result is read from it.
+LIVE_SETTINGS_NOTE = '比赛进行中：正在打的这张图沿用开赛时的设置，保存后从下一张图开始生效。'
+_LIVE_LOCKED_FIELDS = ('csgo_path',)
+
+
+def _live_settings(state):
+    live = _live_match(state)
+    return {'live_match': live, 'apply_note': LIVE_SETTINGS_NOTE if live else ''}
+
+
+def _live_match(state):
+    career, arena, season = (getattr(state, name, None) for name in ('career', 'arena', 'season'))
+    return bool(getattr(career, 'training_session', None) or getattr(arena, 'pending', None) or any(
+        (m.get('cs2_session') or m.get('career3d_rts')) and not m.get('played')
+        for ev in getattr(season, 'events', None) or [] for m in ev.get('matches', [])))
 
 
 def settings_command(state, body):
@@ -421,11 +442,13 @@ def settings_command(state, body):
             raise ValueError('CS2 设置必须是有效的单行文本。')
         if key in options and value not in options[key]:
             raise ValueError('未知 CS2 设置选项：' + key)
-    if state.career.training_session or state.arena.pending or any(m.get('cs2_session') and not m.get('played')
-            for ev in state.season.events for m in ev.get('matches', [])):
-        raise ValueError('真实比赛正在启动或等待回传，请先完成比赛再修改设置。')
-    if patch and _running_cs2():
-        raise ValueError('请完全退出 CS2 后再修改开赛设置。')
+    live = _live_match(state)
+    changed = {key for key, value in patch.items() if _normalized_setting(key, value) != cfg.get(key)}
+    locked = changed & set(_LIVE_LOCKED_FIELDS)
+    if locked and live:
+        raise ValueError('比赛进行中不能修改 CS2 目录：这张图的战绩要从原目录读取。其他设置可以照常保存。')
+    if locked and _running_cs2():
+        raise ValueError('请完全退出 CS2 后再修改 CS2 目录。其他设置可以照常保存。')
     real = body.get('real_skins', bool(state.career.real_skins))
     steam = body.get('steam_id', state.career.steam_id)
     if type(real) is not bool or not isinstance(steam, str):
@@ -433,9 +456,7 @@ def settings_command(state, body):
     if real and (len(steam) != 17 or not steam.isdigit()):
         raise ValueError('启用游戏内换肤时，请填写 17 位数字 SteamID64；暂不使用可先关闭游戏内换肤。')
     for key, value in patch.items():
-        if key in _CS2_PATH_FIELDS:
-            value = _clean_config_path(value)
-        cfg[key] = str(launch.resolve_csgo_path(value)) if key == 'csgo_path' and value else value
+        cfg[key] = _normalized_setting(key, value)
     # save_settings also modifies a staged CS2 request and skin ownership.
     # The low-level atomic writer is scoped to the independent save root.
     launch.custom_profile_options(cfg)
@@ -443,7 +464,17 @@ def settings_command(state, body):
         launch._write_settings(launch._clean(cfg))
     if 'real_skins' in body or 'steam_id' in body:
         state.career.set_skin_pref(real, steam, sync=False)
-    return {'reason': '游戏路径、难度和可选换肤已保存在独立生涯。', 'settings': settings_context(state)}
+    reason = '游戏路径、难度和可选换肤已保存在独立生涯。'
+    if live and (changed or 'real_skins' in body or 'steam_id' in body):
+        reason = '设置已保存。正在打的这张图沿用开赛时的设置，从下一张图开始生效。'
+    return {'reason': reason, 'settings': settings_context(state)}
+
+
+def _normalized_setting(key, value):
+    from cs2career.cs2 import launch
+    if key in _CS2_PATH_FIELDS:
+        value = _clean_config_path(value)
+    return str(launch.resolve_csgo_path(value)) if key == 'csgo_path' and value else value
 
 
 def _existing_skin_plugin(cfg):
@@ -884,6 +915,8 @@ def scrim_command(state, action, body, *, dispatch=None):
     if not opponent or opponent['id'] == team['id']:
         raise ValueError('对手阵容已变化，请重新约赛')
     mp = _simulate(team, opponent, row['map'], row['id'])
+    from cs2career.world.map_form import apply_result
+    apply_result(team, opponent, mp, season.date, practice=True)
     report = dict(id=row['id'], date=season.date, source='simulated', map=mp,
                   teams=[team['name'], opponent['name']], human_id=state.arena.career_player_id(state))
     row.update(status='finished', report=report)

@@ -95,6 +95,7 @@ namespace CounterStrikeSharp.API.Core
     {
         public bool IsValid { get; set; } = true;
         public bool IsBot { get; set; } = true;
+        public bool IsHLTV { get; set; }
         public string PlayerName { get; set; } = "test bot";
         public bool ControllingBot { get; set; }
         public bool HasBeenControlledByPlayerThisRound { get; set; }

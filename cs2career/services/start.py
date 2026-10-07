@@ -172,6 +172,10 @@ def start_command(state, action, body):
     with state.operation():
         state.create_career(cleaned, start_attributes=attributes, start_metadata=metadata,
                             inherit_preferences=True, quick_mode=payload.get('quick_mode') is True)
+        if payload.get('unified_pace') is True:
+            from .career_pace import enable
+            enable(state)
+            state.persist()
         # The career receipt is the durable creation intent. Retire the draft
         # only after the new career and HTTP receipt commit. Startup completes
         # this idempotently if the process dies between the two directories.

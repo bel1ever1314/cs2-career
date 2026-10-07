@@ -58,15 +58,16 @@ func run() -> void:
 	CareerBridge.context = {"calendar":{"revision":19}, "settings":preferences()}
 	var settings := Settings.new(); settings.command_sender = send_fixture
 	var desktop := render_form(settings)
-	for key in ["bot_aim", "bot_nades", "bot_identity", "match_chat"]:
+	for key in ["bot_aim", "bot_nades", "match_chat"]:
 		check(option(desktop, key) != null and selected(desktop, key) == str(preferences()[key]), "existing preference displayed: " + key)
-	check(option(desktop, "bot_aim").item_count == 3 and option(desktop, "bot_nades").item_count == 5 and option(desktop, "bot_identity").item_count == 2 and option(desktop, "match_chat").item_count == 3, "all supported options are selectable")
+	check(option(desktop, "bot_aim").item_count == 3 and option(desktop, "bot_nades").item_count == 5 and option(desktop, "match_chat").item_count == 3, "all supported options are selectable")
 	check(option(desktop, "bot_movement") == null and desktop.find_child("DeviceBotMovementPreset", true, false) != null, "classic movement is explained without exposing retired experiments")
 	check(not settings.dirty and sent.is_empty() and not (desktop.find_child("DeviceSkinEnabled", true, false) as CheckBox).button_pressed, "render neither saves nor enables skins")
 	settings.set_value("steam_exe", "F:/Steam/steam.exe")
 	settings.submit()
 	check(sent.size() == 1 and sent[-1].path == "/api/3d/settings" and sent[-1].body.revision == 19, "normal save uses the existing revision-bound endpoint")
-	for key in ["bot_aim", "bot_nades", "bot_identity", "bot_movement", "match_chat"]:
+	check(option(desktop, "bot_identity") == null and sent[-1].body.settings.bot_identity == "player", "bot identity is fixed to named competitors")
+	for key in ["bot_aim", "bot_nades", "bot_movement", "match_chat"]:
 		check(sent[-1].body.settings[key] == preferences()[key], "path-only edit preserves option: " + key)
 	check(sent[-1].body.settings.skins_source_path == "D:/MySkins" and sent[-1].body.settings.skins_inventory_mode == "external" and sent[-1].body.settings.skin_tools_enabled == true, "all existing skin choices remain unchanged")
 	check(not sent[-1].body.settings.has("skin_inspect_enabled") and not sent[-1].body.real_skins and sent[-1].body.steam_id == "", "unexposed preferences are left to backend merge and no skin opt-in is fabricated")
@@ -77,9 +78,9 @@ func run() -> void:
 	var saved := preferences(); saved.steam_exe = "F:/Steam/steam.exe"
 	settings.finished("/api/3d/settings", {"ok":true, "settings":saved, "reason":"fixture saved"})
 	check(not settings.pending and not settings.saving and not settings.dirty and not option(desktop, "bot_aim").disabled and settings.message == "fixture saved", "save completion unlocks the form and reports the outcome")
-	choose(desktop, "bot_aim", "head"); choose(desktop, "bot_nades", "off"); choose(desktop, "bot_identity", "player"); choose(desktop, "match_chat", "off")
+	choose(desktop, "bot_aim", "head"); choose(desktop, "bot_nades", "off"); choose(desktop, "match_chat", "off")
 	var phone := render_form(settings, true)
-	check(selected(phone, "bot_aim") == "head" and selected(phone, "bot_nades") == "off" and selected(phone, "bot_identity") == "player" and selected(phone, "match_chat") == "off", "compact phone renders the same unsaved draft")
+	check(selected(phone, "bot_aim") == "head" and selected(phone, "bot_nades") == "off" and option(phone, "bot_identity") == null and settings.draft.bot_identity == "player" and selected(phone, "match_chat") == "off", "compact phone renders the same unsaved draft")
 	settings.submit()
 	check(sent[-1].body.settings.bot_aim == "head" and sent[-1].body.settings.bot_nades == "off" and sent[-1].body.settings.bot_identity == "player" and sent[-1].body.settings.match_chat == "off", "actual choices are serialized without turning custom/off into defaults")
 	check(option(desktop, "bot_nades").disabled and option(phone, "bot_nades").disabled, "shared write locks both device forms")
@@ -96,7 +97,7 @@ func run() -> void:
 	var legacy := Settings.new(); legacy.command_sender = send_fixture
 	var legacy_form := render_form(legacy)
 	check(selected(legacy_form, "bot_aim") == "body" and selected(legacy_form, "bot_nades") == "less" and selected(legacy_form, "match_chat") == "custom", "flat preferences without difficulty are not replaced by diagnostic config")
-	check(selected(legacy_form, "bot_identity") == "player" and selected(legacy_form, "difficulty") == "Medium" and not legacy.dirty, "missing legacy fields use defaults without automatic save")
+	check(option(legacy_form, "bot_identity") == null and legacy.draft.bot_identity == "player" and selected(legacy_form, "difficulty") == "Medium" and not legacy.dirty, "missing legacy fields use defaults without automatic save")
 	legacy.submit()
 	check(sent[-1].body.settings.bot_movement == "classic" and sent[-1].body.settings.bot_nades == "less", "legacy save fills only missing defaults and keeps configured values")
 	legacy_form.free()

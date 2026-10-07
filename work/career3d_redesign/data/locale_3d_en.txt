@@ -1796,3 +1796,204 @@ E 跳过倒数，直接揭晓前三	E Skip countdown to the top three
 已返回训练赛预约，可以重新进入 CS2 或模拟。	Returned to the booking. You can re-enter CS2 or simulate.
 没有这个训练赛操作。	Unknown practice action.
 还没到约定日期。	The booked date has not arrived yet.
+CS2 里请打 %s，阵营 %s。地图或阵营不对，这张图的战绩不会录入。	In CS2, play %s on the %s side. A different map or side will not be recorded.
+进入 CS2 后：与机器人游戏 → 竞技 → 选 %s，再加入你在这里选的开局阵营。	In CS2: Play with Bots → Competitive → choose %s, then join the starting side you pick here.
+CT 开场 · 进入 CS2 打 %s	Start on CT · Play %s in CS2
+T 开场 · 进入 CS2 打 %s	Start on T · Play %s in CS2
+T（恐怖分子）	T (Terrorists)
+CT（反恐精英）	CT (Counter-Terrorists)
+第%d图 · %s	Map %d · %s
+胜 %s	Won %s
+负 %s	Lost %s
+正在进行	In progress
+本图	This map
+未进行	Not played
+正在进行 · 第%d图 %s	In progress · Map %d %s
+本图 · 第%d图 %s	This map · Map %d %s
+切换到本场地图	Switch to this match's map
+正在编辑本场比赛地图 %s。	Editing this match's map, %s.
+赛事安排为 %s；正在编辑 %s，进入该地图即可使用对应战术。	Scheduled map: %s. Editing %s; its tactics are available when playing that map.
+切换到 %s	Switch to %s
+比赛进行中：正在打的这张图沿用开赛时的设置，保存后从下一张图开始生效。	Match in progress: the current map keeps the settings it started with. Saved changes apply from the next map.
+设置已保存。正在打的这张图沿用开赛时的设置，从下一张图开始生效。	Settings saved. The current map keeps the settings it started with; changes apply from the next map.
+比赛进行中不能修改 CS2 目录：这张图的战绩要从原目录读取。其他设置可以照常保存。	The CS2 folder cannot change during a match: this map's result is read from the current folder. Other settings can still be saved.
+请完全退出 CS2 后再修改 CS2 目录。其他设置可以照常保存。	Fully exit CS2 before changing the CS2 folder. Other settings can still be saved.
+队伍地图表现	Team map form
+强图	Strong
+弱图	Weak
+常规	Regular
+专项练图	Map practice
+每天选一张，跨日结算一次。越熟练提升越慢，不增加个人属性。	Choose one map per day. Practice settles when the date advances, with diminishing gains and no individual attribute boosts.
+安排今天的专项练图	Schedule today's map practice
+专项练图已安排，跨日后结算；今天只训练这一张图。	Map practice scheduled. One map will be trained when the date advances.
+今天的专项训练已经完成。	Today's map practice is already complete.
+加入队伍后才能安排专项练图。	Join a team before scheduling map practice.
+请选择有效的训练地图。	Choose a valid practice map.
+地图结果缺少有效胜方。	The map result needs a valid winner.
+训练赛获胜	Practice win
+训练赛失利	Practice loss
+正式比赛获胜	Official match win
+正式比赛失利	Official match loss
+长期 %.1f · 状态 %+.1f · 近 %d 图 %d 胜	Base %.1f · Form %+.1f · Last %d maps: %d wins
+本场安排 · 第 %d 图 · %s / %s	Scheduled · Map %d · %s / %s
+BP 地图预览 · %s / %s	Veto map preview · %s / %s
+确认选择 %s	Confirm pick: %s
+确认禁用 %s	Confirm ban: %s
+当前编辑地图	Currently editing
+已安排	Scheduled
+14 天未打或练图后逐渐生疏；比赛和专项练图可保持熟悉度。	Familiarity fades after 14 inactive days. Matches and map practice keep it fresh.
+已 %d 天未打或练图	No matches or practice for %d days
+长期未练图	Map inactivity
+生涯进行中	Career in progress
+比赛准备	Match preparation
+默认逐图模拟，随时接手下一张；暂停后可以自由活动。	Simulate one map at a time. Take over the next map, or pause to explore.
+继续下一赛季	Continue to next season
+Major 休赛期 · 可以分配属性点，未使用的点数会保留。	Major break: allocate attribute points. Unspent points carry over.
+分配属性点	Allocate attribute points
+结束休赛停留	Finish the break
+下一次推进会停在开赛准备阶段。	The next advance stops at match preparation.
+处理待办事项	Review pending decisions
+取消预约	Cancel takeover
+直接看本图结果	Show this map's result
+下一张图	Next map
+开始本图	Start this map
+继续 · 	Continue · 
+下一场自己打	Play next match
+下一图自己打	Play next map
+本图自己打	Play this map
+下一场 RTS	Next match: RTS
+下一图 RTS	Next map: RTS
+本图 RTS	This map: RTS
+已暂停 · 关闭电脑后可以自由活动	Paused. Close the computer to explore.
+下一图将由你亲自上场	You will play the next map in CS2
+下一图将由你 RTS 指挥	You will command the next map in RTS
+%d 秒后继续 · 可随时接手或暂停	Continuing in %d seconds. Take over or pause at any time.
+逐回合战报 · 可以提前预约下一图	Round-by-round report. Reserve a takeover for the next map.
+模拟当前地图	Simulate this map
+生涯推进 ›	Career progression ›
+手动 BP · 暂停倒计时	Manual veto: pause countdown
+模拟当前未完成地图	Simulate the unfinished map
+下一张 · 系列赛 	Next map · Series 
+比赛默认逐图模拟，可以随时暂停或亲自上场。	Matches simulate one map at a time. Pause or take over whenever you like.
+返回本场席位 · 按 E 入座，继续比赛	Return to your match seat. Press E to sit and continue.
+返回本场席位 · 到你的空位按 E 入座	Return to your match seat. Press E at your empty chair.
+请先创建一段仍在进行的生涯。	Create an active career first.
+地图进度已变化，请刷新后选择；本次未执行。	Map progress has changed. Refresh and choose again; nothing was executed.
+请选择模拟当前图或剩余系列赛。	Choose this map or the remaining series.
+缺少当前地图编号，请刷新比赛。	The map identity is missing. Refresh the match.
+统一生涯节奏已启用。	Unified career progression is enabled.
+当前比赛尚未到入座时间。	This match is not ready for you to take your seat.
+已记住本场席位，后续地图无需重新入场。	Your seat is saved for this series. Later maps do not repeat the entrance.
+新赛季已开始。	The new season has begun.
+请在本赛季结束后继续下一赛季。	Finish this season before continuing to the next one.
+统一生涯按地图选择玩法，不再切换赛季模式。	Choose how to play each map; season modes are no longer switched.
+无效的赛程停止位置。	Invalid calendar stopping point.
+请先确认统一生涯节奏。	Enable unified career progression first.
+Major 休赛期到了，请先处理休赛安排。	The Major break has arrived. Review your break plans first.
+请先结束当前对局。	Finish the current game first.
+返回本场席位，继续当前比赛；已完成地图保留。	Return to your match seat to continue. Completed maps are preserved.
+比赛默认逐图模拟，每张图之间停 4 秒，可以接手 CS2、RTS 或暂停。暂停后可以自由活动。	Matches simulate map by map with a 4-second pause between maps, where you can take over in CS2 or RTS, or pause. While paused you can move around freely.
+自动推进中	Auto-advancing
+完成后会自动继续	Continues automatically when done
+第 %d 图未完成 · CS2 已退出	Map %d unfinished · CS2 exited
+在上方选择：重新进入、模拟本图或改用 RTS。已完成的地图会保留。	Choose above: re-enter, simulate this map or switch to RTS. Finished maps are kept.
+第 %d 图 · %s 进行中	Map %d · %s in progress
+打完回到这里，在上方录入战绩。	When you finish, come back and record the result above.
+逐回合战报	Round-by-round report
+可以直接看结果，或提前预约下一图由你接手。	Skip to the result, or book the next map for yourself now.
+系列赛结束 · %s	Series over · %s
+%d 秒后进入下一场	Next match in %d s
+已暂停 · 点继续进入下一场	Paused · continue to the next match
+下一张 · 第 %d 图 %s	Next · Map %d %s
+%d 秒后自动模拟	Simulating in %d s
+已暂停 · 可以模拟或接手	Paused · simulate or take over
+模拟第 %d 图	Simulate map %d
+第 %d 图自己打	Play map %d yourself
+第 %d 图 RTS	Map %d in RTS
+暂无已到期的比赛	No match due
+推进赛程中……	Advancing the schedule…
+已暂停 · 继续后推进到下一场比赛日	Paused · continue to advance to the next match day
+地图 BP · 轮到你方选图	Map veto · your pick
+地图 BP · 轮到你方禁图	Map veto · your ban
+地图 BP · 等待 %s	Map veto · waiting for %s
+在上方点地图查看双方评价，再确认。	Click a map above to compare both teams, then confirm.
+第 %d 图 %s · 亲自上场	Map %d %s · playing yourself
+在上方选择 CT 或 T 开场，进入 CS2。	Choose a CT or T start above to enter CS2.
+改为模拟本图	Simulate this map instead
+改用 RTS	Switch to RTS
+第 %d 图 · 等待 BP	Map %d · awaiting veto
+%d 秒后由队长自动 BP 并模拟	Captain vetoes and simulates in %d s
+已暂停 · 可以模拟、接手，或在上方手动 BP	Paused · simulate, take over, or veto manually above
+下一图由你亲自上场	You will play the next map yourself
+下一图由你 RTS 指挥	You will command the next map in RTS
+自动推进	Auto-advance
+重新进入会重开当前未完成地图；已完成的地图和战绩保留。	Re-entering restarts the unfinished map; finished maps and stats are kept.
+第 1 图开始前由队长自动完成地图 BP。想自己选图，可以手动 BP。	The captain completes the map veto before map 1. Use manual veto to choose maps yourself.
+手动 BP	Manual veto
+双方地图评价 · 你方 : 对手	Map ratings · you : opponent
+轮到你方选图	Your pick
+轮到你方禁图	Your ban
+交给队长完成 BP	Let the captain finish the veto
+决胜 %s	Decider %s
+%s 选 %s	%s picked %s
+%s 禁 %s	%s banned %s
+正在进行 · 第%d图 %s · CS2 已退出，本图未完成	In progress · Map %d %s · CS2 exited, map unfinished
+正在进行 · 第%d图 %s · 你在 %s 方	In progress · Map %d %s · you are on %s
+本图 · 第%d图 %s · 决胜图	This map · Map %d %s · decider
+本图 · 第%d图 %s · %s 选图	This map · Map %d %s · picked by %s
+下一张 · 第%d图 %s · 系列赛 %s	Next · Map %d %s · series %s
+CS2 生涯模拟器	CS2 Career Simulator
+正在载入生涯……	Loading your career…
+正在准备生涯数据……	Preparing career data…
+正在启动生涯后台……	Starting the career service…
+查看界面	Open interface
+自建战队队标	Custom team logo
+上传后用于队伍资料、场馆和比赛头像。也可以单独选择 CS2 内的头像。	Use your logo in team profiles, venues and match avatars, or choose a separate CS2 avatar.
+上传队标（同时用于 CS2）	Upload team logo (also for CS2)
+单独设置 CS2 头像	Set a separate CS2 avatar
+PNG / JPG / WebP，最大 8 MB；本地保存。CS2 内沿用灰黑半透明底，下一次开赛生效。	PNG / JPG / WebP, up to 8 MB, stored locally. CS2 uses a translucent graphite tile from the next match.
+选择战队队标	Choose team logo
+选择 CS2 头像	Choose CS2 avatar
+请选择 PNG、JPG 或 WebP 图片。	Choose a PNG, JPG or WebP image.
+图片无法读取，或超过 8 MB。	The image could not be read or exceeds 8 MB.
+图片无法读取，宽高请不超过 4096 像素。	The image could not be read. Width and height must not exceed 4096 pixels.
+这张图片完全透明，请选择有内容的队标。	This image is fully transparent. Choose a visible logo.
+队标预览	Logo preview
+确认使用这张队标？	Use this team logo?
+生涯队标	Career logo
+所选图片	Selected image
+CS2 顶部 / 计分板	CS2 HUD / Scoreboard
+保存队标	Save logo
+能力 · 当前	Ability · Current
+左侧为已收下的数值 · ↑ 表示高于当前值，悬停可看差值。	Your saved values are on the left. An up arrow marks improvements; hover to see the difference.
+当前已收下：%s	Current selection: %s
+尚未选择这项能力	No value selected yet
+比当前 %s 提高 +%s	Above current %s by +%s
+比当前 %s 降低 %s	Below current %s by %s
+与当前 %s 持平	Equal to current %s
+尚未选择，可作为这项能力的初始值	No value chosen yet; this can be your starting value.
+队标已保存，CS2 顶部与计分板头像将在下一次开赛时同步。	Logo saved. CS2 HUD and scoreboard avatars will update at the next match.
+线下比赛 · 等待入座	LAN match · Waiting to take your seat
+在上方前往比赛场馆，到你的选手席入座。	Use the venue button above and take your player seat.
+前往 %s 入座	Go to %s and take your seat
+这是线下比赛，到你的选手席入座后再选择 CT／T 开场。	This is a LAN match. Take your player seat before choosing CT or T.
+启动请求未发出，请稍后重试。	The launch request was not sent. Please try again shortly.
+退出游戏	Exit game
+*.png,*.jpg,*.jpeg,*.webp ; 队标图片	*.png,*.jpg,*.jpeg,*.webp ; Team logo images
+请选择有效的静态 PNG 图片。	Choose a valid static PNG image.
+PNG 数据不完整。	The PNG data is incomplete.
+队标图片太大，请重新选择。	The logo image is too large. Please choose another.
+只能修改自己创建并管理的战队队标。	You can only change the logo of a team you created and manage.
+当前队伍已变化，请刷新后重新选择图片。	Your team has changed. Refresh and select the image again.
+请选择队标或 CS2 头像。	Choose a team logo or CS2 avatar.
+PNG 校验失败。	The PNG checksum is invalid.
+PNG 缺少尺寸。	The PNG is missing its dimensions.
+PNG 像素数据无效。	The PNG pixel data is invalid.
+队标图片编码无效。	The logo image encoding is invalid.
+自建战队可以在这里设置队标。	Set your custom team's logo here.
+队标保存位置异常，请检查存档目录。	The logo destination is invalid. Please check the save folder.
+PNG 尺寸无效。	The PNG dimensions are invalid.
+请重新选择图片，由程序生成队标尺寸。	Choose the image again so the game can resize it.
+PNG 图像块顺序无效。	The PNG image chunks are out of order.
+PNG 结尾无效。	The PNG end chunk is invalid.
+只接受程序生成的静态 PNG，不支持动画或附加内容。	Only a game-normalized static PNG is accepted, without animation or extra content.

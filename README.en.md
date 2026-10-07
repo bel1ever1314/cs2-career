@@ -8,7 +8,7 @@ The career now has a 3D world to walk around in. You're a chicken with a dorm ro
 
 [Download 1.7.2](https://github.com/bel1ever1314/cs2-career/releases/latest) · [Download the 1.6.0 desktop release](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.6.0-hotfix.1) · [Changelog](RELEASE_NOTES.md) · [Feedback](https://github.com/bel1ever1314/cs2-career/issues)
 
-The current version is **1.7.2**, with per-map tactic loading, custom VPK templates, uncapped Rating and match-result fixes. The **1.6.0-hotfix.1** desktop version remains available separately.
+The current version is **1.7.2**, with per-map simulation / CS2 / RTS choices, dynamic map form, custom club logos, completed opening rosters for three eras, and smoother recovery after leaving CS2. The **1.6.0-hotfix.1** desktop version remains available separately.
 
 ## Getting started
 
@@ -25,12 +25,12 @@ Controls: `WASD` to walk, right-mouse drag to rotate the club view, `E` to use o
 
 - **Start with your own player.** Choose the 2024, 2025, or 2026 era, draw teams and player abilities, and customize feathers, comb, beak, and jersey colors. You can also start by taking over a pro.
 - **Spend time around the club.** Walk through the dorm and club and talk to teammates, coaches, and staff. Read email and chats on your phone, check the calendar and your stats, and allocate attribute points. A sleep transition takes you into the next day.
-- **Plan the season at your computer.** Enter tournaments, browse teams and players, read reports and news, manage rosters and contracts, handle club finances and transfers, schedule practice, or start a fast season.
+- **Plan the season at your computer.** Enter tournaments, browse teams and players, read reports and news, manage rosters and contracts, handle club finances and transfers, schedule scrims or map practice, then choose when to advance.
 - **Choose how to play a match.** Simulate career series map by map, play them in CS2, or command your team in RTS. RTS lets you switch between command, player control, and spectating. The local ladder and custom rooms have their own player drafts and map vetoes.
 - **Draw your tactics.** Use the meeting-room board to set routes, pauses, observation directions, and running or walking for five slots, then save them for matches. Zoom, pan, and import or export tactics.
 - **Visit the stage and collect honors.** Enter a small LAN room or a large venue and continue the match from your seat. Follow championships, MVPs, EVPs, positional best teams, and the annual Top 20. If your player makes the annual top three, walk up to collect the award.
 - **Collect and equip skins.** Browse the market, manage inventory, equip items, and open cases using fictional in-game funds. These items do not enter your Steam inventory.
-- **Continue at your own pace.** Use manual saves and loads, or follow a fast season through matches, story choices, and off-season windows.
+- **Continue at your own pace.** Use manual saves and loads. Automatic progression pauses for four seconds between maps so you can take over the next map or stop to train, decorate and read messages.
 
 The local ladder uses your current career player. The two highest-rated participants captain the teams, draft players, and veto maps. Ladder points are separate from career VRS, prize money, and attribute points. Custom rooms let you arrange both five-player rosters, control one participant, or watch ten bots.
 

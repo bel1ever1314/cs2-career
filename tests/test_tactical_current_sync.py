@@ -126,9 +126,30 @@ class CurrentTacticSyncTests(unittest.TestCase):
     def test_other_map_saved_without_overwriting_current_match(self):
         before = self.snapshot()
         value = adapters.tactics_command(self.state, 'save', {'revision': 7, 'map': 'de_mirage', 'tactic': row('m_1')})
-        self.assertEqual('map_mismatch', value['publication']['status'])
+        self.assertEqual('synced', value['publication']['status'])
         self.assertEqual('de_dust2', value['publication']['prepared_map'])
+        self.assertEqual('de_mirage', value['publication']['published_map'])
+        self.assertEqual(['m_1'], value['publication']['published_ids'])
+        after = self.snapshot()
+        for name, data in before.items():
+            self.assertEqual(data, after[name])
+        self.assertEqual(len(before) + 1, len(after))
+        book = json.loads((self.folder / 'tactical_playbooks/de_mirage.json').read_bytes())
+        self.assertEqual('de_mirage', book['map'])
+
+    def test_other_map_same_id_keeps_separate_routes_and_waits_if_game_running(self):
+        self.publish(sync=True)
+        before = self.snapshot()
+        with patch.object(launch, 'cs2_is_live_strict', return_value=True):
+            value = adapters.tactics_command(self.state, 'save', {'revision': 7, 'map': 'de_mirage', 'tactic': row()})
+        self.assertEqual('pending', value['publication']['status'])
         self.unchanged(before)
+        value = launch.tactical_publication(self.csgo, 'de_mirage', [self.session], sync=True)
+        self.assertTrue(value['synced'])
+        for code in ('de_dust2', 'de_mirage'):
+            book = json.loads((self.folder / 'tactical_playbooks' / (code + '.json')).read_bytes())
+            self.assertEqual(code, book['map'])
+            self.assertEqual('d_1', book['tactics'][0]['id'])
 
     def test_identity_nonce_and_map_must_all_match(self):
         for change in (dict(nonce='foreign'), dict(expected_player_ids=['wrong'] * 10), dict(cs2_map='de_mirage')):

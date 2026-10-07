@@ -63,7 +63,7 @@ def cached_skin_art(skin_id: str, art: dict) -> str:
     return ""
 
 
-def resource_context() -> dict:
+def resource_context(state=None) -> dict:
     media, parent = media_manifest()
     backgrounds = {}
     sources = {}
@@ -90,6 +90,13 @@ def resource_context() -> dict:
             if path:
                 team_backgrounds[name] = path
                 team_sources[name] = row.get('source', '')
+    if state is not None:
+        from .team_marks import mark_path
+        for team in state.season.teams:
+            path = mark_path(team)
+            if path:
+                team_backgrounds[team['name']] = str(path)
+                team_sources[team['name']] = 'player-uploaded'
     return {"media": {"map_backgrounds": backgrounds, "map_sources": sources,
                        "team_backgrounds": team_backgrounds, "team_sources": team_sources,
                        "skin_cache_roots": media.get("skin_cache_roots", []),

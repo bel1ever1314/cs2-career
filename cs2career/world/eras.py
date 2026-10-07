@@ -29,9 +29,8 @@ ERA_META = {
     },
 }
 
-# Legacy opening table among the original 49 orgs. The 2024/2025 manifests override
-# both this ranking and the organisation list; these tables remain for eras
-# which have not yet been reconstructed (currently 2026).
+# Legacy opening table among the original 49 orgs. All three built-in manifests
+# override this table; it remains only as an adapter for legacy/addon callers.
 # 2024-01-01 HLTV, 2025-01-06 HLTV, 2026-01-05 Valve ranking.
 # Skipped orgs (Monte, Cloud9, …) drop out; Eternal Fire → Aurora,
 # Grayhound → FlyQuest. Unlisted orgs go to the tail in TEAMS order.

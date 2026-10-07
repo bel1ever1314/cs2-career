@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter
+from copy import deepcopy
 import hashlib
 import json
 from pathlib import Path
@@ -134,7 +135,65 @@ def build_pack(lab=DEFAULT_LAB):
     snapshot = json.loads((lab / "snapshot.json").read_text(encoding="utf-8"))
     parameters = json.loads((lab / "parameters.json").read_text(encoding="utf-8"))
     report = model.build_report(snapshot, parameters)
-    return compact_report(report, runtime)
+    pack = compact_report(report, runtime)
+    manifests = [json.loads(path.read_text(encoding="utf-8"))
+                 for path in sorted((ROOT / 'cs2career/data/eras').glob('20[0-9][0-9].json'))
+                 if path.stem in ('2024', '2025', '2026')]
+    return reconcile_opening_rosters(pack, manifests, report, model, parameters, runtime)
+
+
+def reconcile_opening_rosters(pack, manifests, report, model, parameters, runtime):
+    """Join identity updates to the approved model, never copy a slot's stats.
+
+    Transfers retain the person's same-era BASE and reference role. A genuinely
+    new identity gets the lab's unchanged provisional-prior calculation; roster
+    articles are kept separately and never passed in as performance evidence.
+    """
+    result = deepcopy(pack)
+    eras = {world['era'] for world in manifests}
+    people = {}
+    for row in pack['records']:
+        if row['kind'] in ('world_roster', 'free_agent') and not row['placeholder']:
+            people.setdefault((row['era'], row['name'].casefold()), row)
+    records = [deepcopy(row) for row in pack['records']
+               if row['kind'] != 'world_roster' or row['era'] not in eras]
+    for world in manifests:
+        for team in world['teams']:
+            for player in team['players']:
+                donor = people.get((world['era'], player['name'].casefold()))
+                identity = ['world_roster', world['era'], team['id'], player['name']]
+                record_id = world['era'] + ':opening:' + _digest(identity)[:24]
+                if donor:
+                    row = deepcopy(donor)
+                    if (row['kind'], row['team_id'], row['name']) != ('world_roster', team['id'], player['name']):
+                        row['id'] = record_id
+                    row.update(kind='world_roster', name=player['name'], team_id=team['id'], team=team['name'])
+                else:
+                    item = {'id': record_id, 'era': world['era'], 'as_of': world['as_of'],
+                            'team_id': team['id'], 'team': team['name'], 'kind': 'world_roster',
+                            'player': {'name': player['name'], 'role': player['role'],
+                                       'ability': player['ability'], 'stats': {}}}
+                    identities = {player['name']: {'canonical_name': player['name'],
+                                                   'identity_match': 'exact_name', 'hltv_id': None}}
+                    new = model.build_row(item, identities, {}, {}, parameters)
+                    row = compact_report({**report, 'rows': [new]}, runtime)['records'][0]
+                row['roster_provenance'] = {
+                    'revision': world['revision'], 'roster_as_of': team.get('roster_as_of') or
+                    team.get('announced_at') or team.get('observed_at'),
+                    'sources': deepcopy(team['sources']), 'ability_reused': donor is not None,
+                }
+                records.append(row)
+    result['records'] = records
+    result['roster_manifest_hash'] = _digest(manifests)
+    result['coverage'] = {
+        'records': len(records), 'position_views_checked': len(records) * len(runtime.POSITIONS),
+        'by_kind': dict(Counter(row['kind'] for row in records)),
+        'by_era': dict(Counter(row['era'] for row in records)),
+        'by_evidence': dict(Counter(row['evidence']['level'] for row in records)),
+    }
+    result.pop('pack_id', None)
+    result['pack_id'] = _digest(result)
+    return result
 
 
 def main():

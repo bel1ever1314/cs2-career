@@ -82,6 +82,7 @@ func paint() -> void:
 	if map_index < 0 and rows.is_empty(): map_index = 0
 	var map_row: Dictionary = maps[clampi(map_index, 0, maps.size() - 1)]
 	TeamVisuals.map_banner(body, str(map_row.get("map", "")), "全场战绩" if map_index < 0 else "本图 · " + score_text(map_row.get("score", "")), 100 if narrow else 145)
+	preload("res://scripts/map_form_panel.gd").changes(body, maps if map_index < 0 else [map_row])
 	if map_index >= 0 or rows.is_empty(): rows = rows_for_map(map_row)
 	if rows.is_empty():
 		UI.label(body, "这场比赛未保存完整选手数据。", 13, UI.MUTED)

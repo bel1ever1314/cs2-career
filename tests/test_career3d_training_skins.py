@@ -16,7 +16,7 @@ class TrainingSkinHandoffTests(unittest.TestCase):
         for mode, enabled in (('career', True), ('career', False), ('external', True)):
             with self.subTest(mode=mode, enabled=enabled):
                 career = SimpleNamespace(unsigned=False, last_scrim='', player_name='home0',
-                    real_skins=enabled, over=lambda: False, my_team=lambda teams: team, remember_training=Mock())
+                    real_skins=enabled, over=lambda: False, my_team=lambda teams: team, remember_training=Mock(), training_session={})
                 state = ApplicationDouble(career=career,
                     season=SimpleNamespace(date='2026-10-04', teams=[team, opponent]))
                 cfg = dict(skins_inventory_mode=mode)

@@ -27,6 +27,7 @@ var commit_button: Button
 var retry_button: Button
 var team_state: Label
 var axis_labels: Dictionary = {}
+var current_labels: Dictionary = {}
 var candidates: Array[Dictionary] = []
 var history: Label
 ## Save first, reveal second. The new outcome must not appear behind the reel.
@@ -62,6 +63,7 @@ func render(parent: Node, meta: Dictionary) -> void:
 	card_root = UI.card(parent)
 	card_root.name = "CareerAttributeDraw"
 	axis_labels.clear()
+	current_labels.clear()
 	candidates.clear()
 	commit_button = null
 	team_state = null
@@ -110,6 +112,7 @@ func render_team(parent: Node, draw: Dictionary) -> void:
 	UI.label(title_row, "VRS %s · #%d" % [number(draw.get("vrs_points", 0)), int(draw.get("vrs_rank", 0))], 13, UI.MUTED)
 	team_state = UI.label(parent, "", 12, UI.MUTED)
 	team_state.name = "CareerTeamDrawState"
+	UI.label(parent, "左侧为已收下的数值 · ↑ 表示高于当前值，悬停可看差值。", 12, UI.MUTED)
 	var table := GridContainer.new()
 	table.name = "CareerTeamAbilities"
 	table.columns = 6
@@ -117,7 +120,7 @@ func render_team(parent: Node, draw: Dictionary) -> void:
 	table.add_theme_constant_override("h_separation", 7)
 	table.add_theme_constant_override("v_separation", 5)
 	parent.add_child(table)
-	UI.label(table, "能力", 13, UI.MUTED)
+	UI.label(table, "能力 · 当前", 13, UI.MUTED)
 	var players: Array = draw.get("players", [])
 	for player in players:
 		var caption := VBoxContainer.new()
@@ -128,7 +131,11 @@ func render_team(parent: Node, draw: Dictionary) -> void:
 		UI.label(name_row, str(player.get("source_player", player.get("name", ""))), 13)
 		TeamVisuals.badge(name_row, str(draw.get("source_team", "")), 18)
 	for axis in current().get("axes", []):
-		UI.label(table, str(axis.name), 14).vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		var current_label := UI.label(table, "", 14)
+		current_label.name = "CareerCurrent_" + str(axis.id)
+		current_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		current_label.custom_minimum_size.x = 106
+		current_labels[str(axis.id)] = current_label
 		for player in players:
 			var axis_id := str(axis.id)
 			var player_id := str(player.get("player_id", player.get("source_player_id", "")))
@@ -197,6 +204,10 @@ func refresh_controls() -> void:
 		var filled := not field_id(axis.get("selected_player_id")).is_empty()
 		label.text = "%s  %s\n%s" % [str(axis.name), number(axis.get("selected_value", 0)) if filled else "—", str(selection.get("source_player", "待选择"))]
 		label.modulate = UI.INK if filled else UI.MUTED
+		var current_label: Label = current_labels.get(str(axis.id))
+		if is_instance_valid(current_label):
+			current_label.text = "%s  %s" % [str(axis.name), number(axis.get("selected_value", 0)) if filled else "—"]
+			current_label.tooltip_text = "当前已收下：%s" % str(selection.get("source_player", "")) if filled else "尚未选择这项能力"
 	var pending := field_id(session.get("pending_draw_id"))
 	var allowed: Array = session.get("selectable_axes", [])
 	for entry in candidates:
@@ -206,6 +217,10 @@ func refresh_controls() -> void:
 		var chosen: bool = proposal.get("axis", "") == choice.axis and proposal.get("player_id", "") == choice.player_id and proposal.get("draw_id", "") == choice.draw_id
 		button.disabled = locked or pending != str(choice.draw_id) or not str(choice.axis) in allowed
 		var rarity: Color = choice.band_color
+		var comparison := compare_choice(choice)
+		button.text = number(choice.value) + ("  ↑" if comparison.get("higher", false) else "")
+		button.set_meta("higher_than_current", comparison.get("higher", false))
+		button.tooltip_text = "%s · %s %s\n%s" % [choice.source_player, choice.axis_name, number(choice.value), comparison.text]
 		button.add_theme_stylebox_override("normal", UI.style(UI.MINT if chosen else rarity.lightened(0.93), 5, 7, UI.GREEN if chosen else rarity.lightened(0.45)))
 		button.add_theme_color_override("font_color", UI.GREEN if chosen else rarity.darkened(0.38))
 	if is_instance_valid(commit_button):
@@ -220,6 +235,18 @@ func refresh_controls() -> void:
 	if is_instance_valid(retry_button): retry_button.visible = not retry_body.is_empty(); retry_button.disabled = not pending_path.is_empty()
 	if is_instance_valid(history): history.text = history_text(session)
 	if start != null: start.refresh_next_button()
+
+func compare_choice(choice: Dictionary) -> Dictionary:
+	for axis in current().get("axes", []):
+		if str(axis.id) != str(choice.axis): continue
+		if field_id(axis.get("selected_player_id")).is_empty(): break
+		var baseline := float(axis.get("selected_value", 0))
+		var delta := snappedf(float(choice.value) - baseline, 0.1)
+		var text := "与当前 %s 持平" % number(baseline)
+		if delta > 0: text = "比当前 %s 提高 +%s" % [number(baseline), number(delta)]
+		elif delta < 0: text = "比当前 %s 降低 %s" % [number(baseline), number(delta)]
+		return {"higher":delta > 0, "text":text}
+	return {"higher":false, "text":"尚未选择，可作为这项能力的初始值"}
 
 func history_text(session: Dictionary) -> String:
 	var lines: PackedStringArray = []
