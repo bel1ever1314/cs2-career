@@ -1,31 +1,187 @@
 {
   "schema_version": 1,
   "loadout_catalog_source": "https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json",
-  "source": "https://raw.githubusercontent.com/ByMykel/CSGO-API/dd1ba7e71112ab68649cfb77068977b1ce3f0e2e/public/api/en/skins.json",
+  "source": "https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json",
   "image_commit": "7b5971fa93671d1bcbe77a1d447c049f04bff169",
-  "notice": "Unofficial metadata; artwork belongs to Valve. Cached for local display.",
+  "notice": "Valve artwork, bundled for offline local display; no online inventory or real-money market.",
   "items": {
-    "knife-butterfly-doppler-ruby": {"url":"https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL6kJ_m-B1Z-ua6bbZrLOmsD2qv0_t0qd5kTjuxmRguqTiBpYPwJiPTcAcnCsF0FLFcsRHtwNy0Neji41aKiNhAzyqsjyxK7X5o4u8GB_UmrPDJz1aWz8iftUI","paint":415,"def":515,"status":"mapped","source_name":"★ Butterfly Knife | Doppler (Ruby)","catalog_id":"skin-e0c77218a563","source":"https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"},
-    "knife-karambit-doppler-sapphire": {"url":"https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL6kJ_m-B1Q7uCvZaZkNM-SA1iDwP5muOh7Sha-lA8lvziMgIr9HifOOV5kFMRxFuEM5hi_xNXhMbmx5VCMjd9MyCv6jigc6n064ucLAvZ3_6bViV3fcepqpLtspE0","paint":416,"def":507,"status":"mapped","source_name":"★ Karambit | Doppler (Sapphire)","catalog_id":"skin-18a2a3a04055","source":"https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"},
-    "knife-butterfly-doppler-sapphire": {"url":"https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL6kJ_m-B1Z-ua6bbZrLOmsD2qv0u9moOlgXSyMmBw1sTGAk5X8JRTFAVp5Xco0W-ENtRXswYC1Mu_ks1fdjN9EyiqthiMbvHtv5btQBPck-KbT2gnHM-Ajoc5Ufn65u8U","paint":619,"def":515,"status":"mapped","source_name":"★ Butterfly Knife | Doppler (Sapphire)","catalog_id":"skin-e11ce6f6e025","source":"https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"},
-    "gloves-specialist-crimson-kimono": {"url":"https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Tk71ruQBH4jYLf-i5U-fe9V7d9JfOaD2uZ0vpJu-hkQCe8qhkusjCKlIvqHjnCOml8U8UoAfkItBLswdbuNbjr5FHdjNkUzSv73C1K5y46tu4EUvAg-6bU3FrBMOE4_9BdcyhkRns5","paint":10033,"def":5034,"status":"mapped","source_name":"★ Specialist Gloves | Crimson Kimono","catalog_id":"skin-5766610447f3","source":"https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"},
-    "gloves-sport-ultra-violent": {"url":"https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Tk5UvzWCL2kpn2-DFk6P6hfqFSM-CcHHOv1et1uN5uXSi3nBgppwKHiIb-KT_4Ml93UtZuTOcLtUW8lNDvZL634FfYi4pCyiX5iXka6Htr4uhQVqt3_vfRiAzDZap9v8fuC2Vr0A","paint":1410,"def":5030,"status":"mapped","source_name":"★ Sport Gloves | Ultra Violent","catalog_id":"skin-635fbb080d7c","source":"https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"},
-    "de-golden-koi": {"url":"https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL1m5fn8Sdk7v-Re6dsLPWAMWWCwPh5j-1gSCGn20om6jyGw9qgJHmQaAcgC8MmR7IMthm5m4W2M7zj7wOIj4pGn32o23hXrnE8VHBG1O4","paint":185,"def":1,"status":"mapped","source_name":"Desert Eagle | Golden Koi","catalog_id":"skin-706c54974c2f","source":"https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"},
-    "glock-candy-apple": {"url":"https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL2kpnj9h1I4M28baBSLPmUBnPelb93teA-FivjzB5wsjzTyI2pIn_CPAMoW8N3ROJZshm5w9zgNbnk5xue1dyMA9ZU_Q","paint":3,"def":4,"status":"mapped","source_name":"Glock-18 | Candy Apple","catalog_id":"skin-4e5b581684d4","source":"https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"},
-    "de-ocean-drive": {"url":"https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL1m5fn8Sdk7OeRbKFsJ_yWMWyZ1e1-j-1gSCGn2x5-sG7Wzdyvc3OSbgcnXpR5FO9bukTtm9WzMePhswaN2N5CmCj_jyhXrnE8ibjhEyc","paint":1090,"def":1,"status":"mapped","source_name":"Desert Eagle | Ocean Drive","catalog_id":"skin-55623b84dd72","source":"https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"},
-    "m4-fade": {"url":"https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFS4_ega6F_H_GSMWGRxetJvbVoHjqMmRQguynLm92pci2WagEkC5Z5Q7VetkbukIXjNrnm5QPbjt8WxS-vii4b5i5v4fFCD_TfxF4xWg","paint":1177,"def":60,"status":"mapped","source_name":"M4A1-S | Fade","catalog_id":"skin-81eee26a1c31","source":"https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"},
-    "glock-fully-tuned": {"url":"https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL2kpnj9h1c4_2tY5tnJOCWC2yvzedxuPUnS3HqzR9152_UyNigeSqWa1BxW8ElRLJfshfpkNHuZO_n4ADd2IxBxDK-0H3ID5Y8zA","paint":1421,"def":4,"status":"mapped","source_name":"Glock-18 | Fully Tuned","catalog_id":"skin-ec359b168d17","source":"https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"},
-    "de-sunset-storm-2": {"url":"https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL1m5fn8Sdk7v-Re6FsM-ScHGqv0uZ5uu5WQyC0nQlp4DiDyov6JH7FZgAmX5N5F-RZ5hntw9HlNuPkswLa2d1NzCv63S0cvTErvbieIVxaew","paint":470,"def":1,"status":"mapped","source_name":"Desert Eagle | Sunset Storm 弐","catalog_id":"skin-dff5f10fed23","source":"https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"},
-    "glock-fade": {"url":"https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL2kpnj9h1a7s2oaaBoH_yaCW-Ej-8u5bZvHnq1w0Vz62TUzNj4eCiVblMmXMAkROJeskLpkdXjMrzksVTAy9US8PY25So","paint":38,"def":4,"status":"mapped","source_name":"Glock-18 | Fade","catalog_id":"skin-da5da69785da","source":"https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"},
-    "usp-printstream": {"url":"https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLkjYbf7itX6vytbbZSI-WsG3SA_v5kue99XD2hkBwqjDGMnYftb3yUPFR0XsNyRrNc5kO5ltziMenr5lONj4kXyi2riywc7y9o5LtQAqQ7uvqAkScWnv4","paint":1142,"def":61,"status":"mapped","source_name":"USP-S | Printstream","catalog_id":"skin-be37abed2b4d","source":"https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"},
-    "awp-neo-noir": {"url":"https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_jdk7uW-V6poL_6cB3WvzedxuPUnHirrxR4l423SyI39I3KXPwdxWZclQeNZ5EXskYfnNeyw71OMi9lNzDK-0H3r66pOTw","paint":803,"def":9,"status":"mapped","source_name":"AWP | Neo-Noir","catalog_id":"skin-7b1ef066823d","source":"https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"},
-    "m4-radiation-hazard": {"url":"https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFL0Py7Y6F-NOKaHmKvzvx3vuZscCW6khUz_WqGyI34dy6SbgcnWMN2QLNZu0GxkNznMbjn5lbbgtlGyCuviyJNu311o7FVcM-jMdQ","paint":167,"def":16,"status":"mapped","source_name":"M4A4 | Radiation Hazard","catalog_id":"skin-2ce369af670c","source":"https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"},
-    "ak-case-hardened": {"url":"https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiNK0P2nZKFpH_yaCW-Ej7sk5bE8Sn-2lEpz4zndzoyvdHuUPwFzWZYiE7EK4Bi4k9TlY-y24FbAy9USGSiZd5Q","paint":44,"def":7,"status":"mapped","source_name":"AK-47 | Case Hardened"},
-    "awp-dragon-lore": {"url":"https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_jdk4veqYaF7IfysCnWRxuF4j-B-Xxa_nBovp3Pdwtj9cC_GaAd0DZdwQu9fuhS4kNy0NePntVTbjYpCyyT_3CgY5i9j_a9cBkcCWUKV","paint":344,"def":9,"status":"mapped","source_name":"AWP | Dragon Lore"},
-    "m4-icarus-fell": {"url":"https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFS4_ega6F_H_iKMW6TwPxjo95lRi67gVN_smmHyor9eHyUZwImDpJzEeZf4xS6kN2zY77i7wPdjtgXn3msin4b8G81tDwr8lc2","paint":440,"def":60,"status":"mapped","source_name":"M4A1-S | Icarus Fell"},
-    "ak-black-laminate": {"url":"https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wipC0POlPPNhIf2sDHCvzedxuPUnGnzjlh51sTyAzomrICnEbQByWcciTOQIsBG_m9LiZOLh7wfdi91DnzK-0H1Z7oynag","paint":172,"def":7,"status":"mapped","source_name":"AK-47 | Black Laminate"},
-    "m4-emperor": {"url":"https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwiVI0P_6afBSJf2DC3Wf09F6ueZhW2exwBh_6m3dnt36InjDPQ4oXJt1TbJeshW_mtfjN-vrsgaKiokWy333kGoXuRj4z9Nd","paint":844,"def":16,"status":"mapped","source_name":"M4A4 | The Emperor"},
-    "awp-gungnir": {"url":"https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf-jFk7uW-V6N4LvedB3WvzedxuPUnHnjnzUl0sWrdztitI3rDZgJzAsZ1QOFY4UPqldDgMO_l41HXit9AmTK-0H227dAsvQ","paint":756,"def":9,"status":"mapped","source_name":"AWP | Gungnir"},
+    "knife-butterfly-doppler-ruby": {
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL6kJ_m-B1Z-ua6bbZrLOmsD2qv0_t0qd5kTjuxmRguqTiBpYPwJiPTcAcnCsF0FLFcsRHtwNy0Neji41aKiNhAzyqsjyxK7X5o4u8GB_UmrPDJz1aWz8iftUI",
+      "paint": 415,
+      "def": 515,
+      "status": "mapped",
+      "source_name": "★ Butterfly Knife | Doppler (Ruby)",
+      "catalog_id": "skin-e0c77218a563",
+      "source": "https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"
+    },
+    "knife-karambit-doppler-sapphire": {
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL6kJ_m-B1Q7uCvZaZkNM-SA1iDwP5muOh7Sha-lA8lvziMgIr9HifOOV5kFMRxFuEM5hi_xNXhMbmx5VCMjd9MyCv6jigc6n064ucLAvZ3_6bViV3fcepqpLtspE0",
+      "paint": 416,
+      "def": 507,
+      "status": "mapped",
+      "source_name": "★ Karambit | Doppler (Sapphire)",
+      "catalog_id": "skin-18a2a3a04055",
+      "source": "https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"
+    },
+    "knife-butterfly-doppler-sapphire": {
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL6kJ_m-B1Z-ua6bbZrLOmsD2qv0u9moOlgXSyMmBw1sTGAk5X8JRTFAVp5Xco0W-ENtRXswYC1Mu_ks1fdjN9EyiqthiMbvHtv5btQBPck-KbT2gnHM-Ajoc5Ufn65u8U",
+      "paint": 619,
+      "def": 515,
+      "status": "mapped",
+      "source_name": "★ Butterfly Knife | Doppler (Sapphire)",
+      "catalog_id": "skin-e11ce6f6e025",
+      "source": "https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"
+    },
+    "gloves-specialist-crimson-kimono": {
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Tk71ruQBH4jYLf-i5U-fe9V7d9JfOaD2uZ0vpJu-hkQCe8qhkusjCKlIvqHjnCOml8U8UoAfkItBLswdbuNbjr5FHdjNkUzSv73C1K5y46tu4EUvAg-6bU3FrBMOE4_9BdcyhkRns5",
+      "paint": 10033,
+      "def": 5034,
+      "status": "mapped",
+      "source_name": "★ Specialist Gloves | Crimson Kimono",
+      "catalog_id": "skin-5766610447f3",
+      "source": "https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"
+    },
+    "gloves-sport-ultra-violent": {
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Tk5UvzWCL2kpn2-DFk6P6hfqFSM-CcHHOv1et1uN5uXSi3nBgppwKHiIb-KT_4Ml93UtZuTOcLtUW8lNDvZL634FfYi4pCyiX5iXka6Htr4uhQVqt3_vfRiAzDZap9v8fuC2Vr0A",
+      "paint": 1410,
+      "def": 5030,
+      "status": "mapped",
+      "source_name": "★ Sport Gloves | Ultra Violent",
+      "catalog_id": "skin-635fbb080d7c",
+      "source": "https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"
+    },
+    "de-golden-koi": {
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL1m5fn8Sdk7v-Re6dsLPWAMWWCwPh5j-1gSCGn20om6jyGw9qgJHmQaAcgC8MmR7IMthm5m4W2M7zj7wOIj4pGn32o23hXrnE8VHBG1O4",
+      "paint": 185,
+      "def": 1,
+      "status": "mapped",
+      "source_name": "Desert Eagle | Golden Koi",
+      "catalog_id": "skin-706c54974c2f",
+      "source": "https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"
+    },
+    "glock-candy-apple": {
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL2kpnj9h1I4M28baBSLPmUBnPelb93teA-FivjzB5wsjzTyI2pIn_CPAMoW8N3ROJZshm5w9zgNbnk5xue1dyMA9ZU_Q",
+      "paint": 3,
+      "def": 4,
+      "status": "mapped",
+      "source_name": "Glock-18 | Candy Apple",
+      "catalog_id": "skin-4e5b581684d4",
+      "source": "https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"
+    },
+    "de-ocean-drive": {
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL1m5fn8Sdk7OeRbKFsJ_yWMWyZ1e1-j-1gSCGn2x5-sG7Wzdyvc3OSbgcnXpR5FO9bukTtm9WzMePhswaN2N5CmCj_jyhXrnE8ibjhEyc",
+      "paint": 1090,
+      "def": 1,
+      "status": "mapped",
+      "source_name": "Desert Eagle | Ocean Drive",
+      "catalog_id": "skin-55623b84dd72",
+      "source": "https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"
+    },
+    "m4-fade": {
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFS4_ega6F_H_GSMWGRxetJvbVoHjqMmRQguynLm92pci2WagEkC5Z5Q7VetkbukIXjNrnm5QPbjt8WxS-vii4b5i5v4fFCD_TfxF4xWg",
+      "paint": 1177,
+      "def": 60,
+      "status": "mapped",
+      "source_name": "M4A1-S | Fade",
+      "catalog_id": "skin-81eee26a1c31",
+      "source": "https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"
+    },
+    "glock-fully-tuned": {
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL2kpnj9h1c4_2tY5tnJOCWC2yvzedxuPUnS3HqzR9152_UyNigeSqWa1BxW8ElRLJfshfpkNHuZO_n4ADd2IxBxDK-0H3ID5Y8zA",
+      "paint": 1421,
+      "def": 4,
+      "status": "mapped",
+      "source_name": "Glock-18 | Fully Tuned",
+      "catalog_id": "skin-ec359b168d17",
+      "source": "https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"
+    },
+    "de-sunset-storm-2": {
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL1m5fn8Sdk7v-Re6FsM-ScHGqv0uZ5uu5WQyC0nQlp4DiDyov6JH7FZgAmX5N5F-RZ5hntw9HlNuPkswLa2d1NzCv63S0cvTErvbieIVxaew",
+      "paint": 470,
+      "def": 1,
+      "status": "mapped",
+      "source_name": "Desert Eagle | Sunset Storm 弐",
+      "catalog_id": "skin-dff5f10fed23",
+      "source": "https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"
+    },
+    "glock-fade": {
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL2kpnj9h1a7s2oaaBoH_yaCW-Ej-8u5bZvHnq1w0Vz62TUzNj4eCiVblMmXMAkROJeskLpkdXjMrzksVTAy9US8PY25So",
+      "paint": 38,
+      "def": 4,
+      "status": "mapped",
+      "source_name": "Glock-18 | Fade",
+      "catalog_id": "skin-da5da69785da",
+      "source": "https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"
+    },
+    "usp-printstream": {
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLkjYbf7itX6vytbbZSI-WsG3SA_v5kue99XD2hkBwqjDGMnYftb3yUPFR0XsNyRrNc5kO5ltziMenr5lONj4kXyi2riywc7y9o5LtQAqQ7uvqAkScWnv4",
+      "paint": 1142,
+      "def": 61,
+      "status": "mapped",
+      "source_name": "USP-S | Printstream",
+      "catalog_id": "skin-be37abed2b4d",
+      "source": "https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"
+    },
+    "awp-neo-noir": {
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_jdk7uW-V6poL_6cB3WvzedxuPUnHirrxR4l423SyI39I3KXPwdxWZclQeNZ5EXskYfnNeyw71OMi9lNzDK-0H3r66pOTw",
+      "paint": 803,
+      "def": 9,
+      "status": "mapped",
+      "source_name": "AWP | Neo-Noir",
+      "catalog_id": "skin-7b1ef066823d",
+      "source": "https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"
+    },
+    "m4-radiation-hazard": {
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFL0Py7Y6F-NOKaHmKvzvx3vuZscCW6khUz_WqGyI34dy6SbgcnWMN2QLNZu0GxkNznMbjn5lbbgtlGyCuviyJNu311o7FVcM-jMdQ",
+      "paint": 167,
+      "def": 16,
+      "status": "mapped",
+      "source_name": "M4A4 | Radiation Hazard",
+      "catalog_id": "skin-2ce369af670c",
+      "source": "https://raw.githubusercontent.com/ByMykel/CSGO-API/cee33b1c28827cec79cad581a8775e9a51f3f573/public/api/en/skins.json"
+    },
+    "ak-case-hardened": {
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiNK0P2nZKFpH_yaCW-Ej7sk5bE8Sn-2lEpz4zndzoyvdHuUPwFzWZYiE7EK4Bi4k9TlY-y24FbAy9USGSiZd5Q",
+      "paint": 44,
+      "def": 7,
+      "status": "mapped",
+      "source_name": "AK-47 | Case Hardened"
+    },
+    "awp-dragon-lore": {
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_jdk4veqYaF7IfysCnWRxuF4j-B-Xxa_nBovp3Pdwtj9cC_GaAd0DZdwQu9fuhS4kNy0NePntVTbjYpCyyT_3CgY5i9j_a9cBkcCWUKV",
+      "paint": 344,
+      "def": 9,
+      "status": "mapped",
+      "source_name": "AWP | Dragon Lore"
+    },
+    "m4-icarus-fell": {
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFS4_ega6F_H_iKMW6TwPxjo95lRi67gVN_smmHyor9eHyUZwImDpJzEeZf4xS6kN2zY77i7wPdjtgXn3msin4b8G81tDwr8lc2",
+      "paint": 440,
+      "def": 60,
+      "status": "mapped",
+      "source_name": "M4A1-S | Icarus Fell"
+    },
+    "ak-black-laminate": {
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wipC0POlPPNhIf2sDHCvzedxuPUnGnzjlh51sTyAzomrICnEbQByWcciTOQIsBG_m9LiZOLh7wfdi91DnzK-0H1Z7oynag",
+      "paint": 172,
+      "def": 7,
+      "status": "mapped",
+      "source_name": "AK-47 | Black Laminate"
+    },
+    "m4-emperor": {
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwiVI0P_6afBSJf2DC3Wf09F6ueZhW2exwBh_6m3dnt36InjDPQ4oXJt1TbJeshW_mtfjN-vrsgaKiokWy333kGoXuRj4z9Nd",
+      "paint": 844,
+      "def": 16,
+      "status": "mapped",
+      "source_name": "M4A4 | The Emperor"
+    },
+    "awp-gungnir": {
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf-jFk7uW-V6N4LvedB3WvzedxuPUnHnjnzUl0sWrdztitI3rDZgJzAsZ1QOFY4UPqldDgMO_l41HXit9AmTK-0H227dAsvQ",
+      "paint": 756,
+      "def": 9,
+      "status": "mapped",
+      "source_name": "AWP | Gungnir"
+    },
     "ak-headshot": {
       "status": "mapped",
       "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiFO0POlV6xoIfSsHW-f1dF-v-1mcCW6khUz_TzRnNigd3-SOg4lAsF1QOQN4xS4wdHnMu-0swaMjIxExSSoiyof6ih1o7FVGHIdVhw",
@@ -34,12 +190,18 @@
       "source_name": "AK-47 | Head Shot"
     },
     "ak-ice": {
-      "status": "unmatched",
-      "reason": "No exact weapon/paint match"
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiFO0POlPPNSI_-UGm-Zz-llj-1gSCGn2x4l5z_RyNj6JXnEbgFzXMYjEOUIsBe5m9exP-zg4leMj4pGxXn7jCJXrnE84asPq_0",
+      "def": 7,
+      "paint": 1143,
+      "source_name": "AK-47 | Ice Coaled"
     },
     "ak-slate": {
-      "status": "unmatched",
-      "reason": "No exact weapon/paint match"
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiVI0POlPPNSMOKcCGKD0ud5vuBlcCW6khUz_W3Sytb4cCqTOFUpWJtzTOUD5hPsw9a0Yrnrs1SK3ooXzy6shilM5311o7FVYrIufmI",
+      "def": 7,
+      "paint": 1035,
+      "source_name": "AK-47 | Slate"
     },
     "ak-redline": {
       "status": "mapped",
@@ -64,18 +226,24 @@
     },
     "m4-in-n": {
       "status": "mapped",
-      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFS4_ega6F_H_eAMWrEwL9JpuR7WyC0miIrujqNjsGpciiVZgIpCpAjEOUPuhXuw93kZOzm4laPi4IRyij-2H9P6yc65rwCT-N7rc1sfRJu",
-      "def": 60,
-      "paint": 1073,
-      "source_name": "M4A1-S | Imminent Danger"
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwiFO0P_6afBSLP-FC1icyOl-pK84GH2wxhty4DjcyNuhdHyXbAVxW8QjTbEMthC8kNa0MLmzs1Hbj95E02yg2bbWGcKW",
+      "def": 16,
+      "paint": 1041,
+      "source_name": "M4A4 | In Living Color"
     },
     "m4-temukau": {
-      "status": "unmatched",
-      "reason": "No exact weapon/paint match"
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwiFO0P_6afBSNPWeG2yR1NF6ueZhW2ewlBtx5W6AmYv9JS6XaAV1CJEmTeUL4UTpxNzjZO3jtgaIjN9ExCuskGoXuRnyRhBA",
+      "def": 16,
+      "paint": 1228,
+      "source_name": "M4A4 | Temukau"
     },
     "m4-cyber": {
-      "status": "unmatched",
-      "reason": "No exact weapon/paint match"
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwiFO0P_6afBSI-mRC3WA1OB9j-1gSCGn2x9-527Tyt-pcnyUagQlW5JxEOIOuhjrw9XlMrixtQTd2NhNmH_5jCNXrnE8Cu1wa6c",
+      "def": 16,
+      "paint": 985,
+      "source_name": "M4A4 | Cyber Security"
     },
     "m4-hot-rod": {
       "status": "mapped",
@@ -85,8 +253,11 @@
       "source_name": "M4A1-S | Hot Rod"
     },
     "m4-black-lotus": {
-      "status": "unmatched",
-      "reason": "No exact weapon/paint match"
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFS4_ega6F_H_3HDzaD_ux6seJicCW8gQg0jDGMnYftb3-eOgEpDcFyQuMMtRG8kIbhMuK051ba2IMQyH6r3yof5ilv4bwLWfU7uvqA7qRNHGA",
+      "def": 60,
+      "paint": 1166,
+      "source_name": "M4A1-S | Black Lotus"
     },
     "m4-neo": {
       "status": "mapped",
@@ -96,26 +267,32 @@
       "source_name": "M4A4 | Neo-Noir"
     },
     "awp-duality": {
-      "status": "unmatched",
-      "reason": "No exact weapon/paint match"
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf-jFk7uW-V6hkLfKcMXSewOVzj-1gSCGn20p_62-HnN7_cH-XblQjDZYhR-FZsETqmoXjYry2s1DX3d5AyyT62ipXrnE8bpg5yZk",
+      "def": 9,
+      "paint": 1222,
+      "source_name": "AWP | Duality"
     },
     "awp-chromatic": {
       "status": "mapped",
-      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_C9k-_upbbZ-H_KfG2KvzedxuPUnTXywkU1x4DvXztz_dH2WZlQkXMEhFrFY5BDrm9HhMurq4AfdiYxAnDK-0H0fPMTeBA",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_jdk7uW-V6dlMv-eD1iAyOB9j-1gSCGn2x50tT_Tm9f4cXORPA4oWJckFOMLtha_x9e1Nu-35QfbjYtHyiythitXrnE8ylr09zg",
       "def": 9,
-      "paint": 1029,
-      "source_name": "AWP | Silk Tiger"
+      "paint": 1144,
+      "source_name": "AWP | Chromatic Aberration"
     },
     "awp-mortis": {
       "status": "mapped",
-      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_jdk4veqYaF7IfysCnWRxuF4j-B-Xxa_nBovp3Pdwtj9cC_GaAd0DZdwQu9fuhS4kNy0NePntVTbjYpCyyT_3CgY5i9j_a9cBkcCWUKV",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf-jFk7uW-V6BoIeSbMWuZxuZi_rNtHiuwwRwismWEnNn8JymSZgUiDpd3Ru9ZsxG-xNy2NLzn41DWg41bjXKp5oOAt0A",
       "def": 9,
-      "paint": 344,
-      "source_name": "AWP | Dragon Lore"
+      "paint": 691,
+      "source_name": "AWP | Mortis"
     },
     "awp-chrome": {
-      "status": "unmatched",
-      "reason": "No exact weapon/paint match"
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_DVL0OarZbRoMvWXMWuZxuZi_uM6SXngxR5-smTXw4ugIi6RbVcpXsN1ELUDtxPrktOyNL7h4g2P2tpbjXKpKIbjbD4",
+      "def": 9,
+      "paint": 1170,
+      "source_name": "AWP | Chrome Cannon"
     },
     "awp-asiimov": {
       "status": "mapped",
@@ -125,16 +302,25 @@
       "source_name": "AWP | Asiimov"
     },
     "de-sienna": {
-      "status": "unmatched",
-      "reason": "No exact weapon/paint match"
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8n5WxrR1I_82jYbZsJ_WsCGuf1utko959TieMmRQguynLzNv4J32XaVdzX8dyTOcJsxS_x4CxYeKz5QCKjo0RzCv7iC9I5nlv4_FCD_Ti47lJig",
+      "def": 17,
+      "paint": 826,
+      "source_name": "MAC-10 | Sienna Damask"
     },
     "de-print": {
-      "status": "unmatched",
-      "reason": "No exact weapon/paint match"
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL1m5fn8Sdk7OeRbKFsJ8-DHG6e1f1iouRoQha_nBovp3OGmdeqInyVP1V0XsYlRbEI50a5wNyzZr605AyI3t5MmCSohylAuC89_a9cBoMY9UkV",
+      "def": 1,
+      "paint": 962,
+      "source_name": "Desert Eagle | Printstream"
     },
     "de-heat": {
-      "status": "unmatched",
-      "reason": "No exact weapon/paint match"
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL1m5fn8Sdk7uORbKFsJ_yWMWSR0utJuOB7Syy9kBkY4QKJk4jxNWXGbQZ0CZpyTeBf4xO4m9y1Nuy05wHYg4lNySWr3C1Luyhu4LkKA6As5OSJ2JAJXn6j",
+      "def": 1,
+      "paint": 1054,
+      "source_name": "Desert Eagle | Heat Treated"
     },
     "de-blaze": {
       "status": "mapped",
@@ -144,12 +330,18 @@
       "source_name": "Desert Eagle | Blaze"
     },
     "usp-print": {
-      "status": "unmatched",
-      "reason": "No exact weapon/paint match"
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLkjYbf7itX6vytbbZSI-WsG3SA_v5kue99XD2hkBwqjDGMnYftb3yUPFR0XsNyRrNc5kO5ltziMenr5lONj4kXyi2riywc7y9o5LtQAqQ7uvqAkScWnv4",
+      "def": 61,
+      "paint": 1142,
+      "source_name": "USP-S | Printstream"
     },
     "usp-ticket": {
-      "status": "unmatched",
-      "reason": "No exact weapon/paint match"
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLkjYbf7itX6vytbbZSI-WsG3SA_vp5j-lsQyWMmRQguynLzt_8JXiVOwF2AsF4R-ECshftltKxZe6x41CKjotExST8jn8f7ilr5PFCD_TZVvgG5g",
+      "def": 61,
+      "paint": 1136,
+      "source_name": "USP-S | Ticket to Hell"
     },
     "usp-torque": {
       "status": "mapped",
@@ -166,16 +358,25 @@
       "source_name": "USP-S | Orion"
     },
     "glock-umbral": {
-      "status": "unmatched",
-      "reason": "No exact weapon/paint match"
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL2kpnj9h1Y-s2pZKtuK8-eAWie_vx3suNgWxa_nBovp3PXyo76Ii_FPAQmDMYiTLYDthm_kdbmZry2slCLjoMQzC7_3y1J7nts_a9cBi_qumx0",
+      "def": 4,
+      "paint": 1227,
+      "source_name": "Glock-18 | Umbral Rabbit"
     },
     "glock-winter": {
-      "status": "unmatched",
-      "reason": "No exact weapon/paint match"
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL2kpnj9h1c_M2pZKtuK8-WAm6ExNF1sexmcCW6khUz_W6Azdn6eCrBalcjXJpzE7EO5xa_l4DuNu6ws1Hb2IgUn32si39B5y11o7FVC5qcAFg",
+      "def": 4,
+      "paint": 1158,
+      "source_name": "Glock-18 | Winterized"
     },
     "glock-pink": {
-      "status": "unmatched",
-      "reason": "No exact weapon/paint match"
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL2kpnj9h1T9s2qbLRsNM-DB2mb_uJ_t-l9ASi2lBgjsmjSm4ugeX6WO1AoCsElFuEIuhC6xta2Zbmw5gCMjtlAni3gznQeU26CORw",
+      "def": 4,
+      "paint": 84,
+      "source_name": "Glock-18 | Pink DDPAT"
     },
     "glock-water": {
       "status": "mapped",
@@ -192,8 +393,11 @@
       "source_name": "★ Karambit | Fade"
     },
     "knife-bayonet-vanilla": {
-      "status": "unmatched",
-      "reason": "No exact weapon/paint match"
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJKz2lu_XuWbwcuyMESA4Fdl-4nnpU7iQA3-kKni_DtU4fe6Jv07IfTDDT_JkL4htLI7HCvmwE9z42_Vzov4ci2Wa1IgWMN3R7IMuxCm0oqwYUAZNBA",
+      "def": 500,
+      "paint": 0,
+      "source_name": "★ Bayonet"
     },
     "knife-butterfly-fade": {
       "status": "mapped",
@@ -271,6 +475,762 @@
       "def": 61,
       "paint": 504,
       "source_name": "USP-S | Kill Confirmed"
+    },
+    "market-16-309": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwiFO0P_6afVSKP-EAm6extF6ueZhW2exwkl2tmTXwt39eCiUPQR2DMN4TOVetUK8xoLgM-K341eM2otDnC6okGoXufBz_TAB",
+      "def": 16,
+      "paint": 309,
+      "source_name": "M4A4 | Howl"
+    },
+    "market-5031-10016": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5T441rsfhr9kYDl7h1I4_utY5t_JfSsAm6Xyfo4trVoSnGxlh9x5DmEzt6rJS2RagYiA5siQ-MLthW9xtDlM7uxtFCNgpUFk3thcTnRAg",
+      "def": 5031,
+      "paint": 10016,
+      "source_name": "★ Driver Gloves | Crimson Weave"
+    },
+    "market-5032-10053": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu4vx603vRA_Olpfu-TVJ7uK9V6xsLvSEHGaA_uJzsfVhSjuqqhsmsS-MmbD7LT7CAUV7T84sBohW60fg1srnZb6zsw2Ng41MmST43C1L7is9574CBKIh_q2Big_IMOdutcNRd_iuU13QD7PQAmaY",
+      "def": 5032,
+      "paint": 10053,
+      "source_name": "★ Hand Wraps | Cobalt Skulls"
+    },
+    "market-5032-10021": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu4vx603vRA_Olpfu-TVJ7uK9V6xsLvSEHGaA_vxztN56QyimkhUzti-6lob-KT-Jb1UjX5t0ROIN5xW9l9e2ZOmw5QWLi41Fmy6r3Sgb7C1o5etUBfcgqbqX0V-0bsdMFQ",
+      "def": 5032,
+      "paint": 10021,
+      "source_name": "★ Hand Wraps | Slaughter"
+    },
+    "market-5035-10060": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Tg_13jRBnOlo_k7yNk6P6hfqF-H_KfAWiUyeFjvuVWRzC3hxwYsDyWn7DxIDnDO1h1Xv0sHLBS9g7ul9zmMbi35FHYgolMmSj9jS8fvC5jte9RAqctqKCC2QHBYrU64MMCOr_5GlPhveuZ",
+      "def": 5035,
+      "paint": 10060,
+      "source_name": "★ Hydra Gloves | Case Hardened"
+    },
+    "market-5035-10057": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Tg_13jRBnOlo_k7yNk6P6hfqF-H_KfAWiUyeFjvuVWRzC3hxwYsTGEmYTGJjnCO1hPVssnHaMU4EG6ktGyPryz5A3fiIwUyin3h3lJ5nlq5-xQVPIk-6HWjVmQOeFptI5DeqjsQUewWg",
+      "def": 5035,
+      "paint": 10057,
+      "source_name": "★ Hydra Gloves | Emerald"
+    },
+    "market-5034-10061": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Tk71ruQBH4jYLf-i5U-fe9V7d9JfOaD2uZ0vpJp-RrXBahkBkYvzSCkpu3JyiSbAQkC8d1E7YJtEXtkIazMruz4lOP3dpGmCyt23hA731v4LkKAL1lpPOyoS0Ibw",
+      "def": 5034,
+      "paint": 10061,
+      "source_name": "★ Specialist Gloves | Crimson Web"
+    },
+    "market-7-180": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiFO0PSneqF-JeKDC2mE_u995LZWTTuygxIYvzSCkpu3cnvFPQB2DpUkROFY4Rntw93lP7i241DbiI1BxSuviHlKunk_6-sHU71lpPMTRLyP4Q",
+      "def": 7,
+      "paint": 180,
+      "source_name": "AK-47 | Fire Serpent"
+    },
+    "market-7-675": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiVI0POlPPNSJf2DHGKD0tF6ueZhW2exxEt152rWzI7_Ii-Ubw90DMB0Ee4C5xOwx9GxZbjk71PXgogWn36tkGoXudZeYvlo",
+      "def": 7,
+      "paint": 675,
+      "source_name": "AK-47 | The Empress"
+    },
+    "market-7-302": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiFO0POlPPNSMuWRDGKC_uJ_t-l9AXCxxEh14zjTztivci2ePQZ2W8NzTecD4BKwloLiYeqxtAOIj9gUyyngznQeF7I6QE8",
+      "def": 7,
+      "paint": 302,
+      "source_name": "AK-47 | Vulcan"
+    },
+    "market-7-724": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiFO0POlV61-LPGdCliWzeFkse1WQyC0nQlpsDuGyt-pdnyRPA4hDcYkR-QPuhi-wdPuYbyx5AaMidkQnC_-2ilIuzErvbi4ijV5Mw",
+      "def": 7,
+      "paint": 724,
+      "source_name": "AK-47 | Wild Lotus"
+    },
+    "market-9-819": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf-jFk7uW-V6x0JOKSMWuZxuZi_uA7Syu2w0Ry4mqGzYypeH3DaAEnCpt0FuAK4RjrkoDgMb7mtFfcit5bjXKpX4RFZcA",
+      "def": 9,
+      "paint": 819,
+      "source_name": "AWP | Desert Hydra"
+    },
+    "market-9-344": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_jdk4veqYaF7IfysCnWRxuF4j-B-Xxa_nBovp3Pdwtj9cC_GaAd0DZdwQu9fuhS4kNy0NePntVTbjYpCyyT_3CgY5i9j_a9cBkcCWUKV",
+      "def": 9,
+      "paint": 344,
+      "source_name": "AWP | Dragon Lore"
+    },
+    "market-9-1026": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_CNk7uW-V6JsJPWsAm6Xyfo45-c5GXDnwB534DuEwtuoIHOfaAYiAsYjF-QItUaxmoC0MO_h5ALcjJUFk3sEzfdk4w",
+      "def": 9,
+      "paint": 1026,
+      "source_name": "AWP | Fade"
+    },
+    "market-9-756": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf-jFk7uW-V6N4LvedB3WvzedxuPUnHnjnzUl0sWrdztitI3rDZgJzAsZ1QOFY4UPqldDgMO_l41HXit9AmTK-0H227dAsvQ",
+      "def": 9,
+      "paint": 756,
+      "source_name": "AWP | Gungnir"
+    },
+    "market-9-475": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_jdk7uW-V6x0MPWBMWWVwP1ij-1gSCGn20pxtm_WzNuoeHKeaFAnCZUiTe5bt0HqxofmZOrm5Q2IjoMQzS_5iShXrnE8NzWs__c",
+      "def": 9,
+      "paint": 475,
+      "source_name": "AWP | Hyper Beast"
+    },
+    "market-9-803": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_jdk7uW-V6poL_6cB3WvzedxuPUnHirrxR4l423SyI39I3KXPwdxWZclQeNZ5EXskYfnNeyw71OMi9lNzDK-0H3r66pOTw",
+      "def": 9,
+      "paint": 803,
+      "source_name": "AWP | Neo-Noir"
+    },
+    "market-9-1206": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_DVL0OK8Yap5M-SBC2ad_uJ_t-l9AX_qlk4k5GyAzo6ocC-QZgZxX8AjEbZY5xnrxtPjM7vnsgGIj9oTmXngznQeg3pfcPs",
+      "def": 9,
+      "paint": 1206,
+      "source_name": "AWP | Printstream"
+    },
+    "market-9-736": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf-jFk7uW-V6FjIf2WAlicyOl-pK9qHXHkw093sGvTw4uqJSnDPQAkCsNyEbZcshiwxtK0Yumz4gbX2o9C02yg2f5NtC8l",
+      "def": 9,
+      "paint": 736,
+      "source_name": "AWP | The Prince"
+    },
+    "market-4-1119": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL2kpnj9h1a4s2rZaF_IfyXMWqR0-x6tehzSi2MkhEosDa6lob-KT-JPwZzA5J4F-8Mt0a-ktTvNeyws1PfjIsQyiX9h3gYvSpr5bwFWash-7qX0V9IgS2WPw",
+      "def": 4,
+      "paint": 1119,
+      "source_name": "Glock-18 | Gamma Doppler"
+    },
+    "market-4-1120": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL2kpnj9h1a4s2paalgIc-XAXeAzetkj_FhTjq2xCIgvzKGkbD1KCzPKhhzD5d3QORbuxjrk4C1NLzm5Abcj44Uyi342HlI6ixi5edRAKp0-KGBkUifZrIv8MDM",
+      "def": 4,
+      "paint": 1120,
+      "source_name": "Glock-18 | Gamma Doppler"
+    },
+    "market-4-1121": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL2kpnj9h1a4s2paalgIc-XAXeAzetkj_FhTjq2xyIgvzKGkbD1KCzPKhgnC5pwTLNYsRLrlNXlMe-05gDZ3toWyCmqhyhP5y9r6udQWKIk__XUkUifZoShMfFw",
+      "def": 4,
+      "paint": 1121,
+      "source_name": "Glock-18 | Gamma Doppler"
+    },
+    "market-4-1122": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL2kpnj9h1a4s2paalgIc-XAXeAzetkj_FhTjq2xiIgvzKGkbD1KCzPKhgmWcN0FLJYtUK7k4DgMuOx7g3ajNhAyH37iygc6ypt5-pQUassqaCFkUifZvBAXI_s",
+      "def": 4,
+      "paint": 1122,
+      "source_name": "Glock-18 | Gamma Doppler"
+    },
+    "market-4-1123": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL2kpnj9h1a4s2paalgIc-XAXeAzetkj_FhTjq2wSIgvzKGkbD1KCzPKhhxC5FyRbII4Ua_ltDhY-Ln41fW2I1Ayn_9ii5P7Xpr5ekHV6Mg__HekUifZpA8glcU",
+      "def": 4,
+      "paint": 1123,
+      "source_name": "Glock-18 | Gamma Doppler"
+    },
+    "market-4-988": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL2kpnj9h1Y-s2pZKtuK8-dAW6C_uJ_t-l9AXznwh9zsjjSn9j9dH-eb1V0CsF3QrNZ4xW8ltPlM-7h4QbYit5NzyzgznQecekkTuo",
+      "def": 4,
+      "paint": 988,
+      "source_name": "Glock-18 | Neo-Noir"
+    },
+    "market-60-1177": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFS4_ega6F_H_GSMWGRxetJvbVoHjqMmRQguynLm92pci2WagEkC5Z5Q7VetkbukIXjNrnm5QPbjt8WxS-vii4b5i5v4fFCD_TfxF4xWg",
+      "def": 60,
+      "paint": 1177,
+      "source_name": "M4A1-S | Fade"
+    },
+    "market-60-497": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFS4_ega6F_H_eAMWrEwL9lj_JnTiK2lxQztgKClYP9HifOOV5kFJclQ-Jb5xW-m9CxPuLq4QTfjd0XzyX6jCpL6X5o5OgDVfYn_a2Ci1rfcepqgV49FrE",
+      "def": 60,
+      "paint": 497,
+      "source_name": "M4A1-S | Golden Coil"
+    },
+    "market-60-430": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFS4_ega6F_H_OGMWrEwL9JuPh5SjuMlxgmoCm6lob-KT-JbwF1WZEjR-YJskK9k9XiYePltAeNjYlAxSn5j34dvCZstb4LB6Ut-7qX0V8Xkv5_2A",
+      "def": 60,
+      "paint": 430,
+      "source_name": "M4A1-S | Hyper Beast"
+    },
+    "market-60-1001": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFS4_ega6F_H_OGMWrEwL9Jo-9oRCyMmRQguynLzYqgInjGZlcnX5ciE-IPthLrkN3hYu_ltQPW3Y1NzSn-jCpJ6ydpsvFCD_TdxQe8NQ",
+      "def": 60,
+      "paint": 1001,
+      "source_name": "M4A1-S | Welcome to the Jungle"
+    },
+    "market-16-255": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwiFO0P_6V6V-Kf2cGFidxOp_pewnTii3w0x_tmTRnt2qdHyWaFAjA5UlQOYI5BO5k9bhZunm41OI34NDnjK-0H3pAWw_Rw",
+      "def": 16,
+      "paint": 255,
+      "source_name": "M4A4 | Asiimov"
+    },
+    "market-61-653": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLkjYbf7itX6vytbbZSI-WsG3SA0tF4v-h7cCW6khUz_WXdmd-vI3uRPwEkApR4QuBcu0Xrk4biYr_mtQXdidlCz3r63Ska7Hx1o7FVWuokIcU",
+      "def": 61,
+      "paint": 653,
+      "source_name": "USP-S | Neo-Noir"
+    },
+    "market-500-44": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLzn4_v8ydP0PO_V6tkLPWXMWuZxuZi_uRrSXDlzUtw4WTRwtj4eX6XPAd0XsEiROcNthm-w4HhP-Pq7waKiItbjXKppDMdu0I",
+      "def": 500,
+      "paint": 44,
+      "source_name": "★ Bayonet | Case Hardened"
+    },
+    "market-500-12": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLzn4_v8ydP0Pq3V7NoIuOsAm6Xyfo4tLBsGXi3kEQhtWjVntyvdniSOwEiDMZ2QOFfsUSxx9axZOvm5Q2IjZUFk3uvkAKPDA",
+      "def": 500,
+      "paint": 12,
+      "source_name": "★ Bayonet | Crimson Web"
+    },
+    "market-500-417": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLzn4_v8ydP0POjV6ZhIfOYHmKR0-JJveB7TSW2nAcitwKJk4jxNWWVZ1AmDJIlQuZcu0btx9e0Y-205gOL3dhGzS333CpBvHxi6ucEBfcg5OSJ2MqXuBCE",
+      "def": 500,
+      "paint": 417,
+      "source_name": "★ Bayonet | Doppler"
+    },
+    "market-500-418": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLzn4_v8ydP0POjV6BiMOCfC3Wv0eZ3o-Q4cCW6khUz_TvWmIygcnnGaVIlC5N5QOINt0S8lYDkMOu2sgTWgoxExCmqi3hN7i11o7FV2n5aQD4",
+      "def": 500,
+      "paint": 418,
+      "source_name": "★ Bayonet | Doppler"
+    },
+    "market-500-419": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLzn4_v8ydP0POjV6BiMOCfC3Wv0eZ3o-Q7cCW6khUz_TjRnNesInvCZ1chXsZ0FLZfsEKxltOyZOzitQLdj40WnCSq3SpO5yt1o7FVDNJZV5E",
+      "def": 500,
+      "paint": 419,
+      "source_name": "★ Bayonet | Doppler"
+    },
+    "market-500-420": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLzn4_v8ydP0POjV6BiMOCfC3Wv0eZ3o-Q6cCW6khUz_T_TydyheXmVZwYoXpR5R-YIsRe6lIazP-7h4Qzbj4hEzSyq3HgY7ix1o7FVS1Hc8lA",
+      "def": 500,
+      "paint": 420,
+      "source_name": "★ Bayonet | Doppler"
+    },
+    "market-500-421": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLzn4_v8ydP0POjV6BiMOCfC3Wv0eZ3o-Q9cCW6khUz_WvQmNaqcHvDPVUpC8B5E7ICtkW-wYK0NO204FbW2t1NxC_72y4d53l1o7FVWhjV62M",
+      "def": 500,
+      "paint": 421,
+      "source_name": "★ Bayonet | Doppler"
+    },
+    "market-500-415": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLzn4_v8ydP0POjV7Z4IumsA2aCw-JzuftsSxa_nBovp3PWnomsdn2QPVN0D5UiEOUP50LtltTvY-Ll4g3YjItFmSv-2i9A6X4-_a9cBu2YVmHc",
+      "def": 500,
+      "paint": 415,
+      "source_name": "★ Bayonet | Doppler"
+    },
+    "market-500-416": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLzn4_v8ydP0POjV7dsMOCbB3WV_uN3ouNlSiCpkBkYvzSCkpu3d3_FaFUnXpRwEO4O50G5xoW1Y7zn5wLe3oxBxHn6jiwf7XposO8LBb1lpPPeBvHrwA",
+      "def": 500,
+      "paint": 416,
+      "source_name": "★ Bayonet | Doppler"
+    },
+    "market-500-38": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLzn4_v8ydP0POvV6JsJPWsAm6Xyfo45-BrHniwzUh24jjVm4qgInnCOA4mDscmEeVcsBXtkN22P-yx5waNg5UFk3tAoG85FQ",
+      "def": 500,
+      "paint": 38,
+      "source_name": "★ Bayonet | Fade"
+    },
+    "market-500-568": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpotLu8JAllx8zJfAJH4dmklYyPqPr1Ibndk2JL7cFOhuDG_Zi73VG2qUQ_am36LNKWcwM2Ml3X_FS8wL3vhMC0vJXOn3ZkuSAl7HiOmwv3308XDHXucw",
+      "def": 500,
+      "paint": 568,
+      "source_name": "★ Bayonet | Gamma Doppler"
+    },
+    "market-500-569": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLzn4_v8ydP0POjV6NsLf2SMWOf0f56tfNWXyGyhhh2jDGMnYftb3KfOlVxDpt5RbRf5ES8kdfhZenq7lPc3tgQySj5hyNL53k9troLUvI7uvqAwkE80cI",
+      "def": 500,
+      "paint": 569,
+      "source_name": "★ Bayonet | Gamma Doppler"
+    },
+    "market-500-570": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLzn4_v8ydP0POjV6NsLf2SMWOf0f56tfNWXyGyhhh1jDGMnYftby7FbARxDZUkF7NfsUK5lYbmZO3ktAWKj40Qznn_intPvX1i5e4DVfI7uvqAz_bVj6c",
+      "def": 500,
+      "paint": 570,
+      "source_name": "★ Bayonet | Gamma Doppler"
+    },
+    "market-500-571": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLzn4_v8ydP0POjV6NsLf2SMWOf0f56tfNWXyGyhhh0jDGMnYftb3ifPQd2ApZ3Redb5xG-mtzkNuPr5ADXg4tGm33_23hLvCZrt-9XV_Y7uvqA1Mz9WrE",
+      "def": 500,
+      "paint": 571,
+      "source_name": "★ Bayonet | Gamma Doppler"
+    },
+    "market-7-44": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiNK0P2nZKFpH_yaCW-Ej7sk5bE8Sn-2lEpz4zndzoyvdHuUPwFzWZYiE7EK4Bi4k9TlY-y24FbAy9USGSiZd5Q",
+      "def": 7,
+      "paint": 44,
+      "source_name": "AK-47 | Case Hardened"
+    },
+    "market-9-259": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_jdk7uW-V6diIuKSMWuZxuZi_rUxHS3lzUwm5DjWy976dSiRagd1WJB1RLQP4RK-mtazM-3itQeL2INbjXKpw2eVIZ0",
+      "def": 9,
+      "paint": 259,
+      "source_name": "AWP | Redline"
+    },
+    "market-1-231": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL1m5fn8Sdk7v-RbKB9IeSXC2mDxNFmteBqQCq4qhEutDWR1I36c3OVbFQjDcRwR7EO4EW-x4HvMumzswfWjd8XnCn2iShM53s5t-0cEf1ycu8KccY",
+      "def": 1,
+      "paint": 231,
+      "source_name": "Desert Eagle | Cobalt Disruption"
+    },
+    "market-61-1173": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLkjYbf7itX6vytbbZSNeODHViUzulxqd5lRi67gVMl62nUyd2scnOVPAcgA5J2TOFY5xLrlN22YbzgsQaI2IlHyiWojnwa8G81tErOD-_J",
+      "def": 61,
+      "paint": 1173,
+      "source_name": "USP-S | Jawbreaker"
+    },
+    "market-61-991": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLkjYbf7itX6vytbbZSI-WsG3SA_uVkv-pmXBa_nBovp3PQn46ueX3FbAB0WZMjTe9csEKwk9XvNbnl41Tcj48WzHqv3HhP5ydj_a9cBuLIfNg1",
+      "def": 61,
+      "paint": 991,
+      "source_name": "USP-S | Monster Mashup"
+    },
+    "market-7-300": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiFO0OKnZrd5MvmDC1iRyrohj-1gSCGn20t-422Bn4v6eH_FaFcpWcFyRrRbsRK9xN3lNOK0tFPX2YJBmS_4iytXrnE8zwmR9Cc",
+      "def": 7,
+      "paint": 300,
+      "source_name": "AK-47 | Emerald Pinstripe"
+    },
+    "market-1-232": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL1m5fn8Sdk5-uRf6FvM8-XD3WbxPxJvOhuRz39wEUh5W3Rytyscy7FPAYgWJJzRe4MtUW8loKyZOm3sQzb34lEzyX32zQJsHig-EWd2A",
+      "def": 1,
+      "paint": 232,
+      "source_name": "Desert Eagle | Crimson Web"
+    },
+    "market-1-757": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL1m5fn8Sdk7v-RYqt_Lc-UHGKVz9F6ueZhW2fqzB51sGiGzNqrJXqWbAYmCpJ0RuYDshm_xNPmZuy07wDY3YwXni6okGoXuekvMmaE",
+      "def": 1,
+      "paint": 757,
+      "source_name": "Desert Eagle | Emerald Jörmungandr"
+    },
+    "market-4-38": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL2kpnj9h1a7s2oaaBoH_yaCW-Ej-8u5bZvHnq1w0Vz62TUzNj4eCiVblMmXMAkROJeskLpkdXjMrzksVTAy9US8PY25So",
+      "def": 4,
+      "paint": 38,
+      "source_name": "Glock-18 | Fade"
+    },
+    "market-17-44": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8n5WxrR1a_s2hYahoJM-fB2CY1aAituJtTnvjkUx3tziGmd6hJy-VZlAoWZtwFLRZ5EbpwNLvYb-zsgOKlcsbmn9_3b1O",
+      "def": 17,
+      "paint": 44,
+      "source_name": "MAC-10 | Case Hardened"
+    },
+    "market-16-176": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFL0OirarZsI_GeMWWH_uJ_t-l9AXu3zBkhsDyHz4z9dXmVagJzW8MiQbFetBfrkNHhZbjr51CMiN8TyS_gznQeEoYBjXk",
+      "def": 16,
+      "paint": 176,
+      "source_name": "M4A4 | Faded Zebra"
+    },
+    "market-17-246": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8n5WxrR1a7s2oaaBoH_2WGmaczed1j-1gSCGn20QlsWqAz4z8d3yfP1IpW8QkQeIN5hXtldTkMuqzsQyNjNgUxX6vjCpXrnE8FVzqUc8",
+      "def": 17,
+      "paint": 246,
+      "source_name": "MAC-10 | Amber Fade"
+    },
+    "market-17-38": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8n5WxrR1a7s2oaaBoH_yaCW-Ej-h347AwHyzqx04l4WvSyI77cCjCbQEhW8MjE-NcthG8loXlMujh7g3Ay9USCa6Cs30",
+      "def": 17,
+      "paint": 38,
+      "source_name": "MAC-10 | Fade"
+    },
+    "market-7-1449": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiNQu6WRabF5L_WLC2Svwu97v95lRi67gVN16mzSwtigdn2QPAElXpskQOQIthC8xIXiM-7k4gHfgoMWySyo2y4b8G81tI8PUinm",
+      "def": 7,
+      "paint": 1449,
+      "source_name": "AK-47 | AUTOEXEC"
+    },
+    "market-7-1397": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiVI7PqRaa9SJPqaB2mvzedxuPUnGCi3wktzt2rRn92pdXuXbA4iDcdxQOIMsBK4k9S2Zeiw4lTdjdhNyTK-0H1wmrL4zA",
+      "def": 7,
+      "paint": 1397,
+      "source_name": "AK-47 | Aphrodite"
+    },
+    "market-7-474": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiFO0POlPPNSI_-GHGaXxNF3vPVWQyC0nQlp4WvVzturJ3qVb1B1DMd3Q7EO5xW_l9O2ZOLg5gyP2N9BxST_jXwY7TErvbj-FmM1dA",
+      "def": 7,
+      "paint": 474,
+      "source_name": "AK-47 | Aquamarine Revenge"
+    },
+    "market-7-142": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiFO0P24bbZ9IeOAMWqfz_1itfNWTiLnwiIrujqNjsGocC6QPQNyA8FxReZYtEHrw4ezMe_nsgbWjYIXni782ipA5yxv5OkET-N7rajaE730",
+      "def": 7,
+      "paint": 142,
+      "source_name": "AK-47 | B the Monster"
+    },
+    "market-7-1466": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiNQu6WRYq1jLs-QAWmDxP9jte9qSha_nBovp3OHm9v6IHuTOgYiA5ZzE-Bb40O6loK2MeLnswff2ogRyS732ywduyc4_a9cBtOamUv2",
+      "def": 7,
+      "paint": 1466,
+      "source_name": "AK-47 | Consequence of the Jinn"
+    },
+    "market-7-524": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiVI0POlPPNSM-WDC3WTye9kt-RtcCW6khUz_WuGy9_8dHuRbg5xW5IjQ-BYshK9mta0NLmw4lDa2o0Wni_3iy4f6np1o7FVB0pWHHg",
+      "def": 7,
+      "paint": 524,
+      "source_name": "AK-47 | Fuel Injector"
+    },
+    "market-7-921": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwlcK3wiVI0POlPPNSJ_-fCliR0-90tfJ4WiyMmRQguynLntmvICieOARzCpMhF-BYsRe-xoHvYu_g5lSNj4NDyy2viCwY6Hlu5_FCD_Q1jEqYuQ",
+      "def": 7,
+      "paint": 921,
+      "source_name": "AK-47 | Gold Arabesque"
+    },
+    "market-9-163": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf-jFk5vyqbbRoLvSWMWaH0dF6ueZhW2e1zElxtmzQmIv8J3qQalRzW5t0RrYOsBCwlte2Mbmw5AbXiYlAnnn4kGoXuYBQOb0Q",
+      "def": 9,
+      "paint": 163,
+      "source_name": "AWP | CMYK"
+    },
+    "market-9-887": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_jdk7uW-V7JkMuWAMWuZxuZi_rQ6SXq1xURysj_Vw4uhJHOVPQ8oCZt4QrRbtRi6ldPlPu_g4FHaiYNbjXKpcPI_17A",
+      "def": 9,
+      "paint": 887,
+      "source_name": "AWP | Containment Breach"
+    },
+    "market-9-51": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_C9k4_upYLBjKf6UMWaH0dF6ueZhW2frwU1_sW2EmNyvc32RZwMpCpcjQ-EJ4xbtmt3gYezk4wzb3tpAy3mrkGoXubsGIfVN",
+      "def": 9,
+      "paint": 51,
+      "source_name": "AWP | Lightning Strike"
+    },
+    "market-9-1213": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_DVL0P6hZqNpL_esAm6Xyfo44rNtFi_kxhx-4WvWnImoJ3mTblJzDJFzR-QP4EK4m9XjZbvk7lCLiZUFk3u2JoT1UA",
+      "def": 9,
+      "paint": 1213,
+      "source_name": "AWP | LongDog"
+    },
+    "market-9-395": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_C9k7uW-V6NhL-KKMWuZxuZi_uM5HXG3xhh_t2iBnI2ucn3EZwEjDpJ0Q-dY5EPrxNTiYevj7gXa2IhbjXKpQIFOiXU",
+      "def": 9,
+      "paint": 395,
+      "source_name": "AWP | Man-o'-war"
+    },
+    "market-9-446": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLwiYbf_jdk4veqfbdsH_GEHlicyOl-pK85TC23wk12tWSGnNr6JXqRPVUnA5J5RLIKshS-l4HuYbji7lfajdgU02yg2bOcOBD3",
+      "def": 9,
+      "paint": 446,
+      "source_name": "AWP | Medusa"
+    },
+    "market-1-711": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL1m5fn8Sdk6OGRbKFsJ_yWMWaXxvxzo_JmXRa_nBovp3PRmNj4c3mTb1RxC5cjF-EItRnrlNzkYrnk5gaI3Y0UmyX52H9K7ixs_a9cBsGEcOCn",
+      "def": 1,
+      "paint": 711,
+      "source_name": "Desert Eagle | Code Red"
+    },
+    "market-1-185": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL1m5fn8Sdk7v-Re6dsLPWAMWWCwPh5j-1gSCGn20om6jyGw9qgJHmQaAcgC8MmR7IMthm5m4W2M7zj7wOIj4pGn32o23hXrnE8VHBG1O4",
+      "def": 1,
+      "paint": 185,
+      "source_name": "Desert Eagle | Golden Koi"
+    },
+    "market-1-1090": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL1m5fn8Sdk7OeRbKFsJ_yWMWyZ1e1-j-1gSCGn2x5-sG7Wzdyvc3OSbgcnXpR5FO9bukTtm9WzMePhswaN2N5CmCj_jyhXrnE8ibjhEyc",
+      "def": 1,
+      "paint": 1090,
+      "source_name": "Desert Eagle | Ocean Drive"
+    },
+    "market-4-957": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL2kpnj9h1Y-s2pZKtuK6HLMXCR0-N3ueVsQRa_nBovp3PQydf4dXuSalUgCJZwRrILthi9kYDlMe_m4g2Ij90Um3moiXkc6SZj_a9cBgLxwlYC",
+      "def": 4,
+      "paint": 957,
+      "source_name": "Glock-18 | Bullet Queen"
+    },
+    "market-4-1421": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL2kpnj9h1c4_2tY5tnJOCWC2yvzedxuPUnS3HqzR9152_UyNigeSqWa1BxW8ElRLJfshfpkNHuZO_n4ADd2IxBxDK-0H3ID5Y8zA",
+      "def": 4,
+      "paint": 1421,
+      "source_name": "Glock-18 | Fully Tuned"
+    },
+    "market-4-1450": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL2kpnj9h1c4_2tY5tqKP-AGliA0-Fiv-JmQxahkBkYvzSCkpu3cinCaAAoD8AiEbVftRTrktCyNLi3sVTei4pAznj92ikY6Xk9t-cCBL1lpPO4SDexIA",
+      "def": 4,
+      "paint": 1450,
+      "source_name": "Glock-18 | Ghost Protocol"
+    },
+    "market-4-129": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL2kpnj9h1c4_2tY5tuKP-eHmKC_uJ_t-l9ASvik00m5TmEzd-geSiQPARxX5IiTLIMtBW4l9zmNuPr4VbbjItHxC_gznQeqLQCTjk",
+      "def": 4,
+      "paint": 129,
+      "source_name": "Glock-18 | Gold Toof"
+    },
+    "market-60-548": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFS4_ega6F_H_OGMWrEwL9lj_JmWiWnlBYioQKJk4jxNWXFZ1IgC5MiQuZeuhK4wIXnMuPhslCM2oMTxH75hnxK6Htjse4BVqd25OSJ2DU2Q_CD",
+      "def": 60,
+      "paint": 548,
+      "source_name": "M4A1-S | Chantico's Fire"
+    },
+    "market-60-360": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFS4_ega6F_H_OGMWrEwL9lj-JwXSyrqhEutDWR1N77cimSbQQgC8F5QLYCsELpltTnZuvk7wbcjdhDzy_43yMb6ilvt7kcEf1yDWu2yf8",
+      "def": 60,
+      "paint": 360,
+      "source_name": "M4A1-S | Cyrex"
+    },
+    "market-60-1073": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFS4_ega6F_H_eAMWrEwL9JpuR7WyC0miIrujqNjsGpciiVZgIpCpAjEOUPuhXuw93kZOzm4laPi4IRyij-2H9P6yc65rwCT-N7rc1sfRJu",
+      "def": 60,
+      "paint": 1073,
+      "source_name": "M4A1-S | Imminent Danger"
+    },
+    "market-60-587": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFS4_ega6F_H_eAMWrEwL9JveRqRyiMnBMjpi6RiIb8MhTLN1F4TowiE7EMtRW7ltzlMbvi5wPej4pDmCT2i3tKuHo4sOoEWKFz8qPS3F7BL_Rjtn0I4s52",
+      "def": 60,
+      "paint": 587,
+      "source_name": "M4A1-S | Mecha Industries"
+    },
+    "market-60-946": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFS4_ega6F_H_OGMWrEwL9lj-J6SCbhxUl_jDGMnYftby7BbVdyCsB0EeZY4RPukNfhZOO2sQ3W398Qy3_6jHxIunptsO9TUqs7uvqAAWrfZoM",
+      "def": 60,
+      "paint": 946,
+      "source_name": "M4A1-S | Player Two"
+    },
+    "market-60-106": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFS4_ega6F_H_3HDzaD_vh3oO57WCilkCIrujqNjsH_In7DZgYnWcAiR-MJshO6koDlN7vhsQyLi41HySX6iXlAvCZrsb0HT-N7rW-9qIHE",
+      "def": 60,
+      "paint": 106,
+      "source_name": "M4A1-S | Vaporwave"
+    },
+    "market-16-155": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwiFO0PC7ZKhoNM-BD26e_uMisbBWQyC0nQlp4GmGydioIH3DPFMjDMd2QrQO5hDtkNK2Ne_htAXd3d0Uyiiriysb5zErvbh6fsb98Q",
+      "def": 16,
+      "paint": 155,
+      "source_name": "M4A4 | Bullet Rain"
+    },
+    "market-16-632": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwiVI0P_6afBSM_WQGmiC_uJ_t-l9AX22kBh0tm3Qn92qdS7GPARyW5t0QLQD4xi6w9XkZe3jsgDW3ogUnH3gznQeqfpfmso",
+      "def": 16,
+      "paint": 632,
+      "source_name": "M4A4 | Buzz Kill"
+    },
+    "market-16-336": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwiFO0OanfKVjM-ScHGqvzedxuPUnHnjnxEsi4WTTntqucnuUaA92CZR2E-IDtRa-mobnYeLksQbXg4hDyTK-0H1Bbz5yqg",
+      "def": 16,
+      "paint": 336,
+      "source_name": "M4A4 | Desert-Strike"
+    },
+    "market-16-1255": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwiVI0P_6afBSMvGsAm6Xyfo46eU5H3DnlxlytTyDwtr_JHmQZw4hC5R5RrRbtRO5xtCyZrzktgCI2ZUFk3sFC5kC3A",
+      "def": 16,
+      "paint": 1255,
+      "source_name": "M4A4 | Eye of Horus"
+    },
+    "market-16-1353": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwi8P7qaRe69_MuKHMWCCxOt4j-1gSCGn20kk4mSHn97_eXqTOgMkXpdzR-MNsxO7w9e2Yrnk5VbciIhDznj8iy9XrnE8J4rQ87g",
+      "def": 16,
+      "paint": 1353,
+      "source_name": "M4A4 | Full Throttle"
+    },
+    "market-16-512": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwiVI0P_6afBSMv-KD2uv0v9jufNscCW6khUz_W-Az9b8d3LFZ1AnDMAjR-4CsBO9xofhNL_q4wLWjogUzyn43SxM73x1o7FVNN3FvCs",
+      "def": 16,
+      "paint": 512,
+      "source_name": "M4A4 | Royal Paladin"
+    },
+    "market-16-533": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwiVI0P_6afBSMPmcAGKV09F6ueZhW2fjxB9_4GqEyN6vdi_BPwQgWZIkRLYD4Ba_kILgYeOz4lbagthBz3_9kGoXuZIYHoDp",
+      "def": 16,
+      "paint": 533,
+      "source_name": "M4A4 | The Battlestar"
+    },
+    "market-16-1063": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwiVI0P_6afBSI_-SAm6EyOF4j-1gSCGn200jt2_XnIuseX_GaFR0XpEhReULtUKxlIWzP-_gs1HZjI1NzSutiClXrnE8e4r3Ge8",
+      "def": 16,
+      "paint": 1063,
+      "source_name": "M4A4 | The Coalition"
+    },
+    "market-17-433": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8n5WxrR1Y-s2jaac8cM-dC2ie0-dytfNWQyC0nQlp5DzTntmgdC7COABxX5NxQrUOtUS5w4LgMu6zsVCK2IJCmyisjitM6DErvbicsEA0SQ",
+      "def": 17,
+      "paint": 433,
+      "source_name": "MAC-10 | Neon Rider"
+    },
+    "market-61-1040": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLkjYbf7itX6vytbbZSJ-OsG3SA0tF-se9uSi2-lBMYvzSCkpu3eX7EP1MpApdwR-8NsxbukoXuNLnj4QOMiN8XzHn_iC8a7Spi4upRWb1lpPOCQNKXgA",
+      "def": 61,
+      "paint": 1040,
+      "source_name": "USP-S | The Traitor"
+    },
+    "market-1-351": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL1m5fn8Sdk7OeRbKFsJ_yWMWaF0-tjo95lRi67gVMk4WTSm9moI3-QPVBxDJByQOJe40O6k4fnM-zgsQXci4gUyH3_3CMa8G81tJHuULJI",
+      "def": 1,
+      "paint": 351,
+      "source_name": "Desert Eagle | Conspiracy"
+    },
+    "market-1-1458": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL1m5fn8Sdk6_evb6hoH_WSHXOV0-BJte9gSCSyqh8rpji6lob-KT-JawckWMNwRLIJu0SxltfkPuvgtVfXioNFySv92ipL6S8_sukFWaIl_bqX0V8Czprh4w",
+      "def": 1,
+      "paint": 1458,
+      "source_name": "Desert Eagle | Eastern Enigma"
+    },
+    "market-1-764": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL1m5fn8Sdk6OGRbKFsJ_yWMWGVz-Bzs95lRi67gVN14GvRyt77cnKfagRyXsMiTeUNtRO5kYWyYr7i4lfZgoIUzX722CpO8G81tMpbNfMB",
+      "def": 1,
+      "paint": 764,
+      "source_name": "Desert Eagle | Fennec Fox"
+    },
+    "market-1-61": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL1m5fn8Sdk7vORfqF_NPmUAVicyOl-pK9qSyyywxgjtmnVytyocnLGPA4iWcYmRLYIu0S-xtbuMLjg51DXjoJC02yg2VjGnh4J",
+      "def": 1,
+      "paint": 61,
+      "source_name": "Desert Eagle | Hypnotic"
+    },
+    "market-1-527": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL1m5fn8Sdk7uORbKF-JeKHC2aXzetJu_RkRiq7mhk1sjqKlLD1KCzPKhh0CcBwQLVe5BHrloKyZOnr5w3XiYhDnC39iCpK7X1psrlUWaFw8qXekUifZlV_fDVZ",
+      "def": 1,
+      "paint": 527,
+      "source_name": "Desert Eagle | Kumicho Dragon"
+    },
+    "market-1-805": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL1m5fn8Sdk6OGRbKFsJ_yWMWqVwuZ3j-1gSCGn20h042vSyY2tdyjCZwIlXJBxQeNe4EWxxoHkMOq0sQGIid5Fnyr42HtXrnE8p4gbgvE",
+      "def": 1,
+      "paint": 805,
+      "source_name": "Desert Eagle | Mecha Industries"
+    },
+    "market-60-301": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFS4_ega6F_H_GeMWrEwL87o95oQyW8jCIooTyLnYrGLSLANkI-D5d2FrENtRG7wNDvZe-3slfci9pFmHj8jSof6yZjtugEB6QtrKTXhxaBb-PhITXxPA",
+      "def": 60,
+      "paint": 301,
+      "source_name": "M4A1-S | Atomic Alloy"
+    },
+    "market-60-1017": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8ypexwjFS4_ega6F_H_GeMWrEwL9lj-NlWiygmBIstgKJk4jxNWWeOg5xDJR2Q-5b5BGwxIDuP7uw4ALa3ohMz3n3iypLvyc55-pQUKct5OSJ2OKlF5Nn",
+      "def": 60,
+      "paint": 1017,
+      "source_name": "M4A1-S | Blue Phosphor"
+    },
+    "market-61-339": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLkjYbf7itX6vytbbZSI-WsBWaZzO94j-1gSCGn20t-4WyBn4mocC6XbVN0CMB2RLYMsUG5x9DgN-20tQSNiI1GzS2q3XtXrnE8NAiGp64",
+      "def": 61,
+      "paint": 339,
+      "source_name": "USP-S | Caiman"
+    },
+    "market-61-705": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLkjYbf7itX6vytbbZSI-WsG3SA_u1jpN5lRi67gVNz4G7Qm938cS_Da1AhXpB1EeVb4xm4mtDjN7vj4A3b2NpGyCr52i4Y8G81tMzdoYZ7",
+      "def": 61,
+      "paint": 705,
+      "source_name": "USP-S | Cortex"
+    },
+    "market-61-221": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLkjYbf7itX6vytbbZSIf2sC2uVwvpkueJWXSy3qhEutDWR1I34J3uXOwFyCsF4TeAJt0bpw9OxNrzh7gyI3t1DmHiq3y5M6HxqsrwcEf1yfEp4lzc",
+      "def": 61,
+      "paint": 221,
+      "source_name": "USP-S | Serum"
+    },
+    "market-61-1451": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLkjYbf7itX6vytbbZSNeODHViD0edkse1WSCW6gR4vjDSXk4v8MijCMEJPVssnHaMUskG4ltXvPr7j7lTfjo4QyS762Coa7y5u5rsCV6NwrKfTjlySMOFstY5DeqjJbNurDA",
+      "def": 61,
+      "paint": 1451,
+      "source_name": "USP-S | Spiral Glitch"
+    },
+    "market-61-1027": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLkjYbf7itX6vytbbZSIf2sB2mExOJ6ueZsQSq2qhAmtDiLjo7GLSLANkI-XpZxE-4MtxW5ldeyZbvq51PXid9EzSr6iSof7y1t47lQAqRxrvCEjxaBb-PT-N1SiA",
+      "def": 61,
+      "paint": 1027,
+      "source_name": "USP-S | Target Acquired"
+    },
+    "market-61-1065": {
+      "status": "mapped",
+      "url": "https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLkjYbf7itX6vytbbZSM_-sGW-Z1et5pfVWXSCjgRQjtgKJk4jxNWXCbQQpCJF1QLINsUbrlofgNunj5lSLg4sXnCT8jS5Oun445O8CUqUt5OSJ2Dgwztii",
+      "def": 61,
+      "paint": 1065,
+      "source_name": "USP-S | Whiteout"
     }
   }
 }

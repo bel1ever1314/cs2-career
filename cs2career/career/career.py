@@ -78,7 +78,8 @@ def transfer_fee(ability: float) -> int:
 
 
 def sponsor_month(rank: int) -> int:
-    return int(175000 / max(1, rank) ** 0.52)
+    from .market_balance import SPONSOR_FLOOR
+    return max(SPONSOR_FLOOR, int(175000 / max(1, rank) ** 0.52))
 
 
 def buy_chance(buyer_vrs: float, ability: float, money: int, fee: int) -> float:
@@ -684,7 +685,7 @@ class Career:
         transfer_tick(self, season)
         if not self.unsigned and not self.over():
             self.dispatch_invites(season)
-        skins.advance_day(self)
+        skins.advance_day(self, season.date)
         self._birthday_tick(season)
         self.emit_incidents(season, 'day', season.date)
         from .story_timing import reconcile
@@ -813,8 +814,8 @@ class Career:
     # ---------------------------------------------------------------- actions
 
     def buy(self, season, player_name: str, replace_id: str = '', player_id: str = '') -> str:
-        if self.personal_transfers.get('player_only'):
-            raise ValueError('你是签约选手，俱乐部引援由管理层负责。')
+        from . import club_recruitment
+        club_recruitment.authorize(self, season, replace_id)
         from .transfers import locked, outgoing as select_outgoing, identity
         if self.over(): raise ValueError('当前生涯已经结束。')
         if self.unsigned or not self.team_id:
@@ -839,7 +840,8 @@ class Career:
         if chance < 0.18:
             return f"{cand['name']} 看不上现在的队伍，成功率只有 {chance:.0%}。"
         if random.random() > max(0.2, chance):
-            cost = int(fee * 0.08)
+            from .market_balance import NEGOTIATION_FAILURE_RATE
+            cost = int(fee * NEGOTIATION_FAILURE_RATE)
             team["money"] -= cost
             self._record_cashflow(
                 season.date, "club", "transfer", f"接触 {cand['name']} 的谈判费",
@@ -862,6 +864,7 @@ class Career:
         if outgoing["name"] not in self.hidden:
             self.free.append(outgoing)
         msg = f"签下 {cand['name']}，{weak['name']} 离队，花费 ${fee:,}。"
+        club_recruitment.consume(self, season, replace_id)
         self.log.append(msg)
         self.save()
         return msg
@@ -917,7 +920,10 @@ class Career:
         before = float(team.get("mentality") or 70)
         gain = scrim_mentality_gain(before)
         self.last_scrim = season.date
-        self.training_session = None  # Consumed with the reward in the same save.
+        from .match_supplies import activate_training, finish_series
+        activate_training(self, season)
+        finish_series(self, 'training:' + session.get('date', season.date))
+        self.training_session = None
         if gain <= 0:
             msg = "训练赛打完。心态已经很高，热身几乎带不动了。"
         else:
@@ -2047,10 +2053,11 @@ class Career:
             raise ValueError('免费配装是赠送外观，可以装备和编辑贴纸，但不能出售换钱。')
         self.inventory = [row for row in self.inventory if row.get("id") != inv_id]
         self._unequip_id(inv_id)
-        pay = skins.sell_proceeds(skins.quote_of(self, item.get("skin_id") or ""))
+        from .skin_market import item_spot, proceeds, fee
+        pay = proceeds(self, item_spot(self, item))
         self.money += pay
         self._record_cashflow("", "pocket", "skin", f"出售 {item['name']}", pay, self.money)
-        msg = f"卖掉 {item['name']}，口袋 +${pay:,}（市价扣 10%）。"
+        msg = f"卖掉 {item['name']}，口袋 +${pay:,}（市价扣 {fee(self):.0%}）。"
         self.log.append(msg)
         self.save()
         if sync:

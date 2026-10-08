@@ -108,13 +108,42 @@ class EnvironmentTests(unittest.TestCase):
         with self.assertRaises(ValueError): self.buy('plant')
         self.assertEqual(10000,self.state.career.money)
 
-    def test_capsule_clearance_keeps_real_round_table_passage_but_rejects_blocked_door(self):
-        self.buy('plant','plant-one');self.buy('plant','plant-two')
-        rows=[dict(id='barrier1',item='plant',x=1,z=1.75,rotation=0,color='7b9d70'),
-              dict(id='barrier2',item='plant',x=1,z=2.25,rotation=0,color='7b9d70')]
+    def test_capsule_clearance_rejects_a_wall_across_the_workstation_route(self):
+        home=env._home(self.state)
+        home['owned'] += ['bookshelf']*4
+        rows=[dict(id=f'barrier{i}',item='bookshelf',x=x,z=0,rotation=0,color='caa078')
+              for i,x in enumerate([-.5,.5,1.5,2.5])]
         with self.assertRaisesRegex(ValueError,'挡住通路'):
-            env.validate_layout(rows,env._home(self.state))
+            env.validate_layout(rows,home)
         self.assertEqual([],env.validate_layout([],env._home(self.state)))
+
+    def test_removed_authored_furniture_frees_floor_without_changing_inventory(self):
+        self.buy('plant')
+        home=env._home(self.state)
+        before=deepcopy(home)
+        # Former fixed coffee table, beanbag and entry cabinet footprints.
+        for x,z in [(0,1),(1.75,.75),(2.75,2.25)]:
+            row=dict(id='plant',item='plant',x=x,z=z,rotation=0,color='7b9d70')
+            self.assertEqual([row],env.validate_layout([row],home))
+        self.assertEqual(before,home)
+        self.assertEqual(4,len(env.environment_context(self.state)['home']['fixed']))
+
+    def test_pack_away_and_restore_keep_stock_and_survive_reload(self):
+        self.buy('sofa')
+        row=dict(id='sofa-1',item='sofa',x=1,z=.75,rotation=90,color='bfaa95')
+        env.environment_command(self.state,'home-layout',self.body('place-sofa',placed=[row]))
+        owned=env._home(self.state)['owned'][:]
+        balance=self.state.career.money
+        body=self.body('pack-away',placed=[])
+        env.environment_command(self.state,'home-layout',body)
+        self.assertTrue(env.environment_command(self.state,'home-layout',body)['replayed'])
+        saved=json.loads((self.root/'career.json').read_text('utf-8'))
+        self.state.career.incident_state=saved['incident_state']
+        self.assertEqual([],env._home(self.state)['placed'])
+        self.assertEqual(owned,env._home(self.state)['owned'])
+        self.assertEqual(balance,self.state.career.money)
+        env.environment_command(self.state,'home-layout',self.body('restore-sofa',placed=[row]))
+        self.assertEqual([row],env._home(self.state)['placed'])
 
     def test_facility_level_rejects_float_or_stale_revision(self):
         for body in (self.body(team_id='a',facility='training',level=2.0,price=18000),

@@ -5,11 +5,14 @@ import math
 
 from .ability import playing_ability
 
-VERSION = 1
-INACTIVE_GRACE_DAYS = 14
-INACTIVE_DAILY_LOSS = .12
-INACTIVE_MAX_LOSS = 10.0
-INACTIVE_FORM_RETENTION = .97
+VERSION = 2
+MATCH_LEARNING_RATE = .8
+UNDERDOG_LEARNING_SHARE = .35
+PEER_EXPECTATION = .45
+LOSS_BASE = .08
+LOSS_SLOPE = .8
+LOSS_CAP = .45
+FOCUS_RECOVERY_RATE = .8
 
 
 def code(value):
@@ -70,6 +73,11 @@ def _ensure(team, name):
     maps = team['map_form']['maps']
     if name not in maps:
         maps[name] = _initial(team, name)
+    team['map_form']['version'] = VERSION
+    # Migration starts at the current saved level, never guesses old peaks or
+    # refunds historic decay. A GET continues to use the pure row() fallback.
+    for value in maps.values():
+        value.setdefault('practice_ceiling', value['strength'])
     return maps[name]
 
 
@@ -91,12 +99,26 @@ def _mark_active(value, day):
                                strength=value['strength'], form=value['form'])
 
 
-def advance_calendar(teams, old_day, new_day):
-    """Settle selected practice, then inactivity, inside the date transaction.
+def _change(team, name, previous, reason, day):
+    """Keep familiarity, recent form and their clipped total distinguishable."""
+    value = row(team, name)
+    before = _clip(previous['strength'] + previous['form'])
+    after = rating(team, name)
+    change = dict(team_id=team.get('id', ''), team=team['name'], map=name,
+                  before=round(before, 2), after=round(after, 2),
+                  delta=round(after - before, 2), reason=reason, date=day)
+    for field in ('strength', 'form'):
+        change[field + '_before'] = round(previous[field], 4)
+        change[field + '_after'] = round(value[field], 4)
+        change[field + '_delta'] = round(value[field] - previous[field], 4)
+    return change
 
-    Recompute from the last activity's snapshot rather than rounding daily
-    deductions: one 30-day jump and thirty day steps produce identical values.
-    No wall clock, no historical replay, and no state mutation from reads.
+
+def advance_calendar(teams, old_day, new_day):
+    """All clubs train routinely: maintain, never inflate or decay their maps.
+
+    Only an explicitly selected focus can recover lost familiarity. Calendar
+    jumps do not invent scrims, consume match RNG or modify player attributes.
     """
     old_stamp, new_stamp = date.fromisoformat(old_day), date.fromisoformat(new_day)
     if new_stamp <= old_stamp:
@@ -112,20 +134,7 @@ def advance_calendar(teams, old_day, new_day):
             idle = value['inactivity']
             if new_day <= idle['through']:
                 continue
-            days = max(0, (new_stamp - date.fromisoformat(idle['since'])).days - INACTIVE_GRACE_DAYS)
             idle['through'] = new_day
-            if not days:
-                continue
-            before = rating(team, name)
-            value['strength'] = round(max(0, idle['strength'] - min(INACTIVE_MAX_LOSS, days * INACTIVE_DAILY_LOSS)), 4)
-            # Inactivity must not improve a losing map by removing its negative form.
-            value['form'] = round(min(0, idle['form']) + max(0, idle['form']) * INACTIVE_FORM_RETENTION ** days, 4)
-            _labels(team, name)
-            after = rating(team, name)
-            if round(after - before, 2) < 0:
-                value['last_change'] = dict(team_id=team.get('id', ''), team=team['name'], map=name,
-                    before=round(before, 2), after=round(after, 2), delta=round(after - before, 2),
-                    reason='长期未练图', date=new_day)
 
 
 def apply_result(a, b, box, day, *, practice=False):
@@ -145,20 +154,27 @@ def apply_result(a, b, box, day, *, practice=False):
     changes = []
     for team in (a, b):
         value = _ensure(team, name)
-        before = rating(team, name)
+        previous = dict(strength=value['strength'], form=value['form'])
         won = box['winner'] == team['name']
-        residual = int(won) - float(chances[team['name']])
-        value['strength'] = round(_clip(value['strength'] + 3 * weight * residual), 4)
+        chance = _clip(float(chances[team['name']]), .1, .9)
+        residual = int(won) - chance
+        # Results reveal mastery: an upset loss costs a small bounded amount;
+        # an underdog can still learn from losing to a clearly stronger side.
+        # No extra random draws, player-stat changes or historical replay.
+        learning = MATCH_LEARNING_RATE * (1 - value['strength'] / 100) * (1.5 - chance)
+        if not won:
+            learning = (learning * UNDERDOG_LEARNING_SHARE if chance < PEER_EXPECTATION else
+                        -min(LOSS_CAP, LOSS_BASE + LOSS_SLOPE * (chance - PEER_EXPECTATION)) * value['strength'] / 100)
+        value['strength'] = round(_clip(value['strength'] + weight * learning), 4)
+        value['practice_ceiling'] = max(value['practice_ceiling'], value['strength'])
         value['form'] = round(_clip((1 - .15 * weight) * value['form'] + 4 * weight * residual, -10, 10), 4)
         value['played'] += 1
         value['wins'] += int(won)
         value['recent'] = (value['recent'] + [dict(date=day, won=won, practice=practice)])[-20:]
         _mark_active(value, day)
         _labels(team, name)
-        change = dict(team_id=team.get('id', ''), team=team['name'], map=name,
-                      before=round(before, 2), after=round(rating(team, name), 2),
-                      delta=round(rating(team, name) - before, 2),
-                      reason=('训练赛' if practice else '正式比赛') + ('获胜' if won else '失利'), date=day)
+        change = _change(team, name, previous,
+                         ('训练赛' if practice else '正式比赛') + ('获胜' if won else '失利'), day)
         value['last_change'] = deepcopy(change)
         changes.append(change)
     box['map_form_changes'] = changes
@@ -166,6 +182,9 @@ def apply_result(a, b, box, day, *, practice=False):
 
 
 def settle_map(season, match, index):
+    if getattr(season, 'career', None):
+        from cs2career.career.match_supplies import finish_map, series_key
+        finish_map(season.career, match, series_key(season, match), index)
     teams = {t['name']: t for t in season.teams}
     box = match['maps'][index]
     return apply_result(teams[match['team_a']], teams[match['team_b']], box, season.date)
@@ -189,14 +208,13 @@ def settle_practice(teams, new_day):
             continue
         name = task['map']
         value = _ensure(team, name)
-        before = rating(team, name)
-        value['strength'] = round(_clip(value['strength'] + .8 * (1 - value['strength'] / 100)), 4)
+        previous = dict(strength=value['strength'], form=value['form'])
+        value['strength'] = round(min(value['practice_ceiling'],
+                                     value['strength'] + FOCUS_RECOVERY_RATE * (1 - value['strength'] / 100)), 4)
         _mark_active(value, task['date'])
         _labels(team, name)
         task['settled'] = True
-        value['last_change'] = dict(team_id=team.get('id', ''), team=team['name'], map=name,
-            before=round(before, 2), after=round(rating(team, name), 2),
-            delta=round(rating(team, name) - before, 2), reason='专项练图', date=task['date'])
+        value['last_change'] = _change(team, name, previous, '专项练图', task['date'])
 
 
 def public(team, maps=None):
@@ -213,5 +231,6 @@ def public(team, maps=None):
                         strength=round(value['strength'], 1), form=round(value['form'], 1),
                         label=value['label'], played=value['played'], wins=value['wins'],
                         recent=deepcopy(value['recent']), last_change=deepcopy(value['last_change']),
-                        inactive_days=inactive_days))
+                        inactive_days=inactive_days, automatic_training=True,
+                        practice_ceiling=round(value.get('practice_ceiling', value['strength']), 1)))
     return out

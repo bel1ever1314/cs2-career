@@ -1,0 +1,28 @@
+与俱乐部商量换人	Discuss a roster change
+效力越久、实力越突出，你的建议越有分量；俱乐部也会考虑队友的实力和近期表现。	Longer service and stronger ability give your suggestion more weight. The club also considers your teammate's ability and recent performances.
+商量不收费，每 14 个游戏日一次。获批只针对选中的队友，签约成功后使用；谈判未成则保留。	Discussions are free, once every 14 game days. Approval covers the selected teammate and is used only when a replacement signs successfully.
+已获批准：替换 %s，可完成一次引援。	Approved: one signing to replace %s.
+选择已获批的队友	Select the approved teammate
+已效力 %d 天 · 你的实力 %.1f	Service: %d days · Your ability: %.1f
+%s · 实力 %.1f · 商量成功率 %.0f%%	%s · Ability %.1f · Approval chance %.0f%%
+近 30 天 %d 图 · Rating %.2f	Last 30 days: %d maps · Rating %.2f
+近期暂无完整战绩，不按表现加减成功率。	No complete recent match data; performance does not affect this chance.
+成功率影响：效力时间 %+.0f%% · 你的实力 %+.0f%% · 队友实力 %+.0f%% · 近期表现 %+.0f%%	Chance modifiers: service %+.0f%% · Your ability %+.0f%% · Teammate ability %+.0f%% · Recent form %+.0f%%
+这名队友近期发挥出色，俱乐部更希望留住他。	This teammate has been playing well recently. The club would prefer to keep him.
+上次商量：俱乐部希望暂时保留 %s。	Last discussion: the club preferred to keep %s for now.
+确认向俱乐部提出调整 %s 的建议？这次商量后需等待 14 个游戏日。	Suggest replacing %s? After this discussion, wait 14 game days before another request.
+确认商量	Confirm discussion
+提出换人建议	Suggest a roster change
+可以在转会市场与俱乐部商量换人；设施可在下方升级。	Discuss roster changes with the club in the transfer market. Facilities can be upgraded below.
+查看财务 / 个人注资	Finances / Personal investment
+请先与俱乐部商量，并获得替换这名队友的批准。	Discuss the change with the club and obtain approval to replace this teammate first.
+赛事进行中，结束后再与俱乐部商量。	Discuss roster changes after the current event ends.
+先决定当前的加盟机会，再讨论阵容调整。	Decide on your current club offer before discussing roster changes.
+本次换人已获批准，请先完成这次引援。	You already have approval for a change. Complete that signing first.
+下次可商量日期：%s	Next discussion: %s
+你已有俱乐部引援权，无需申请换人机会。	You already control recruitment and do not need approval.
+当前不能与俱乐部商量。	A discussion with the club is not available right now.
+商量条件已变化，请刷新后重新确认。	The discussion conditions have changed. Refresh and confirm again.
+俱乐部同意调整 %s 的位置，你获得一次换人机会。签约成功后使用。	The club approved replacing %s. You have one opportunity, used when a replacement signs successfully.
+俱乐部暂时希望保留 %s。可以在 %s 再谈。	The club prefers to keep %s for now. You can discuss it again on %s.
+请先与俱乐部商量，获得一次换人机会。	Discuss a roster change with the club to obtain one recruitment opportunity.

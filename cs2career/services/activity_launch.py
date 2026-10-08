@@ -39,7 +39,7 @@ def command(state, path, body):
     prepared = []
     def capture(cfg, args, kwargs):
         prepared.append((deepcopy(cfg), deepcopy(args), deepcopy(kwargs)))
-        return dict(match=kwargs['request_override'], msg='')
+        return dict(match=kwargs['request_override'], msg='', supply_deferred=True)
     def session():
         return state.career.training_session if training else state.arena.data['lobby']
     with state.operation(), request_scope(rid):
@@ -95,6 +95,9 @@ def command(state, path, body):
         if error:
             matches._store(state)[failure] = dict(lobby_id=session().get('id'), reason=error)
         else:
+            if training:
+                from ..career.match_supplies import activate_training
+                activate_training(state.career,state.season)
             matches._store(state).pop(failure, None)
             if not training:
                 session()['phase'] = 'launched'

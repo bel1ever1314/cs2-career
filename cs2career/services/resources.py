@@ -48,9 +48,9 @@ def cached_skin_art(skin_id: str, art: dict) -> str:
     row = art.get("items", {}).get(skin_id) or {}
     if row.get("status") != "mapped" or not row.get("url"):
         return ""
-    from cs2career.paths import save_root
+    from cs2career.paths import save_root, data_file
     media, parent = media_manifest()
-    roots = [save_root() / "skin_art"]
+    roots = [data_file('skin_images'), save_root() / "skin_art"]
     for value in media.get("skin_cache_roots", []):
         if isinstance(value, str) and value and "://" not in value:
             root = Path(value)

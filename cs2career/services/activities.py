@@ -914,7 +914,13 @@ def scrim_command(state, action, body, *, dispatch=None):
     opponent = next((t for t in season.teams if t['id'] == row['opponent_id']), None)
     if not opponent or opponent['id'] == team['id']:
         raise ValueError('对手阵容已变化，请重新约赛')
-    mp = _simulate(team, opponent, row['map'], row['id'])
+    from cs2career.career.match_supplies import prepare, activate, teams_with_effects, finish_series
+    supply_key = 'scrim:' + row['id']
+    effects = prepare(career, row, supply_key, season.date, teams=season.teams)
+    activate(career, row, supply_key, season.date, effects)
+    own, other = teams_with_effects([team,opponent],effects)
+    mp = _simulate(own, other, row['map'], row['id'])
+    finish_series(career, supply_key)
     from cs2career.world.map_form import apply_result
     apply_result(team, opponent, mp, season.date, practice=True)
     report = dict(id=row['id'], date=season.date, source='simulated', map=mp,

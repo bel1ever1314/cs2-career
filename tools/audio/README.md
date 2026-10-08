@@ -11,6 +11,7 @@ whistles (`crowd.py`).
 | `render_all.py` | Renders tracks to `out/*.wav` / `.ogg` (`CAREER_SF2` = SoundFont path) |
 | `crowd_final.py` | Crowd stem on the Major opener timeline (`out/major_final_v3_crowd.wav`) |
 | `crowd_ambience.py` | Seamless venue beds: arena murmur/active, LAN room, awards hall |
+| `ceremony.py` | Awards ceremony and Top20/title popup one-shots: rolls, reveal hit, fanfare, applause, tick, honours, champion |
 | `build_game_audio.py` | Runs all of the above and writes the files used by the game |
 
 Rebuild everything the game uses:

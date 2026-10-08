@@ -27,6 +27,7 @@ RARITY_RANK = {
 }
 
 WEAPON_DEF = {
+    "mac10": 17,
     "ak47": 7,
     "m4a1": 60,
     "m4a4": 16,
@@ -38,6 +39,7 @@ WEAPON_DEF = {
 
 # Which side can wear this slot. Knives and gloves are independent per team.
 SLOT_SIDES = {
+    "mac10": ("t",),
     "ak47": ("t",),
     "glock": ("t",),
     "m4a1": ("ct",),
@@ -343,8 +345,12 @@ def ensure_economy(career) -> bool:
     return changed
 
 
-def advance_day(career) -> None:
-    tick_quotes(career)
+def advance_day(career, day=None) -> None:
+    from .skin_market import tick
+    if day:
+        tick(career, day)
+    else:
+        tick_quotes(career)  # Compatibility for clients without a calendar.
     retune_cases(career)
 
 
@@ -586,14 +592,14 @@ def _decorate_skin(career, row: dict) -> dict:
 
 
 def _decorate_item(career, row: dict) -> dict:
-    sid = row.get("skin_id") or ""
-    spot = quote_of(career, sid) if sid else int(row.get("sell") or 0)
+    from .skin_market import item_spot, proceeds
+    spot = item_spot(career, row)
     applied = _item_core(row)
     return {
         **row,
         **{key: applied[key] for key in ('def', 'paint', 'wear', 'seed')},
         "spot": 0 if row.get('bound') else spot,
-        "sell": 0 if row.get('bound') else sell_proceeds(spot),
+        "sell": 0 if row.get('bound') else proceeds(career, spot),
         "sellable": not row.get('bound', False),
         "seed": _seed_of(row),
         "sticker_capable": str(_def_of(row)) in sticker_catalog()['models'],

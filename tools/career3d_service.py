@@ -121,7 +121,8 @@ def read_context(state, display_hour=8) -> dict:
     c, s = state.career, state.season
     mine = c.my_team(s.teams) or {}
     you = c.my_player(s.teams) or c.you_card or {}
-    ranking = next((r["rank"] for r in s.vrs.table(s.teams, s.date) if r["id"] == c.team_id), None)
+    vrs_table = s.vrs.table(s.teams, s.date)
+    ranking = next((r["rank"] for r in vrs_table if r["id"] == c.team_id), None)
     pairs = _player_matches(state)
     nextmatch = None
     if pairs:
@@ -151,7 +152,7 @@ def read_context(state, display_hour=8) -> dict:
               "event_id": r.get("event_id", ""), "read": bool(r.get("read")),
               "evname": event_lookup.get(r.get("event_id"), {}).get("name", r.get("evname", "")),
               **{key: r[key] for key in ('title_en', 'body_en', 'from_en') if key in r},
-              **{key: r[key] for key in ('team_id', 'team', 'role', 'replace_id', 'expires', 'personal_transfer') if key in r},
+              **{key: r[key] for key in ('team_id', 'team', 'role', 'replace_id', 'expires', 'personal_transfer', 'auto_reason') if key in r},
               "dates": list(event_lookup.get(r.get("event_id"), {}).get("dates") or r.get("dates") or [])}
              for r in inbox_rows(state)]
     inbox = [dict(row, **mail_actions(state, c._mail(row['id']) or row)) for row in inbox]
@@ -171,6 +172,7 @@ def read_context(state, display_hour=8) -> dict:
     from tools.career3d_activities import device_context
     from tools.career3d_activities import settings_context
     from cs2career.services.matches import match_preflight, quick_context, ceremony_context
+    from cs2career.services.world_feed import world_feed
     from tools.career3d_resources import resource_context
     from tools.career3d_start import startup_context
     from tools.career3d_rts import rts_context
@@ -180,6 +182,7 @@ def read_context(state, display_hour=8) -> dict:
     from tools.career3d_trophies import trophy_context
     from cs2career.services.environment import environment_context
     from cs2career.world.map_form import public as map_performance
+    from cs2career.career.predictions import summary as prediction_summary
     return {"ok": True, "protocol_version": PROTOCOL_VERSION, "isolated": True,
             "player": _player(you), "team": {"id": mine.get("id", ""), "name": mine.get("name", ""),
               "region": mine.get("region", ""), "rank": ranking, "money": mine.get("money", 0),
@@ -197,6 +200,8 @@ def read_context(state, display_hour=8) -> dict:
             "money": c.money, "attr_points": c.attr_points, "origin": c.origin,
             "personal_money": c.money, "club_money": mine.get("money", 0),
             'match_preflight': match_preflight(state), 'quick': quick_context(state),
+            'world': world_feed(state, vrs_table),
+            'prediction_summary': prediction_summary(c),
             'settings': settings_context(state),
             'ceremony': {k: v for k, v in awards.items() if k != 'attendees'}, 'awards': awards,
             'feedback': feedback_context(state),
@@ -343,7 +348,7 @@ def handler_class():
                 self._json({'ok': True, **check_updates()})
                 return
             if urlparse(self.path).path not in ("/api/3d/context", "/api/3d/match", "/api/3d/team", "/api/3d/player", "/api/3d/players", "/api/3d/event", "/api/3d/news", "/api/3d/mail", "/api/3d/ladder/status",
-                "/api/3d/custom/catalog", "/api/3d/custom/status",
+                "/api/3d/custom/catalog", "/api/3d/custom/status", "/api/3d/market", "/api/3d/supplies", "/api/3d/predictions",
                 "/api/3d/match/preflight", "/api/3d/match/status", "/api/3d/settings", "/api/3d/settings/environment", "/api/3d/settings/detect", "/api/3d/settings/updates", "/api/3d/tactics", "/api/3d/ceremony",
                 "/api/3d/environment", "/api/3d/start/options", "/api/3d/start/draw", "/api/3d/saves", "/api/3d/skin-tools", "/api/3d/skin-tools/item", "/api/3d/controls/management", "/api/3d/controls/training",
                 "/api/3d/controls/assistance", "/api/3d/controls/rankings", "/api/3d/controls/workshop"):
@@ -361,6 +366,21 @@ def handler_class():
                 return
             if url.path == "/api/3d/context":
                 self._json(read_context(self.state, self.server.display_hour))
+            elif url.path == '/api/3d/supplies':
+                from cs2career.career.match_supplies import projection
+                self._json({'ok': True, 'supplies': projection(self.state)})
+            elif url.path == '/api/3d/market':
+                from cs2career.services.market import read
+                try:
+                    self._json({'ok': True, 'market': read(self.state, {k:v[0] for k,v in parse_qs(url.query).items()})})
+                except (ValueError, TypeError, OverflowError) as exc:
+                    self._json({'ok': False, 'msg': str(exc)}, 400)
+            elif url.path == '/api/3d/predictions':
+                from cs2career.services.predictions import read
+                try:
+                    self._json({'ok': True, 'predictions': read(self.state, {k:v[0] for k,v in parse_qs(url.query).items()})})
+                except (ValueError, TypeError, OverflowError) as exc:
+                    self._json({'ok': False, 'msg': str(exc)}, 400)
             elif url.path == '/api/3d/environment':
                 from cs2career.services.environment import environment_context
                 self._json({'ok': True, 'environment': environment_context(self.state)})
@@ -609,6 +629,10 @@ def handler_class():
                     from cs2career.services.feedback import acknowledge_feedback
                     activity = acknowledge_feedback(self.state, body)
                     message = activity['reason']
+                elif path.startswith('/api/3d/predictions/'):
+                    from cs2career.services.predictions import command
+                    activity = command(self.state, path.rsplit('/', 1)[1], body)
+                    message = activity['reason']
                 elif path.startswith('/api/3d/controls/'):
                     from cs2career.services.controls import controls_command
                     activity = controls_command(self.state, path.removeprefix('/api/3d/controls/'), body)
@@ -665,7 +689,13 @@ def handler_class():
                     activity = spend_attributes(self.state, body)
                     message = activity['reason']
                 elif path.startswith("/api/3d/skins/"):
-                    if path.endswith('/bundle'):
+                    if path.rsplit('/',1)[1].startswith('supply-'):
+                        from cs2career.career.match_supplies import command
+                        activity = command(self.state, path.rsplit('supply-',1)[1], body)
+                    elif path.rsplit('/',1)[1].startswith('market-'):
+                        from cs2career.services.market import command
+                        activity = command(self.state, path.rsplit('market-',1)[1], body)
+                    elif path.endswith('/bundle'):
                         from tools.career3d_skin_bundles import buy_bundle
                         activity = buy_bundle(self.state, body)
                     else:

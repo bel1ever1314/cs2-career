@@ -20,10 +20,16 @@ packaged game does not rely on the editor import cache.
 | `crowd_arena_murmur.ogg` / `crowd_arena_active.ogg` | Major bowl ambience | 40 s seamless loops, mixed by crowd energy and capacity |
 | `crowd_lan_room.ogg` | LAN studio room tone, keyboards | 30 s loop |
 | `crowd_awards_hall.ogg` | Awards hall murmur, polite applause | 40 s loop, hushes during the show |
+| `ceremony_roll.ogg` / `ceremony_roll_long.ogg` | Annual awards: rank tease, podium tease (also the Top20 popup) | timpani + suspended cymbal on F, strings swell; cut with a 0.12 s fade at the reveal |
+| `ceremony_hit.ogg` | Name reveal | bass drum, cymbal, timpani, short B♭ tutti |
+| `ceremony_fanfare.ogg` | Podium and your own reveal | 76 BPM brass phrase resolving on B♭, ~8.7 s |
+| `ceremony_applause.ogg` | After each reveal / trophy | synthesized hall applause with a few cheers |
 
 The retired 112 BPM orchestral cue is retained only as authoring history in
 the source archive. It is not played or included in the game's audio folder;
 neither it nor the old synthesized sting is an entrance fallback.
+The ceremony's synthesized sounds in `scripts/ceremony_audio.gd` remain only
+as a fallback if a ceremony file is missing.
 
 Music is chosen by `scripts/music_director.gd` (autoload `Music`): scene +
 in-game clock, 2 s crossfades, ducking under phone/computer/presentations,

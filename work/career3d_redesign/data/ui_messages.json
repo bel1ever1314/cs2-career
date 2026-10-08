@@ -59,6 +59,10 @@
       "zh": "{team} · 加盟邀请",
       "en": "{team} · Contract invitation"
     },
+    "mail.auto_reason": {
+      "zh": "自动安排原因",
+      "en": "Automatic scheduling reason"
+    },
     "mail.invite_hint": {
       "zh": "这场赛事的邀请到了。看一下赛程，咱们要不要报名？",
       "en": "We have a tournament invitation. Take a look at the schedule—shall we enter?"
@@ -1587,6 +1591,14 @@
     "scrim.launch": {"zh":"自己进 CS2 打","en":"Play in CS2"},
     "scrim.restart": {"zh":"重新进入 CS2 · 重开本图","en":"Re-enter CS2 · restart map"},
     "scrim.cancel": {"zh":"结束本次 CS2，返回预约","en":"End this CS2 session and return to booking"},
+    "market.custody": {"zh":"市场暂存","en":"Custody"},
+    "market.intel": {"zh":"消息与技能","en":"Intel & skills"},
+    "market.supplies": {"zh":"赛前补给","en":"Supplies"},
+    "market.equipped": {"zh":"已装备 %s","en":"Equipped %s"},
+    "market.potential_salary": {"zh":"潜力 {stars} · 预计月薪 {salary}","en":"Potential {stars} · Estimated monthly pay {salary}"},
+    "market.unscouted": {"zh":"待评估","en":"Unscouted"},
+    "market.predicted_potential_salary": {"zh":"预测潜力 {stars}（估算） · 预计月薪 {salary}","en":"Projected potential {stars} (estimate) · Estimated monthly pay {salary}"},
+    "market.potential_estimate_help": {"zh":"按年龄、长期实力和现有成长规则估算剩余巅峰；不修改实际潜力或成长，不保证达到。","en":"Remaining peak estimated from age, permanent ability and existing growth rules. Does not change actual potential or growth, and is not a guarantee."},
     "device.synchronizing_2": {
       "zh": "同步资料中……",
       "en": "Synchronizing…"

@@ -14,7 +14,7 @@ func capture(name: String) -> void:
 
 func performance() -> Array:
 	return [{"map":"mirage", "rating":86.5, "strength":85.0, "form":1.5, "label":"strong", "played":3, "wins":2,
-		"recent":[{"won":true},{"won":false},{"won":true}], "last_change":{"team":"Vitality", "map":"mirage", "delta":0.8, "after":86.5, "reason":"训练赛获胜"}},
+		"recent":[{"won":true},{"won":false},{"won":true}], "last_change":{"team":"Vitality", "map":"mirage", "delta":0.8, "after":86.5, "reason":"训练赛获胜", "strength_delta":0.12, "form_delta":0.68}},
 		{"map":"nuke", "rating":43.0, "strength":45.0, "form":-2.0, "label":"weak", "played":0, "wins":0, "recent":[]}]
 
 func bounded(root: Control, caption: String) -> void:
@@ -65,6 +65,8 @@ func run() -> void:
 		await frames()
 		check(Computer.content.find_child("ScheduleMapFocus", true, false) != null, "training offers daily map selection")
 		check(text_present("训练赛获胜"), "training displays change reason")
+		check(text_present("熟练度 +0.12 · 近期状态 +0.68"), "training distinguishes learning from recent form")
+		check(text_present("每天下降 0.12"), "training explains gradual inactivity decay")
 		bounded(Computer.content, "training stays inside monitor " + str(resolution))
 		await capture("training-" + str(resolution.x))
 	# Verify the shared RTS implementation only modifies AI reaction, not skills.

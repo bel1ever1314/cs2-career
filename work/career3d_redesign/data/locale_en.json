@@ -97,7 +97,7 @@
     "主狙": "AWPer",
     "指挥": "IGL",
     "突破手": "entry fragger",
-    "突破": "Entry",
+    "突破": "Entrying",
     "自由人": "lurker",
     "步枪手": "rifler",
     "辅助": "Support",
@@ -167,7 +167,7 @@
     "下一页": "Next",
     "返回": "Back",
     "搜索": "Search",
-    "筛选": "Filter",
+    "筛选": "Filters",
     "重置": "Reset",
     "没有邮件": "No messages",
     "暂无邮件": "No messages",
@@ -1277,6 +1277,172 @@
     "浅橡木地板": "Light oak floor",
     "胡桃木地板": "Walnut floor",
     "浅色石砖": "Light stone tiles",
+    "正在读取市场…": "Loading market…",
+    "重试": "Retry",
+    "1天": "1d",
+    "7天": "7d",
+    "30天": "30d",
+    "今日 ": "Today ",
+    "7天 %s · 30天 %s": "7d %s · 30d %s",
+    "可直接输入数量，1–%d，回车确认": "Type a quantity from 1 to %d, then press Enter",
+    "最多 %d": "Max %d",
+    "‹ 上一页": "‹ Previous",
+    "下一页 ›": "Next ›",
+    "今日涨幅": "Today's gainers",
+    "今日跌幅": "Today's losers",
+    "7 天涨幅": "7-day gainers",
+    "7 天跌幅": "7-day losers",
+    "30 天涨幅": "30-day gainers",
+    "30 天跌幅": "30-day losers",
+    "搜索饰品名称，回车确认": "Search skins; press Enter",
+    "清除": "Clear",
+    "全部磨损": "All wears",
+    "价格区间": "Price range",
+    "最低价": "Minimum price",
+    "最高价": "Maximum price",
+    "回车生效": "Enter to apply",
+    "共 %d 件": "%d items",
+    "出售手续费": "Selling fee",
+    "没有符合条件的饰品": "No matching items",
+    "换个关键词，或清除筛选条件。": "Try another search or clear the filters.",
+    "‹ 返回消息": "‹ Back to rumors",
+    "‹ 返回列表": "‹ Back to list",
+    "消息看涨": "Bullish rumor",
+    "消息看跌": "Bearish rumor",
+    "有效至 ": "Until ",
+    "价格走势": "Price history",
+    "历史数据不足，推进日期后开始积累走势。": "Not enough history yet; advance days to collect prices.",
+    "磨损 ": "Float ",
+    "购买到市场暂存": "Buy into market custody",
+    "购买 %d 件": "Buy %d",
+    "购买 %d 件 %s · 总价 %s · 买后余额 %s": "Buy %d × %s · total %s · balance after %s",
+    "合计 %s · 买后余额 %s": "Total %s · balance after %s",
+    "个人余额不够，减少数量再买。": "Not enough personal funds; lower the quantity.",
+    "买入不收手续费；卖出时扣 %.0f%%。": "No fee to buy; selling costs %.0f%%.",
+    "我的暂存": "In custody",
+    "去暂存出售 ›": "Sell in custody ›",
+    "持有": "Held",
+    "成本": "Cost",
+    "净盈亏": "Net P/L",
+    "行情分析": "Market analysis",
+    "区间低": "Low",
+    "区间高": "High",
+    "均价": "Mean",
+    "日波动 ": "Daily volatility ",
+    "持仓回本价 ": "Break-even ",
+    "暂存里的饰品可以直接卖出；要装备时提取到库存。": "Sell straight from custody, or withdraw to equip.",
+    "暂存是空的": "Custody is empty",
+    "在市场买入的饰品会先放在这里。": "Items you buy on the market land here first.",
+    "去市场看看 ›": "Browse the market ›",
+    "件数": "Items",
+    "总成本": "Total cost",
+    "现价总值": "Market value",
+    "净盈亏（未扣手续费）": "Net P/L (before fees)",
+    "查看行情": "View market details",
+    "现价 ": "Now ",
+    "持有 %d 件 · 成本 %s": "%d held · cost %s",
+    "净盈亏 ": "Net P/L ",
+    "提取 %d 件": "Withdraw %d",
+    "提取 %d 件 %s 到库存？提取后不能在暂存里直接卖出。": "Withdraw %d × %s to your inventory? It can no longer be sold from custody.",
+    "出售 · 到手 %s": "Sell · net %s",
+    "卖出 %d 件 · 总价 %s · 手续费 %s · 到手 %s · 余额 %s": "Sell %d · gross %s · fee %s · net %s · balance %s",
+    "消息商人": "Market informant",
+    "消息有真有假；行情也会受其他供需影响。": "Rumors can be wrong; other market forces still matter.",
+    "两类消息每天各买一条；已买的消息不会因读档或换持仓刷新。": "One rumor of each type per day; purchased notes stay fixed after reloading or changing holdings.",
+    "交易技能": "Trading skills",
+    "逐级解锁区间分析、波动和回本价。": "Unlock range analysis, volatility and break-even estimates.",
+    "缩小可靠度评估区间，不会直接揭晓真假。": "Narrow reliability estimates without revealing the truth.",
+    "出售手续费依次降至 9%、8%、7%。": "Reduce selling fees to 9%, 8%, then 7%.",
+    "升级 · ": "Upgrade · ",
+    "升级%s，花费 %s？": "Upgrade %s for %s?",
+    "已满级": "Maxed",
+    "消息记录": "Rumor log",
+    "还没有消息。买一条今日消息，它会记在这里，到期后显示实际涨跌。": "No rumors yet. Bought rumors are logged here with the real move once they expire.",
+    "看涨": "Bullish",
+    "看跌": "Bearish",
+    "到期 ": "At expiry ",
+    "%s 收到 · 有效至 %s · 可靠度估计 %s": "Received %s · until %s · estimated reliability %s",
+    "查看饰品": "View item",
+    "看涨消息": "Bullish rumor",
+    "持仓看跌消息": "Bearish holdings rumor",
+    "从整个市场随机找机会，不限于已持有饰品。": "Random opportunities across the market, not limited to your holdings.",
+    "只针对市场暂存或装备仓库里仍持有的饰品。": "Only items currently held in market custody or your inventory.",
+    "花 %s 购买今天的看涨消息？": "Buy today's bullish rumor for %s?",
+    "花 %s 购买今天的持仓看跌消息？": "Buy today's bearish holdings rumor for %s?",
+    "今日已购买": "Bought today",
+    "购买 · ": "Buy · ",
+    "暂无持有饰品；买入后可购买看跌消息。": "No items held. Buy an item before requesting a bearish rumor.",
+    "市场暂无饰品。": "No items are currently listed.",
+    "强效": "Strong",
+    "普通": "Common",
+    "赛前补给": "Match supplies",
+    "每位选手同一时间只能用一种药剂：普通药剂管一张图，强效药剂管整个 BO。": "One effect per player at a time: normal lasts one map, strong lasts the whole BO.",
+    "个人钱包": "Personal wallet",
+    "俱乐部经费": "Club funds",
+    "① 购买药剂": "1 · Buy supplies",
+    "付款": "Pay with",
+    "整个 BO": "Whole BO",
+    "一张图": "One map",
+    "用后冷却 %s 天": "%s-day cooldown",
+    "购买 %s · %s · 从%s付款？": "Buy %s · %s · paid from %s?",
+    "② 分配给选手": "2 · Assign to a player",
+    "加入队伍后才能给选手准备药剂。": "Join a team before preparing supplies.",
+    "药剂效果生效中": "Effect active",
+    "已准备，开赛时使用": "Prepared for the match",
+    "取消准备": "Cancel preparation",
+    "冷却至 ": "Cooldown until ",
+    "先安排训练赛，或推进到下一场比赛，才能选择用在哪张图。": "Book a scrim or advance to your next match to pick a map.",
+    "库存里还没有药剂，先在上面购买。": "No supplies in stock yet; buy one above.",
+    "库存 %d": "%d in stock",
+    "给 %s 准备": "Prepare for %s",
+    "%d 场竞猜已结算 · 返还 %s": "%d predictions settled · Returned %s",
+    "赛事竞猜": "Match predictions",
+    "‹ 赛事中心": "‹ Events",
+    "可参与": "Available",
+    "我的记录": "My predictions",
+    "只能猜其他队伍的正式 BO · 返还金额包含本金 · 确认后不能撤销": "Other teams' official series only · Returns include the stake · Confirmed stakes cannot be cancelled",
+    "正在读取对阵…": "Loading fixtures…",
+    "共 %d 场可竞猜": "%d series open",
+    "推进到下一批对阵 ›": "Advance to next fixtures ›",
+    "会推进游戏日期，停在赛前；重要事件和你的比赛仍优先。": "Advances the game date and stops before play. Important events and your matches take priority.",
+    "现在没有可竞猜的对阵": "No series open for predictions",
+    "推进到下一批对阵，或等赛事开赛后再来。推进会停在赛前。": "Advance to the next fixtures, or come back once events are live. Advancing stops before play.",
+    "押 %s 胜": "Backed %s",
+    "押它胜": "To win",
+    "已选 · 押它胜": "Selected · to win",
+    "热门": "Favourite",
+    "押 %s 胜 · 赔率 %s": "Backing %s to win · odds %s",
+    "收起": "Put away",
+    "投入金额（个人资金）": "Stake (personal funds)",
+    "余额 10%": "10% of balance",
+    "下单": "Place prediction",
+    "输入金额或点快捷金额，这里会显示猜中能拿回多少。": "Enter a stake or pick a quick amount to see the return.",
+    "请输入 1 到 %s 之间的整数金额。": "Enter a whole amount from 1 to %s.",
+    "猜中返还 %s（净赚 %s）· 猜错损失 %s · 买后余额 %s": "Win: return %s (profit %s) · Lose: %s · Balance after %s",
+    "押 %s 胜，投入 %s。猜中返还 %s（净赚 %s），猜错损失 %s，确认后余额 %s。确认后不能撤销。": "Back %s to win with %s. Win: return %s (profit %s). Lose: %s. Balance after %s. This cannot be cancelled.",
+    "再想想": "Not yet",
+    "确认竞猜": "Confirm prediction",
+    "竞猜命中": "Won",
+    "竞猜未命中": "Lost",
+    "比赛取消、轮空或判罚弃权": "Cancelled match, bye or administrative forfeit",
+    "你已加入参赛队伍": "You joined a participating team",
+    "参赛队伍发生变化": "The participating teams changed",
+    "等待赛果": "Awaiting result",
+    "命中": "Won",
+    "未命中": "Lost",
+    "已退回": "Refunded",
+    "已结算": "Settled",
+    "累计返还": "Total returned",
+    "本页等待赛果": "Awaiting on this page",
+    "投入 %s": "Stake %s",
+    "还没有竞猜记录": "No predictions yet",
+    "在「可参与」里选一场其他队伍的比赛试试。": "Pick another team's series under Available.",
+    "可返还 %s": "Returns %s",
+    "退回 %s": "Refunded %s",
+    "返还 %s": "Returned %s",
+    "比分 %s": "Score %s",
+    "战报 ›": "Report ›",
+    "请输入不超过个人余额的正整数金额。": "Enter a positive whole amount within your personal balance.",
     "本地请求没有发出，正在重新连接……": "The request was not sent. Reconnecting…",
     "连接中断，正在重连；已发送的操作不会自动重发。": "Connection lost. Reconnecting without resending actions.",
     "操作未发出：等待后台重新连接后再试。": "Action not sent. Try again after reconnection.",
@@ -1420,7 +1586,6 @@
     "结果已保存，轮播结束后可处理饰品。": "The result is saved. Manage the item after the animation.",
     "开箱结果 · ": "Case result · ",
     "结果已保存，关闭窗口也不会重新抽取。": "The result is saved. Closing this window will not reroll it.",
-    "‹ 返回列表": "‹ Back to list",
     "卸下 ": "Unequip ",
     "装备 ": "Equip ",
     "购买并入库": "Buy and add to inventory",
@@ -2628,7 +2793,6 @@
     "摆放": "Place",
     "使用": "Use",
     "房间里的家具": "Furniture in your room",
-    "收起": "Put away",
     "摆放还没保存。": "Layout not saved yet.",
     "不保存，离开装修": "Leave without saving",
     "继续布置": "Keep decorating",
@@ -2665,7 +2829,7 @@
     "请先购买这款墙面或地板。": "Buy this wallpaper or flooring first.",
     "价格已经变化，请刷新后购买。": "Price changed. Refresh before buying.",
     "俱乐部资金不足。": "Insufficient club funds.",
-    "个人资金不足。": "Insufficient personal funds.",
+    "个人资金不足。": "Not enough personal funds.",
     "升级完成，回到俱乐部就能看到新设施。": "Upgrade completed. Return to the club to see the new facilities.",
     "购买完成，可以开始布置。": "Purchase completed. Start decorating.",
     "房间布置已保存。": "Room layout saved.",
@@ -3270,6 +3434,55 @@
     "PNG 图像块顺序无效。": "The PNG image chunks are out of order.",
     "PNG 结尾无效。": "The PNG end chunk is invalid.",
     "只接受程序生成的静态 PNG，不支持动画或附加内容。": "Only a game-normalized static PNG is accepted, without animation or extra content.",
+    "下一个对手": "Next opponent",
+    "同赛事": "Same event",
+    "爆冷": "Upset",
+    "还有 %d 天": "In %d days",
+    "暂无已安排的比赛": "No match scheduled",
+    "接受赛事邀请后，下一场会出现在这里。": "Accept an event invitation and your next match will show up here.",
+    "今天 %s": "Today %s",
+    "亲自参赛：比赛当天早上去现场": "Attend in person: head to the venue on the morning of the match",
+    "比赛详情 ›": "Match details ›",
+    "其他赛场": "Around the scene",
+    "最新 · %s": "Latest · %s",
+    "其他队伍最近还没有赛果，推进后会出现在这里。": "No recent results from other teams yet. They will appear here as you advance.",
+    "%s 夺冠 · %s": "%s win %s",
+    "下一场 · %s · 对 %s": "Next · %s · vs %s",
+    "%s 获胜": "%s won",
+    "床和电脑保留，空出来的地方由你布置。": "The bed and computer stay. Make the rest of the room your own.",
+    "点击家具移动 · 点击地面摆放\nR 旋转 · Esc 取消 · 收起后可再次摆放": "Click furniture to move it; click the floor to place it.\nR: rotate · Esc: cancel · Stored furniture can be placed again.",
+    "全部收起": "Store all furniture",
+    "收起的家具仍在库存里，不会出售。": "Stored furniture stays in your inventory. Nothing is sold.",
+    "确认收起全部家具": "Confirm store all",
+    "继续保留": "Keep furniture",
+    "先摆放或取消正在移动的家具。": "Place the moving furniture or cancel the move first.",
+    " · 摆放尚未保存": " · Layout not saved",
+    "综合评价 = 熟练度 + 近期状态。完整打完地图就能积累熟练度，打强队收获更多；胜负影响近期状态。": "Map rating = familiarity + recent form. Every completed map builds familiarity, especially against stronger opponents; results affect recent form.",
+    "连续 14 天未打或专项练图后，熟练度每天下降 0.12，单次闲置最多下降 10 点。": "After 14 days without playing or focused map practice, familiarity falls by 0.12 per day, capped at 10 points per inactive spell.",
+    "熟练度 %.1f · 近期状态 %+.1f · 近 %d 图 %d 胜": "Familiarity %.1f · Recent form %+.1f · Last %d maps: %d wins",
+    "熟练度 %+.2f · 近期状态 %+.2f": "Familiarity %+.2f · Recent form %+.2f",
+    "Major 休赛期": "Major break",
+    "赛季结束": "Season complete",
+    "本图战报已就绪": "Map report ready",
+    "处理待办后再继续推进": "Resolve pending tasks before advancing",
+    "查看休赛安排": "View break agenda",
+    "Major 休赛期 · 待办清单": "Major break · To-do list",
+    "处理完必须决定的事项后即可继续。属性点可以留到以后，不要求全部花完。": "Resolve required decisions to continue. Attribute points can be kept for later; spending them is optional.",
+    "待处理事件 · %d 项": "Pending events · %d",
+    "查看待办事项": "View pending tasks",
+    "没有必须处理的事项，可以结束休赛停留。": "No required tasks remain. You can finish the break.",
+    "可选安排": "Optional activities",
+    "剩余属性点：%s · 未使用点数继续保留": "Attribute points remaining: %s · Unspent points are kept",
+    "日常自动训练维持地图熟练度；也可以离开电脑，自由活动。": "Routine training maintains map familiarity. You can leave the computer and enjoy your free time.",
+    "请处理上方待办事项": "Resolve the tasks shown above",
+    "待办已处理 · 属性点可以保留": "Tasks complete · You can keep your attribute points",
+    "有待决定的生涯事件": "Career decisions are waiting",
+    "处理完成后再继续推进": "Resolve them before advancing",
+    "综合评价 = 熟练度 + 近期状态。获胜提升熟练度，输给明显强队仍有少量学习收益；输给同档或较弱队伍时小幅下降。": "Map rating = familiarity + recent form. Wins improve familiarity; losses to clearly stronger teams still teach a little. Losses to peers or weaker teams cause a small decline.",
+    "日常自动训练已开启：所有队伍维持地图熟练度，不因闲置衰退。专项训练可恢复已达到的水平，比赛才能突破。": "Routine training is active for all teams: no familiarity decay from inactivity. Focus practice restores previously reached levels; matches unlock new highs.",
+    "专项训练可恢复至 %.1f": "Focus practice can restore familiarity to %.1f",
+    "日常自动训练维持所有地图，不用每天点。专项练图每天选一张，跨日恢复熟练度，最多恢复至已达到的水平；不增加个人属性。": "Routine training maintains every map automatically. Choose one map for daily focus practice to recover familiarity on the next day, up to your previous peak. Player attributes are unchanged.",
+    "自动安排原因": "Automatic scheduling reason",
     "BotProfile 来源": "BotProfile source",
     "生涯能力模板": "Career ability templates",
     "我的 VPK 模板": "My VPK templates",
@@ -3396,7 +3609,6 @@
     "史诗": "Epic",
     "稀有": "Rare",
     "优秀": "Superior",
-    "普通": "Common",
     "按所选年代开局的游戏 VRS 分档；不是官方真实积分，也不用于换算个人能力。": "In-game VRS tiers for the selected starting era; not official rating points and not used to calculate individual ability.",
     "请选择 2024、2025 或 2026 年代。": "Select the 2024, 2025 or 2026 era.",
     "队伍抽取只允许在已隔离的 3D 演示目录中使用。": "Team draws are only available in an isolated 3D demo directory.",
@@ -3948,6 +4160,99 @@
     "本地组件校验清单包含无效或重复文件。": "The local component checklist contains invalid or duplicate files.",
     "官方整包变体引用了未知文件。": "The official bundle variant refers to unknown files.",
     "会话已过期，请重新打开程序。": "Your session has expired. Reopen the program.",
+    "预留月度运营 ": "Monthly operating reserve ",
+    " · 可用引援预算 ": " · Available transfer budget ",
+    "潜力 ": "Potential ",
+    "潜力 · 待评估": "Potential · Unscouted",
+    " · 预计月薪 ": " · Estimated monthly pay ",
+    "当前实力优先": "Current ability first",
+    "未来潜力优先": "Future potential first",
+    "年龄从小到大": "Youngest first",
+    "仅看预算内": "Within budget only",
+    "能力变化 %+.1f · 签约后预计月结余 %s": "Ability change %+.1f · Projected monthly net after signing %s",
+    "没有这个市场页面。": "This market page does not exist.",
+    "先创建人物，再进入饰品市场。": "Create your character before entering the market.",
+    "这件饰品没有所选磨损。": "This finish does not support the selected wear.",
+    "市场上没有这件饰品。": "This item is not listed on the market.",
+    "请输入有效的价格区间。": "Enter a valid price range.",
+    "%s必须为 %s 至 %s 的整数。": "%s must be an integer from %s to %s.",
+    "请选择价格、名称或涨跌幅排序。": "Sort by price, name or price change.",
+    "饰品不存在。": "This item does not exist.",
+    "数量": "Quantity",
+    "报价已变化，请重新确认总价。": "The quote has changed. Please confirm the new total.",
+    "已购买 %s 件 %s，保存在市场暂存。": "Purchased %s of %s; held in market custody.",
+    "这批饰品已处理，请刷新。": "This lot was already processed. Please refresh.",
+    "已提取 %s 件饰品到仓库。": "Withdrew %s items to your inventory.",
+    "卖出报价已变化，请重新确认。": "The sale quote changed. Please confirm again.",
+    "已出售 %s 件饰品，扣除手续费后到账 $%s。": "Sold %s items; received $%s after fees.",
+    "请选择尚未满级的交易技能。": "Choose a trading skill that is not at maximum level.",
+    "已升级。": "Upgraded.",
+    "今天的消息已经买过了。": "You already purchased today's rumor.",
+    "今天的这类消息已经买过了。": "You already purchased today's rumor of this type.",
+    "请选择看涨或看跌消息。": "Choose a bullish or bearish rumor.",
+    "消息已记入市场笔记。": "The rumor was added to your market notes.",
+    "没有这个市场操作。": "This market action does not exist.",
+    "这名选手的药剂尚未冷却。": "This player's supply cooldown has not ended.",
+    "药剂库存已变化。": "Supply stock has changed.",
+    "今日即时训练 / Training today": "Training today",
+    "加入队伍后才能准备赛前药剂。": "Join a team before preparing match supplies.",
+    "请选择药剂种类。": "Select a supply type.",
+    "只有俱乐部管理者能使用队伍经费。": "Only the club manager can use club funds.",
+    "购买赛前药剂": "Purchase match supplies",
+    "药剂已放入补给库存。": "The supply has been added to your stock.",
+    "没有待取消的药剂。": "There is no preparation to cancel.",
+    "已取消准备，药剂保留在库存。": "Preparation canceled; the supply remains in stock.",
+    "请选择本队选手、未开始的地图和库存药剂。": "Select a player on your team, an unstarted map and an owned supply.",
+    "个人药剂仅供自己使用，队伍药剂属于购买它的俱乐部。": "Personal supplies are for your character; club supplies belong to the purchasing club.",
+    "同一选手只能准备一种药剂，并须等待冷却结束。": "Each player can prepare one supply and must wait for their cooldown.",
+    "这支药剂已经分配给选手。": "This supply is already assigned to a player.",
+    "赛前药剂已准备，开赛时使用。": "Supply prepared; it will be used when the match starts.",
+    "没有这个补给操作。": "This supply action does not exist.",
+    "消息甄别": "Source judgment",
+    "交易议价": "Trade bargaining",
+    "%s已升级。": "%s upgraded.",
+    "资金不足。": "Not enough funds.",
+    "可用引援预算 ": "Available transfer budget ",
+    "本图已经开始或启动结果待确认，请先处理比赛连接状态。": "This map has started or launch confirmation is pending. Resolve the match connection first.",
+    "没有这个竞猜页面。": "This prediction page does not exist.",
+    "这场比赛已开赛、已购买或不符合竞猜条件，请刷新列表。": "This match has started, already has your prediction, or is ineligible. Refresh the list.",
+    "赔率或对阵已变化，请刷新后重新确认。": "The odds or fixture changed. Refresh and confirm again.",
+    "请选择这场比赛中的队伍及赢或输。": "Select one of these teams and choose win or lose.",
+    "竞猜已确认，比赛结束后自动结算。": "Prediction confirmed. It will settle automatically when the series ends.",
+    "没有这个竞猜操作。": "This prediction action does not exist.",
+    "本赛季已结束，请先继续下一赛季。": "This season has ended. Continue to the next season first.",
+    "轮到你的比赛了，请先处理自己的比赛。": "Your match is ready. Handle your own match first.",
+    "已有可参与的对阵，尚未推进比赛。": "Fixtures are available. No matches were advanced.",
+    "已停在赛前，请选择竞猜或继续推进。": "Stopped before play. Choose a prediction or continue advancing.",
+    "赛事竞猜 · ": "Match prediction · ",
+    "与俱乐部商量换人": "Discuss a roster change",
+    "效力越久、实力越突出，你的建议越有分量；俱乐部也会考虑队友的实力和近期表现。": "Longer service and stronger ability give your suggestion more weight. The club also considers your teammate's ability and recent performances.",
+    "商量不收费，每 14 个游戏日一次。获批只针对选中的队友，签约成功后使用；谈判未成则保留。": "Discussions are free, once every 14 game days. Approval covers the selected teammate and is used only when a replacement signs successfully.",
+    "已获批准：替换 %s，可完成一次引援。": "Approved: one signing to replace %s.",
+    "选择已获批的队友": "Select the approved teammate",
+    "已效力 %d 天 · 你的实力 %.1f": "Service: %d days · Your ability: %.1f",
+    "%s · 实力 %.1f · 商量成功率 %.0f%%": "%s · Ability %.1f · Approval chance %.0f%%",
+    "近 30 天 %d 图 · Rating %.2f": "Last 30 days: %d maps · Rating %.2f",
+    "近期暂无完整战绩，不按表现加减成功率。": "No complete recent match data; performance does not affect this chance.",
+    "成功率影响：效力时间 %+.0f%% · 你的实力 %+.0f%% · 队友实力 %+.0f%% · 近期表现 %+.0f%%": "Chance modifiers: service %+.0f%% · Your ability %+.0f%% · Teammate ability %+.0f%% · Recent form %+.0f%%",
+    "这名队友近期发挥出色，俱乐部更希望留住他。": "This teammate has been playing well recently. The club would prefer to keep him.",
+    "上次商量：俱乐部希望暂时保留 %s。": "Last discussion: the club preferred to keep %s for now.",
+    "确认向俱乐部提出调整 %s 的建议？这次商量后需等待 14 个游戏日。": "Suggest replacing %s? After this discussion, wait 14 game days before another request.",
+    "确认商量": "Confirm discussion",
+    "提出换人建议": "Suggest a roster change",
+    "可以在转会市场与俱乐部商量换人；设施可在下方升级。": "Discuss roster changes with the club in the transfer market. Facilities can be upgraded below.",
+    "查看财务 / 个人注资": "Finances / Personal investment",
+    "请先与俱乐部商量，并获得替换这名队友的批准。": "Discuss the change with the club and obtain approval to replace this teammate first.",
+    "赛事进行中，结束后再与俱乐部商量。": "Discuss roster changes after the current event ends.",
+    "先决定当前的加盟机会，再讨论阵容调整。": "Decide on your current club offer before discussing roster changes.",
+    "本次换人已获批准，请先完成这次引援。": "You already have approval for a change. Complete that signing first.",
+    "下次可商量日期：%s": "Next discussion: %s",
+    "你已有俱乐部引援权，无需申请换人机会。": "You already control recruitment and do not need approval.",
+    "当前不能与俱乐部商量。": "A discussion with the club is not available right now.",
+    "商量条件已变化，请刷新后重新确认。": "The discussion conditions have changed. Refresh and confirm again.",
+    "俱乐部同意调整 %s 的位置，你获得一次换人机会。签约成功后使用。": "The club approved replacing %s. You have one opportunity, used when a replacement signs successfully.",
+    "俱乐部暂时希望保留 %s。可以在 %s 再谈。": "The club prefers to keep %s for now. You can discuss it again on %s.",
+    "请先与俱乐部商量，获得一次换人机会。": "Discuss a roster change with the club to obtain one recruitment opportunity.",
     "随包人机增强校验清单损坏或版本不匹配，未安装。": "The bundled Bot Improver verification manifest is damaged or its version does not match. Nothing was installed.",
     "随包人机增强目录无效或含链接，未安装。": "The bundled Bot Improver directory is invalid or contains links. Nothing was installed.",
     "随包人机增强文件不完整，未安装。": "The bundled Bot Improver files are incomplete. Nothing was installed.",
@@ -4024,6 +4329,22 @@
     "自己进 CS2 打": "Play in CS2",
     "重新进入 CS2 · 重开本图": "Re-enter CS2 · restart map",
     "结束本次 CS2，返回预约": "End this CS2 session and return to booking",
+    "市场暂存": "Custody",
+    "消息与技能": "Intel & skills",
+    "已装备 %s": "Equipped %s",
+    "潜力 {stars} · 预计月薪 {salary}": "Potential {stars} · Estimated monthly pay {salary}",
+    "待评估": "Unscouted",
+    "预测潜力 {stars}（估算） · 预计月薪 {salary}": "Projected potential {stars} (estimate) · Estimated monthly pay {salary}",
+    "按年龄、长期实力和现有成长规则估算剩余巅峰；不修改实际潜力或成长，不保证达到。": "Remaining peak estimated from age, permanent ability and existing growth rules. Does not change actual potential or growth, and is not a guarantee.",
+    "今日": "Today",
+    "有效至": "Until",
+    "日波动": "Daily volatility",
+    "持仓回本价": "Break-even",
+    "现价": "Now",
+    "升级 ·": "Upgrade ·",
+    "到期": "At expiry",
+    "购买 ·": "Buy ·",
+    "冷却至": "Cooldown until",
     "当前位置 ·": "Current role ·",
     "图片暂缺 ·": "Image unavailable ·",
     "开箱结果 ·": "Case result ·",
@@ -4089,8 +4410,14 @@
     "最新报道 ·": "Latest ·",
     "继续 ·": "Continue ·",
     "下一张 · 系列赛": "Next map · Series",
+    "· 摆放尚未保存": "· Layout not saved",
     "请在设置中点击“安装填写目录的人机增强”。": "Click Install Bot Improver from selected directory in Settings.",
-    "另一个路径未找到，可手动填写。": "The other path was not found and can be entered manually."
+    "另一个路径未找到，可手动填写。": "The other path was not found and can be entered manually.",
+    "预留月度运营": "Monthly operating reserve",
+    "· 可用引援预算": "· Available transfer budget",
+    "· 预计月薪": "· Estimated monthly pay",
+    "可用引援预算": "Available transfer budget",
+    "赛事竞猜 ·": "Match prediction ·"
   },
   "templates": [
     {
@@ -4373,6 +4700,18 @@
       "prefix": "有人替你解释比赛快到了，"
     },
     {
+      "source": "成功率影响：效力时间 %+.0f%% · 你的实力 %+.0f%% · 队友实力 %+.0f%% · 近期表现 %+.0f%%",
+      "pattern": "^成功率影响：效力时间\\ ([+-]?[\\d,.]+)%\\ ·\\ 你的实力\\ ([+-]?[\\d,.]+)%\\ ·\\ 队友实力\\ ([+-]?[\\d,.]+)%\\ ·\\ 近期表现\\ ([+-]?[\\d,.]+)%$",
+      "replacement": "Chance modifiers: service {0}% · Your ability {1}% · Teammate ability {2}% · Recent form {3}%",
+      "keys": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "prefix": "成功率影响：效力时间 "
+    },
+    {
       "source": "下一场的对手是最近一次效力的旧队：{old_team}。熟悉的名字从队友栏移到了对手栏。\n赛前有人问起你的心情，你准备怎么回答？",
       "pattern": "^下一场的对手是最近一次效力的旧队：([\\s\\S]+?)。熟悉的名字从队友栏移到了对手栏。\\\n赛前有人问起你的心情，你准备怎么回答？$",
       "replacement": "Your next opponent is your most recent former team: {old_team}. Familiar names have moved from your team list to the other side.\nSomeone asks how you feel before the match. What will you say?",
@@ -4467,6 +4806,20 @@
         "teammate"
       ],
       "prefix": "你唱得不太准，队友笑得比寿星还响。"
+    },
+    {
+      "source": "押 %s 胜，投入 %s。猜中返还 %s（净赚 %s），猜错损失 %s，确认后余额 %s。确认后不能撤销。",
+      "pattern": "^押\\ ([\\s\\S]+?)\\ 胜，投入\\ ([\\s\\S]+?)。猜中返还\\ ([\\s\\S]+?)（净赚\\ ([\\s\\S]+?)），猜错损失\\ ([\\s\\S]+?)，确认后余额\\ ([\\s\\S]+?)。确认后不能撤销。$",
+      "replacement": "Back {0} to win with {1}. Win: return {2} (profit {3}). Lose: {4}. Balance after {5}. This cannot be cancelled.",
+      "keys": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "prefix": "押 "
     },
     {
       "source": "主持人：欢迎来到 %s 年度选手颁奖。先回顾年度 Top20，再依次揭晓第三名、第二名与第一名。",
@@ -4677,6 +5030,19 @@
       "prefix": ""
     },
     {
+      "source": "卖出 %d 件 · 总价 %s · 手续费 %s · 到手 %s · 余额 %s",
+      "pattern": "^卖出\\ ([+-]?[\\d,.]+)\\ 件\\ ·\\ 总价\\ ([\\s\\S]+?)\\ ·\\ 手续费\\ ([\\s\\S]+?)\\ ·\\ 到手\\ ([\\s\\S]+?)\\ ·\\ 余额\\ ([\\s\\S]+?)$",
+      "replacement": "Sell {0} · gross {1} · fee {2} · net {3} · balance {4}",
+      "keys": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "prefix": "卖出 "
+    },
+    {
       "source": "{team} 没有发来合同。你仍在原来的位置上，接下来的训练和比赛还有意义。",
       "pattern": "^([\\s\\S]+?)\\ 没有发来合同。你仍在原来的位置上，接下来的训练和比赛还有意义。$",
       "replacement": "{team} does not send a contract. You still have your place, and the practices and matches ahead still matter.",
@@ -4706,6 +5072,15 @@
       "prefix": "免费入库 "
     },
     {
+      "source": "确认向俱乐部提出调整 %s 的建议？这次商量后需等待 14 个游戏日。",
+      "pattern": "^确认向俱乐部提出调整\\ ([\\s\\S]+?)\\ 的建议？这次商量后需等待\\ 14\\ 个游戏日。$",
+      "replacement": "Suggest replacing {0}? After this discussion, wait 14 game days before another request.",
+      "keys": [
+        "0"
+      ],
+      "prefix": "确认向俱乐部提出调整 "
+    },
+    {
       "source": "每月支出 %s · 工资 %s · 生活与差旅 %s · 可维持 %s 月",
       "pattern": "^每月支出\\ ([\\s\\S]+?)\\ ·\\ 工资\\ ([\\s\\S]+?)\\ ·\\ 生活与差旅\\ ([\\s\\S]+?)\\ ·\\ 可维持\\ ([\\s\\S]+?)\\ 月$",
       "replacement": "Monthly expenses {0} · Wages {1} · Living and travel {2} · {3} months of funds",
@@ -4726,6 +5101,15 @@
         "1"
       ],
       "prefix": "今年收到 "
+    },
+    {
+      "source": "俱乐部同意调整 %s 的位置，你获得一次换人机会。签约成功后使用。",
+      "pattern": "^俱乐部同意调整\\ ([\\s\\S]+?)\\ 的位置，你获得一次换人机会。签约成功后使用。$",
+      "replacement": "The club approved replacing {0}. You have one opportunity, used when a replacement signs successfully.",
+      "keys": [
+        "0"
+      ],
+      "prefix": "俱乐部同意调整 "
     },
     {
       "source": "Rating %s · ADR %s\nKAST %s · %d 个回合",
@@ -4762,6 +5146,30 @@
         "3"
       ],
       "prefix": "将用 "
+    },
+    {
+      "source": "熟练度 %.1f · 近期状态 %+.1f · 近 %d 图 %d 胜",
+      "pattern": "^熟练度\\ ([+-]?[\\d,.]+)\\ ·\\ 近期状态\\ ([+-]?[\\d,.]+)\\ ·\\ 近\\ ([+-]?[\\d,.]+)\\ 图\\ ([+-]?[\\d,.]+)\\ 胜$",
+      "replacement": "Familiarity {0} · Recent form {1} · Last {2} maps: {3} wins",
+      "keys": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "prefix": "熟练度 "
+    },
+    {
+      "source": "猜中返还 %s（净赚 %s）· 猜错损失 %s · 买后余额 %s",
+      "pattern": "^猜中返还\\ ([\\s\\S]+?)（净赚\\ ([\\s\\S]+?)）·\\ 猜错损失\\ ([\\s\\S]+?)\\ ·\\ 买后余额\\ ([\\s\\S]+?)$",
+      "replacement": "Win: return {0} (profit {1}) · Lose: {2} · Balance after {3}",
+      "keys": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "prefix": "猜中返还 "
     },
     {
       "source": "已装备 CT 侧 %d 项、T 侧 %d 项；进入比赛时同步。",
@@ -4852,6 +5260,16 @@
         "target"
       ],
       "prefix": ""
+    },
+    {
+      "source": "提取 %d 件 %s 到库存？提取后不能在暂存里直接卖出。",
+      "pattern": "^提取\\ ([+-]?[\\d,.]+)\\ 件\\ ([\\s\\S]+?)\\ 到库存？提取后不能在暂存里直接卖出。$",
+      "replacement": "Withdraw {0} × {1} to your inventory? It can no longer be sold from custody.",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "提取 "
     },
     {
       "source": "上次试训 · %s · D20 %s %+d = %s · %s",
@@ -4967,6 +5385,18 @@
       "prefix": "已选中 "
     },
     {
+      "source": "购买 %d 件 %s · 总价 %s · 买后余额 %s",
+      "pattern": "^购买\\ ([+-]?[\\d,.]+)\\ 件\\ ([\\s\\S]+?)\\ ·\\ 总价\\ ([\\s\\S]+?)\\ ·\\ 买后余额\\ ([\\s\\S]+?)$",
+      "replacement": "Buy {0} × {1} · total {2} · balance after {3}",
+      "keys": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "prefix": "购买 "
+    },
+    {
       "source": "%s · 接替 %s · 修正 %+d · %.0f%%",
       "pattern": "^([\\s\\S]+?)\\ ·\\ 接替\\ ([\\s\\S]+?)\\ ·\\ 修正\\ ([+-]?[\\d,.]+)\\ ·\\ ([+-]?[\\d,.]+)%$",
       "replacement": "{0} · Replaces {1} · Modifier {2} · {3}%",
@@ -5007,6 +5437,17 @@
         "0"
       ],
       "prefix": "现有 "
+    },
+    {
+      "source": "%s · 实力 %.1f · 商量成功率 %.0f%%",
+      "pattern": "^([\\s\\S]+?)\\ ·\\ 实力\\ ([+-]?[\\d,.]+)\\ ·\\ 商量成功率\\ ([+-]?[\\d,.]+)%$",
+      "replacement": "{0} · Ability {1} · Approval chance {2}%",
+      "keys": [
+        "0",
+        "1",
+        "2"
+      ],
+      "prefix": ""
     },
     {
       "source": "{head} 请在设置中点击“安装填写目录的人机增强”。",
@@ -5073,6 +5514,16 @@
       "prefix": "贴纸已免费更新；个人资金和饰品售价不变。 "
     },
     {
+      "source": "近 30 天 %d 图 · Rating %.2f",
+      "pattern": "^近\\ 30\\ 天\\ ([+-]?[\\d,.]+)\\ 图\\ ·\\ Rating\\ ([+-]?[\\d,.]+)$",
+      "replacement": "Last 30 days: {0} maps · Rating {1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "近 30 天 "
+    },
+    {
       "source": "现有 %s 组件缺失；请先在设置里安装人机增强。",
       "pattern": "^现有\\ ([\\s\\S]+?)\\ 组件缺失；请先在设置里安装人机增强。$",
       "replacement": "The installed {0} component is missing. Install Bot Improver from Settings first.",
@@ -5109,6 +5560,17 @@
         "total"
       ],
       "prefix": "试训 D20："
+    },
+    {
+      "source": "%s 收到 · 有效至 %s · 可靠度估计 %s",
+      "pattern": "^([\\s\\S]+?)\\ 收到\\ ·\\ 有效至\\ ([\\s\\S]+?)\\ ·\\ 可靠度估计\\ ([\\s\\S]+?)$",
+      "replacement": "Received {0} · until {1} · estimated reliability {2}",
+      "keys": [
+        "0",
+        "1",
+        "2"
+      ],
+      "prefix": ""
     },
     {
       "source": "主持人：预览席位 #%d，%s。请上台演示领奖。",
@@ -5148,6 +5610,26 @@
         "1"
       ],
       "prefix": "进行中与即将开始 "
+    },
+    {
+      "source": "能力变化 %+.1f · 签约后预计月结余 %s",
+      "pattern": "^能力变化\\ ([+-]?[\\d,.]+)\\ ·\\ 签约后预计月结余\\ ([\\s\\S]+?)$",
+      "replacement": "Ability change {0} · Projected monthly net after signing {1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "能力变化 "
+    },
+    {
+      "source": "已出售 %s 件饰品，扣除手续费后到账 $%s。",
+      "pattern": "^已出售\\ ([\\s\\S]+?)\\ 件饰品，扣除手续费后到账\\ \\$([\\s\\S]+?)。$",
+      "replacement": "Sold {0} items; received ${1} after fees.",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "已出售 "
     },
     {
       "source": "随包人机增强包含非运行文件或链接，未安装：%s",
@@ -5201,6 +5683,16 @@
       "prefix": "正在进行 · 第"
     },
     {
+      "source": "俱乐部暂时希望保留 %s。可以在 %s 再谈。",
+      "pattern": "^俱乐部暂时希望保留\\ ([\\s\\S]+?)。可以在\\ ([\\s\\S]+?)\\ 再谈。$",
+      "replacement": "The club prefers to keep {0} for now. You can discuss it again on {1}.",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "俱乐部暂时希望保留 "
+    },
+    {
       "source": "击杀 {k} / 死亡 {d} / 助攻 {a}",
       "pattern": "^击杀\\ ([\\s\\S]+?)\\ /\\ 死亡\\ ([\\s\\S]+?)\\ /\\ 助攻\\ ([\\s\\S]+?)$",
       "replacement": "Kills {k} / Deaths {d} / Assists {a}",
@@ -5210,6 +5702,16 @@
         "a"
       ],
       "prefix": "击杀 "
+    },
+    {
+      "source": "预测潜力 {stars}（估算） · 预计月薪 {salary}",
+      "pattern": "^预测潜力\\ ([\\s\\S]+?)（估算）\\ ·\\ 预计月薪\\ ([\\s\\S]+?)$",
+      "replacement": "Projected potential {stars} (estimate) · Estimated monthly pay {salary}",
+      "keys": [
+        "stars",
+        "salary"
+      ],
+      "prefix": "预测潜力 "
     },
     {
       "source": "天梯 Elo %s · %s 胜 / %s 负",
@@ -5265,6 +5767,16 @@
       "prefix": "本场安排 · 第 "
     },
     {
+      "source": "熟练度 %+.2f · 近期状态 %+.2f",
+      "pattern": "^熟练度\\ ([+-]?[\\d,.]+)\\ ·\\ 近期状态\\ ([+-]?[\\d,.]+)$",
+      "replacement": "Familiarity {0} · Recent form {1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "熟练度 "
+    },
+    {
       "source": "安装未完成；安装前备份保留在 {path}。{error}",
       "pattern": "^安装未完成；安装前备份保留在\\ ([\\s\\S]+?)。([\\s\\S]+?)$",
       "replacement": "Installation did not complete. The pre-installation backup remains at {path}. {error}",
@@ -5282,6 +5794,15 @@
         "name"
       ],
       "prefix": "今天是 "
+    },
+    {
+      "source": "买入不收手续费；卖出时扣 %.0f%%。",
+      "pattern": "^买入不收手续费；卖出时扣\\ ([+-]?[\\d,.]+)%。$",
+      "replacement": "No fee to buy; selling costs {0}%.",
+      "keys": [
+        "0"
+      ],
+      "prefix": "买入不收手续费；卖出时扣 "
     },
     {
       "source": "%s 年 · #%s · Rating %s",
@@ -5326,6 +5847,15 @@
       "prefix": "下一张 · 第"
     },
     {
+      "source": "剩余属性点：%s · 未使用点数继续保留",
+      "pattern": "^剩余属性点：([\\s\\S]+?)\\ ·\\ 未使用点数继续保留$",
+      "replacement": "Attribute points remaining: {0} · Unspent points are kept",
+      "keys": [
+        "0"
+      ],
+      "prefix": "剩余属性点："
+    },
+    {
       "source": "已检测到 %s，路径已填入，保存后生效。",
       "pattern": "^已检测到\\ ([\\s\\S]+?)，路径已填入，保存后生效。$",
       "replacement": "Found {0}. Paths are filled in and will take effect when saved.",
@@ -5353,6 +5883,15 @@
         "0"
       ],
       "prefix": "兼容组件下载大小不符："
+    },
+    {
+      "source": "请输入 1 到 %s 之间的整数金额。",
+      "pattern": "^请输入\\ 1\\ 到\\ ([\\s\\S]+?)\\ 之间的整数金额。$",
+      "replacement": "Enter a whole amount from 1 to {0}.",
+      "keys": [
+        "0"
+      ],
+      "prefix": "请输入 1 到 "
     },
     {
       "source": "%s 张已保存地图 · 不补造缺失数据",
@@ -5475,6 +6014,35 @@
         "axis"
       ],
       "prefix": "该武器模型没有登记 "
+    },
+    {
+      "source": "已购买 %s 件 %s，保存在市场暂存。",
+      "pattern": "^已购买\\ ([\\s\\S]+?)\\ 件\\ ([\\s\\S]+?)，保存在市场暂存。$",
+      "replacement": "Purchased {0} of {1}; held in market custody.",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "已购买 "
+    },
+    {
+      "source": "已获批准：替换 %s，可完成一次引援。",
+      "pattern": "^已获批准：替换\\ ([\\s\\S]+?)，可完成一次引援。$",
+      "replacement": "Approved: one signing to replace {0}.",
+      "keys": [
+        "0"
+      ],
+      "prefix": "已获批准：替换 "
+    },
+    {
+      "source": "已效力 %d 天 · 你的实力 %.1f",
+      "pattern": "^已效力\\ ([+-]?[\\d,.]+)\\ 天\\ ·\\ 你的实力\\ ([+-]?[\\d,.]+)$",
+      "replacement": "Service: {0} days · Your ability: {1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "已效力 "
     },
     {
       "source": "随包人机增强文件校验失败，未安装：%s",
@@ -5631,6 +6199,15 @@
       "prefix": "兼容组件没有可安装的运行文件："
     },
     {
+      "source": "上次商量：俱乐部希望暂时保留 %s。",
+      "pattern": "^上次商量：俱乐部希望暂时保留\\ ([\\s\\S]+?)。$",
+      "replacement": "Last discussion: the club preferred to keep {0} for now.",
+      "keys": [
+        "0"
+      ],
+      "prefix": "上次商量：俱乐部希望暂时保留 "
+    },
+    {
       "source": "{head}  ·  对方会等你聊完再继续",
       "pattern": "^([\\s\\S]+?)\\ \\ ·\\ \\ 对方会等你聊完再继续$",
       "replacement": "{head}  ·  Your conversation partner waits until you finish",
@@ -5638,6 +6215,35 @@
         "head"
       ],
       "prefix": ""
+    },
+    {
+      "source": "可直接输入数量，1–%d，回车确认",
+      "pattern": "^可直接输入数量，1–([+-]?[\\d,.]+)，回车确认$",
+      "replacement": "Type a quantity from 1 to {0}, then press Enter",
+      "keys": [
+        "0"
+      ],
+      "prefix": "可直接输入数量，1–"
+    },
+    {
+      "source": "花 %s 购买今天的持仓看跌消息？",
+      "pattern": "^花\\ ([\\s\\S]+?)\\ 购买今天的持仓看跌消息？$",
+      "replacement": "Buy today's bearish holdings rumor for {0}?",
+      "keys": [
+        "0"
+      ],
+      "prefix": "花 "
+    },
+    {
+      "source": "购买 %s · %s · 从%s付款？",
+      "pattern": "^购买\\ ([\\s\\S]+?)\\ ·\\ ([\\s\\S]+?)\\ ·\\ 从([\\s\\S]+?)付款？$",
+      "replacement": "Buy {0} · {1} · paid from {2}?",
+      "keys": [
+        "0",
+        "1",
+        "2"
+      ],
+      "prefix": "购买 "
     },
     {
       "source": "比赛在 %s，先睡到比赛当天早上。",
@@ -5712,6 +6318,16 @@
         "date"
       ],
       "prefix": "开年完整阵容 · 资料日期 "
+    },
+    {
+      "source": "%d 场竞猜已结算 · 返还 %s",
+      "pattern": "^([+-]?[\\d,.]+)\\ 场竞猜已结算\\ ·\\ 返还\\ ([\\s\\S]+?)$",
+      "replacement": "{0} predictions settled · Returned {1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": ""
     },
     {
       "source": "调整与培养 · %s 点自由属性",
@@ -5822,6 +6438,17 @@
       "prefix": "请完全退出 CS2 后再"
     },
     {
+      "source": "%s必须为 %s 至 %s 的整数。",
+      "pattern": "^([\\s\\S]+?)必须为\\ ([\\s\\S]+?)\\ 至\\ ([\\s\\S]+?)\\ 的整数。$",
+      "replacement": "{0} must be an integer from {1} to {2}.",
+      "keys": [
+        "0",
+        "1",
+        "2"
+      ],
+      "prefix": ""
+    },
+    {
       "source": "战术已保存；同步状态不可用：%s",
       "pattern": "^战术已保存；同步状态不可用：([\\s\\S]+?)$",
       "replacement": "Tactics saved; publication status unavailable: {0}",
@@ -5829,6 +6456,16 @@
         "0"
       ],
       "prefix": "战术已保存；同步状态不可用："
+    },
+    {
+      "source": "潜力 {stars} · 预计月薪 {salary}",
+      "pattern": "^潜力\\ ([\\s\\S]+?)\\ ·\\ 预计月薪\\ ([\\s\\S]+?)$",
+      "replacement": "Potential {stars} · Estimated monthly pay {salary}",
+      "keys": [
+        "stars",
+        "salary"
+      ],
+      "prefix": "潜力 "
     },
     {
       "source": "{head} 年度前三 · 已结算生涯",
@@ -5847,6 +6484,15 @@
         "head"
       ],
       "prefix": ""
+    },
+    {
+      "source": "花 %s 购买今天的看涨消息？",
+      "pattern": "^花\\ ([\\s\\S]+?)\\ 购买今天的看涨消息？$",
+      "replacement": "Buy today's bullish rumor for {0}?",
+      "keys": [
+        "0"
+      ],
+      "prefix": "花 "
     },
     {
       "source": "尝试签约 %s · %.0f%%",
@@ -5952,6 +6598,26 @@
         "head"
       ],
       "prefix": ""
+    },
+    {
+      "source": "合计 %s · 买后余额 %s",
+      "pattern": "^合计\\ ([\\s\\S]+?)\\ ·\\ 买后余额\\ ([\\s\\S]+?)$",
+      "replacement": "Total {0} · balance after {1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "合计 "
+    },
+    {
+      "source": "持有 %d 件 · 成本 %s",
+      "pattern": "^持有\\ ([+-]?[\\d,.]+)\\ 件\\ ·\\ 成本\\ ([\\s\\S]+?)$",
+      "replacement": "{0} held · cost {1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "持有 "
     },
     {
       "source": "本场战术快照（%s）：%s\n%s",
@@ -6082,6 +6748,16 @@
       "prefix": "第 "
     },
     {
+      "source": "下一场 · %s · 对 %s",
+      "pattern": "^下一场\\ ·\\ ([\\s\\S]+?)\\ ·\\ 对\\ ([\\s\\S]+?)$",
+      "replacement": "Next · {0} · vs {1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "下一场 · "
+    },
+    {
       "source": "未知 CS2 设置选项：%s",
       "pattern": "^未知\\ CS2\\ 设置选项：([\\s\\S]+?)$",
       "replacement": "Unknown CS2 setting: {0}",
@@ -6109,6 +6785,15 @@
       "prefix": "兼容组件缺少必需文件："
     },
     {
+      "source": "已提取 %s 件饰品到仓库。",
+      "pattern": "^已提取\\ ([\\s\\S]+?)\\ 件饰品到仓库。$",
+      "replacement": "Withdrew {0} items to your inventory.",
+      "keys": [
+        "0"
+      ],
+      "prefix": "已提取 "
+    },
+    {
       "source": "比赛数据 · {count} 张地图",
       "pattern": "^比赛数据\\ ·\\ ([\\s\\S]+?)\\ 张地图$",
       "replacement": "Match stats · {count} maps",
@@ -6125,6 +6810,26 @@
         "head"
       ],
       "prefix": ""
+    },
+    {
+      "source": "7天 %s · 30天 %s",
+      "pattern": "^7天\\ ([\\s\\S]+?)\\ ·\\ 30天\\ ([\\s\\S]+?)$",
+      "replacement": "7d {0} · 30d {1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "7天 "
+    },
+    {
+      "source": "押 %s 胜 · 赔率 %s",
+      "pattern": "^押\\ ([\\s\\S]+?)\\ 胜\\ ·\\ 赔率\\ ([\\s\\S]+?)$",
+      "replacement": "Backing {0} to win · odds {1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "押 "
     },
     {
       "source": "%s · %s · 能力 %s",
@@ -6253,6 +6958,15 @@
         "0"
       ],
       "prefix": "地图 BP · 等待 "
+    },
+    {
+      "source": "专项训练可恢复至 %.1f",
+      "pattern": "^专项训练可恢复至\\ ([+-]?[\\d,.]+)$",
+      "replacement": "Focus practice can restore familiarity to {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "专项训练可恢复至 "
     },
     {
       "source": "RTS 战绩计数无效：%s",
@@ -6440,6 +7154,15 @@
       "prefix": "比当前 "
     },
     {
+      "source": "待处理事件 · %d 项",
+      "pattern": "^待处理事件\\ ·\\ ([+-]?[\\d,.]+)\\ 项$",
+      "replacement": "Pending events · {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "待处理事件 · "
+    },
+    {
       "source": "存档包含无效数值：{value}",
       "pattern": "^存档包含无效数值：([\\s\\S]+?)$",
       "replacement": "The save contains an invalid numeric value: {value}",
@@ -6551,6 +7274,15 @@
       "source": "{head} · 前往标记位置",
       "pattern": "^([\\s\\S]+?)\\ ·\\ 前往标记位置$",
       "replacement": "{head} · Move to marked position",
+      "keys": [
+        "head"
+      ],
+      "prefix": ""
+    },
+    {
+      "source": "{head} · 摆放尚未保存",
+      "pattern": "^([\\s\\S]+?)\\ ·\\ 摆放尚未保存$",
+      "replacement": "{head} · Layout not saved",
       "keys": [
         "head"
       ],
@@ -6784,6 +7516,25 @@
       "prefix": ""
     },
     {
+      "source": "出售 · 到手 %s",
+      "pattern": "^出售\\ ·\\ 到手\\ ([\\s\\S]+?)$",
+      "replacement": "Sell · net {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "出售 · 到手 "
+    },
+    {
+      "source": "升级%s，花费 %s？",
+      "pattern": "^升级([\\s\\S]+?)，花费\\ ([\\s\\S]+?)？$",
+      "replacement": "Upgrade {0} for {1}?",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": "升级"
+    },
+    {
       "source": "自由属性点 · %d",
       "pattern": "^自由属性点\\ ·\\ ([+-]?[\\d,.]+)$",
       "replacement": "Available attribute points · {0}",
@@ -6968,6 +7719,15 @@
         "label"
       ],
       "prefix": ""
+    },
+    {
+      "source": "下次可商量日期：%s",
+      "pattern": "^下次可商量日期：([\\s\\S]+?)$",
+      "replacement": "Next discussion: {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "下次可商量日期："
     },
     {
       "source": "第 %s 图 %s。%s",
@@ -7197,6 +7957,51 @@
       "prefix": "训练赛未录入："
     },
     {
+      "source": "预留月度运营 {tail}",
+      "pattern": "^预留月度运营\\ ([\\s\\S]+)$",
+      "replacement": "Monthly operating reserve {tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "预留月度运营 "
+    },
+    {
+      "source": "可用引援预算 {tail}",
+      "pattern": "^可用引援预算\\ ([\\s\\S]+)$",
+      "replacement": "Available transfer budget {tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "可用引援预算 "
+    },
+    {
+      "source": "赛事竞猜 · {tail}",
+      "pattern": "^赛事竞猜\\ ·\\ ([\\s\\S]+)$",
+      "replacement": "Match prediction · {tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "赛事竞猜 · "
+    },
+    {
+      "source": "用后冷却 %s 天",
+      "pattern": "^用后冷却\\ ([\\s\\S]+?)\\ 天$",
+      "replacement": "{0}-day cooldown",
+      "keys": [
+        "0"
+      ],
+      "prefix": "用后冷却 "
+    },
+    {
+      "source": "共 %d 场可竞猜",
+      "pattern": "^共\\ ([+-]?[\\d,.]+)\\ 场可竞猜$",
+      "replacement": "{0} series open",
+      "keys": [
+        "0"
+      ],
+      "prefix": "共 "
+    },
+    {
       "source": "已预览「%s」，%s",
       "pattern": "^已预览「([\\s\\S]+?)」，([\\s\\S]+?)$",
       "replacement": "Previewing \"{0}\". {1}",
@@ -7364,6 +8169,16 @@
       "prefix": "与当前 "
     },
     {
+      "source": "%s 夺冠 · %s",
+      "pattern": "^([\\s\\S]+?)\\ 夺冠\\ ·\\ ([\\s\\S]+?)$",
+      "replacement": "{0} win {1}",
+      "keys": [
+        "0",
+        "1"
+      ],
+      "prefix": ""
+    },
+    {
       "source": "%s · 赛事荣誉",
       "pattern": "^([\\s\\S]+?)\\ ·\\ 赛事荣誉$",
       "replacement": "{0} · Tournament honours",
@@ -7389,6 +8204,15 @@
         "tail"
       ],
       "prefix": "当时的选择："
+    },
+    {
+      "source": "持仓回本价 {tail}",
+      "pattern": "^持仓回本价\\ ([\\s\\S]+)$",
+      "replacement": "Break-even {tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "持仓回本价 "
     },
     {
       "source": "{head} · 已报名",
@@ -7619,6 +8443,24 @@
       "prefix": ""
     },
     {
+      "source": "升级 · {tail}",
+      "pattern": "^升级\\ ·\\ ([\\s\\S]+)$",
+      "replacement": "Upgrade · {tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "升级 · "
+    },
+    {
+      "source": "购买 · {tail}",
+      "pattern": "^购买\\ ·\\ ([\\s\\S]+)$",
+      "replacement": "Buy · {tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "购买 · "
+    },
+    {
       "source": "本图 · {tail}",
       "pattern": "^本图\\ ·\\ ([\\s\\S]+)$",
       "replacement": "This map · {tail}",
@@ -7763,6 +8605,33 @@
       "prefix": ""
     },
     {
+      "source": "购买 %d 件",
+      "pattern": "^购买\\ ([+-]?[\\d,.]+)\\ 件$",
+      "replacement": "Buy {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "购买 "
+    },
+    {
+      "source": "提取 %d 件",
+      "pattern": "^提取\\ ([+-]?[\\d,.]+)\\ 件$",
+      "replacement": "Withdraw {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "提取 "
+    },
+    {
+      "source": "给 %s 准备",
+      "pattern": "^给\\ ([\\s\\S]+?)\\ 准备$",
+      "replacement": "Prepare for {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "给 "
+    },
+    {
       "source": "%s 拿下本图",
       "pattern": "^([\\s\\S]+?)\\ 拿下本图$",
       "replacement": "{0} win this map",
@@ -7890,6 +8759,24 @@
       "prefix": "确认禁用 "
     },
     {
+      "source": "还有 %d 天",
+      "pattern": "^还有\\ ([+-]?[\\d,.]+)\\ 天$",
+      "replacement": "In {0} days",
+      "keys": [
+        "0"
+      ],
+      "prefix": "还有 "
+    },
+    {
+      "source": "最新 · %s",
+      "pattern": "^最新\\ ·\\ ([\\s\\S]+?)$",
+      "replacement": "Latest · {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "最新 · "
+    },
+    {
       "source": "{name} 配装包",
       "pattern": "^([\\s\\S]+?)\\ 配装包$",
       "replacement": "{name} loadout pack",
@@ -7906,6 +8793,42 @@
         "day"
       ],
       "prefix": "继续到 "
+    },
+    {
+      "source": "有效至 {tail}",
+      "pattern": "^有效至\\ ([\\s\\S]+)$",
+      "replacement": "Until {tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "有效至 "
+    },
+    {
+      "source": "日波动 {tail}",
+      "pattern": "^日波动\\ ([\\s\\S]+)$",
+      "replacement": "Daily volatility {tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "日波动 "
+    },
+    {
+      "source": "净盈亏 {tail}",
+      "pattern": "^净盈亏\\ ([\\s\\S]+)$",
+      "replacement": "Net P/L {tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "净盈亏 "
+    },
+    {
+      "source": "冷却至 {tail}",
+      "pattern": "^冷却至\\ ([\\s\\S]+)$",
+      "replacement": "Cooldown until {tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "冷却至 "
     },
     {
       "source": "继续到 {tail}",
@@ -7969,6 +8892,33 @@
         "teammate"
       ],
       "prefix": ""
+    },
+    {
+      "source": "共 %d 件",
+      "pattern": "^共\\ ([+-]?[\\d,.]+)\\ 件$",
+      "replacement": "{0} items",
+      "keys": [
+        "0"
+      ],
+      "prefix": "共 "
+    },
+    {
+      "source": "押 %s 胜",
+      "pattern": "^押\\ ([\\s\\S]+?)\\ 胜$",
+      "replacement": "Backed {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "押 "
+    },
+    {
+      "source": "可返还 %s",
+      "pattern": "^可返还\\ ([\\s\\S]+?)$",
+      "replacement": "Returns {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "可返还 "
     },
     {
       "source": "已复制：%s",
@@ -8137,6 +9087,15 @@
       "prefix": ""
     },
     {
+      "source": "%s已升级。",
+      "pattern": "^([\\s\\S]+?)已升级。$",
+      "replacement": "{0} upgraded.",
+      "keys": [
+        "0"
+      ],
+      "prefix": ""
+    },
+    {
       "source": "{day} 开赛",
       "pattern": "^([\\s\\S]+?)\\ 开赛$",
       "replacement": "Starts {day}",
@@ -8144,6 +9103,51 @@
         "day"
       ],
       "prefix": ""
+    },
+    {
+      "source": "已装备 %s",
+      "pattern": "^已装备\\ ([\\s\\S]+?)$",
+      "replacement": "Equipped {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "已装备 "
+    },
+    {
+      "source": "今日 {tail}",
+      "pattern": "^今日\\ ([\\s\\S]+)$",
+      "replacement": "Today {tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "今日 "
+    },
+    {
+      "source": "磨损 {tail}",
+      "pattern": "^磨损\\ ([\\s\\S]+)$",
+      "replacement": "Float {tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "磨损 "
+    },
+    {
+      "source": "现价 {tail}",
+      "pattern": "^现价\\ ([\\s\\S]+)$",
+      "replacement": "Now {tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "现价 "
+    },
+    {
+      "source": "到期 {tail}",
+      "pattern": "^到期\\ ([\\s\\S]+)$",
+      "replacement": "At expiry {tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "到期 "
     },
     {
       "source": "卸下 {tail}",
@@ -8263,6 +9267,69 @@
       "prefix": ""
     },
     {
+      "source": "潜力 {tail}",
+      "pattern": "^潜力\\ ([\\s\\S]+)$",
+      "replacement": "Potential {tail}",
+      "keys": [
+        "tail"
+      ],
+      "prefix": "潜力 "
+    },
+    {
+      "source": "最多 %d",
+      "pattern": "^最多\\ ([+-]?[\\d,.]+)$",
+      "replacement": "Max {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "最多 "
+    },
+    {
+      "source": "库存 %d",
+      "pattern": "^库存\\ ([+-]?[\\d,.]+)$",
+      "replacement": "{0} in stock",
+      "keys": [
+        "0"
+      ],
+      "prefix": "库存 "
+    },
+    {
+      "source": "投入 %s",
+      "pattern": "^投入\\ ([\\s\\S]+?)$",
+      "replacement": "Stake {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "投入 "
+    },
+    {
+      "source": "退回 %s",
+      "pattern": "^退回\\ ([\\s\\S]+?)$",
+      "replacement": "Refunded {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "退回 "
+    },
+    {
+      "source": "返还 %s",
+      "pattern": "^返还\\ ([\\s\\S]+?)$",
+      "replacement": "Returned {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "返还 "
+    },
+    {
+      "source": "比分 %s",
+      "pattern": "^比分\\ ([\\s\\S]+?)$",
+      "replacement": "Score {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "比分 "
+    },
+    {
       "source": "位置 %d",
       "pattern": "^位置\\ ([+-]?[\\d,.]+)$",
       "replacement": "Slot {0}",
@@ -8351,6 +9418,24 @@
         "0"
       ],
       "prefix": "决胜 "
+    },
+    {
+      "source": "今天 %s",
+      "pattern": "^今天\\ ([\\s\\S]+?)$",
+      "replacement": "Today {0}",
+      "keys": [
+        "0"
+      ],
+      "prefix": "今天 "
+    },
+    {
+      "source": "%s 获胜",
+      "pattern": "^([\\s\\S]+?)\\ 获胜$",
+      "replacement": "{0} won",
+      "keys": [
+        "0"
+      ],
+      "prefix": ""
     },
     {
       "source": "%s 组",

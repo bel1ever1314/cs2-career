@@ -175,6 +175,11 @@ def _training_launch(state, body, *, dispatch=None, reward=True):
         raise ValueError(config['reason'])
     cfg = read_cs2_config()
     from .matches import _dispatch_launch
+    booking = body.get('supply_booking')
+    from ..career.match_supplies import prepare, teams_with_effects, training_holder
+    holder,supply_key=training_holder(c,s.date,booking)
+    effects=prepare(c,holder,supply_key,s.date,teams=s.teams)
+    team, opponent = teams_with_effects([team,opponent],effects)
     request = launch.build_request(team, opponent, c.player_name, code, side)
     # Freeze cosmetics off the live career: the external adapter cannot save
     # training progress from inside Steam preparation.
@@ -182,6 +187,10 @@ def _training_launch(state, body, *, dispatch=None, reward=True):
         (team, opponent, c.player_name, code, side, s.teams, deepcopy(c)),
         dict(purpose='series', request_override=request))
     c.remember_training(request)
+    c.training_session.update(supply_intent=effects)
+    if not value.get('supply_deferred'):
+        from ..career.match_supplies import activate
+        activate(c, holder, supply_key, s.date, effects)
     from cs2career.world.map_form import expectation
     c.training_session.update(opponent_id=opponent['id'], my_team=team['name'], opp=opponent['name'], side=side,
                               map_expectation=expectation(team, opponent, code))

@@ -1,0 +1,58 @@
+预留月度运营 	Monthly operating reserve 
+ · 可用引援预算 	 · Available transfer budget 
+潜力 	Potential 
+潜力 · 待评估	Potential · Unscouted
+ · 预计月薪 	 · Estimated monthly pay 
+当前实力优先	Current ability first
+未来潜力优先	Future potential first
+年龄从小到大	Youngest first
+仅看预算内	Within budget only
+能力变化 %+.1f · 签约后预计月结余 %s	Ability change %+.1f · Projected monthly net after signing %s
+没有这个市场页面。	This market page does not exist.
+先创建人物，再进入饰品市场。	Create your character before entering the market.
+这件饰品没有所选磨损。	This finish does not support the selected wear.
+市场上没有这件饰品。	This item is not listed on the market.
+请输入有效的价格区间。	Enter a valid price range.
+%s必须为 %s 至 %s 的整数。	%s must be an integer from %s to %s.
+请选择价格、名称或涨跌幅排序。	Sort by price, name or price change.
+饰品不存在。	This item does not exist.
+数量	Quantity
+报价已变化，请重新确认总价。	The quote has changed. Please confirm the new total.
+个人资金不足。	Not enough personal funds.
+已购买 %s 件 %s，保存在市场暂存。	Purchased %s of %s; held in market custody.
+这批饰品已处理，请刷新。	This lot was already processed. Please refresh.
+已提取 %s 件饰品到仓库。	Withdrew %s items to your inventory.
+卖出报价已变化，请重新确认。	The sale quote changed. Please confirm again.
+已出售 %s 件饰品，扣除手续费后到账 $%s。	Sold %s items; received $%s after fees.
+请选择尚未满级的交易技能。	Choose a trading skill that is not at maximum level.
+已升级。	Upgraded.
+今天的消息已经买过了。	You already purchased today's rumor.
+今天的这类消息已经买过了。	You already purchased today's rumor of this type.
+请选择看涨或看跌消息。	Choose a bullish or bearish rumor.
+暂无持有饰品；买入后可购买看跌消息。	No items held. Buy an item before requesting a bearish rumor.
+市场暂无饰品。	No items are currently listed.
+消息已记入市场笔记。	The rumor was added to your market notes.
+没有这个市场操作。	This market action does not exist.
+这名选手的药剂尚未冷却。	This player's supply cooldown has not ended.
+药剂库存已变化。	Supply stock has changed.
+今日即时训练 / Training today	Training today
+加入队伍后才能准备赛前药剂。	Join a team before preparing match supplies.
+请选择药剂种类。	Select a supply type.
+只有俱乐部管理者能使用队伍经费。	Only the club manager can use club funds.
+购买赛前药剂	Purchase match supplies
+药剂已放入补给库存。	The supply has been added to your stock.
+没有待取消的药剂。	There is no preparation to cancel.
+已取消准备，药剂保留在库存。	Preparation canceled; the supply remains in stock.
+请选择本队选手、未开始的地图和库存药剂。	Select a player on your team, an unstarted map and an owned supply.
+个人药剂仅供自己使用，队伍药剂属于购买它的俱乐部。	Personal supplies are for your character; club supplies belong to the purchasing club.
+同一选手只能准备一种药剂，并须等待冷却结束。	Each player can prepare one supply and must wait for their cooldown.
+这支药剂已经分配给选手。	This supply is already assigned to a player.
+赛前药剂已准备，开赛时使用。	Supply prepared; it will be used when the match starts.
+没有这个补给操作。	This supply action does not exist.
+行情分析	Market analysis
+消息甄别	Source judgment
+交易议价	Trade bargaining
+%s已升级。	%s upgraded.
+资金不足。	Not enough funds.
+可用引援预算 	Available transfer budget 
+本图已经开始或启动结果待确认，请先处理比赛连接状态。	This map has started or launch confirmation is pending. Resolve the match connection first.

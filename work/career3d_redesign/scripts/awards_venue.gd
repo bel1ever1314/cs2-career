@@ -395,7 +395,7 @@ func start_ceremony() -> void:
 	if is_instance_valid(player_trophy):player_trophy.queue_free()
 	guest_trophies.clear();called_ranks.clear();awarded_ranks.clear();completed_ranks.clear();countdown_seen.clear();revealed.clear()
 	current_index=-1;countdown_index=-1;ceremony_phase="opening";ceremony_clock=0;house_level=.55
-	for kind in ["drumroll","drumroll_long","hit","fanfare","applause"]:Audio.stream(kind)
+	for kind in ["drumroll","drumroll_long","hit","fanfare","applause"]:Audio.sound(kind)
 	if not finalized: _set_caption("主持人：欢迎观看预览典礼。以下示例姓名仅用于展示领奖流程。")
 	elif countdown_rows.is_empty(): _set_caption("主持人：欢迎来到 %s 年度选手颁奖。我们依次公布第三名、第二名与第一名。" % awards_year)
 	else: _set_caption("主持人：欢迎来到 %s 年度选手颁奖。先回顾年度 Top20，再依次揭晓第三名、第二名与第一名。" % awards_year)

@@ -17,6 +17,8 @@ var dirty := false
 var awaiting := ""
 var camera_before: Vector3
 var closing_prompt := false
+var clearing_prompt := false
+var command_sender: Callable
 
 func setup(value: Node3D) -> void:
 	room = value
@@ -36,6 +38,7 @@ func setup(value: Node3D) -> void:
 	column.add_theme_constant_override("separation", 12)
 	panel.add_child(column)
 	UI.label(column, "布置房间", 26)
+	UI.label(column, "床和电脑保留，空出来的地方由你布置。", 13, UI.MUTED).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	status = UI.label(column, "", 14, UI.GREEN)
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var scroll := ScrollContainer.new()
@@ -52,7 +55,7 @@ func setup(value: Node3D) -> void:
 	save_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	UI.primary(save_button)
 	UI.button(controls, "完成", _close_requested)
-	UI.label(column, "点击地面摆放 · R 旋转 · Esc 取消移动", 13, UI.MUTED).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UI.label(column, "点击家具移动 · 点击地面摆放\nR 旋转 · Esc 取消 · 收起后可再次摆放", 13, UI.MUTED).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	ghost = MeshInstance3D.new()
 	ghost.name = "FurniturePlacementPreview"
 	room.add_child(ghost)
@@ -74,7 +77,7 @@ func present() -> void:
 	home = CareerBridge.context.get("environment", {}).get("home", {}).duplicate(true)
 	draft = home.get("placed", []).duplicate(true)
 	baseline = draft.duplicate(true)
-	dirty = false; closing_prompt = false
+	dirty = false; closing_prompt = false; clearing_prompt = false; pending.clear()
 	camera_before = Vector3(room.yaw, room.pitch, room.zoom)
 	room.yaw = 0; room.pitch = 1.19; room.zoom = 8.8
 	room.camera.h_offset = 1.65
@@ -127,11 +130,31 @@ func _render() -> void:
 			content.add_child(row)
 			UI.button(row, Locale.field(_item(str(placement.item)), "name"), _move.bind(placement)).size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			UI.button(row, "收起", _remove.bind(str(placement.id)))
+		UI.button(content, "全部收起", func(): clearing_prompt = true; _render())
+	if clearing_prompt:
+		UI.label(content, "收起的家具仍在库存里，不会出售。", 14).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		UI.button(content, "确认收起全部家具", _clear_room)
+		UI.button(content, "继续保留", func(): clearing_prompt = false; _render())
 	if closing_prompt:
 		UI.label(content, "摆放还没保存。", 16)
-		UI.button(content, "不保存，离开装修", close)
-		UI.button(content, "继续布置", func(): closing_prompt=false; _render())
-	save_button.disabled = not dirty or not awaiting.is_empty() or not blocked.is_empty()
+		UI.button(content, "不保存，离开装修", close).set_meta("decor_exit", true)
+		UI.button(content, "继续布置", func(): closing_prompt=false; _render()).set_meta("decor_exit", true)
+	# Freeze the complete draft while a write is in flight, including the placed
+	# furniture list. Otherwise a successful save could discard edits made after it.
+	if not _editable():
+		for button in content.find_children("*", "Button", true, false): button.disabled = true
+		# A blocked career forbids edits, not leaving the editor. Read-only exit
+		# controls remain available unless an actual request is in flight.
+		if awaiting.is_empty():
+			for button in content.find_children("*", "Button", true, false):
+				if button.get_meta("decor_exit", false): button.disabled = false
+	save_button.disabled = not dirty or not _editable() or not pending.is_empty()
+	save_button.tooltip_text = Locale.text("先摆放或取消正在移动的家具。") if not pending.is_empty() else ""
+	if not awaiting.is_empty(): status.text = Locale.text("正在保存……")
+	elif dirty: status.text += Locale.text(" · 摆放尚未保存")
+
+func _editable() -> bool:
+	return awaiting.is_empty() and str(CareerBridge.context.get("environment", {}).get("blocked", "")).is_empty()
 
 func _count(value: String, values: Array) -> int:
 	var count := 0
@@ -157,30 +180,43 @@ func _buy(item: Dictionary) -> void:
 	_submit("home-buy", {"item":item.id,"price":int(item.price)})
 
 func _use(item: Dictionary) -> void:
+	if not _editable(): return
 	if item.kind != "furniture":
 		_submit("home-finish", {"item":item.id})
 		return
+	if _placed_count(str(item.id)) >= _count(str(item.id), home.get("owned", [])): return
 	pending = {"id":"furniture-%d" % Time.get_ticks_usec(), "item":item.id,"x":0.0,"z":0.0,"rotation":0,"color":item.color}
+	_preview()
 	_render()
 
 func _move(placement: Dictionary) -> void:
+	if not _editable(): return
 	pending = placement.duplicate(true)
+	_preview()
 	_render()
 
 func _remove(id: String) -> void:
+	if not _editable(): return
 	draft = draft.filter(func(row): return str(row.id) != id)
 	if str(pending.get("id", "")) == id: _cancel_move()
 	_changed()
 
+func _clear_room() -> void:
+	if not _editable(): return
+	draft.clear(); pending.clear(); ghost.visible = false
+	clearing_prompt = false
+	_changed()
+
 func _rotate() -> void:
-	if pending.is_empty(): return
+	if pending.is_empty() or not _editable(): return
 	pending.rotation = (int(pending.rotation)+90)%360
 
 func _color(value: String) -> void:
-	if not pending.is_empty(): pending.color = value
+	if not pending.is_empty() and _editable(): pending.color = value
 
 func _cancel_move() -> void:
-	pending.clear(); ghost.visible = false; _render()
+	if not awaiting.is_empty(): return
+	pending.clear(); ghost.visible = false; _preview(); _render()
 
 func _changed() -> void:
 	dirty = JSON.stringify(draft) != JSON.stringify(baseline)
@@ -189,28 +225,41 @@ func _changed() -> void:
 func _preview() -> void:
 	var view := home.duplicate(true)
 	view["placed"] = draft
-	Buildings.apply_home(room, room.model, view)
+	var building := Buildings.apply_home(room, room.model, view)
+	for object in building.get_children():
+		if object is Node3D:
+			object.visible = str(object.get_meta("placement_id", "")) != str(pending.get("id", ""))
 
 func _context_changed() -> void:
 	if not visible: return
 	home = CareerBridge.context.get("environment", {}).get("home", {}).duplicate(true)
+	var saved: Array = home.get("placed", []).duplicate(true)
+	# An idle editor follows a loaded/reconnected save; an unsaved draft survives
+	# refreshes. If a disconnected save did commit, its matching draft becomes clean.
+	if not dirty and pending.is_empty(): draft = saved.duplicate(true)
+	baseline = saved
+	dirty = JSON.stringify(draft) != JSON.stringify(baseline)
 	_preview()
 	_render()
 
 func _submit(action: String, body: Dictionary) -> void:
-	if not awaiting.is_empty(): return
+	if not _editable(): return
 	var payload := body.duplicate(true)
 	payload["revision"] = int(CareerBridge.context.get("calendar", {}).get("revision",0))
 	payload["request_id"] = "home-%d-%d" % [Time.get_unix_time_from_system(), Time.get_ticks_usec()]
 	var path := "/api/3d/environment/" + action
-	if CareerBridge.command(path,payload):
+	var accepted: bool = command_sender.call(path, payload) if command_sender.is_valid() else CareerBridge.command(path,payload)
+	if accepted:
 		awaiting = path
 		_render()
 		status.text = Locale.text("正在保存……")
 	else: status.text = Locale.text(CareerBridge.message)
 
 func _save() -> void:
-	_cancel_move()
+	if not _editable() or not dirty: return
+	if not pending.is_empty():
+		status.text = Locale.text("先摆放或取消正在移动的家具。")
+		return
 	var placements: Array = []
 	for row in draft:
 		placements.append({"id":str(row.id),"item":str(row.item),"x":float(row.x),"z":float(row.z),"rotation":int(row.rotation),"color":str(row.color)})
@@ -226,13 +275,18 @@ func _finished(path: String, result: Dictionary) -> void:
 	status.text = Locale.field(result, "reason", Locale.field(result,"msg",CareerBridge.message))
 
 func _process(_delta: float) -> void:
-	if not visible or pending.is_empty(): return
-	var mouse := get_viewport().get_mouse_position()
-	if mouse.x >= panel.get_global_rect().position.x:
+	if not visible or pending.is_empty() or not _editable():
 		ghost.visible = false
 		return
+	_update_pointer(get_viewport().get_mouse_position())
+
+func _floor_point(mouse: Vector2) -> Variant:
+	if panel.get_global_rect().has_point(mouse): return null
 	var plane := Plane(Vector3.UP, .12)
-	var point: Variant = plane.intersects_ray(room.camera.project_ray_origin(mouse), room.camera.project_ray_normal(mouse))
+	return plane.intersects_ray(room.camera.project_ray_origin(mouse), room.camera.project_ray_normal(mouse))
+
+func _update_pointer(mouse: Vector2) -> void:
+	var point: Variant = _floor_point(mouse)
 	if point == null:
 		ghost.visible = false
 		return
@@ -241,6 +295,25 @@ func _process(_delta: float) -> void:
 	ghost.mesh.size = Vector3(size.x,.08,size.y)
 	ghost.position = Vector3(pending.x,.15,pending.z); ghost.visible = true
 	ghost.material_override.albedo_color = Color(.28,.65,.44,.45) if _local_valid(pending) else Color(.8,.25,.20,.5)
+
+func _select_at(point: Vector3) -> void:
+	# Solids take precedence over rugs under them. Clicking an existing item is
+	# equivalent to its catalogue Move button and never writes a save.
+	for solid in [true, false]:
+		for row in draft:
+			if bool(_item(str(row.item)).get("solid", true)) != solid: continue
+			var rect := Rect2(Vector2(row.x, row.z) - _footprint(row) / 2.0, _footprint(row))
+			if rect.has_point(Vector2(point.x, point.z)):
+				_move(row); return
+
+func _place_pending() -> void:
+	if not _editable() or pending.is_empty(): return
+	if _local_valid(pending):
+		var id := str(pending.id)
+		draft = draft.filter(func(row): return str(row.id) != id)
+		draft.append(pending.duplicate(true))
+		pending.clear(); ghost.visible = false; _changed()
+	else: status.text = Locale.text("这里放不下，换个位置试试。")
 
 func _footprint(row: Dictionary) -> Vector2:
 	var item := _item(str(row.item))
@@ -266,20 +339,24 @@ func _local_valid(row: Dictionary) -> bool:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible: return
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT and ghost.visible and not pending.is_empty():
-		if _local_valid(pending):
-			var id := str(pending.id)
-			draft = draft.filter(func(row): return str(row.id) != id)
-			draft.append(pending.duplicate(true))
-			pending.clear(); ghost.visible = false; _changed()
-		else: status.text = Locale.text("这里放不下，换个位置试试。")
+	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_ESCAPE:
+		if not awaiting.is_empty():
+			get_viewport().set_input_as_handled(); return
+		if not pending.is_empty(): _cancel_move()
+		else: _close_requested()
+		get_viewport().set_input_as_handled()
+		return
+	if not _editable(): return
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if pending.is_empty():
+			var point: Variant = _floor_point(event.position)
+			if point != null: _select_at(point)
+		else:
+			_update_pointer(event.position)
+			if ghost.visible: _place_pending()
 		get_viewport().set_input_as_handled()
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.physical_keycode == KEY_R: _rotate(); get_viewport().set_input_as_handled()
-		elif event.physical_keycode == KEY_ESCAPE:
-			if not pending.is_empty(): _cancel_move()
-			else: _close_requested()
-			get_viewport().set_input_as_handled()
 
 func _input(event: InputEvent) -> void:
 	# P closes this editor first, instead of silently throwing its draft away
@@ -300,6 +377,7 @@ func close() -> void:
 	room.yaw = camera_before.x; room.pitch = camera_before.y; room.zoom = camera_before.z
 	room.camera.h_offset = 0
 	Buildings.apply_home(room,room.model,CareerBridge.context.get("environment",{}).get("home",{}))
+	preload("res://scripts/home_room.gd").clear_player(room, CareerBridge.context.get("environment",{}).get("home",{}))
 	UI.Device.device_closed(self)
 
 func _exit_tree() -> void:

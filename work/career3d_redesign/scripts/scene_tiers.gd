@@ -183,6 +183,7 @@ static func _bowl_tier(text: String) -> int:
 	return int(parts[1]) if parts.size() > 1 and parts[1].is_valid_int() else 0
 
 static func apply_home(parent: Node3D, model: Node3D, home: Dictionary) -> Node3D:
+	preload("res://scripts/home_room.gd").simplify(model)
 	var footprints := {}
 	for item in home.get("catalog",[]):
 		if item is Dictionary and item.get("kind","")=="furniture": footprints[str(item.id)] = item.get("footprint",[])

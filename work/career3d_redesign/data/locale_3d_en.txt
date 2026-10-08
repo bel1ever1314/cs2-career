@@ -1997,3 +1997,30 @@ PNG 尺寸无效。	The PNG dimensions are invalid.
 PNG 图像块顺序无效。	The PNG image chunks are out of order.
 PNG 结尾无效。	The PNG end chunk is invalid.
 只接受程序生成的静态 PNG，不支持动画或附加内容。	Only a game-normalized static PNG is accepted, without animation or extra content.
+下一个对手	Next opponent
+同赛事	Same event
+爆冷	Upset
+还有 %d 天	In %d days
+暂无已安排的比赛	No match scheduled
+接受赛事邀请后，下一场会出现在这里。	Accept an event invitation and your next match will show up here.
+今天 %s	Today %s
+亲自参赛：比赛当天早上去现场	Attend in person: head to the venue on the morning of the match
+比赛详情 ›	Match details ›
+其他赛场	Around the scene
+最新 · %s	Latest · %s
+其他队伍最近还没有赛果，推进后会出现在这里。	No recent results from other teams yet. They will appear here as you advance.
+%s 夺冠 · %s	%s win %s
+下一场 · %s · 对 %s	Next · %s · vs %s
+%s 获胜	%s won
+床和电脑保留，空出来的地方由你布置。	The bed and computer stay. Make the rest of the room your own.
+点击家具移动 · 点击地面摆放\nR 旋转 · Esc 取消 · 收起后可再次摆放	Click furniture to move it; click the floor to place it.\nR: rotate · Esc: cancel · Stored furniture can be placed again.
+全部收起	Store all furniture
+收起的家具仍在库存里，不会出售。	Stored furniture stays in your inventory. Nothing is sold.
+确认收起全部家具	Confirm store all
+继续保留	Keep furniture
+先摆放或取消正在移动的家具。	Place the moving furniture or cancel the move first.
+ · 摆放尚未保存	 · Layout not saved
+综合评价 = 熟练度 + 近期状态。完整打完地图就能积累熟练度，打强队收获更多；胜负影响近期状态。	Map rating = familiarity + recent form. Every completed map builds familiarity, especially against stronger opponents; results affect recent form.
+连续 14 天未打或专项练图后，熟练度每天下降 0.12，单次闲置最多下降 10 点。	After 14 days without playing or focused map practice, familiarity falls by 0.12 per day, capped at 10 points per inactive spell.
+熟练度 %.1f · 近期状态 %+.1f · 近 %d 图 %d 胜	Familiarity %.1f · Recent form %+.1f · Last %d maps: %d wins
+熟练度 %+.2f · 近期状态 %+.2f	Familiarity %+.2f · Recent form %+.2f

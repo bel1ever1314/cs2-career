@@ -213,6 +213,12 @@ def refresh_player_ability(player: dict) -> None:
 
 def playing_ability(player: dict) -> float:
     """Read-only boundary for simulation/CS2; uncalibrated snapshots stay intact."""
+    if player.get('_match_boost'):
+        from .calibrated import weighted_score
+        original = dict(player, _match_boost={})
+        role = player.get('role') or 'rifle'
+        gain = weighted_score(playing_stats(player), role) - weighted_score(playing_stats(original), role)
+        return min(100., playing_ability(original) + max(0., gain))
     stats = player.get("stats") or {}
     if stats.get("role_reference_score") is not None:
         return ability_of(stats, player.get("role") or "rifle")
@@ -225,6 +231,9 @@ def playing_stats(player: dict, role: str | None = None) -> dict:
     if stats.get('position_model'):
         from .calibrated import express_axes
         stats.update(express_axes(stats, role or player.get('role') or 'rifle'))
+    for axis, bonus in (player.get('_match_boost') or {}).items():
+        if axis in AXES:
+            stats[axis] = min(100., float(stats.get(axis, player.get('ability',70))) + float(bonus))
     return stats
 
 

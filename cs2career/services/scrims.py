@@ -63,6 +63,8 @@ def _finish(state, row, session, raw):
         raise ValueError('训练赛未录入：' + error)
     if to_sim_map(raw.get('map', '')) != session['map']:
         raise ValueError('训练地图不匹配，未录入战报。')
+    from ..career.match_supplies import activate_training
+    activate_training(state.career,state.season)
     own, other = row['teams_snapshot']
     mp = cs2_to_map(raw, session, own, other, session['player'])
     from ..world.map_form import apply_result, expectation
@@ -73,6 +75,8 @@ def _finish(state, row, session, raw):
                   teams=[own['name'], other['name']], human_id=row['human_id'])
     _retire(state, session)
     row.update(status='finished', report=report)
+    from ..career.match_supplies import finish_series
+    finish_series(state.career, 'scrim:' + row['id'])
     row.pop('teams_snapshot', None)
     state.career.training_session = None
     records = _records(state)
@@ -120,7 +124,7 @@ def command(state, action, body, *, dispatch=None):
         _retire(state, session)
         state.career.training_session = None
     side = body.get('side', 'ct')
-    out = _training_launch(state, dict(opponent_id=row['opponent_id'], map=row['map'], side=side),
+    out = _training_launch(state, dict(opponent_id=row['opponent_id'], map=row['map'], side=side, supply_booking=row),
                            dispatch=dispatch, reward=False)
     career = state.career
     own = career.my_team(state.season.teams)

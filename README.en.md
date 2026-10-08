@@ -8,7 +8,7 @@ The career now has a 3D world to walk around in. You're a chicken with a dorm ro
 
 [Download 1.7.2](https://github.com/bel1ever1314/cs2-career/releases/latest) · [Download the 1.6.0 desktop release](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.6.0-hotfix.1) · [Changelog](RELEASE_NOTES.md) · [Feedback](https://github.com/bel1ever1314/cs2-career/issues)
 
-The current version is **1.7.2**, with per-map simulation / CS2 / RTS choices, dynamic map form, custom club logos, completed opening rosters for three eras, and smoother recovery after leaving CS2. The **1.6.0-hotfix.1** desktop version remains available separately.
+The current version is **1.7.2**. This refresh expands the skin market, tips and match predictions, adds club discussions about roster changes, and makes break-time tasks clearer. Routine training maintains map familiarity; matches unlock new highs. Per-map simulation / CS2 / RTS choices, opening rosters for three eras and custom club logos remain included. The **1.6.0-hotfix.1** desktop version is still available separately.
 
 ## Getting started
 
@@ -29,7 +29,8 @@ Controls: `WASD` to walk, right-mouse drag to rotate the club view, `E` to use o
 - **Choose how to play a match.** Simulate career series map by map, play them in CS2, or command your team in RTS. RTS lets you switch between command, player control, and spectating. The local ladder and custom rooms have their own player drafts and map vetoes.
 - **Draw your tactics.** Use the meeting-room board to set routes, pauses, observation directions, and running or walking for five slots, then save them for matches. Zoom, pan, and import or export tactics.
 - **Visit the stage and collect honors.** Enter a small LAN room or a large venue and continue the match from your seat. Follow championships, MVPs, EVPs, positional best teams, and the annual Top 20. If your player makes the annual top three, walk up to collect the award.
-- **Collect and equip skins.** Browse the market, manage inventory, equip items, and open cases using fictional in-game funds. These items do not enter your Steam inventory.
+- **Collect and trade skins.** Browse around 150 items by category, wear, price and price movement; view charts, buy tips and trade in bulk. Purchases stay in market custody until you withdraw them for equipment. You can also predict other teams' matches using personal funds. This is a fictional economy with no cash deposits or withdrawals; items do not enter your Steam inventory.
+- **Make decisions with your club.** As a player, discuss roster changes with management, considering strength, potential and teammates' recent performances. Run your own club, upgrade facilities and decorate your home. Routine training maintains map familiarity; matches unlock new highs.
 - **Continue at your own pace.** Use manual saves and loads. Automatic progression pauses for four seconds between maps so you can take over the next map or stop to train, decorate and read messages.
 
 The local ladder uses your current career player. The two highest-rated participants captain the teams, draft players, and veto maps. Ladder points are separate from career VRS, prize money, and attribute points. Custom rooms let you arrange both five-player rosters, control one participant, or watch ten bots.

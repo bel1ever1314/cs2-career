@@ -16,12 +16,13 @@ def locked(season, team):
         for e in season.events)
 
 
-def buyout_price(p):
+def buyout_price(p, *, free=False):
     from .career import transfer_fee
     st=p.get('stats') or {}
     overall=ability_of(st,st['role_reference']) if st.get('role_reference_score') is not None else float(p.get('long_term_ability',p['ability']))
-    multiplier=5 if overall>=90 else 3
-    return transfer_fee(overall)*multiplier, multiplier
+    from .market_balance import FREE_SIGN_MULTIPLIER
+    multiplier=FREE_SIGN_MULTIPLIER if free else 5 if overall>=90 else 3
+    return round(transfer_fee(overall)*multiplier), multiplier
 
 
 def outgoing(career, team, key=''):
@@ -43,23 +44,28 @@ def candidates(career, season):
     occupied={identity(p) for t in season.teams for p in t['players']}
     for seller, pool in [(None,career.free)]+[(t,t['players']) for t in season.teams if t['id']!=mine['id']]:
         for p in pool:
-            price,mult=buyout_price(p); fee=transfer_fee(p['ability'])
+            price,mult=buyout_price(p, free=seller is None); fee=transfer_fee(p['ability'])
             chance=buy_chance(rank.get('vrs',900),p['ability'],mine.get('money',0),fee)
             reason='赛事进行中，结束后再转会。' if own_locked or (seller and locked(season,seller)) else ''
             if seller and not reason and not any(identity(r) not in occupied and r.get('role')==p['role'] and
                     transfer_fee(r['ability'])<=seller.get('money',0)+price for r in career.free):
                 reason='卖方暂无可签的同位置替补，暂不能买断。'
+            from .market_balance import potential_stars, NEGOTIATION_FAILURE_RATE
+            from .economy import monthly_salary
+            from ..world.potential import assessment
+            scouting = assessment(p)
             rows.append(dict(player_id=identity(p),name=p['name'],role=p['role'],ability=p['ability'],
-                age=p.get('age'),potential=p.get('potential'),note=p.get('note',''),academy_year=p.get('academy_year'),
+                potential_stars=potential_stars(scouting['potential']), monthly_salary=monthly_salary(p['ability']),
+                age=p.get('age'),**scouting,note=p.get('note',''),academy_year=p.get('academy_year'),
                 seller_id=seller['id'] if seller else '',seller=seller['name'] if seller else '自由球员',
                 normal_fee=fee if not seller else None,normal_chance=(max(.2,chance) if chance>=.18 else 0) if not seller else None,
-                negotiation_fee=int(fee*.08),guaranteed_fee=price,multiplier=mult,blocked=reason))
+                negotiation_fee=int(fee*NEGOTIATION_FAILURE_RATE),guaranteed_fee=price,multiplier=mult,blocked=reason))
     return sorted(rows,key=lambda p:(-p['ability'],p['player_id']))
 
 
 def guaranteed(career, season, target_id, seller_id, replace_id, expected_fee=None):
-    if career.personal_transfers.get('player_only'):
-        raise ValueError('你是签约选手，俱乐部引援由管理层负责。')
+    from . import club_recruitment
+    club_recruitment.authorize(career, season, replace_id)
     from .career import _signed, transfer_fee
     from ..world.roles import apply_roles
     mine=career.my_team(season.teams)
@@ -71,7 +77,7 @@ def guaranteed(career, season, target_id, seller_id, replace_id, expected_fee=No
     pool=seller['players'] if seller else career.free
     found=[p for p in pool if identity(p)==target_id]
     if len(found)!=1: raise ValueError('选手已转会或身份不唯一，请刷新报价。')
-    target=found[0]; price,_=buyout_price(target)
+    target=found[0]; price,_=buyout_price(target, free=seller is None)
     if not seller and any(identity(p)==target_id for t in season.teams for p in t['players']):
         raise ValueError('这名选手已有现役合同，请刷新并使用现役买断。')
     if expected_fee is not None and int(expected_fee)!=price: raise ValueError('报价已变化，请刷新后确认。')
@@ -106,5 +112,6 @@ def guaranteed(career, season, target_id, seller_id, replace_id, expected_fee=No
     career._record_cashflow(season.date,'club','transfer',f'保签 {target["name"]}',-price,mine['money'])
     msg=f'花费 ${price:,} 保签 {target["name"]}，{leaving["name"]} 离队。'
     if seller: msg+=f' {seller["name"]} 收到买断费，并签下 {replacement["name"]} 补位。'
+    club_recruitment.consume(career, season, replace_id)
     career.log.append(msg);career.save()
     return msg

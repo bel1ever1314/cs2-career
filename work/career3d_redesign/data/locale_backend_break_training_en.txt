@@ -1,0 +1,23 @@
+# Career break agenda and routine map maintenance.
+Major 休赛期	Major break
+赛季结束	Season complete
+本图战报已就绪	Map report ready
+处理待办后再继续推进	Resolve pending tasks before advancing
+查看休赛安排	View break agenda
+Major 休赛期 · 待办清单	Major break · To-do list
+处理完必须决定的事项后即可继续。属性点可以留到以后，不要求全部花完。	Resolve required decisions to continue. Attribute points can be kept for later; spending them is optional.
+待处理事件 · %d 项	Pending events · %d
+查看待办事项	View pending tasks
+没有必须处理的事项，可以结束休赛停留。	No required tasks remain. You can finish the break.
+可选安排	Optional activities
+剩余属性点：%s · 未使用点数继续保留	Attribute points remaining: %s · Unspent points are kept
+日常自动训练维持地图熟练度；也可以离开电脑，自由活动。	Routine training maintains map familiarity. You can leave the computer and enjoy your free time.
+请处理上方待办事项	Resolve the tasks shown above
+待办已处理 · 属性点可以保留	Tasks complete · You can keep your attribute points
+有待决定的生涯事件	Career decisions are waiting
+处理完成后再继续推进	Resolve them before advancing
+综合评价 = 熟练度 + 近期状态。获胜提升熟练度，输给明显强队仍有少量学习收益；输给同档或较弱队伍时小幅下降。	Map rating = familiarity + recent form. Wins improve familiarity; losses to clearly stronger teams still teach a little. Losses to peers or weaker teams cause a small decline.
+日常自动训练已开启：所有队伍维持地图熟练度，不因闲置衰退。专项训练可恢复已达到的水平，比赛才能突破。	Routine training is active for all teams: no familiarity decay from inactivity. Focus practice restores previously reached levels; matches unlock new highs.
+专项训练可恢复至 %.1f	Focus practice can restore familiarity to %.1f
+日常自动训练维持所有地图，不用每天点。专项练图每天选一张，跨日恢复熟练度，最多恢复至已达到的水平；不增加个人属性。	Routine training maintains every map automatically. Choose one map for daily focus practice to recover familiarity on the next day, up to your previous peak. Player attributes are unchanged.
+自动安排原因	Automatic scheduling reason

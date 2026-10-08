@@ -223,6 +223,9 @@ func mail_content(parent: Node, letter: Dictionary, compact: bool, button: Calla
 	ui.label(paper, "%s · %s" % [letter.get("date", ""), Data.mail_status(str(letter.get("status", "")))], 12, ui.MUTED)
 	if letter.get("kind") == "invite": ui.label(paper, Locale.message("mail.invite_hint"), 14)
 	if not str(letter.get("body", "")).is_empty(): ui.label(paper, Locale.field(letter, "body"), 14 if compact else 15)
+	if not str(letter.get("auto_reason", "")).is_empty():
+		ui.label(paper, Locale.source("mail.auto_reason"), 13, ui.MUTED)
+		ui.label(paper, str(letter.auto_reason), 14)
 	if not str(letter.get("evname", "")).is_empty():
 		var raw = letter.get("dates", [])
 		var dates := "、".join(PackedStringArray(raw)) if raw is Array else str(raw)

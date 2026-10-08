@@ -454,7 +454,11 @@ func play_sound(kind: String) -> void:
 	last_sound = kind
 	sound_count += 1
 	if CareerBridge.sound_muted or CareerBridge.sound_volume <= 0: return
-	if not audio_cache.has(kind): audio_cache[kind] = make_sound(kind)
+	if not audio_cache.has(kind):
+		# Awards stings use the orchestral ceremony renders; map results and any
+		# missing file keep the short synthesized versions.
+		var rendered: AudioStream = CeremonyAudio.sound(kind) if kind in ["champion", "honours"] else null
+		audio_cache[kind] = rendered if rendered is AudioStreamOggVorbis else make_sound(kind)
 	sound_player.stream = audio_cache[kind]
 	sound_player.volume_db = linear_to_db(clampf(CareerBridge.sound_volume, .001, 1.0)) - 6.0
 	sound_player.play()

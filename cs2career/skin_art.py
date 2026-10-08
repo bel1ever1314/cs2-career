@@ -6,6 +6,7 @@ state, not another item's picture. UI uses local URLs only.
 import json
 import hashlib
 import threading
+from functools import lru_cache
 from pathlib import Path
 from urllib.request import Request, urlopen
 from urllib.parse import urlparse
@@ -17,7 +18,12 @@ ITEM_LOCKS = {}
 
 def manifest():
     path = data_file('skin_art.json')
-    return json.loads(path.read_text(encoding='utf-8')) if path.is_file() else {'items': {}}
+    return _manifest(str(path), path.stat().st_mtime_ns) if path.is_file() else {'items': {}}
+
+
+@lru_cache(maxsize=4)
+def _manifest(path, modified):
+    return json.loads(Path(path).read_text(encoding='utf-8'))
 
 
 def artwork(skin_id):

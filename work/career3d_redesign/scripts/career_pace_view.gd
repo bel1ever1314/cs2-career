@@ -7,6 +7,7 @@ var _owner: WeakRef
 var owner:
 	get: return _owner.get_ref()
 var flow = preload("res://scripts/career_pace_controller.gd").new()
+var world = preload("res://scripts/career_world_feed.gd").new()
 var timer_label: Label
 var status_title: Label
 var countdown: ProgressBar
@@ -36,6 +37,8 @@ func pause(rebuild: bool = true) -> void:
 
 func start() -> void:
 	if owner.request_pending or CareerBridge.busy: return
+	if owner.break_pending(owner.quick_state()) or not CareerBridge.context.get("stories", []).is_empty():
+		pause(); return
 	if owner.is_interrupted() or blocked_by_session(): pause(); return
 	if not enabled():
 		starting = true
@@ -56,19 +59,25 @@ func render(parent: Node) -> void:
 	status.name = "CareerPaceState"
 	status.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	UI.label(parent, "比赛默认逐图模拟，每张图之间停 4 秒，可以接手 CS2、RTS 或暂停。暂停后可以自由活动。", 13, UI.MUTED)
-	if str(state.get("season_phase", "")) == "end":
-		owner.host._button(parent, "继续下一赛季", owner.season_command.bind("next-year", {"year":int(state.get("year", 0))}))
-		return
 	if owner.break_pending(state):
-		UI.label(parent, "Major 休赛期 · 可以分配属性点，未使用的点数会保留。", 17)
-		owner.host._button(parent, "分配属性点", owner.host._navigate.bind("profile"), false)
-		owner.host._button(parent, "结束休赛停留", owner.resume_quick)
+		preload("res://scripts/career_break_view.gd").mount(parent, owner)
 		return
-	if not owner.current_game().is_empty(): owner.render(parent)
-	else:
-		UI.label(parent, "下一次推进会停在开赛准备阶段。", 16)
-		if not str(state.get("block_reason", "")).is_empty(): UI.label(parent, str(state.block_reason), 14, UI.MUTED)
-		if not CareerBridge.context.get("stories", []).is_empty(): owner.host._button(parent, "处理待办事项", owner.host._open_phone.bind("stories"), false)
+	if str(state.get("season_phase", "")) == "end":
+		if not CareerBridge.context.get("stories", []).is_empty():
+			UI.label(parent, str(state.get("block_reason", "")), 14, UI.AMBER)
+			owner.host._button(parent, "处理待办事项", open_pending, false)
+		else: owner.host._button(parent, "继续下一赛季", owner.season_command.bind("next-year", {"year":int(state.get("year", 0))}))
+		return
+	var game: Dictionary = owner.current_game()
+	# A due fixture (or one already in hand) owns the page; otherwise show the
+	# way to the next match and what happened elsewhere while advancing.
+	if not owner.result.is_empty() or not game.is_empty() and (bool(game.get("due", false)) or owner.is_interrupted()
+			or str(owner.current_preflight().get("phase", "")) in ["waiting", "starting", "launched"]):
+		owner.render(parent)
+		return
+	if not str(state.get("block_reason", "")).is_empty(): UI.label(parent, str(state.block_reason), 14, UI.AMBER)
+	if not CareerBridge.context.get("stories", []).is_empty(): owner.host._button(parent, "处理待办事项", owner.host._open_phone.bind("stories"), false)
+	world.render(parent, owner)
 
 ## Map number (1-based) and name that the next pace action would play.
 func upcoming_map() -> Dictionary:
@@ -118,6 +127,9 @@ func plan() -> Dictionary:
 			if not done:
 				out.cs2 = "下一图自己打"; out.rts = "下一图 RTS"
 			return out
+		if owner.break_pending(owner.quick_state()) or not CareerBridge.context.get("stories", []).is_empty():
+			out.merge({"title":"本图战报已就绪", "detail":"处理待办后再继续推进", "primary":"查看休赛安排" if owner.break_pending(owner.quick_state()) else "处理待办事项", "decision":true}, true)
+			return out
 		if done:
 			out.title = "系列赛结束 · %s" % str(owner.score_text(owner.result.get("series", "")))
 			out.detail = ("%d 秒后进入下一场" % seconds) if counting else ("已暂停 · 点继续进入下一场" if not flow.running else "")
@@ -127,10 +139,24 @@ func plan() -> Dictionary:
 		out.detail = reservation_text() if not flow.reservation.is_empty() else (("%d 秒后自动模拟" % seconds) if counting else "已暂停 · 可以模拟或接手")
 		out.merge({"primary":"模拟第 %d 图" % number, "cs2":"第 %d 图自己打" % number, "rts":"第 %d 图 RTS" % number, "countdown":counting}, true)
 		return out
+	if owner.break_pending(owner.quick_state()):
+		var pending: bool = not CareerBridge.context.get("stories", []).is_empty() or not str(owner.quick_state().get("block_reason", "")).is_empty()
+		out.merge({"title":"Major 休赛期", "detail":"请处理上方待办事项" if pending else "待办已处理 · 属性点可以保留",
+			"primary":"处理待办事项" if pending else "结束休赛停留", "decision":true}, true)
+		return out
+	if not CareerBridge.context.get("stories", []).is_empty():
+		out.merge({"title":"有待决定的生涯事件", "detail":"处理完成后再继续推进", "primary":"处理待办事项", "decision":true}, true)
+		return out
+	if str(owner.quick_state().get("season_phase", "")) == "end":
+		out.merge({"title":"赛季结束", "primary":"继续下一赛季", "decision":true}, true)
+		return out
 	if game.is_empty() or not due:
 		out.title = "下一场 · %s vs %s" % [str(CareerBridge.context.get("team", {}).get("name", "")), str(game.get("opponent", ""))] if not game.is_empty() else "暂无已到期的比赛"
 		out.detail = ("推进赛程中……" if flow.running else "已暂停 · 继续后推进到下一场比赛日")
-		if not game.is_empty(): out.title += " · " + str(game.get("date", ""))
+		if not game.is_empty():
+			out.title += " · " + str(game.get("date", ""))
+			var days: int = world.days_between(str(CareerBridge.context.get("date", "")), str(game.get("date", "")))
+			if days >= 0: out.title += " · " + world.countdown_text(days)
 		out.primary = "继续推进"
 		return out
 	if not bool(veto.get("complete", false)) and turn is Dictionary:
@@ -241,6 +267,20 @@ func cancel_reservation() -> void:
 
 func primary() -> void:
 	if owner.request_pending or CareerBridge.busy: return
+	if not owner.result.is_empty() and owner.reveal_phase != "maps" and (owner.break_pending(owner.quick_state()) or not CareerBridge.context.get("stories", []).is_empty()):
+		pause(false); owner.result.clear(); owner.reveal_phase = ""
+		if owner.break_pending(owner.quick_state()): owner.host._navigate("quick")
+		else: open_pending()
+		return
+	if owner.result.is_empty() and owner.break_pending(owner.quick_state()):
+		pause(false)
+		if not CareerBridge.context.get("stories", []).is_empty() or not str(owner.quick_state().get("block_reason", "")).is_empty(): open_pending()
+		else: owner.resume_quick()
+		return
+	if owner.result.is_empty() and not CareerBridge.context.get("stories", []).is_empty():
+		pause(false); open_pending(); return
+	if owner.result.is_empty() and str(owner.quick_state().get("season_phase", "")) == "end":
+		pause(false); owner.season_command("next-year", {"year":int(owner.quick_state().get("year", 0))}); return
 	if owner.is_interrupted():
 		flow.resume(); flow.arm("prepare", cursor()); dispatch("simulate")
 		return
@@ -259,6 +299,10 @@ func primary() -> void:
 		if flow.running and (not owner.result.is_empty() or (due and not cursor().is_empty())): dispatch()
 		return
 	dispatch()
+
+func open_pending() -> void:
+	if not CareerBridge.context.get("stories", []).is_empty(): owner.host._open_phone("stories")
+	else: owner.host._navigate(str(owner.quick_state().get("pause_page", "mail")))
 
 func choose(mode: String) -> void:
 	if owner.request_pending or CareerBridge.busy or owner.current_game().is_empty(): return

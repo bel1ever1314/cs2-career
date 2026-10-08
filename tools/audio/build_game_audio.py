@@ -20,6 +20,8 @@ PROJECT = HERE.parents[1] / 'work/career3d_redesign/assets/audio'
 MUSIC = {'club_day': 'music_club_day', 'club_night': 'music_club_night', 'home_night': 'music_home_night',
          'major_final_v3': 'major_final_music', 'major_final_v3_crowd': 'major_final_crowd'}
 AMBIENCE = ['crowd_arena_murmur', 'crowd_arena_active', 'crowd_lan_room', 'crowd_awards_hall']
+CEREMONY = ['ceremony_roll', 'ceremony_roll_long', 'ceremony_hit', 'ceremony_fanfare', 'ceremony_applause',
+            'ceremony_tick', 'ceremony_honours', 'ceremony_champion']
 
 
 def run(*args):
@@ -41,9 +43,10 @@ if __name__ == '__main__':
     run('render_all.py')  # all tracks, fixed order: humanization RNG matches the approved takes
     run('crowd_final.py')
     run('crowd_ambience.py')
+    run('ceremony.py')
     for source, target in MUSIC.items():
         ogg(HERE / 'out' / f'{source}.wav', ARGS.project_audio / f'{target}.ogg', 5)
-    for name in AMBIENCE:
+    for name in AMBIENCE + CEREMONY:
         shutil.copy2(HERE / 'out' / f'{name}.ogg', ARGS.project_audio / f'{name}.ogg')
     spb = 60 / 128
     bar = lambda b: b * 4 * spb

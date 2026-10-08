@@ -3,6 +3,7 @@ const Hud = preload("res://scripts/world_hud.gd")
 const Player=preload("res://scripts/chicken_player.gd")
 const Buildings = preload("res://scripts/scene_tiers.gd")
 const Decor = preload("res://scripts/home_decor.gd")
+const HomeRoom = preload("res://scripts/home_room.gd")
 var decoration: Decor
 var player: Player
 var camera: Camera3D
@@ -32,6 +33,7 @@ func _ready() -> void:
 		var key:=InputEventKey.new(); key.physical_keycode={"club_up":KEY_W,"club_down":KEY_S,"club_left":KEY_A,"club_right":KEY_D,"club_run":KEY_SHIFT}[action]
 		InputMap.action_add_event(action,key)
 	model=(load("res://assets/cozy_room.glb") as PackedScene).instantiate(); add_child(model)
+	HomeRoom.simplify(model)
 	_box("Floor",Vector3(0,-.03,0),Vector3(6.7,.27,6.0))
 	_box("BackWall",Vector3(0,1.3,-2.92),Vector3(6.7,2.6,.12))
 	_box("LeftWall",Vector3(-3.3,1.3,0),Vector3(.12,2.6,6.0))
@@ -41,11 +43,6 @@ func _ready() -> void:
 	_box("Nightstand",Vector3(-.65,.5,-1.94),Vector3(.65,.8,.65))
 	_box("Desk",Vector3(1.4,.57,-2.01),Vector3(2.5,.92,.98))
 	_box("Chair",Vector3(1.35,.60,-.94),Vector3(.7,.98,.68))
-	_box("Beanbag",Vector3(1.72,.46,.83),Vector3(1.03,.70,.96))
-	_box("EntryCabinet",Vector3(2.59,.45,2.14),Vector3(.83,.87,.72))
-	var table:=StaticBody3D.new(); table.name="CoffeeTable"; table.position=Vector3(.05,.41,1.06); add_child(table)
-	var shape:=CollisionShape3D.new(); var cylinder:=CylinderShape3D.new(); cylinder.radius=.62; cylinder.height=.60
-	shape.shape=cylinder; table.add_child(shape)
 	var world:=WorldEnvironment.new(); env=Environment.new(); world.environment=env; add_child(world)
 	env.background_mode=Environment.BG_COLOR; env.background_color=Color("bbc9b9")
 	env.ambient_light_source=Environment.AMBIENT_SOURCE_COLOR; env.ambient_light_color=Color("fce7c5"); env.ambient_light_energy=.55
@@ -110,7 +107,9 @@ func _hud() -> void:
 func _career_changed() -> void:
 	if is_instance_valid(time_label):time_label.text=CareerBridge.clock_text()
 	if is_instance_valid(model) and (not is_instance_valid(decoration) or not decoration.visible):
-		Buildings.apply_home(self,model,CareerBridge.context.get("environment",{}).get("home",{}))
+		var home: Dictionary = CareerBridge.context.get("environment",{}).get("home",{})
+		Buildings.apply_home(self,model,home)
+		if not device_seated: HomeRoom.clear_player(self,home)
 
 func _camera() -> void:
 	var focus:=Vector3(0,.65,0)
@@ -181,7 +180,9 @@ func set_phone_open(opened: bool) -> void:
 func set_device_open(opened: bool,kind: String) -> void:
 	if not is_instance_valid(player):return
 	var hud_layer:=get_node_or_null("WorldHud") as CanvasLayer
-	if hud_layer: hud_layer.visible=not opened or kind=="decoration"
+	# The editor owns P/Esc and its unsaved-draft prompt; HUD phone buttons must
+	# not bypass that prompt by opening a different device underneath it.
+	if hud_layer: hud_layer.visible=not opened
 	if opened:
 		device_kind=kind;player.locked=true;player.velocity=Vector3.ZERO
 		if kind=="computer":

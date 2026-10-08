@@ -1,0 +1,14 @@
+没有这个竞猜页面。	This prediction page does not exist.
+这场比赛已开赛、已购买或不符合竞猜条件，请刷新列表。	This match has started, already has your prediction, or is ineligible. Refresh the list.
+赔率或对阵已变化，请刷新后重新确认。	The odds or fixture changed. Refresh and confirm again.
+请选择这场比赛中的队伍及赢或输。	Select one of these teams and choose win or lose.
+竞猜已确认，比赛结束后自动结算。	Prediction confirmed. It will settle automatically when the series ends.
+没有这个竞猜操作。	This prediction action does not exist.
+本赛季已结束，请先继续下一赛季。	This season has ended. Continue to the next season first.
+轮到你的比赛了，请先处理自己的比赛。	Your match is ready. Handle your own match first.
+已有可参与的对阵，尚未推进比赛。	Fixtures are available. No matches were advanced.
+已停在赛前，请选择竞猜或继续推进。	Stopped before play. Choose a prediction or continue advancing.
+比赛取消、轮空或判罚弃权	Cancelled match, bye or administrative forfeit
+你已加入参赛队伍	You joined a participating team
+参赛队伍发生变化	The participating teams changed
+赛事竞猜 · 	Match prediction · 

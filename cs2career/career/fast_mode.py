@@ -112,11 +112,12 @@ def invitation_decision(c, s, event, ctx=None):
               and abs(_days(start, event_start(e, s.date))) <= 21]
     if higher:
         return 'decline', f"近期已有 {higher[0]['name']}，为主要赛事留出准备时间。"
-    if level == 'cct' and ctx['level_rank'] <= 30:
-        return 'decline', '队伍已具备更高层级的竞争力，快速模式不重复参加 CCT。'
-    if level == 't2' and ctx['level_rank'] <= 10:
-        return 'decline', '顶级队伍优先参加大赛，本次次级赛事不列入自动赛程。'
-    if level in ('cct', 't2') and not s.vrs.can_improve(c.team_id, float(event.get('vrs_weight') or 0), start):
+    # A strong roster is not an invitation to a better event. In particular,
+    # joining a developing club must not reject its entire available calendar.
+    # Ranking saturation only justifies rest when there is an actual alternative.
+    alternatives = [e for e in committed
+                    if abs(_days(start, event_start(e, s.date))) <= 45]
+    if alternatives and level in ('cct', 't2') and not s.vrs.can_improve(c.team_id, float(event.get('vrs_weight') or 0), start):
         return 'decline', '本赛事的最高单场积分仍不足以替换近半年最佳十场，保留休整时间。'
 
     if level == 'cct':

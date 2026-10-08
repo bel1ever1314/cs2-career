@@ -69,6 +69,7 @@ PRIVATE_FILENAMES = frozenset({
 })
 TOOL_FILES = frozenset({
     "build_plugins.ps1", "build_skin_art.py", "build_team_avatars.py",
+    "expand_skin_market.py", "verify_market_ui.py", "verify_market_package.py",
     "build_team_logo_avatars.gd", "build_career_brand.gd",
     "build_inspect_catalog.py", "run_tests.py", "Launch-CS2Career.cmd",
     "sync_career_rts.ps1", "deploy_career_rts.ps1", "deploy_career3d_redesign.ps1",

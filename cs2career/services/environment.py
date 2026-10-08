@@ -22,9 +22,11 @@ NAMES = ('season.json', 'career.json')
 STORE = 'career3d_environment'
 TIERS = ('academy', 'standard', 'elite')
 DEFAULT_HOME = {'owned': ['wall_cream', 'floor_oak'], 'placed': [], 'wallpaper': 'cream', 'floor': 'oak'}
+# Only the functional bed/bedside light and computer station are fixed.
+# Keep this footprint list in sync with bedroom.gd; authored lounge props are
+# hidden by home_room.gd, not invisible obstacles in the decoration validator.
 FIXED = [(-2, -.8, 1.84, 2.85), (-.65, -1.94, .65, .65),
-         (1.4, -2.01, 2.5, .98), (1.35, -.94, .7, .68),
-         (1.72, .83, 1.03, .96), (2.59, 2.14, .83, .72), (.05, 1.06, 1.24, 1.24)]
+         (1.4, -2.01, 2.5, .98), (1.35, -.94, .7, .68)]
 ANCHORS = [(-1.45, 1.35), (-1.5, 1.1), (.4, -1.2), (2.1, 2.2)]
 
 
@@ -133,22 +135,20 @@ def validate_layout(placements, home):
         out.append(dict(id=ident, item=item['id'], x=float(x), z=float(z), rotation=rotation, color=color.lower()))
     # Check all functional stations remain connected with the chicken's body
     # clearance. This runs only on Save, never every frame or mouse movement.
-    # The character is a radius-.29 capsule, not a square. The coffee table
-    # is a radius-.62 cylinder: square inflation would falsely close the
-    # diagonal passages of the already-working furnished bedroom.
-    solids = FIXED[:-1] + rects
+    # The character is a radius-.29 capsule, not a square. Removed baked-in
+    # furniture must not continue to block paths in an otherwise empty room.
+    solids = FIXED + rects
     def circle_box(x,z,box):
         dx=max(0,abs(x-box[0])-box[2]/2)
         dz=max(0,abs(z-box[1])-box[3]/2)
         return dx*dx+dz*dz < .293**2
     def free(x,z):
         return (-2.9 <= x <= 2.9 and -2.45 <= z <= 2.5
-                and (x-.05)**2+(z-1.06)**2 >= (.62+.293)**2
                 and not any(circle_box(x,z,box) for box in solids))
     cells = {(x/8,z/8) for x in range(-23,24) for z in range(-19,21) if free(x/8,z/8)}
     # Keep tight, curved passages of the existing furniture usable. Uniform
-    # grid samples alone miss the capsule's narrow route around the bed's
-    # rounded corner and the round table. Add exact corner/arc samples, then
+    # grid samples alone miss the capsule's narrow route around corners. Add
+    # exact corner samples, then
     # connect only continuously collision-free short segments.
     for bx,bz,width,depth in solids:
         for sx in (-1,1):
@@ -158,16 +158,6 @@ def validate_layout(placements, home):
                 for angle in angles:
                     point=(cx+sx*math.cos(angle)*.2945,cz+sz*math.sin(angle)*.2945)
                     if free(*point): cells.add(point)
-                # The nearest circle-to-corner gap is sampled explicitly.
-                dx,dz=.05-cx,1.06-cz
-                length=math.hypot(dx,dz)
-                if length and dx*sx>0 and dz*sz>0:
-                    point=(cx+dx/length*.2945,cz+dz/length*.2945)
-                    if free(*point): cells.add(point)
-    for index in range(160):
-        angle=index*math.tau/160
-        point=(.05+math.cos(angle)*.9142,1.06+math.sin(angle)*.9142)
-        if free(*point): cells.add(point)
     for anchor in ANCHORS:
         if free(*anchor): cells.add(anchor)
     buckets={}

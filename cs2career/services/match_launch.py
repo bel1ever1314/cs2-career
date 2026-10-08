@@ -47,7 +47,7 @@ def command(state, body):
         prepared.append((deepcopy(cfg), deepcopy(arguments), deepcopy(kwargs)))
         # The core builds the same session/roster as a live dispatch. This
         # return acknowledges preparation only; it does not claim Steam ran.
-        return {'match': kwargs['request_override'], 'msg': ''}
+        return {'match': kwargs['request_override'], 'msg': '', 'supply_deferred': True}
 
     def prepare(current, match, data):
         return matches._launch(current, match, data, dispatch=capture)
@@ -113,6 +113,9 @@ def command(state, body):
             matches._store(state)['match_failure'] = {'match_id': match['id'], 'reason': error}
             out = dict(reason=error, status='failed')
         elif dispatched:
+            from ..career.match_supplies import activate, series_key
+            activate(state.career, match, series_key(state.season,match), state.season.date,
+                     session.get('supply_intent',{}), session['map_index'])
             matches._store(state).pop('match_failure', None)
             out['reason'] = f"第 {session['map_index'] + 1} 图 {session['map']}。{dispatched['msg']}"
         out['connection'] = matches.match_status(state, match['id'])

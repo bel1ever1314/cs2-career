@@ -100,7 +100,7 @@ def relative_media(source, media):
         if row.get('status') != 'mapped' or not row.get('url'):
             continue
         name = hashlib.sha256(row['url'].encode()).hexdigest() + '.png'
-        original = next((Path(folder) / name for folder in cfg['skin_cache_roots']
+        original = next((Path(folder) / name for folder in [ROOT / 'cs2career/data/skin_images', *cfg['skin_cache_roots']]
                          if (Path(folder) / name).is_file()), None)
         target = media / 'skin_art' / name
         if original and not target.exists():

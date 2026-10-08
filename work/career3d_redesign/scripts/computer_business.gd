@@ -9,14 +9,18 @@ var transfer_source := "free"
 var transfer_search := ""
 var transfer_role := ""
 var transfer_page := 1
+var transfer_sort := "ability"
+var affordable_only := false
 var replace_id := ""
 var pending_purchase: Dictionary = {}
 var pending_application: Dictionary = {}
 var cash_inputs: Dictionary = {}
 var pending_facility: Dictionary = {}
+var recruitment := preload("res://scripts/club_recruitment_view.gd").new()
 
 func attach(value: CanvasLayer) -> void:
 	host = value
+	recruitment.attach(value, self)
 
 static func money(value) -> String:
 	return preload("res://scripts/ui_format.gd").money(value)
@@ -47,7 +51,7 @@ func render_operations() -> void:
 	_account(accounts, "个人口袋", finance.get("pocket", {}))
 	_label(host.content, str(finance.get("note", "")), 13, UI.MUTED)
 	if ops.get("player_only", false):
-		_label(host.content, "引援与合同由管理层负责，设施可在下方升级。", 15)
+		_label(host.content, "可以在转会市场与俱乐部商量换人；设施可在下方升级。", 15)
 	_render_facilities()
 	if ops.get("crisis", false):
 		_label(host.content, "经营危机 · 工资缺口 " + money(ops.get("deficit")), 18, Color("a25746"))
@@ -140,6 +144,9 @@ func _account(parent: Node, title: String, account: Dictionary) -> void:
 	_label(box, title, 16, UI.MUTED)
 	var balance := _label(box, money(account.get("balance")), 29)
 	var net := int(account.get("next_net", 0))
+	if account.has("operating_reserve"):
+		_label(box, "预留月度运营 " + money(account.operating_reserve), 14, UI.MUTED)
+		_label(box, "可用引援预算 " + money(account.get("transfer_budget", 0)), 16, UI.GREEN)
 	_label(box, ("↑ +" if net > 0 else "↓ −" if net < 0 else "→ ") + money(absi(net)) + " 预计下月", 14, UI.GREEN if net >= 0 else Color("a25746"))
 	var tooltip := "下月固定收支\n"
 	for line in account.get("lines", []):
@@ -182,7 +189,7 @@ func render_transfers() -> void:
 	var personal: Dictionary = CareerBridge.context.get("player_transfers", data.get("personal", {}))
 	_label(host.content, "转会", 25)
 	var tabs := [{"id":"free", "label":"自由球员"}, {"id":"active", "label":"现役买断"}, {"id":"academy", "label":"青训"}, {"id":"personal", "label":"我的转会"}]
-	if not data.get("club_allowed", false):
+	if not data.get("club_browsable", data.get("club_allowed", false)):
 		transfer_source = "personal"
 		tabs = [{"id":"personal", "label":"我的转会"}]
 		_label(host.content, str(data.get("reason", "当前只能办理个人转会。")), 14, UI.MUTED)
@@ -191,19 +198,29 @@ func render_transfers() -> void:
 		_render_personal(personal)
 		return
 	_label(host.content, "俱乐部资金 " + money(data.get("club_money")), 20)
+	_label(host.content, "预留月度运营 " + money(data.get("operating_reserve", 0)) + " · 可用引援预算 " + money(data.get("transfer_budget", 0)), 14, UI.MUTED)
 	_label(host.content, "普通签约按成功率谈判；失败收谈判费。现役选手只能买断。报价与阵容在确认时重新核对。", 13, UI.MUTED)
 	_replace_selector(data.get("roster", []))
+	recruitment.render(data)
+	var signing_allowed: bool = recruitment.allowed(data, replace_id)
+	if not str(data.get("reason", "")).is_empty(): _label(host.content, str(data.reason), 13, UI.MUTED)
+	_button(host.content, "查看财务 / 个人注资", host._navigate.bind("operations"), false)
 	_filters()
 	if not pending_purchase.is_empty():
 		_render_purchase_confirmation(data)
 	var rows: Array = []
 	for value in data.get("players", []):
 		var contracted := not str(value.get("seller_id", "")).is_empty()
-		var academy: bool = value.get("academy_year") != null or str(value.get("note", "")).contains("青训")
+		var academy: bool = value.get("academy_year") != null or str(value.get("note", "")) in ["academy", "wonder"] or str(value.get("note", "")).contains("青训")
 		if (transfer_source == "active" and not contracted) or (transfer_source == "free" and (contracted or academy)) or (transfer_source == "academy" and (contracted or not academy)):
 			continue
+		if affordable_only and int(value.get("guaranteed_fee", 0)) > int(data.get("transfer_budget", 0)): continue
 		if _matches_filter(str(value.get("name", "")) + " " + str(value.get("seller", "")), str(value.get("role", ""))):
 			rows.append(value)
+	rows.sort_custom(func(a,b):
+		var av: float = float(a.get(transfer_sort) if a.get(transfer_sort) != null else -1)
+		var bv: float = float(b.get(transfer_sort) if b.get(transfer_sort) != null else -1)
+		return av < bv if transfer_sort in ["age","guaranteed_fee"] else av > bv)
 	_label(host.content, "%s 位可查看选手" % rows.size(), 13, UI.MUTED)
 	for item in _paged(rows):
 		var box := UI.card(host.content)
@@ -220,6 +237,10 @@ func render_transfers() -> void:
 		for state in ["font_color", "font_hover_color", "font_focus_color"]: name_button.add_theme_color_override(state, UI.INK)
 		Kit.chip(row, str(Phone.ROLES.get(item.get("role", ""), item.get("role", ""))), "green")
 		Kit.chip(row, "能力 " + Fmt.score(item.get("ability")), "blue")
+		var stars = item.get("potential_stars")
+		var potential_label := _label(box, Locale.message("market.predicted_potential_salary" if item.get("potential_estimated", false) else "market.potential_salary", {"stars":"★".repeat(int(stars)) if stars != null else Locale.message("market.unscouted"), "salary":money(item.get("monthly_salary", 0))}), 14, UI.MUTED)
+		potential_label.name = "TransferPotential"
+		if item.get("potential_estimated", false): potential_label.tooltip_text = Locale.message("market.potential_estimate_help")
 		var facts := _label(row, "%s 岁 · %s" % [Fmt.integer(item.get("age")), seller], 14, UI.MUTED)
 		facts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		facts.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -232,10 +253,12 @@ func render_transfers() -> void:
 		if typeof(normal) in [TYPE_INT, TYPE_FLOAT]:
 			var chance := float(item.get("normal_chance", 0))
 			var normal_button := _button(prices, "尝试签约 %s · %.0f%%" % [money(normal), chance * 100], _ask_purchase.bind(item, "normal"))
-			normal_button.disabled = not str(item.get("blocked", "")).is_empty() or chance <= 0 or int(data.get("club_money", 0)) < int(normal) or replace_id.is_empty()
+			normal_button.name = "TransferNormal_" + player_key
+			normal_button.disabled = not signing_allowed or not str(item.get("blocked", "")).is_empty() or chance <= 0 or int(data.get("club_money", 0)) < int(normal) or replace_id.is_empty()
 			_label(box, "谈判未成仅扣 " + money(item.get("negotiation_fee")), 12, UI.MUTED)
 		var guarantee := _button(prices, ("买断 " if not str(item.get("seller_id", "")).is_empty() else "100% 保签 ") + money(item.get("guaranteed_fee")), _ask_purchase.bind(item, "guaranteed"))
-		guarantee.disabled = not str(item.get("blocked", "")).is_empty() or int(data.get("club_money", 0)) < int(item.get("guaranteed_fee", 0)) or replace_id.is_empty()
+		guarantee.name = "TransferGuaranteed_" + player_key
+		guarantee.disabled = not signing_allowed or not str(item.get("blocked", "")).is_empty() or int(data.get("club_money", 0)) < int(item.get("guaranteed_fee", 0)) or replace_id.is_empty()
 		if not str(item.get("blocked", "")).is_empty():
 			_label(box, str(item["blocked"]), 13, UI.MUTED)
 	_pager(rows.size())
@@ -255,10 +278,31 @@ func _replace_selector(roster: Array) -> void:
 	if not keys.is_empty():
 		replacement.select(keys.find(replace_id))
 	replacement.disabled = keys.is_empty()
-	replacement.item_selected.connect(func(index: int): replace_id = keys[index])
+	replacement.item_selected.connect(func(index: int):
+		replace_id = keys[index]
+		pending_purchase.clear()
+		recruitment.pending.clear()
+		host._rebuild())
 	host.content.add_child(replacement)
 
 func _filters() -> void:
+	if transfer_source != "personal":
+		var sorting := HBoxContainer.new()
+		host.content.add_child(sorting)
+		var order := OptionButton.new()
+		UI.dark_options(order)
+		var fields := ["ability", "potential", "guaranteed_fee", "age"]
+		for caption in ["当前实力优先", "未来潜力优先", "价格从低到高", "年龄从小到大"]: order.add_item(caption)
+		order.select(fields.find(transfer_sort))
+		order.item_selected.connect(func(i: int): transfer_sort=fields[i]; transfer_page=1; host._rebuild())
+		sorting.add_child(order)
+		var budget := CheckButton.new()
+		budget.text="仅看预算内"
+		budget.add_theme_color_override("font_color", UI.INK)
+		budget.add_theme_color_override("font_hover_color", UI.GREEN)
+		budget.button_pressed=affordable_only
+		budget.toggled.connect(func(value: bool): affordable_only=value; transfer_page=1; host._rebuild())
+		sorting.add_child(budget)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	host.content.add_child(row)
@@ -340,6 +384,8 @@ func _render_purchase_confirmation(data: Dictionary) -> void:
 		for player in data.get("roster", []):
 			if str(player.get("player_id", player.get("id", ""))) == str(pending_purchase.get("replace_id", "")):
 				replacement = str(player.get("name", ""))
+				var salary := int(600 + float(player.get("ability",70))*85)
+				_label(box,"能力变化 %+.1f · 签约后预计月结余 %s" % [float(candidate.get("ability",0))-float(player.get("ability",0)),money(int(data.get("monthly_net",0))+salary-int(candidate.get("monthly_salary",0)))],14)
 		_label(box, "%s → 入队 · %s → 离队" % [candidate.get("name", ""), replacement], 16)
 		_label(box, "俱乐部支出 " + money(pending_purchase.get("fee")) + (" · 不保证谈判成功" if pending_purchase.get("mode") == "normal" else " · 100% 保证签约"), 14)
 		if pending_purchase.get("mode") == "normal":
@@ -347,7 +393,7 @@ func _render_purchase_confirmation(data: Dictionary) -> void:
 		var current_fee = candidate.get("normal_fee") if pending_purchase.get("mode") == "normal" else candidate.get("guaranteed_fee")
 		var button := _button(box, "确认签约", _confirm_purchase)
 		button.name = "ComputerTransferConfirmBuy"
-		button.disabled = current_fee != pending_purchase.get("fee") or replacement.is_empty() or not str(candidate.get("blocked", "")).is_empty() or not data.get("club_allowed", false) or int(data.get("club_money", 0)) < int(current_fee)
+		button.disabled = current_fee != pending_purchase.get("fee") or replacement.is_empty() or not str(candidate.get("blocked", "")).is_empty() or not recruitment.allowed(data, str(pending_purchase.get("replace_id", ""))) or int(data.get("club_money", 0)) < int(current_fee)
 	_button(box, "取消", _dismiss_confirmation, false)
 
 func _confirm_purchase() -> void:
@@ -436,6 +482,7 @@ func _confirm_application() -> void:
 		host._device_command("/api/3d/transfers/apply", {"team_id":pending_application.get("team_id", ""), "role":pending_application.get("role", "")})
 
 func finished(path: String, result: Dictionary) -> void:
+	recruitment.finished(path, result)
 	if not path.begins_with("/api/3d/transfers/"):
 		return
 	if result.get("ok", false):

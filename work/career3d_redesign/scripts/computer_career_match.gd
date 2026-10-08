@@ -189,6 +189,9 @@ func _match_footer(parent: Node) -> void:
 	parent.add_child(row)
 	UI.compact(host._button(row, "生涯推进 ›", host._navigate.bind("quick"), false))
 	UI.compact(host._button(row, "赛事日程 ›", host._navigate.bind("events"), false))
+	UI.compact(host._button(row, Locale.source("market.supplies"), func():
+		host._navigate("market")
+		host._market_tab("supplies"), false))
 
 var bp_preview_map := ""
 

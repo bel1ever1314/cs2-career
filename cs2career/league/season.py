@@ -383,6 +383,9 @@ class Season:
         row["kast_rounds"] += p.get("kast_rounds", p.get("kast", 0) * rounds)
 
     def _book_stats(self, ev: dict, match: dict, team_a: dict, team_b: dict) -> None:
+        if self.career:
+            from ..career.predictions import reconcile
+            reconcile(self.career, self)
         win, lose = (team_a, team_b) if match["winner"] == team_a["name"] else (team_b, team_a)
         best_of = match.get("best_of", 3)
         weight = ev["vrs_weight"] * (0.75 if best_of == 1 else 1.0)
@@ -514,6 +517,9 @@ class Season:
         wa, wb = self._map_wins(match)
         winner = a["name"] if wa > wb else b["name"]
         match["played"] = True
+        if self.career:
+            from ..career.match_supplies import finish_series, series_key
+            finish_series(self.career, series_key(self, match))
         match["winner"] = winner
         match["series"] = f"{wa}-{wb}"
         match["ratings"] = series_ratings(match.get("maps") or [])
@@ -594,9 +600,16 @@ class Season:
         }
         from ..world.map_form import expectation
         new_session['map_expectation'] = expectation(mine, opp, pending)
+        from ..career.match_supplies import prepare, activate, series_key, teams_with_effects
+        supply_key = series_key(self, match)
+        supply_effects = prepare(self.career, match, supply_key, self.date, new_session['map_index'], teams=self.teams)
+        boosted_mine, boosted_opp = teams_with_effects([mine, opp], supply_effects)
         out = launch(
-            mine, opp, self.career.player_name, to_cs2_map(pending), side, self.teams, self.career
+            boosted_mine, boosted_opp, self.career.player_name, to_cs2_map(pending), side, self.teams, self.career
         )
+        new_session['supply_intent'] = supply_effects
+        if not out.get('supply_deferred'):
+            activate(self.career, match, supply_key, self.date, supply_effects, new_session['map_index'])
         # Do not leave a phantom waiting-for-result session if preparation fails.
         match["cs2_session"] = new_session
         match["cs2_session"]["nonce"] = out["match"]["nonce"]
@@ -628,6 +641,9 @@ class Season:
         err = result_usable(result, session)
         if err:
             raise ValueError(err)
+        from ..career.match_supplies import activate, series_key
+        activate(self.career, match, series_key(self,match), self.date,
+                 session.get('supply_intent',{}), session.get('map_index',len(match.get('maps') or [])))
         stamp = result.get("ended_at") or f"{result.get('ct_score')}-{result.get('t_score')}-{result.get('map')}"
         if match.get("last_ended_at") and match["last_ended_at"] == stamp:
             return "这张图的战绩已经录入了"
@@ -688,7 +704,12 @@ class Season:
                 break
             if self._phase_gate(ev, match):
                 return '比赛阶段事件已暂停模拟，请先作出选择。'
-            box = play_map(a, b, map_name)
+            from ..career.match_supplies import prepare, activate, series_key, teams_with_effects
+            key = series_key(self, match)
+            effects = prepare(self.career, match, key, self.date, len(maps), teams=self.teams)
+            activate(self.career, match, key, self.date, effects, len(maps))
+            boosted_a, boosted_b = teams_with_effects([a,b], effects)
+            box = play_map(boosted_a, boosted_b, map_name)
             from ..engine.sessions import stamp_simulation
             stamp_simulation(box, 'career', self.year, ev['id'], match['id'], len(maps))
             box["source"] = "sim"
@@ -847,7 +868,7 @@ class Season:
                     and all(ev.get('status') == 'done' for ev in self.events))
 
     def next_stage(self, *, stop_at_season_end: bool = False, until: str | None = None,
-                   prepare_only: bool = False) -> str:
+                   prepare_only: bool = False, prediction_stop: bool = False) -> str:
         if until is not None and (_d(until).isoformat() != until or until < self.date or _d(until).year != self.year):
             raise ValueError('Calendar boundary must be in the current season and not before today')
         calendar_pause = self._calendar_pause()
@@ -888,6 +909,13 @@ class Season:
         guard = 0
         while guard < 60:
             guard += 1
+            if prediction_stop:
+                from ..career.predictions import available
+                from ..career.story_timing import window
+                pause = window(self.career, self)
+                if (available(self.career, self) or self.find_your_series() or self.career.story_queue
+                        or self._calendar_pause() or (pause and self.career.assist.get('quick_break_ack') != pause['key'])):
+                    break
             from ..career.incidents import competition_paused
             pending = [(e, m) for e, m in self.due_matches() if not self.is_yours(m) or competition_paused(self.career, self.date)]
             if not pending:

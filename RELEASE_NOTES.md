@@ -1,10 +1,20 @@
-# 1.7.2（2026-10-07 更新）
+# 1.7.2（2026-10-08 更新）
 
 这次把最近的修改整理回 1.7.2，直接更新原来的下载包，不再增加版本后缀。
 
+- **逛饰品市场，多了些玩法。** 补齐约 150 款饰品和本地图片，按类别、磨损、价格与涨跌筛选排序，点进详情看走势。支持批量买卖；买来的饰品先放市场暂存，提取后再进装备仓库。
+- **消息买完就能用。** 看涨消息从市场中寻找机会，看跌消息针对自己的持仓；点击消息可直接去对应饰品。消息商人、交易技能和赛事竞猜都使用游戏内个人资金，竞猜只针对其他队伍的整场比赛。
+- **换人先和俱乐部聊聊。** 转会列表能看当前实力和潜力，缺少潜力数据时会标明是估算。作为队员也能提议换人，俱乐部会考虑你的资历、实力，以及被替换队友最近的表现；自建俱乐部的经营和普通引援门槛也做了调整。
+- **赛前准备更丰富。** 可以为选手准备一次性药剂，普通效果持续一图，强效持续整个系列赛。同一选手不能叠加；不改永久能力，真实 CS2 中也不为真人增加枪法、伤害或移动能力。
+- **推进时不再空着。** 没有自己比赛的日子可以看世界动态；保留新的界面、家具布置和配乐。保存位置等设置后保留滚动位置，不再突然跳回顶部。
+- **休赛期要做什么，一眼能看到。** 直接列出待办事件并提供处理选项。属性点可以留着，不必全部花完；自动参赛也不再仅凭阵容强就把次级赛事全部婉拒，明确设置的接受／拒绝偏好仍然有效。
+- **练图不用每天打卡。** 所有队伍都有日常自动训练，地图熟练度不再因闲置下降。赢比赛能提升，输明显强队仍有少量学习收益，输同档或较弱队伍会小幅回落；专项训练可以恢复此前达到的熟练度，比赛才能突破新高。
+
+前几轮的内容继续保留：
+
 - **一场比赛，逐图决定怎么玩。** 在电脑里点“推进”才开始，创建人物后不会直接开赛。可以先模拟一图，下一图自己进 CS2 或切到 RTS；图间保留战报和选择时间，随时暂停去处理日常。
 - **退出后接着打。** 修复反复读取战绩时旧战报挤掉比赛入口，以及改用模拟后下一图仍显示“未完成”的问题。已完成地图保留，当前图可以重新进入、模拟或切换 RTS。
-- **练出自己的强图。** 专项练图、训练赛和正式比赛会逐渐改变队伍的地图表现，长时间不打也会生疏；BP 会参考双方最新的强弱图。准备、选图和战术页补上地图实景展示。
+- **练出自己的强图。** 训练赛和正式比赛逐渐改变队伍地图表现，专项练图帮助恢复熟练度；BP 会参考双方最新的强弱图。准备、选图和战术页补上地图实景展示。
 - **补齐三个年代的开年阵容。** 2024、2025、2026 数据包清理占位选手，以开年首次完整阵容补齐名单，并显示实际阵容日期。新生涯使用新名单，旧档不改队伍和赛果。
 - **队标和开局更完整。** 补充俱乐部队标，自建队伍可以上传队标与游戏内头像；抽取能力时能对照当前数值，启动画面也换成了生涯自己的界面。
 - **场馆、声音与配枪。** 保留新的界面和配乐，小型十台电脑场地关闭背景音乐，修正自己的机位被占用；队友发枪按位置优先照顾主狙，进入 CS2 后降低后台 3D 场景的运行开销。Bot 姓名一直显示，隐藏 Bot 身份，不再来回切换。
@@ -34,9 +44,19 @@
 
 The existing 1.7.2 downloads have been refreshed; no extra version suffix is used.
 
+- Expanded the skin market to around 150 items with offline artwork, wear-specific prices, charts, filters, price-change rankings and bulk trading. Purchases stay in market custody until you withdraw them into your equipment inventory.
+- Purchased tips open their matching item directly. Bullish tips cover market opportunities; bearish tips concern your holdings. Trading skills and match predictions use fictional personal funds. Predictions cover other teams' full series only.
+- Players can discuss roster changes with their club. Tenure, ability and the outgoing teammate's recent form affect approval. Transfer listings show strength and potential, marking estimates clearly; club finances and ordinary recruitment costs have also been adjusted.
+- Single-use preparations last one map or one series without stacking on the same player. Permanent attributes remain unchanged, and human CS2 players receive no aim, damage or movement bonuses.
+- World updates fill the gaps between fixtures. The latest visuals, home decoration and music remain included, and saving settings preserves your scroll position.
+- Major breaks show their pending decisions directly. Unspent attribute points can be kept. Automatic scheduling no longer rejects lower-tier events merely because a roster looks strong; your explicit invitation preferences still apply.
+- Routine training maintains every team's map familiarity without inactivity decay. Wins improve it; losses to clearly stronger teams still teach a little, while losses to peers or weaker teams cause a small decline. Focus practice restores previous peaks; matches unlock new ones.
+
+Earlier changes remain included:
+
 - Choose how to play each map: simulate, enter CS2, or command in RTS. Progression starts when you choose it at the computer, not immediately after creating a player.
 - Fixed repeated result checks replaying old reports and stale CS2 exit state blocking the next map after simulation. Completed maps remain saved.
-- Map practice, scrims, match results and inactivity shape team map form, which also informs veto decisions. Preparation, veto and tactic pages show map artwork.
+- Scrims and match results shape team map form, while focused practice restores familiarity. Veto decisions use the updated ratings. Preparation, veto and tactic pages show map artwork.
 - Completed the opening rosters for 2024, 2025 and 2026, removed placeholder players and added actual roster dates. Existing careers keep their rosters and results.
 - Added more club logos, custom-team logo and avatar uploads, ability comparisons during the opening draw, and Career's own startup screen.
 - Retained the new visuals and music, disabled background music in small ten-PC LAN rooms, reserved the player's seat, improved role-aware AWP drops, and reduced background 3D rendering while CS2 runs. Bot names stay visible while bot identity stays hidden.

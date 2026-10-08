@@ -87,10 +87,11 @@ class FastInvitationTests(unittest.TestCase):
     def event(self, kind='cct', eid='cup', start='2026-06-10'):
         return dict(id=eid,name=eid,type=kind,status='upcoming',dates=[start],vrs_weight=.42)
 
-    def test_elite_skips_cct_developing_team_can_play(self):
+    def test_elite_roster_without_other_fixtures_can_still_play(self):
         e = self.event()
-        self.assertEqual('decline', invitation_decision(self.c,self.s,e,{'level_rank':8})[0])
+        self.assertEqual('accept', invitation_decision(self.c,self.s,e,{'level_rank':8})[0])
         self.assertEqual('accept', invitation_decision(self.c,self.s,e,{'level_rank':55})[0])
+        self.assertEqual('accept', invitation_decision(self.c,self.s,self.event('t2'),{'level_rank':1})[0])
 
     def test_cct_spacing_and_ranking_saturation(self):
         old = self.event(eid='previous', start='2026-05-20')
@@ -99,7 +100,26 @@ class FastInvitationTests(unittest.TestCase):
         self.s.events=[]; self.c.registered=[]
         self.s.vrs.results=[win(f'large-{i}',400) for i in range(BEST_RESULTS)]
         decision, message=invitation_decision(self.c,self.s,self.event(),{'level_rank':55})
+        self.assertEqual('accept', decision, 'no potential VRS gain does not mean no matches allowed')
+        alternative = self.event('t2', 'booked', '2026-07-15')
+        self.s.events = [alternative]; self.c.registered = ['booked']
+        decision, message=invitation_decision(self.c,self.s,self.event(),{'level_rank':55})
         self.assertEqual('decline', decision); self.assertIn('最佳十场',message)
+
+    def test_explicit_accept_survives_team_change_and_smart_decline(self):
+        self.c.assist = {'quick_mode':True, 'invites':{'cct':'accept'}}
+        e = self.event(); self.s.events = [e]
+        row = dict(id='new-club-mail', kind='invite', status='open', team_id='mine', event_id=e['id'])
+        old = dict(row, id='old-club-mail', team_id='old-club')
+        self.c.inbox = [old, row]
+        def accept(*args, **kwargs): row['status'] = 'accepted'
+        self.c.accept_invite = Mock(side_effect=accept); self.c.decline_invite = Mock()
+        with patch('cs2career.career.fast_mode.context', return_value={'level_rank':1}), \
+             patch('cs2career.career.fast_mode.invitation_decision', side_effect=AssertionError('explicit preference wins')):
+            process_invites(self.c, self.s)
+        self.assertEqual('accepted', row['status']); self.assertEqual('open', old['status'])
+        self.assertEqual({'cct':'accept'}, self.c.assist['invites'])
+        self.c.accept_invite.assert_called_once_with(self.s, 'new-club-mail', persist=False)
 
     def test_major_priority_and_collision(self):
         major = self.event('major', 'major')

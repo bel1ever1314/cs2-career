@@ -1,10 +1,25 @@
 extends RefCounted
-## Original synthesized ceremony sounds (no files): snare drum roll that builds,
-## a cymbal-style reveal hit, warm brass fanfare, applause and a soft tick.
-## Generated once per kind and cached; volume follows the game's sound setting.
+## Ceremony sounds: snare/timpani roll that builds, the reveal hit, a brass
+## fanfare, applause and a soft tick. The orchestral recordings in
+## assets/audio (rendered by tools/audio/ceremony.py) are used when present;
+## the synthesized versions below stay as a fallback when a file is missing.
+## Volume follows the game's sound setting.
 const RATE := 22050
+const Assets = preload("res://scripts/audio_assets.gd")
+const FILES := {"drumroll":"ceremony_roll.ogg", "drumroll_long":"ceremony_roll_long.ogg", "hit":"ceremony_hit.ogg",
+	"fanfare":"ceremony_fanfare.ogg", "applause":"ceremony_applause.ogg", "tick":"ceremony_tick.ogg",
+	"honours":"ceremony_honours.ogg", "champion":"ceremony_champion.ogg"}
+const STOP_FADE := 0.12
 static var _cache: Dictionary = {}
 
+## The sound actually played: the rendered file, else the synthesized fallback.
+static func sound(kind: String) -> AudioStream:
+	if FILES.has(kind):
+		var file := Assets.stream(str(FILES[kind]))
+		if file != null: return file
+	return stream(kind)
+
+## Synthesized fallback when a rendered file is missing.
 static func stream(kind: String) -> AudioStreamWAV:
 	if _cache.has(kind): return _cache[kind]
 	var samples: PackedFloat32Array
@@ -34,13 +49,24 @@ static func play(owner: Node, kind: String, gain_db: float = 0.0) -> void:
 	if player == null:
 		player = AudioStreamPlayer.new(); player.name = "CeremonyAudio_" + kind
 		owner.add_child(player)
-	player.stream = stream(kind)
+	if player.has_meta("fade"):
+		var old: Tween = player.get_meta("fade")
+		if old and old.is_valid(): old.kill()
+		player.remove_meta("fade")
+	player.stream = sound(kind)
 	player.volume_db = linear_to_db(clampf(CareerBridge.sound_volume, 0.001, 1.0)) - 4.0 + gain_db
 	player.play()
 
+## Stops with a short fade so a cut roll does not click.
 static func stop(owner: Node, kind: String) -> void:
 	var player := owner.get_node_or_null("CeremonyAudio_" + kind) as AudioStreamPlayer
-	if player: player.stop()
+	if player == null or not player.playing: return
+	if not player.is_inside_tree():
+		player.stop(); return
+	var fade := player.create_tween()
+	fade.tween_property(player, "volume_db", -60.0, STOP_FADE)
+	fade.tween_callback(player.stop)
+	player.set_meta("fade", fade)
 
 static func _noise(rng: RandomNumberGenerator) -> float:
 	return rng.randf() * 2.0 - 1.0

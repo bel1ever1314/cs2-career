@@ -96,7 +96,7 @@ def inbox_rows(state):
 
 
 def business_context(state):
-    from cs2career.career import transfers, player_transfers
+    from cs2career.career import transfers, player_transfers, club_recruitment
     c, s = state.career, state.season
     team = c.my_team(s.teams)
     table = {r['id']: r for r in s.vrs.table(s.teams, s.date)}
@@ -109,10 +109,13 @@ def business_context(state):
     personal['offers'] = deepcopy([r for r in c.inbox if r.get('kind') == 'contract'][-20:][::-1])
     from cs2career.services.matches import career_cs2_pending
     pending = bool(c.training_session) or state.arena.pending or career_cs2_pending(state)
+    recruitment = club_recruitment.context(c, s)
+    if pending:
+        recruitment.update(available=False, reason='真实比赛正在启动或等待回传，暂时不能改变阵容。')
     reason = ('真实比赛正在启动或等待回传，暂时不能改变阵容。' if pending else
-              '你是签约选手，俱乐部引援由管理层负责。' if personal['player_only'] else
               '当前生涯不能签约。' if c.over() or c.unsigned or not team else
-              '赛事进行中，结束后再转会。' if transfers.locked(s, team) else '')
+              '赛事进行中，结束后再转会。' if transfers.locked(s, team) else
+              '请先与俱乐部商量，获得一次换人机会。' if personal['player_only'] and not recruitment.get('grant') else '')
     candidates = transfers.candidates(c, s)
     if pending:
         candidates = [dict(row, blocked=reason) for row in candidates]
@@ -122,9 +125,15 @@ def business_context(state):
     operations = dict(ops, loan=loan, player_only=personal['player_only'], unsigned=c.unsigned,
         banned=c.banned, retired=c.retired, crisis=c.crisis, deficit=c.deficit,
         upgrade_supported=True, upgrade_reason='设施升级使用俱乐部账户。')
+    reserve = int(ops.get('total') or 0)
+    finance['club'].update(operating_reserve=reserve,
+        transfer_budget=max(0, int((team or {}).get('money', 0)) - reserve))
     return dict(finance=finance, operations=operations,
                 transfers=dict(players=candidates, roster=roster, club_money=(team or {}).get('money', 0),
-                               club_allowed=not reason, reason=reason),
+                               club_allowed=not reason, club_browsable=bool(team and not c.unsigned),
+                               recruitment=recruitment,
+                               operating_reserve=reserve, transfer_budget=finance['club']['transfer_budget'],
+                               monthly_net=int(finance['club'].get('next_net', 0)), reason=reason),
                 player_transfers=personal, news=news_page(state, summaries=True, page_size=8))
 
 
@@ -156,10 +165,12 @@ def operations_command(state, action, body):
 
 
 def transfer_command(state, action, body):
-    from cs2career.career import transfers, player_transfers
+    from cs2career.career import transfers, player_transfers, club_recruitment
     guard_revision(state, body)
     guard_roster(state)
     c, s = state.career, state.season
+    if action == 'discuss':
+        return club_recruitment.discuss(c, s, str(body.get('replace_id') or ''), str(body.get('quote_id') or ''))
     if action == 'apply':
         team_id, role = str(body.get('team_id') or ''), str(body.get('role') or '')
         team = next((t for t in s.teams if t['id'] == team_id), None)
@@ -176,14 +187,13 @@ def transfer_command(state, action, body):
     if action != 'buy':
         raise ValueError('没有这个转会操作。')
     mine = c.my_team(s.teams)
-    if c.personal_transfers.get('player_only'):
-        raise ValueError('你是签约选手，俱乐部引援由管理层负责。')
     if not mine or c.unsigned or c.over():
         raise ValueError('当前生涯不能签约。')
     target_id, seller_id = str(body.get('player_id') or ''), str(body.get('seller_id') or '')
     replace_id, mode = str(body.get('replace_id') or ''), body.get('mode', 'normal')
     if not replace_id:
         raise ValueError('请先选择一名要替换的队友。')
+    club_recruitment.authorize(c, s, replace_id)
     transfers.outgoing(c, mine, replace_id)
     candidates = transfers.candidates(c, s)
     row = next((r for r in candidates if r['player_id'] == target_id and r['seller_id'] == seller_id), None)

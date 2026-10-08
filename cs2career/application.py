@@ -154,6 +154,8 @@ class ApplicationState:
         process_points(self.career, self.season)
         reconcile(self.career, self.season)
         file_notices(self.career, self.season)
+        from .career.predictions import reconcile as settle_predictions
+        settle_predictions(self.career, self.season)
         self.persist()
 
     def poll_results(self) -> str:

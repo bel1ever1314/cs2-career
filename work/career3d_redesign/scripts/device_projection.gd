@@ -6,7 +6,7 @@ static func signature(page: String, context: Dictionary) -> String:
 		"desktop":["date", "player", "attr_points", "inbox", "nextmatch"],
 		"battle":["nextmatch", "match_preflight", "ladder", "quick", "custom"],
 		"career_match":["nextmatch", "match_preflight", "recent_matches", "player", "stories"],
-		"quick":["quick", "nextmatch", "stories", "date"],
+		"quick":["quick", "nextmatch", "stories", "date", "world"],
 		"settings":["settings"], "tactics":[], "start":[], "appearance":[], "saves":[],
 		"management":[], "training":[], "assistance":[], "rankings":["date"], "workshop":[],
 		"mail":["inbox", "stories"], "chat":["player", "team", "contacts", "stories"],

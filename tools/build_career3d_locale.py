@@ -27,6 +27,14 @@ RUNTIME_COMPAT_PHRASES = {
 
 def authored():
     pairs = {}
+    # Explicit bilingual literals are already authored copy, not inferred
+    # translations. Include them in the same reproducible native catalogue.
+    for path in sorted((PROJECT/'scripts').glob('*.gd')):
+        for match in re.finditer(r'tr2\(\s*("(?:[^"\\]|\\.)*")\s*,\s*("(?:[^"\\]|\\.)*")\s*\)', path.read_text('utf-8')):
+            source, english = (json.loads(v) for v in match.groups())
+            if PRINTF.findall(source) != PRINTF.findall(english):
+                raise ValueError(f'Changed bilingual formatting slots in {path.name}')
+            pairs[source] = english
     for path in [AUTHORED, *sorted((PROJECT/'data').glob('locale_backend*_en.txt'))]:
         for index, line in enumerate(path.read_text('utf-8').splitlines(), 1):
             if not line or line.startswith('#'): continue
@@ -116,6 +124,7 @@ def sources():
                 for item in value: visit(item)
         visit(json.loads(path.read_text('utf-8')))
     service_sources = sorted((ROOT/'cs2career/services').glob('*.py'))
+    service_sources += [ROOT/'cs2career/career/skin_market.py', ROOT/'cs2career/career/match_supplies.py']
     service_sources += [ROOT/'cs2career/cs2/runtime_compat.py', ROOT/'cs2career/cs2/watchdog.py']
     for path in sorted((ROOT/'tools').glob('career3d*.py')) + service_sources + [ROOT/'cs2career/manual_saves.py']:
         if path.stem in ('career3d_locale',) or path.stem.startswith('career3d_package'): continue

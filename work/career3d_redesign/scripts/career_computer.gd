@@ -22,6 +22,8 @@ const MatchReport = preload("res://scripts/career_match_report.gd")
 const EventFlow = preload("res://scripts/career_event_flow.gd")
 const CaseRoom = preload("res://scripts/computer_case.gd")
 const SkinBundles = preload("res://scripts/computer_skin_bundles.gd")
+var native_market := preload("res://scripts/computer_market.gd").new()
+var predictions := preload("res://scripts/computer_predictions.gd").new()
 const ActionFeedback = preload("res://scripts/device_action_feedback.gd")
 const Fmt = preload("res://scripts/ui_format.gd")
 const Kit = preload("res://scripts/ui_kit.gd")
@@ -49,6 +51,7 @@ var report: Dictionary = {}
 var page_reports: Dictionary = {}
 var history: Array[String] = []
 var page_scroll: Dictionary = {}
+var scroll_memory := preload("res://scripts/device_scroll_memory.gd").new()
 var action_buttons: Array[Button] = []
 var opponent_id := ""
 var scrim_date := ""
@@ -109,6 +112,7 @@ var rts_render: Callable
 var repaint_pending := false
 
 func _ready() -> void:
+	CareerBridge.changed.connect(predictions.observe)
 	Locale.changed.connect(_language_changed)
 	business.attach(self)
 	news.attach(self)
@@ -194,6 +198,7 @@ func _ready() -> void:
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.add_theme_constant_override("separation", 12)
 	scroll.add_child(content)
+	scroll_memory.attach(self)
 	scroll.resized.connect(_layout_desktop)
 	pace_footer = VBoxContainer.new()
 	layout.add_child(pace_footer)
@@ -377,7 +382,7 @@ func close_computer(release: bool = true) -> void:
 		return
 	if is_instance_valid(rts_room.session) and not rts_room.close_session(): return
 	_clear_action_feedback()
-	page_scroll[active_page] = scroll.scroll_vertical
+	scroll_memory.remember()
 	detail_intent_serial += 1
 	match_center.pace.pause(false)
 	screen.visible = false
@@ -391,7 +396,7 @@ func _navigate(page: String, push: bool = true) -> void:
 		return
 	if active_page != page and is_instance_valid(action_feedback): action_feedback.clear_notice()
 	detail_intent_serial += 1
-	page_scroll[active_page] = scroll.scroll_vertical
+	scroll_memory.remember()
 	if active_page in ["ladder", "scrim", "custom"]:
 		page_reports[active_page] = report
 	if active_page != page and push:
@@ -420,6 +425,9 @@ func _desktop() -> void:
 	_navigate("desktop", false)
 
 func _back() -> void:
+	if active_page == "market" and not native_market.selected.is_empty():
+		native_market.back_to_list()
+		return
 	if active_page == "news" and news.back():
 		return
 	if not report.is_empty() and active_page in ["ladder", "scrim", "custom"]:
@@ -548,10 +556,11 @@ func _context_changed() -> void:
 		repaint_pending = true
 		return
 	if screen.visible and rendered_context != PageProjection.signature(active_page, CareerBridge.context):
-		page_scroll[active_page] = scroll.scroll_vertical
+		scroll_memory.remember()
 		_rebuild()
 
 func _rebuild() -> void:
+	scroll_memory.begin()
 	var focused := get_viewport().gui_get_focus_owner()
 	var focus_text := str(focused.text) if focused is Button and content.is_ancestor_of(focused) else ""
 	var focus_key := str(focused.get_meta("stable_focus", "")) if focused is Button and content.is_ancestor_of(focused) else ""
@@ -613,7 +622,7 @@ func _rebuild() -> void:
 			"news": news.render()
 	_seal_actions()
 	_layout_desktop()
-	scroll.set_deferred("scroll_vertical", int(page_scroll.get(active_page, 0)))
+	scroll_memory.restore()
 	if not focus_key.is_empty():
 		call_deferred("_restore_keyed_focus", focus_key)
 	elif not focus_text.is_empty():
@@ -850,14 +859,14 @@ func _growth_changed() -> void:
 
 func _position_preview_changed(index: int, page: String, selector: OptionButton) -> void:
 	position_preview_roles[page] = str(selector.get_item_metadata(index))
-	page_scroll[active_page] = scroll.scroll_vertical
+	scroll_memory.remember()
 	_rebuild()
 
 func _position_preview(parent: Node, data: Dictionary, current_role: String, current_stats: Dictionary, page: String) -> void:
 	var preview := preload("res://scripts/position_preview.gd").new()
 	preview.role_selected.connect(func(role: String):
 		position_preview_roles[page] = role
-		page_scroll[active_page] = scroll.scroll_vertical
+		scroll_memory.remember()
 		_rebuild())
 	var widget := preview.render(parent, data, current_role, current_stats, str(position_preview_roles.get(page, "")), Phone.ROLES, page, false)
 	if widget != null: widget.set_meta("page_fragment", preview)
@@ -924,6 +933,7 @@ func _skins() -> Dictionary:
 	return value if value is Dictionary else {}
 
 func _market_tab(value: String) -> void:
+	native_market.reset_selection()
 	market_tab = value
 	selected_skin = {}
 	page_scroll["market"] = 0
@@ -980,15 +990,40 @@ func _open_skin(row: Dictionary, inventory: bool) -> void:
 
 func _market() -> void:
 	var shop := _skins()
-	_label(content, Locale.source("page.market"), 25)
+	native_market.host = self
+	# content is still unsized on the first build; the scroll view is not.
+	var width := content.size.x if content.size.x > 0 else (scroll.size.x - 24.0 if scroll.size.x > 0 else 1052.0)
+	var wide := width >= 950.0
 	var wallet = shop.get("personal_money", CareerBridge.context.get("money", 0))
-	_quiet_row(content, Locale.source("device.personal_balance"), Locale.source("device.value_game_coins") % int(wallet) if market_tab == "packs" else Fmt.money(wallet))
-	_tabs(content, [{"id":"market", "label":Locale.source("device.market")}, {"id":"inventory", "label":Locale.source("device.my_inventory")}, {"id":"cases", "label":Locale.source("device.cases")}, {"id":"packs", "label":Locale.source("device.pro_loadouts")}], market_tab, _market_tab)
+	var head := HBoxContainer.new()
+	head.name = "MarketHeader"
+	head.add_theme_constant_override("separation", 10)
+	content.add_child(head)
+	var heading := _label(head, Locale.source("page.market") if wide else "", 25)
+	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var caption := _label(head, Locale.source("device.personal_balance"), 14, MUTED)
+	caption.size_flags_horizontal = Control.SIZE_SHRINK_END
+	caption.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var balance := _label(head, Locale.source("device.value_game_coins") % int(wallet) if market_tab == "packs" else Fmt.money(wallet), 20)
+	balance.name = "MarketBalance"
+	balance.size_flags_horizontal = Control.SIZE_SHRINK_END
+	balance.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	for node in [caption, balance]: node.autowrap_mode = TextServer.AUTOWRAP_OFF
+	var main_tabs := [{"id":"market", "label":Locale.source("device.market")}, {"id":"custody", "label":Locale.source("market.custody")}, {"id":"merchant", "label":Locale.source("market.intel")}, {"id":"supplies", "label":Locale.source("market.supplies")}]
+	var other_tabs := [{"id":"inventory", "label":Locale.source("device.my_inventory")}, {"id":"cases", "label":Locale.source("device.cases")}, {"id":"packs", "label":Locale.source("device.pro_loadouts")}]
+	var all_tabs: Array = main_tabs + other_tabs
+	if not wide:
+		native_market.option(content, all_tabs.map(func(t): return t.label), all_tabs.map(func(t): return t.id), market_tab, _market_tab)
+	else:
+		_tabs(content, all_tabs, market_tab, _market_tab)
 	if shop.is_empty():
 		_label(content, Locale.source("device.loading_item_details"), 14, MUTED)
 		return
 	if market_tab == "packs":
 		skin_bundles.render(self, content, shop)
+		return
+	if market_tab in ["market", "custody", "merchant", "supplies"]:
+		native_market.render(self)
 		return
 	var pending = shop.get("pending")
 	if pending is Dictionary and not pending.is_empty():
@@ -1047,31 +1082,19 @@ func _market() -> void:
 			open.set_meta("case_gate", true)
 			open.disabled = (pending is Dictionary and not pending.is_empty()) or float(shop.get("personal_money", CareerBridge.context.get("money", 0))) < cost
 		return
-	var grid := GridContainer.new()
+	var grid := HFlowContainer.new()
 	grid.name = "ComputerSkinGrid"
-	grid.columns = 3
-	grid.add_theme_constant_override("h_separation", 14)
-	grid.add_theme_constant_override("v_separation", 14)
+	grid.add_theme_constant_override("h_separation", 12)
+	grid.add_theme_constant_override("v_separation", 12)
 	content.add_child(grid)
-	var rows: Array = shop.get("inventory" if market_tab == "inventory" else "market", [])
+	var inventory := market_tab == "inventory"
+	var rows: Array = shop.get("inventory" if inventory else "market", [])
 	for item in rows:
-		var card := UI.card(grid)
-		card.custom_minimum_size.x = 260
-		card.mouse_filter = Control.MOUSE_FILTER_PASS
-		var hit_area := card.get_parent() as PanelContainer
-		hit_area.tooltip_text = str(item.get("name", Locale.source("device.skin")))
-		hit_area.gui_input.connect(_skin_card_input.bind(item, market_tab == "inventory"))
-		_skin_art(card, item)
-		var name_button := _button(card, str(item.get("name", Locale.source("device.skin"))), _open_skin.bind(item, market_tab == "inventory"), false)
-		UI.transparent(name_button)
-		name_button.add_theme_font_size_override("font_size", 13)
-		_label(card, _rarity_label(str(item.get("rarity", ""))) + " · " + str(item.get("wear_name", item.get("wear", ""))), 12, _rarity_color(str(item.get("rarity", ""))))
-		_quiet_row(card, "", Fmt.money(item.get("spot", item.get("buy", 0))))
-		var stripe := ColorRect.new()
-		stripe.color = _rarity_color(str(item.get("rarity", "")))
-		stripe.custom_minimum_size.y = 3
-		stripe.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		card.add_child(stripe)
+		var worn: Array[String] = []
+		for side in item.get("sides", []):
+			if str(shop.get("equipped_" + str(side), {}).get(str(item.get("slot", "")), "")) == str(item.get("id", "")): worn.append(str(side).to_upper())
+		var footer := (Locale.source("market.equipped") % "/".join(worn)) if not worn.is_empty() else (Locale.source("device.sell_value") % Fmt.money(item.get("sell", 0)) if inventory and item.has("sell") else "")
+		native_market.tile(grid, item, _open_skin.bind(item, inventory), footer, UI.GREEN if not worn.is_empty() else MUTED)
 	if rows.is_empty():
 		_label(content, Locale.source("device.your_inventory_is_empty"), 14, MUTED)
 
@@ -1483,7 +1506,12 @@ func _render_report(value: Dictionary) -> void:
 	MatchReport.mount(content, game, {}, pid, func(id: String): _load_detail("player", id))
 
 func _events() -> void:
+	if events_tab == "predictions":
+		_label(content, predictions.page_title(), 24)
+		predictions.render(self)
+		return
 	_label(content, Locale.source("page.events"), 24)
+	_button(content, predictions.page_title(), _events_tab.bind("predictions"), false).name = "OpenPredictions"
 	_tabs(content, [{"id":"calendar", "label":Locale.source("device.schedule_and_reports")}, {"id":"teams", "label":Locale.source("page.team_details")}, {"id":"players", "label":Locale.source("device.player_stats")}], events_tab, _events_tab)
 	if events_tab == "teams":
 		var regions := {"EU":Locale.source("device.europe"), "AM":Locale.source("device.americas"), "AS":Locale.source("device.asia")}
@@ -1736,7 +1764,7 @@ func _finished(path: String, result: Dictionary) -> void:
 		var changed: bool = JSON.stringify(cs2_status) != JSON.stringify(result)
 		cs2_status = result.duplicate(true)
 		if screen.visible and active_page == "ladder" and changed:
-			page_scroll[active_page] = scroll.scroll_vertical
+			scroll_memory.remember()
 			_rebuild()
 		return
 	if path == pending_detail_path and not pending_detail_path.is_empty():
@@ -1783,7 +1811,7 @@ func _finished(path: String, result: Dictionary) -> void:
 				call_deferred("_poll_cs2_status")
 		else:
 			if active_page == "ladder" and (connection_changed or path == "/api/3d/ladder/advance"):
-				page_scroll[active_page] = scroll.scroll_vertical
+				scroll_memory.remember()
 				_rebuild()
 			else:
 				_update_status()

@@ -212,3 +212,28 @@ class UnifiedPaceTests(unittest.TestCase):
         self.assertEqual('paused', out['status'])
         self.assertEqual('active-test', match['career3d_rts']['nonce'])
         self.assertFalse(match['maps'])
+
+    def test_break_points_optional_required_story_blocks_ack_and_reads_are_pure(self):
+        self.ready()
+        c, s = self.state.career, self.state.season
+        career_pace.enable(self.state)
+        c.attr_points = 37
+        c.incident_state['story_timing'] = {'deferred':[], 'windows':[{'key':'test-major', 'start':s.date, 'until':s.date}]}
+        c.story_queue = [{'id':'decision', 'text':'choose', 'choices':[{'id':'stay'}]}]
+        before = deepcopy(c.to_json())
+        view = matches.quick_context(self.state)
+        self.assertEqual('test-major', view['break_key'])
+        self.assertFalse(view['break_ack'])
+        self.assertTrue(view['block_reason'])
+        self.assertEqual(before, c.to_json())
+        with self.assertRaises(ValueError), self.state.operation():
+            matches.season_command(self.state, 'resume', dict(revision=matches._revision(self.state), break_key='test-major'))
+        c = self.state.career
+        self.assertNotEqual('test-major', c.assist.get('quick_break_ack'))
+        c.story_queue = []
+        with self.state.operation():
+            matches.season_command(self.state, 'resume', dict(revision=matches._revision(self.state), break_key='test-major'))
+            self.state.persist()
+        loaded = ApplicationState()
+        self.assertEqual(37, loaded.career.attr_points)
+        self.assertEqual('test-major', loaded.career.assist['quick_break_ack'])

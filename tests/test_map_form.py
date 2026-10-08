@@ -28,19 +28,55 @@ class MapFormTests(unittest.TestCase):
         mf.public(self.a)
         self.assertEqual(old, self.a)
 
-    def test_single_win_and_loss_are_symmetric_and_once_per_box(self):
+    def test_peer_loss_small_decline_form_symmetric_and_once_per_box(self):
         result = box(self.a)
         changes = mf.apply_result(self.a, self.b, result, '2026-01-08')
-        self.assertAlmostEqual(changes[0]['delta'], -changes[1]['delta'])
+        self.assertAlmostEqual(changes[0]['form_delta'], -changes[1]['form_delta'])
+        self.assertGreater(changes[0]['strength_delta'], 0)
+        self.assertLess(changes[1]['strength_delta'], 0)
+        self.assertGreater(changes[1]['strength_delta'], -.45)
+        self.assertGreater(changes[0]['delta'] + changes[1]['delta'], 0)
         before = deepcopy((self.a, self.b))
         self.assertEqual(changes, mf.apply_result(self.a, self.b, result, '2026-01-08'))
         self.assertEqual(before, (self.a, self.b))
+
+    def test_losing_to_stronger_team_teaches_more_but_can_reduce_total(self):
+        a1, a2 = deepcopy(self.a), deepcopy(self.a)
+        weak, strong = team('weak', 45), team('strong', 99)
+        low = mf.apply_result(a1, weak, box(weak), '2026-01-08')[0]
+        high = mf.apply_result(a2, strong, box(strong), '2026-01-08')[0]
+        self.assertGreater(high['strength_delta'], low['strength_delta'])
+        self.assertLess(low['strength_delta'], 0)
+        self.assertGreater(high['strength_delta'], 0)
+        self.assertLess(high['form_delta'], 0)
+        self.assertGreater(high['form_delta'], low['form_delta'])
+        self.assertLess(high['delta'], 0)
+        self.assertAlmostEqual(high['delta'], high['strength_delta'] + high['form_delta'], places=2)
+
+    def test_learning_diminishes_with_mastery_and_is_not_free_full_rating(self):
+        a, b = team('weak', 45), team('strong', 99)
+        first = mf.apply_result(a, b, box(b), '2026-01-08')[0]['strength_delta']
+        for _ in range(49): mf.apply_result(a, b, box(b), '2026-01-08')
+        self.assertLess(mf.row(a, 'dust2')['strength'], 85)
+        self.assertLess(mf.row(a, 'dust2')['last_change']['strength_delta'], first)
+        mf.row(a, 'dust2')['strength'] = 100
+        final = mf.apply_result(a, b, box(b), '2026-01-08')[0]
+        self.assertEqual(0, final['strength_delta'])
+
+    def test_legacy_result_is_not_recalculated_or_given_invented_components(self):
+        legacy = box(self.a)
+        legacy['map_form_changes'] = [dict(delta=-1, before=65, after=64)]
+        before = deepcopy((self.a, self.b, legacy))
+        mf.apply_result(self.a, self.b, legacy, '2026-01-08')
+        self.assertEqual(before, (self.a, self.b, legacy))
 
     def test_practice_is_one_third_of_official_result(self):
         a, b = deepcopy(self.a), deepcopy(self.b)
         official = mf.apply_result(self.a, self.b, box(self.a), '2026-01-08')[0]
         practice = mf.apply_result(a, b, box(a), '2026-01-08', practice=True)[0]
         self.assertAlmostEqual(official['delta'] / 3, practice['delta'], places=2)
+        self.assertAlmostEqual(official['strength_delta'] / 3, practice['strength_delta'], places=4)
+        self.assertAlmostEqual(official['form_delta'] / 3, practice['form_delta'], places=4)
 
     def test_strength_of_opponent_changes_learning_not_player_attributes(self):
         weak, strong = team('weak', 45), team('strong', 99)
@@ -57,19 +93,45 @@ class MapFormTests(unittest.TestCase):
         self.assertEqual(40, mf.rating(self.a, 'nuke'))
 
     def test_daily_focus_settles_once_not_per_skipped_day(self):
+        mf.apply_result(self.a, self.b, box(self.b, 'mirage'), '2026-01-08')
+        form = mf.row(self.a, 'mirage')['form']
+        strength = mf.row(self.a, 'mirage')['strength']
         mf.schedule_practice(self.a, 'de_dust2', '2026-01-08')
         mf.schedule_practice(self.a, 'mirage', '2026-01-08')
         mf.settle_practice([self.a], '2026-01-08')
-        self.assertNotIn('map_form', self.a)
+        self.assertEqual(strength, mf.row(self.a, 'mirage')['strength'])
         mf.settle_practice([self.a], '2026-02-18')
-        self.assertAlmostEqual(90.08, mf.rating(self.a, 'mirage'))
+        self.assertGreater(mf.row(self.a, 'mirage')['strength'], strength)
+        self.assertLessEqual(mf.row(self.a, 'mirage')['strength'], 90)
+        self.assertEqual(form, mf.row(self.a, 'mirage')['form'])
+        self.assertEqual(0, mf.row(self.a, 'mirage')['last_change']['form_delta'])
         previous = deepcopy(self.a)
         mf.settle_practice([self.a], '2026-03-01')
         self.assertEqual(previous, self.a)
         with self.assertRaises(ValueError): mf.schedule_practice(self.a, 'dust2', '2026-01-08')
         mf.schedule_practice(self.a, 'dust2', '2026-03-01')
         mf.settle_practice([self.a], '2026-03-02')
-        self.assertGreater(mf.rating(self.a, 'dust2') - 65, .08)
+        self.assertEqual(65, mf.rating(self.a, 'dust2'), 'practice cannot invent a new peak')
+
+    def test_focus_recovers_to_match_peak_only_and_next_match_can_break_it(self):
+        mf.apply_result(self.a, self.b, box(self.a), '2026-01-08')
+        peak = mf.row(self.a, 'dust2')['practice_ceiling']
+        mf.apply_result(self.a, self.b, box(self.b), '2026-01-09')
+        for day in range(10, 20):
+            mf.schedule_practice(self.a, 'dust2', f'2026-01-{day}')
+            mf.settle_practice([self.a], f'2026-01-{day+1}')
+        self.assertEqual(peak, mf.row(self.a, 'dust2')['strength'])
+        self.assertEqual(peak, mf.row(self.a, 'dust2')['practice_ceiling'])
+        mf.apply_result(self.a, self.b, box(self.a), '2026-01-21')
+        self.assertGreater(mf.row(self.a, 'dust2')['strength'], peak)
+
+    def test_upset_costs_more_than_peer_loss_but_single_loss_is_bounded(self):
+        peer = mf.apply_result(self.a, self.b, box(self.b, 'mirage'), '2026-01-08')[0]
+        a, weak = team('A'), team('weak', 45)
+        upset = mf.apply_result(a, weak, box(weak, 'mirage'), '2026-01-08')[0]
+        self.assertLess(upset['strength_delta'], peer['strength_delta'])
+        self.assertGreaterEqual(upset['strength_delta'], -.45)
+        self.assertEqual('strong', mf.row(a, 'mirage')['label'])
 
     def test_label_hysteresis_and_one_loss_preserve_strong_map(self):
         mf.apply_result(self.a, self.b, box(self.b, 'mirage'), '2026-01-08')
@@ -135,16 +197,17 @@ class MapInactivityTests(unittest.TestCase):
         self.assertEqual(['nuke'], a['weak_maps'])
         self.assertEqual('neutral', mf.row(a, 'dust2')['label'])
 
-    def test_grace_period_then_daily_loss_for_all_teams_and_maps(self):
+    def test_automatic_training_maintains_all_teams_and_maps(self):
         a, b = team('A'), team('B')
         players = deepcopy(a['players'])
         mf.advance_calendar([a, b], '2026-01-01', '2026-01-15')
         self.assertEqual(90, mf.rating(a, 'mirage'))
         mf.advance_calendar([a, b], '2026-01-15', '2026-01-16')
         for t in (a, b):
-            self.assertEqual(89.88, mf.rating(t, 'mirage'))
-            self.assertEqual(39.88, mf.rating(t, 'nuke'))
-            self.assertEqual('长期未练图', mf.row(t, 'mirage')['last_change']['reason'])
+            self.assertEqual(90, mf.rating(t, 'mirage'))
+            self.assertEqual(40, mf.rating(t, 'nuke'))
+            self.assertIsNone(mf.row(t, 'mirage')['last_change'])
+            self.assertTrue(all(r['automatic_training'] for r in mf.public(t)))
         self.assertEqual(players, a['players'])
         self.assertIn('mirage', a['strong_maps'])
 
@@ -174,9 +237,9 @@ class MapInactivityTests(unittest.TestCase):
         strength = mf.row(a, 'dust2')['strength']
         form = mf.row(a, 'dust2')['form']
         mf.advance_calendar([a], '2026-01-01', '2036-01-01')
-        self.assertEqual(strength - 10, mf.row(a, 'dust2')['strength'])
+        self.assertEqual(strength, mf.row(a, 'dust2')['strength'])
         self.assertEqual(form, mf.row(a, 'dust2')['form'])
-        self.assertEqual(80, mf.rating(a, 'mirage'))
+        self.assertEqual(90, mf.rating(a, 'mirage'))
         self.assertEqual('strong', mf.row(a, 'mirage')['label'])
 
     def test_match_resets_only_played_map_after_result_and_does_not_restore_losses(self):
@@ -184,14 +247,15 @@ class MapInactivityTests(unittest.TestCase):
         mf.advance_calendar([a, b], '2026-01-01', '2026-02-01')
         mf.apply_result(a, b, box(a), '2026-02-01', practice=True)
         before = mf.rating(a, 'dust2')
-        self.assertLess(before, 65)
+        self.assertGreater(before, 65)
         mf.advance_calendar([a, b], '2026-02-01', '2026-02-15')
         self.assertEqual(before, mf.rating(a, 'dust2'))
         self.assertEqual(14, next(r for r in mf.public(a) if r['map'] == 'dust2')['inactive_days'])
-        self.assertLess(mf.rating(a, 'mirage'), 90 - 3)
+        self.assertEqual(mf.rating(a, 'mirage'), 90)
 
-    def test_scheduled_day_not_arrival_day_resets_practice_and_no_passive_autotraining(self):
+    def test_scheduled_focus_recovers_without_passive_gains_or_decay(self):
         a = team('A')
+        mf.apply_result(a, team('B'), box(team('B'), 'mirage'), '2026-01-01')
         mf.advance_calendar([a], '2026-01-01', '2026-02-01')
         before = mf.rating(a, 'mirage')
         mf.schedule_practice(a, 'mirage', '2026-02-01')
@@ -200,7 +264,7 @@ class MapInactivityTests(unittest.TestCase):
         self.assertGreater(practiced, before)
         self.assertEqual('2026-02-01', mf.row(a, 'mirage')['inactivity']['since'])
         mf.advance_calendar([a], '2026-02-15', '2026-02-16')
-        self.assertAlmostEqual(practiced - .12, mf.rating(a, 'mirage'), places=4)
+        self.assertAlmostEqual(practiced, mf.rating(a, 'mirage'), places=4)
         self.assertTrue(a['map_practice']['settled'])
 
     def test_legacy_save_does_not_backfill_old_matches_or_mutate_on_read(self):
@@ -214,6 +278,16 @@ class MapInactivityTests(unittest.TestCase):
         mf.advance_calendar([a], '2026-10-06', '2026-10-07')
         self.assertEqual(65, mf.rating(a, 'dust2'))
         self.assertEqual('2026-10-06', value['inactivity']['since'])
+
+    def test_old_decay_is_not_refunded_and_stale_snapshot_cannot_subtract_again(self):
+        a = team('A')
+        value = mf._ensure(a, 'dust2')
+        value.update(strength=61, practice_ceiling=61,
+                     inactivity=dict(since='2026-01-01', through='2026-02-01', strength=65, form=0))
+        value.pop('practice_ceiling')  # v1 legacy row
+        mf.advance_calendar([a], '2026-02-01', '2026-07-01')
+        self.assertEqual(61, value['strength'])
+        self.assertEqual(61, value['practice_ceiling'])
 
 
 import test_match_simulation_boundary as boundary
@@ -271,6 +345,8 @@ class MapFormTransactionTests(unittest.TestCase):
         today = self.state.season.date
         tomorrow = (date.fromisoformat(today) + timedelta(days=1)).isoformat()
         target = min(mf.public(own), key=lambda r: r['rating'])['map']
+        value = mf._ensure(own, target)
+        value['strength'] -= 1  # previously reached level is recoverable
         before = mf.rating(own, target)
         with self.state.operation(), patch.object(self.state.season, '_calendar_pause', return_value=''):
             self.state.season.events = []

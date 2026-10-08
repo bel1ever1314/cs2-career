@@ -684,7 +684,10 @@ def quick_context(state):
         'mode': 'quick' if c.assist.get('quick_mode') else 'normal',
         'revision': _revision(state), 'counter': int(c.assist.get('step_counter') or 0),
         'break_key': (current or {}).get('key', ''),
-        'break_ack': break_ack, 'block_reason': reason}
+        'break_ack': break_ack, 'block_reason': reason,
+        'pause_page': ('training' if c.training_session else 'ladder' if state.arena.pending else
+                       'management' if c.unsigned or c.personal_transfers.get('pending') else
+                       'operations' if c.loan_default_pending else 'mail')}
 
 
 def season_command(state, action, body, *, simulation_limit=None):

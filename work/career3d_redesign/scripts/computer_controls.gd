@@ -93,9 +93,9 @@ func received(path: String, result: Dictionary) -> bool:
 		cache[path] = {"revision":int(CareerBridge.context.get("calendar", {}).get("revision", 0)), "error":str(result.get("msg", "资料暂时无法读取。"))}
 		pending_path = ""
 	elif result.get("ok", false):
-		cache.clear()
-		if path.ends_with("/roles"): role_draft.clear(); role_signature = ""
-		if path.ends_with("/assistance"): assistance_initialized = false
+		# Keep the current page while refreshing. A short loading placeholder
+		# collapses the scroll range and also briefly restores the old role draft.
+		for saved in cache.values(): saved["revision"] = -1
 		if path.ends_with("/cancel"): cancel_training_nonce = ""
 	if host.active_page in PAGES: host._rebuild()
 	return true
@@ -191,7 +191,7 @@ func _training(data: Dictionary) -> void:
 	var focus := UI.card(host.content)
 	focus.name = "MapFocusTraining"
 	_label(focus, "专项练图", 19)
-	_label(focus, "每天选一张，跨日结算一次。越熟练提升越慢，不增加个人属性。", 13, UI.MUTED)
+	_label(focus, "日常自动训练维持所有地图，不用每天点。专项练图每天选一张，跨日恢复熟练度，最多恢复至已达到的水平；不增加个人属性。", 13, UI.MUTED)
 	var task: Dictionary = data.get("map_practice", {})
 	if not task.is_empty():
 		_label(focus, "%s · %s · %s" % [task.get("date", ""), str(task.get("map", "")).capitalize(), "已完成" if task.get("settled", false) else "已安排"], 13)

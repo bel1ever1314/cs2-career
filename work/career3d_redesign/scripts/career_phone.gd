@@ -38,6 +38,7 @@ var action_buttons: Array[Button] = []
 var nav_buttons: Dictionary = {}
 var history: Array[String] = []
 var page_scroll: Dictionary = {}
+var scroll_memory := preload("res://scripts/device_scroll_memory.gd").new()
 var selected_mail := ""
 var selected_mail_detail: Dictionary = {}
 var selected_player: Dictionary = {}
@@ -170,6 +171,7 @@ func _ready() -> void:
 	content.add_theme_constant_override("separation", 10)
 	content.set_meta("phone_edge", true)
 	scroll.add_child(content)
+	scroll_memory.attach(self)
 	var message_margin := MarginContainer.new()
 	message_margin.add_theme_constant_override("margin_left", 19)
 	message_margin.add_theme_constant_override("margin_right", 19)
@@ -252,14 +254,14 @@ func close_phone(release: bool = true) -> void:
 	_clear_action_feedback()
 	detail_intent_serial += 1
 	pending_detail_open = false
-	page_scroll[active_page] = scroll.scroll_vertical
+	scroll_memory.remember()
 	screen.visible = false
 	if release:
 		UI.device_closed(self)
 
 func _navigate(page: String, push: bool = true) -> void:
 	if active_page != page and is_instance_valid(action_feedback): action_feedback.clear_notice()
-	page_scroll[active_page] = scroll.scroll_vertical
+	scroll_memory.remember()
 	if active_page != page and push:
 		history.append(active_page)
 	active_page = page
@@ -280,10 +282,11 @@ func _context_changed() -> void:
 	if active_page == "settings" and Computer.device_settings.dirty:
 		return
 	if screen.visible and rendered_context != PageProjection.signature(active_page, CareerBridge.context):
-		page_scroll[active_page] = scroll.scroll_vertical
+		scroll_memory.remember()
 		_rebuild()
 
 func _rebuild() -> void:
+	scroll_memory.begin()
 	var focused := get_viewport().gui_get_focus_owner()
 	var focus_text := str(focused.get_meta("focus_key", focused.text)) if focused is Button and content.is_ancestor_of(focused) else ""
 	UI.clear(content)
@@ -322,7 +325,7 @@ func _rebuild() -> void:
 	for button in action_buttons:
 		if is_instance_valid(button): button.set_meta("career_gate_disabled", button.disabled)
 	_busy_changed(CareerBridge.busy)
-	scroll.set_deferred("scroll_vertical", int(page_scroll.get(active_page, 0)))
+	scroll_memory.restore()
 	if not focus_text.is_empty():
 		call_deferred("_restore_focus", focus_text)
 
@@ -768,14 +771,14 @@ func _profile_tab(tab: String) -> void:
 
 func _position_preview_changed(index: int, page: String, selector: OptionButton) -> void:
 	position_preview_roles[page] = str(selector.get_item_metadata(index))
-	page_scroll[active_page] = scroll.scroll_vertical
+	scroll_memory.remember()
 	_rebuild()
 
 func _position_preview(data: Dictionary, current_role: String, current_stats: Dictionary, page: String) -> void:
 	var preview := preload("res://scripts/position_preview.gd").new()
 	preview.role_selected.connect(func(role: String):
 		position_preview_roles[page] = role
-		page_scroll[active_page] = scroll.scroll_vertical
+		scroll_memory.remember()
 		_rebuild())
 	var widget := preview.render(content, data, current_role, current_stats, str(position_preview_roles.get(page, "")), ROLES, page, true)
 	if widget != null: widget.set_meta("page_fragment", preview)

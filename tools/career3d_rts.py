@@ -127,7 +127,9 @@ def _rosters(state, match, ct_team):
     from cs2career.world.ability import playing_ability, playing_stats
     from cs2career.world.eras import player_id
     aliases = dict(aim='firepower', reaction='opening', recoil='trading', awareness='clutching', utility='utility')
-    by_name = {t['name']: t for t in state.season.teams}
+    from cs2career.career.match_supplies import prepare, series_key, teams_with_effects
+    effects = prepare(state.career, match, series_key(state.season, match), state.season.date, len(match.get('maps') or []), teams=state.season.teams)
+    by_name = {t['name']: t for t in teams_with_effects(state.season.teams, effects)}
     out = {'team_names': {}, 'human_id': '', 'skills_source': aliases}
     ids = set()
     for side, name in (('ct', ct_team), ('t', match['team_b'] if ct_team == match['team_a'] else match['team_a'])):
@@ -140,6 +142,13 @@ def _rosters(state, match, ct_team):
             ability = playing_ability(p)
             stats = playing_stats(p)
             skills = {key: stats.get(axis, ability) for key, axis in aliases.items()}
+            # The RTS model has five controls for seven career axes. Preserve
+            # existing baselines; route only the two otherwise-unmapped boosts
+            # to their corresponding AI controls, using the same capped delta.
+            if p.get('_match_boost'):
+                baseline = playing_stats(dict(p, _match_boost={}))
+                for axis, control in (('entrying', 'reaction'), ('sniping', 'aim')):
+                    skills[control] = min(100, skills[control] + stats[axis] - baseline[axis])
             roster.append(dict(id=pid, player_id=pid, name=p['name'], role=p.get('role', 'rifle'), ability=ability, skills=skills))
         if len(roster) != 5:
             raise ValueError('RTS 比赛需要双方各五名选手。')
@@ -326,6 +335,10 @@ def rts_command(state, action, body):
         stamp(session, 'rts')
         session['seed'] = int(session['nonce'][:8], 16) % 2147483647
         match['career3d_rts'] = session
+        from cs2career.career.match_supplies import prepare, activate, series_key
+        supply_key = series_key(state.season, match)
+        effects = prepare(state.career, match, supply_key, state.season.date, session['map_index'], teams=state.season.teams)
+        activate(state.career, match, supply_key, state.season.date, effects, session['map_index'])
         return {'status': 'rts_pending', 'reason': 'RTS 阵容与地图已冻结。', 'rts_session': deepcopy(session)}
     session = match.get('career3d_rts')
     if not session or not isinstance(nonce, str) or nonce != session['nonce']:
