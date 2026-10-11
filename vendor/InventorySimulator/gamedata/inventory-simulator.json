@@ -58,14 +58,14 @@
   "CCSPlayer_ItemServices::SetWearables": {
     "signatures": {
       "library": "server",
-      "windows": "40 55 41 56 48 83 EC ? 48 83 79",
+      "windows": "40 55 56 48 83 EC ? 48 83 79",
       "linux": "55 48 89 E5 41 57 41 56 41 55 41 54 53 48 89 FB 48 83 EC ? 4C 8B 67 ? 4D 85 E4 0F 84 ? ? ? ? 48 89 DF"
     }
   },
   "CCSPlayerPawn::SetModelFromClass": {
     "signatures": {
       "library": "server",
-      "windows": "48 89 5C 24 ? 56 57 41 56 48 83 EC ? 48 8B D9",
+      "windows": "48 89 5C 24 ? 56 57 41 56 48 83 EC ? 48 8B D9 48 81 C1",
       "linux": "55 48 89 E5 41 56 41 55 4C 8D AF ? ? ? ? 41 54 53 48 89 FB"
     }
   },

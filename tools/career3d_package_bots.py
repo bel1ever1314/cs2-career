@@ -29,7 +29,7 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_CAPSULE_MANIFEST = "0782be65c010c0b05d091b363d166a380e6c3d6b3e08256233e48314ab9fe7e9"
-REVIEWED_INVENTORY_GAMEDATA = "0492cdc6b0e2e6b92406b2838f18c4a06a9e70359a2dc05bc0e6a209a6d478cb"
+REVIEWED_INVENTORY_GAMEDATA = "fc80c0fccbbfaaa8b294006cdaa1f0a9930e909b10f2b8fd9ca462ec2bdc2c25"
 PLUGINS = frozenset(("BotAI", "BotAimImprover", "BotBuy", "BotControllerImpl",
     "BotHiderImpl", "BotRandomizer", "BotState", "CareerMatch", "NadeSystem",
     "RayTraceImpl", "RoundDamageRecap"))

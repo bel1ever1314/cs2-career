@@ -219,6 +219,8 @@ class DeploymentTests(unittest.TestCase):
         settings.parent.mkdir(parents=True); settings.write_bytes(b'personal settings')
         with patch.object(launch.urllib.request, 'urlopen', side_effect=AssertionError('no network')), \
              patch.object(launch, 'install_mod', side_effect=AssertionError('no full reinstall')), \
+             patch.object(launch, '_copy_career_match', side_effect=AssertionError('reuse installed CareerMatch')), \
+             patch.object(launch, '_install_reviewed_raytrace_gamedata', side_effect=AssertionError('reuse installed gamedata')), \
              patch.object(launch, '_prepare_match_skins', return_value={}), \
              patch.object(launch, 'launch_cs2', side_effect=AssertionError('no Steam launch')):
             before = None

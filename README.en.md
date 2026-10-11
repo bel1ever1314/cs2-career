@@ -10,6 +10,8 @@ The career now has a 3D world to walk around in. You're a chicken with a dorm ro
 
 The current version is **1.7.2**. This refresh expands the skin market, tips and match predictions, adds club discussions about roster changes, and makes break-time tasks clearer. Routine training maintains map familiarity; matches unlock new highs. Per-map simulation / CS2 / RTS choices, opening rosters for three eras and custom club logos remain included. The **1.6.0-hotfix.1** desktop version is still available separately.
 
+**Compatibility refresh — 2026-10-11:** Updates tactical navigation and look direction for CS2 1.41.9.0 (2000930), skin signatures and the pinned Metamod runtime. The previous market, training and save-system updates remain included. Builds, offline regressions and backend startup checks passed; full gameplay validation remains pending. The independent RayTrace plugin still has an old-interface compatibility issue; CareerMatch navigation and observation do not depend on it. See the [compatibility audit](docs/tactical-server-2000930-audit.md).
+
 ## Getting started
 
 1. Open the [latest release](https://github.com/bel1ever1314/cs2-career/releases/latest) and download `CS2Career-1.7.2-windows.zip`.
@@ -39,7 +41,7 @@ The local ladder uses your current career player. The two highest-rated particip
 
 Install and sign into Steam and CS2, and obtain a compatible [CS2 Bot Improver Windows runtime](https://github.com/ed0ard/CS2-Bot-Improver/releases). The public 3D package includes Career and its bridge components; the complete bot enhancement is obtained separately.
 
-1. Fully exit CS2. Open Settings on the phone or computer, set the Steam, CS2 and extracted bot-enhancement paths, then choose “安装填写目录的人机增强” (Install from the configured folder). The installer checks your local release and installs it together with Career's bundled tactics, result reporting and compatibility components, backing up existing files. Your original release folder stays unchanged; later matches use the compatible runtime copy. Once you have the complete official package, installation works offline.
+1. Fully exit CS2. Open Settings on the phone or computer, set the Steam, CS2 and extracted bot-enhancement paths, then choose “安装填写目录的人机增强” (Install from the configured folder). The installer checks your local release and installs it together with Career's bundled tactics, result reporting and compatibility components, backing up existing files. Your original release folder stays unchanged; later matches use the compatible runtime copy. If a pinned compatible component is missing locally, the first installation downloads it from its official source.
 2. Prepare a career, ladder, or custom match, complete the player draft and map veto, then launch CS2.
 3. Finish the official match and return to the career computer to review and import the result.
 

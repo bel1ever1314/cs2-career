@@ -18,7 +18,7 @@
       }
     }
   ],
-  "manifest_sha256": "fa530903a1d945bc976285a318ba81c86e5287be173f8d712213fd78deafe743",
+  "manifest_sha256": "d6f2460f293db23cfe11bac8c5ec808b2f9c9141950aff38f08e3ed1c176588d",
   "components": [
     {
       "name": "CS2 Bot Improver",
@@ -107,13 +107,13 @@
     },
     {
       "name": "Metamod",
-      "version": "2.0.0.1472",
-      "archive_sha256": "2bb55926a05cb156ee72d2e67497e3b3d15df561f19a20b2173bafa5fd721a30",
+      "version": "2.0.0.1474",
+      "archive_sha256": "846158a0f67ad1e286b1aec5edb216d29dd35bb0fe754718a30f0fa2fe77a8ca",
       "files": {
         "addons/metamod.vdf": "333b1e594cff06326c1175261eaf3556d9d7cab06a3e2691c659b3f054125db0",
         "addons/metamod/README.txt": "beefa6adcfe74722375701798b1bb991715bf9d419574472eb85766e1ac6e5db",
-        "addons/metamod/bin/win64/metamod.2.cs2.dll": "b8b417690406542a5e01d53ce6774a259d48115a7ee0075ec7b263aee533e7ee",
-        "addons/metamod/bin/win64/server.dll": "872f8de3a267d060a41e66252788b03144c84cad33ed5bf1aab67d22403edc63",
+        "addons/metamod/bin/win64/metamod.2.cs2.dll": "acf8d85b1953818ac27771326312e15fff93fd7b05b17869025911c9211923d4",
+        "addons/metamod/bin/win64/server.dll": "9c9fbdc8340cd75373c1cdb697fabe9121aca02a805c0223b2b2c51454e94c8b",
         "addons/metamod/metaplugins.ini": "d32d862096e70fdb4ea60edfa78a50c5b11ca262644287596f18d62dfc903540",
         "addons/metamod_x64.vdf": "ec4ce540f57aa42bd94240226148d2989443b76f76a69e4eed5cd967f9cb9fcd"
       }

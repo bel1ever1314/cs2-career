@@ -1314,6 +1314,45 @@ def mod_runtime_file(relative: Path) -> bool:
     )
 
 
+def _install_reviewed_raytrace_gamedata(csgo: Path) -> int:
+    """Repair the reviewed build's two entity-I/O signatures after runtime copies.
+
+    Keep Linux signatures, offsets and custom entries. An unreviewed server or
+    a newer/custom signature is never replaced with this build's snapshot.
+    """
+    from ..paths import data_file
+    path = io_path(csgo / 'addons/RayTrace/gamedata.json')
+    server = io_path(csgo / 'bin/win64/server.dll')
+    if not path.is_file() or not server.is_file():
+        return 0
+    profile = json.loads(io_path(data_file('cs2_gamedata_2000930.json')).read_text('utf-8'))
+    if _sha256(server).upper() != profile['server_sha256']:
+        return 0
+    original = path.read_bytes()
+    data = json.loads(original.decode('utf-8-sig'))
+    changed = False
+    for key, patch in profile['raytrace'].items():
+        signature = data.get(key, {}).get('signatures', {})
+        if signature.get('library') != 'server' or signature.get('windows') != patch['previous']:
+            continue
+        info = server.stat()
+        if _skin_signature_count(str(server), info.st_size, info.st_mtime_ns, patch['windows']) != 1:
+            raise ValueError(f'{key} 的已审核兼容签名无法唯一匹配当前游戏。')
+        signature['windows'] = patch['windows']
+        changed = True
+    if not changed:
+        return 0
+    require_cs2_closed('更新射线检测兼容签名')
+    backup = io_path(csgo / 'addons/RayTrace/compat_backups' / f'gamedata.{_sha256(path)[:16]}.json.bak')
+    backup.parent.mkdir(parents=True, exist_ok=True)
+    from .profiles import _atomic_bytes
+    if path.read_bytes() != original:
+        raise OSError('射线检测签名在更新期间发生变化，请重试。')
+    _atomic_bytes(backup, original)
+    _atomic_bytes(path, (json.dumps(data, ensure_ascii=False, indent=2) + '\n').encode('utf-8'))
+    return 1
+
+
 def install_mod(csgo: Path | None = None, mod: Path | None = None, *, config=None) -> dict:
     """Copy only Bot Improver's runtime; career matches provide their own nine identities."""
     require_cs2_closed("把人机增强装进游戏")
@@ -1373,6 +1412,7 @@ def install_mod(csgo: Path | None = None, mod: Path | None = None, *, config=Non
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dst)
         files += 1
+    files += _install_reviewed_raytrace_gamedata(csgo)
     files += _copy_career_match(csgo, mod)
     files += _deploy_tactical_playbook(csgo, tactical_playbook)
     files += _copy_botbuy_patch(csgo)
@@ -2201,6 +2241,7 @@ def prepare_game(
     if existing_plugins:
         require_existing_plugin(csgo, 'CareerMatch')
     else:
+        _install_reviewed_raytrace_gamedata(csgo)
         _copy_career_match(csgo, mod_source)
     _deploy_tactical_playbook(csgo, tactical_playbook)
     if existing_plugins:

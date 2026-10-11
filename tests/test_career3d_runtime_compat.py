@@ -719,7 +719,7 @@ class BundledCompatibilityCohortTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         with patch('cs2career.paths.data_file', return_value=root / 'cs2career/data/cs2_runtime_compat.json'):
             manifest = compat.load_runtime_manifest()
-        self.assertEqual(manifest['revision'], 'windows-20261003.2-improver145')
+        self.assertEqual(manifest['revision'], 'windows-20261010.1-cs2-2000930')
         base = manifest['components'][0]
         self.assertEqual(base['name'], 'CS2 Bot Improver')
         self.assertEqual(base['version'], '1.4.5')

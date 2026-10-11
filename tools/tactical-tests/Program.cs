@@ -2,8 +2,8 @@ using CareerMatch;
 
 if (args.Length != 1) throw new ArgumentException("Pass the installed server.dll (file audit only; never loads or executes the game DLL).");
 if (!TacticalNativeNavigation.TryAuditFile(args[0], out var audit, out var error)) throw new Exception(error);
-if (audit is null || audit.MoveRva != 0x2cfec0 || audit.IdleRva != 0x2c8230 || audit.StateRva != 0x2de010
-    || audit.PathRva != 0x2bafa0)
+if (audit is null || audit.MoveRva != audit.CodeRva(0x2cfec0) || audit.IdleRva != audit.CodeRva(0x2c8230) || audit.StateRva != audit.CodeRva(0x2de010)
+    || audit.PathRva != audit.CodeRva(0x2bafa0))
     throw new Exception("Navigation wrapper identity disagrees with the static command-callback review.");
 Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new { file_audit = "passed", audit, live_call = "not_tested" }));
 if (!TacticalNativeNavigation.IsAuditedServerHash(audit.Sha256)
@@ -29,7 +29,8 @@ Func<byte[], (bool, string)> verify = bytes =>
     var passed = TacticalNativeNavigation.TryAuditBytes(bytes, out _, out _, out var reason);
     return (passed, reason);
 };
-if (audit.Sha256 == TacticalServer927.Sha256)
+if (audit.Sha256 == TacticalServer930.Sha256) Server930Regression.Run(args[0], verify);
+else if (audit.Sha256 == TacticalServer927.Sha256)
 {
     if (audit.BotVtableRva != 0x17ad950 || audit.MoveToVtableRva != 0x17ad798)
         throw new Exception("2000927 must select its relocated vtables, not the old release's pointers.");

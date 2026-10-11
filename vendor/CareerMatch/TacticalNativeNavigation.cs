@@ -8,7 +8,9 @@ namespace CareerMatch;
 
 // Current-CS2, fail-closed native navigation adapter. No DLL loading, hooks,
 // teleport, velocity writes, aim locks, button ownership, or old-state restore.
-// Audited games: 2000922 (Sep 30) and 2000924 / revision 11076591 (Oct 02).
+// Audited games: 2000922, 2000924, 2000927 and 2000930 (Oct 08 2026).
+// The RVAs documented below describe the legacy 922/924 layout; exact newer
+// profiles supply their reviewed code/table identities via Audit.CodeRva.
 // server.dll SHA256 below; addresses are derived from unique .text signatures,
 // never from a CSGO address or from an assumed Source2 object layout.
 //
@@ -45,7 +47,7 @@ internal sealed class TacticalNativeNavigation
     // Reviewed hashes provide a legacy exact-file profile. A different file
     // may use the bounded complete current feature profile below instead.
     internal static bool IsAuditedServerHash(string hash) =>
-        hash is AuditedServerSha256 or PreviousServerSha256 or TacticalServer927.Sha256;
+        hash is AuditedServerSha256 or PreviousServerSha256 or TacticalServer927.Sha256 or TacticalServer930.Sha256;
 
     private static readonly byte[] MoveSignature = Convert.FromHexString(
         "F20F1002F20F1181E80200008B4208488D91E00200008981F0020000448981F4020000E928E10000");
@@ -94,9 +96,10 @@ internal sealed class TacticalNativeNavigation
     internal sealed record Audit(string Sha256, int MoveRva, int IdleRva, int StateRva, int PathRva, int ImageSize)
     {
         internal TacticalFeatureAudit.Snapshot? Dependencies { get; init; }
-        public int BotVtableRva => Sha256 == TacticalServer927.Sha256 ? TacticalServer927.BotVtable : 0x17ad970;
-        public int MoveToVtableRva => Sha256 == TacticalServer927.Sha256 ? TacticalServer927.MoveToVtable : 0x17ad7b8;
-        public string CompatibilityProfile => Sha256 == TacticalServer927.Sha256 ? "reviewed_2000927"
+        public int CodeRva(int legacyRva) => legacyRva + (Sha256 == TacticalServer930.Sha256 ? TacticalServer930.CodeDelta : 0);
+        public int BotVtableRva => Sha256 == TacticalServer930.Sha256 ? TacticalServer930.BotVtable : Sha256 == TacticalServer927.Sha256 ? TacticalServer927.BotVtable : 0x17ad970;
+        public int MoveToVtableRva => Sha256 == TacticalServer930.Sha256 ? TacticalServer930.MoveToVtable : Sha256 == TacticalServer927.Sha256 ? TacticalServer927.MoveToVtable : 0x17ad7b8;
+        public string CompatibilityProfile => Sha256 == TacticalServer930.Sha256 ? "reviewed_2000930" : Sha256 == TacticalServer927.Sha256 ? "reviewed_2000927"
             : Dependencies is null ? "reviewed_whole_file" : "current_stable_rva_features";
     }
     private readonly nint _module;
@@ -143,6 +146,7 @@ internal sealed class TacticalNativeNavigation
         try
         {
             var hash = Convert.ToHexString(SHA256.HashData(bytes));
+            int delta = hash == TacticalServer930.Sha256 ? TacticalServer930.CodeDelta : 0;
             var dependencies = IsAuditedServerHash(hash) ? null : TacticalFeatureAudit.Audit(bytes, observation: false);
             int nt = Read32(bytes, 0x3c);
             if (Read32(bytes, nt) != 0x4550 || Read16(bytes, nt + 4) != 0x8664)
@@ -166,7 +170,7 @@ internal sealed class TacticalNativeNavigation
             int move = UniqueIndex(text, MoveSignature), idle = UniqueIndex(text, IdleSignature), path = UniqueIndex(text, PathSignature);
             if (move < 0 || idle < 0 || path < 0) throw new InvalidDataException("navigation_signature_not_unique");
             int moveRva = checked(textRva + move), idleRva = checked(textRva + idle);
-            if (moveRva != 0x2cfec0 || idleRva != 0x2c8230 || textRva + path != 0x2bafa0)
+            if (moveRva != 0x2cfec0 + delta || idleRva != 0x2c8230 + delta || textRva + path != 0x2bafa0 + delta)
                 throw new InvalidDataException("navigation_function_identity_mismatch");
             int moveState = TailTarget(moveRva, MoveSignature), idleState = TailTarget(idleRva, IdleSignature);
             if (moveState != idleState || moveState < textRva || moveState + StatePrefix.Length > textRva + textLength)
@@ -176,13 +180,13 @@ internal sealed class TacticalNativeNavigation
             for (var i = 0; i < ContinuationBodies.Length; i++)
             {
                 var body = ContinuationBodies[i];
-                var expected = hash == TacticalServer927.Sha256 ? TacticalServer927.NavigationHashes[i] : body.Sha;
-                if (body.Rva < textRva || (long)body.Rva+body.Length > textRva+textLength
-                    || Convert.ToHexString(SHA256.HashData(text.Slice(body.Rva-textRva, body.Length))) != expected)
+                var expected = (hash == TacticalServer930.Sha256 ? TacticalServer930.NavigationHashes[i] : hash == TacticalServer927.Sha256 ? TacticalServer927.NavigationHashes[i] : body.Sha);
+                if (body.Rva + delta < textRva || (long)body.Rva + delta + body.Length > textRva+textLength
+                    || Convert.ToHexString(SHA256.HashData(text.Slice(body.Rva + delta - textRva, body.Length))) != expected)
                     throw new InvalidDataException("navigation_continuation_audit_mismatch:"+body.Name);
             }
             code = ContinuationBodies.Select(body =>
-                bytes.AsSpan(textRaw+body.Rva-textRva, body.Length).ToArray()).ToArray();
+                bytes.AsSpan(textRaw + body.Rva + delta - textRva, body.Length).ToArray()).ToArray();
             audit = new(hash, moveRva, idleRva, moveState, textRva + path, imageSize) { Dependencies = dependencies };
             reason = "file_audited_not_live_navigation_verified:profile=" + audit.CompatibilityProfile;
             return true;
@@ -208,7 +212,7 @@ internal sealed class TacticalNativeNavigation
             { reason = "loaded_navigation_code_differs_from_audited_file"; return false; }
             var observed = ContinuationBodies.Select(body => new byte[body.Length]).ToArray();
             for (var i = 0; i < ContinuationBodies.Length; i++)
-                Marshal.Copy(module+ContinuationBodies[i].Rva, observed[i], 0, observed[i].Length);
+                Marshal.Copy(module + audit!.CodeRva(ContinuationBodies[i].Rva), observed[i], 0, observed[i].Length);
             // Reject a foreign code body before publishing the adapter or
             // issuing any movement. Do not discover this only at node one.
             if (!TrySelectContinuationSnapshots(code!, observed, out var selected, out var variant, out reason)) return false;
@@ -389,7 +393,7 @@ internal sealed class TacticalNativeNavigation
                 !MatchMemory(_module + Evidence.PathRva, PathSignature))
             { reason = "loaded_navigation_code_changed"; return false; }
             for (var i = 0; i < ContinuationBodies.Length; i++)
-                Marshal.Copy(_module+ContinuationBodies[i].Rva, _continuationScratch[i], 0, _continuationScratch[i].Length);
+                Marshal.Copy(_module + Evidence.CodeRva(ContinuationBodies[i].Rva), _continuationScratch[i], 0, _continuationScratch[i].Length);
             // Reuse buffers for the frozen complete bodies, instead of
             // allocating/hashing them each tick or re-selecting a variant.
             return TryValidateContinuationSnapshot(_continuationCode, _continuationScratch, out reason);
@@ -410,12 +414,12 @@ internal sealed class TacticalNativeNavigation
     // Also exercised with a synthetic, non-executable mapped image.
     internal static bool LayoutMatches(nint module, nint botVtable, Audit evidence) =>
         botVtable == module+evidence.BotVtableRva
-        && Marshal.ReadIntPtr(botVtable+0x28) == module+0x2dcab0
-        && Marshal.ReadIntPtr(botVtable+0x30) == module+0x2e7a00
-        && Marshal.ReadIntPtr(module+evidence.MoveToVtableRva) == module+0x32a630
-        && Marshal.ReadIntPtr(module+evidence.MoveToVtableRva+8) == module+0x330e90
-        && Marshal.ReadIntPtr(module+evidence.MoveToVtableRva+16) == module+0x32aaf0
-        && MatchMemory(module+0x2dcab0, RunBody) && MatchMemory(module+0x2e7a00, WalkBody);
+        && Marshal.ReadIntPtr(botVtable+0x28) == module + evidence.CodeRva(0x2dcab0)
+        && Marshal.ReadIntPtr(botVtable+0x30) == module + evidence.CodeRva(0x2e7a00)
+        && Marshal.ReadIntPtr(module+evidence.MoveToVtableRva) == module + evidence.CodeRva(0x32a630)
+        && Marshal.ReadIntPtr(module+evidence.MoveToVtableRva+8) == module + evidence.CodeRva(0x330e90)
+        && Marshal.ReadIntPtr(module+evidence.MoveToVtableRva+16) == module + evidence.CodeRva(0x32aaf0)
+        && MatchMemory(module + evidence.CodeRva(0x2dcab0), RunBody) && MatchMemory(module + evidence.CodeRva(0x2e7a00), evidence.Sha256 == TacticalServer930.Sha256 ? TacticalServer930.WalkBody : WalkBody);
 
     // Pure byte checks used by file/synthetic regression tests, without loading
     // a game module. Only two EXACT full-body variants exist. Other known
@@ -429,8 +433,9 @@ internal sealed class TacticalNativeNavigation
         // Select ONE complete build, never mix bodies from different releases.
         var hashes = audited.Select(body => Convert.ToHexString(SHA256.HashData(body))).ToArray();
         var current = hashes[0] == TacticalServer927.NavigationHashes[0];
+        var latest = hashes[0] == TacticalServer930.NavigationHashes[0];
         for (var i = 0; i < ContinuationBodies.Length; i++)
-            if (hashes[i] != (current ? TacticalServer927.NavigationHashes[i] : ContinuationBodies[i].Sha))
+            if (hashes[i] != (latest ? TacticalServer930.NavigationHashes[i] : current ? TacticalServer927.NavigationHashes[i] : ContinuationBodies[i].Sha))
             { reason = "navigation_continuation_snapshot_not_audited:"+ContinuationBodies[i].Name; return false; }
         if (!audited[MoveToUpdateIndex].AsSpan(DefuseVisibilityOffset, 6).SequenceEqual(DefuseVisibilityBranch))
         { reason = "navigation_defuse_visibility_branch_not_audited"; return false; }
@@ -465,7 +470,7 @@ internal sealed class TacticalNativeNavigation
             if (expected[i].AsSpan().SequenceEqual(observed[i])) continue;
             int offset = 0;
             while (expected[i][offset] == observed[i][offset]) offset++;
-            reason = $"{prefix}:{ContinuationBodies[i].Name}:rva=0x{ContinuationBodies[i].Rva+offset:X}:expected={expected[i][offset]:X2}:loaded={observed[i][offset]:X2}";
+            reason = $"{prefix}:{ContinuationBodies[i].Name}:body_offset=0x{offset:X}:expected={expected[i][offset]:X2}:loaded={observed[i][offset]:X2}";
             return false;
         }
         reason = ""; return true;
