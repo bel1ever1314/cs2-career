@@ -4,27 +4,27 @@
 
 兼容副本与下载缓存在独立生涯目录的 `runtime-cache` 中。安装前的游戏文件备份放在 `install-backups`。全部安装成功后，设置中的增强路径切换到兼容副本；开赛和恢复饰品组件也使用这个副本，避免重新复制旧 DLL。再次安装会核验并复用缓存。
 
-打开设置、保存路径和刷新状态不会触发下载，也不会修改游戏。首次安装下载所需组件；完整增强 ZIP 只提取游戏运行文件，不提取或执行其中的 Panel 桌面启动器。CSS 的配套 .NET 运行环境随官方组件安装。原有 BotHider 与 BotVision 设置会保留，身份名单、库存、旧比赛请求和个人日志不复制到兼容缓存。
+打开设置、保存路径和刷新状态不会触发下载，也不会修改游戏。明确点击安装后，先复用本地已核对的组件和缓存，仅下载缺少的固定版本组件；下载失败或校验失败发生在写入游戏之前，重试会复用已完成的下载。完整随包增强仍可离线安装。完整增强 ZIP 只提取游戏运行文件，不提取或执行其中的 Panel 桌面启动器。CSS 的配套 .NET 运行环境随官方组件安装。原有 BotHider 与 BotVision 设置会保留，身份名单、库存、旧比赛请求和个人日志不复制到兼容缓存。
 
 ## 当前组件
 
-版本清单在 `cs2career/data/cs2_runtime_compat.json`，当前为 `windows-20261003.2-improver145`。
+版本清单在 `cs2career/data/cs2_runtime_compat.json`，当前为 `windows-20261010.1-cs2-2000930`。
 
 - [CS2 Bot Improver 1.4.5](https://github.com/ed0ard/CS2-Bot-Improver/releases/tag/v1.4.5)：更新 BotAI、BotAimImprover、BotState、NadeSystem、RoundDamageRecap 与游戏配置；发行 ZIP 为 73,129,728 字节，SHA-256 为 `ae37b86533abfe0547c5ad4346d478cd846727509fc092842a81240eb0130140`
-- [Metamod 2.0.0.1472](https://github.com/alliedmodders/metamod-source/releases/tag/2.0.0.1472)
+- [Metamod 2.0.0.1474](https://github.com/alliedmodders/metamod-source/releases/tag/2.0.0.1474)
 - [CounterStrikeSharp 1.0.376](https://github.com/roflmuffin/CounterStrikeSharp/releases/tag/v1.0.376)，含 .NET 运行环境
 - [BotController 0.7.0](https://github.com/XBribo/CS2-Bot-Controller/releases/tag/v0.7.0)，原生插件与 CSS API 使用同套版本，保留已经适配的 ABI22 战术保位接口
 - [BotHider 0.5.1](https://github.com/XBribo/CS2-Bot-Hider/releases/tag/v0.5.1)，含身份接口和复活逻辑修正
 - [BotVision 0.3.0](https://github.com/XBribo/CS2-Bot-Vision/releases/tag/v0.3.0)
 - [BotRandomizer 1.3.2](https://github.com/ed0ard/CS2-Bot-Randomizer/releases/tag/v1.3.2)，使用官方更新的签名与饰品数据
 
-这套 Windows 数据对 CS2 build 2000922 做了离线检查，59 条相关函数签名均唯一匹配。Controller 固定为已经审核的 0.7.0 原生 DLL（SHA-256 `8645168d4bb6a55ce8a8ac4246bce394496e4eecf4f56c2f2a7932a98eb75d61`），与 CareerMatch 的保位接口一致；不能只追随组件的最新版本。
+当前目标为 CS2 build 2000930；战术导航与观察方向的核对见 `tactical-server-2000930-audit.md`。Controller 固定为已经审核的 0.7.0 原生 DLL（SHA-256 `8645168d4bb6a55ce8a8ac4246bce394496e4eecf4f56c2f2a7932a98eb75d61`），与 CareerMatch 的保位接口一致；不能只追随组件的最新版本。
 
 官方 1.4.5 基础文件先进入兼容缓存，随后覆盖清单中的 Metamod、CSS、Controller、Hider、Vision 和 Randomizer。安装时 CareerMatch 与 BotBuy 使用本项目 `vendor` 中的构建，最后覆盖到游戏目录，因此我们的修复不由上游发行包代替。此前本地编译的 Randomizer 来自上游尚未打包的源码；现在官方 1.3.2 已包含同样的两条 Windows 函数签名，复核后使用该发行版。
 
 `overrides/scripts` 中的行为资源参与复制、校验和缓存失效检查。上游的 `botprofile.vpk` 和用户生成的名单不直接复制；生涯程序仍为当前这场比赛生成对应的九人或十人名单，同时加入官方 1.4.5 的两份匿名 Rush 脚本。三档行为参数分别保留，资源来源与哈希位于 `cs2career/data/botprofile_behavior/resources.json`。
 
-实际发行包的 BotAI 1.8.12 和 BotAimImprover 2.1.5 对当前 build 2000924 的导航／转头入口做过复核；沿用已经审核的函数体补丁，未放宽校验。玩家无线电指令由游戏确认接受后，CareerMatch 立即撤销该队旧战术和保位／朝向控制，交给原生无线电响应；纯报点与庆祝消息不取消战术。每回合重置交接状态。
+实际发行包的 BotAI 1.8.12 和 BotAimImprover 2.1.5 对此前 build 2000924 的导航／转头入口做过复核；沿用已经审核的函数体补丁，未放宽校验。玩家无线电指令由游戏确认接受后，CareerMatch 立即撤销该队旧战术和保位／朝向控制，交给原生无线电响应；纯报点与庆祝消息不取消战术。每回合重置交接状态。
 
 ## 开发与打包
 
@@ -33,3 +33,9 @@
 更新组件时，同时核对官方下载地址、发布校验值、ZIP 内文件位置、依赖、当前游戏数据和本项目实际使用的接口，再修改清单版本。不要使用浮动的 `latest` 地址，也不要只替换原生 DLL 而遗漏同版本的托管 API。Controller 升级还必须核对 CareerMatch 的模块哈希和 ABI；不要仅添加新哈希绕过审核。
 
 运行 `test_career3d_runtime_compat.py`、`test_career3d_install.py`、`test_career3d_setup_http.py` 和 `test_cs2_deployment.py` 检查缓存、安装、错误反馈与旧组件覆盖回归。
+
+## 2026-10-12 安装修复
+
+此前发布包要求 Metamod 1474，但界面安装入口仍强制离线。完整官方 1.4.5 包携带的 Metamod 不满足此要求，新用户没有缓存时会在部署 CareerMatch 前失败。本次修复安装入口，补充空缓存安装回归，并验证打包 EXE 的实际安装过程。
+
+本次仍使用已审核的 Bot Improver 1.4.5 基线。上游 1.4.6 已发布，但没有把它标为已验证兼容版本；选择其他来源时安装器会准备清单指定的组件，不应将此理解为对新版整包的完整兼容承诺。

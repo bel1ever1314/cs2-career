@@ -306,7 +306,12 @@ def _artifact(cache: Path, component: dict, *, allow_download: bool = False) -> 
                          + '。安装未联网，请选择完整官方发行包；需要更新时可点击“检查更新”。')
     pending = downloads / ('.download-' + uuid4().hex + '.zip')
     try:
-        _download_archive(component['url'], pending)
+        try:
+            _download_archive(component['url'], pending)
+        except (OSError, TimeoutError) as exc:
+            raise ValueError('无法下载兼容组件 ' + component['name'] + ' ' + component['version']
+                             + '，尚未写入游戏。请检查网络后重新点击安装，已校验的下载会保留。'
+                             + '官方下载地址：' + component['url'] + '。原因：' + str(exc)) from exc
         if not io_path(pending).is_file() or _is_link(pending) or io_path(pending).stat().st_size > MAX_ARCHIVE_BYTES:
             raise ValueError('兼容组件下载文件不正确。')
         if _hash(pending) != expected:
@@ -593,10 +598,10 @@ def seed_bundled_runtime(root: Path, mod: Path) -> Path:
 
 
 def prepare_runtime(root: Path, mod: Path, game: Path, *, allow_download: bool = False) -> dict:
-    """Prepare offline by default; only developer artifact preparation may opt in.
+    """Prepare offline by default; an explicit external install may opt in.
 
-    The UI installer never opts in. Selected files and verified cache archives
-    are local inputs, and nothing is written to the source or game here.
+    Reuse selected files and verified archives first. Only missing components
+    use fixed official downloads; nothing writes to the source or game here.
     """
     root, mod, game = _normal_path(root), _normal_path(mod), _normal_path(game)
     if not all(path.is_absolute() for path in (root, mod, game)):

@@ -12,6 +12,8 @@
 
 当前版本是 **1.7.2**。这次补上了更完整的饰品市场、消息与赛事竞猜、和俱乐部商量换人，以及清楚的休赛期待办；地图训练也改为日常维持、比赛突破。逐图选择模拟／CS2／RTS、三个年代的开年阵容和自建队标继续保留。原来的桌面版 **1.6.0-hotfix.1** 也保留下载。
 
+**2026-10-12 安装修复：** 修复首次安装缺少 Metamod 时无法继续的问题。明确点击安装后补齐已固定的官方兼容组件，再安装比赛回传和战术插件。
+
 **2026-10-11 兼容更新：** 适配 CS2 1.41.9.0（2000930）的战术导航与观察方向，更新饰品签名和 Metamod 兼容清单。此前的市场、训练和存档更新全部保留。编译、离线回归与程序启动检查已通过；完整实战仍待验证。RayTrace 独立插件仍有旧接口兼容问题，战术导航和观察方向不依赖它。详见 [测试清单](docs/CS2-2000930-测试清单.md)。
 
 ### 开始游玩
@@ -94,6 +96,8 @@ The career now has a 3D world to walk around in. You're a chicken with a dorm ro
 [Download 1.7.2](https://github.com/bel1ever1314/cs2-career/releases/latest) · [Download the 1.6.0 desktop release](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.6.0-hotfix.1) · [Changelog](RELEASE_NOTES.md) · [Feedback](https://github.com/bel1ever1314/cs2-career/issues)
 
 The current version is **1.7.2**, with per-map tactic loading, custom VPK templates, uncapped Rating and match-result fixes. The **1.6.0-hotfix.1** desktop version remains available separately.
+
+**Installation fix — 2026-10-12:** Fixes fresh installs blocked by a missing pinned Metamod component. An explicit install now fetches missing verified components before deploying the career plugins.
 
 **Compatibility refresh — 2026-10-11:** Updates tactical navigation and look direction for CS2 1.41.9.0 (2000930), skin signatures and the pinned Metamod runtime. The previous market, training and save-system updates remain included. Builds, offline regressions and backend startup checks passed; full gameplay validation remains pending. The independent RayTrace plugin still has an old-interface compatibility issue; CareerMatch navigation and observation do not depend on it. See the [compatibility audit](docs/tactical-server-2000930-audit.md).
 

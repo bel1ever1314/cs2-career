@@ -375,7 +375,7 @@ func _install_saved_settings() -> void:
 	pending_path = "/api/3d/setup/install"
 	pending = _command(pending_path, body)
 	if pending:
-		_set_message("正在检查本地组件、备份并安装人机增强，无需联网……")
+		_set_message("正在检查组件并安装人机增强；缺少的兼容组件会从官方来源下载，请稍候……")
 	else:
 		install_stage = ""
 		install_source = ""

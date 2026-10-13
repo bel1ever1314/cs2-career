@@ -14,7 +14,7 @@
 正在检查官方人机增强更新……	Checking official Bot Improver updates…
 更新检查未发出，不影响本地安装。	The update check did not start. Local installation still works.
 更新检查未完成，不影响本地安装。	The update check did not finish. Local installation still works.
-正在检查本地组件、备份并安装人机增强，无需联网……	Checking local components, backing up and installing Bot Improver. No internet needed…
+正在检查组件并安装人机增强；缺少的兼容组件会从官方来源下载，请稍候……	Checking and installing Bot Improver. Missing compatible components will be downloaded from official sources; please wait…
 发现人机增强新版本，可前往官方页面查看。	A new Bot Improver release is available on the official page.
 当前人机增强已是最新版本。	Bot Improver is up to date.
 暂时无法读取本地人机增强版本，不影响现有安装。	Could not read the local Bot Improver version. Your installation is unchanged.
@@ -45,3 +45,5 @@ GitHub 暂时限制了更新查询，请稍后再检查。	GitHub has temporaril
 本地组件校验清单包含无效或重复文件。	The local component checklist contains invalid or duplicate files.
 官方整包变体引用了未知文件。	The official bundle variant refers to unknown files.
 会话已过期，请重新打开程序。	Your session has expired. Reopen the program.
+
+无法下载兼容组件 %s %s，尚未写入游戏。请检查网络后重新点击安装，已校验的下载会保留。官方下载地址：%s。原因：%s	Could not download compatible component %s %s. No game files were changed. Check your connection and retry; verified downloads are kept. Official download: %s. Reason: %s

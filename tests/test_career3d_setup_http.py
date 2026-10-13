@@ -2,6 +2,8 @@ from application_double import ApplicationDouble
 from unittest.mock import ANY
 """Saved-path setup over authenticated HTTP; all game files are QA fixtures."""
 from copy import deepcopy
+import hashlib
+import io
 import json
 import os
 from pathlib import Path
@@ -10,6 +12,7 @@ import tempfile
 import threading
 from types import SimpleNamespace
 import unittest
+import zipfile
 from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
@@ -19,6 +22,8 @@ from cs2career.web.server import create_server
 from tools import career3d_activities as activities
 from tools import career3d_install as install
 from tools import career3d_service as service
+from cs2career.cs2 import runtime_compat
+PREPARE_RUNTIME = runtime_compat.prepare_runtime
 FIXTURE_GI = b'GameInfo { FileSystem { SearchPaths { Game csgo } } }'
 
 
@@ -125,7 +130,8 @@ class Career3DSetupHttpTests(unittest.TestCase):
                 (target / (component + suffix)).write_bytes(source.read_bytes() if source.is_file() else b'fixture component')
         return {'ok': True, 'files': 4}
 
-    def prepare_fixture(self, root, source, game):
+    def prepare_fixture(self, root, source, game, *, allow_download=False):
+        self.assertTrue(allow_download, 'Explicit external install must be able to fill missing pinned components')
         self.assertTrue(self.server.state_lock._is_owned())
         self.assertEqual(root, self.data.resolve())
         self.assertEqual(source, self.mod.resolve())
@@ -206,6 +212,51 @@ class Career3DSetupHttpTests(unittest.TestCase):
         self.assertEqual(0, self.saved)
         self.runtime_prepare.assert_not_called()
         self.mod_install.assert_not_called()
+
+    def test_empty_cache_external_install_downloads_missing_pin_before_game_writes(self):
+        # Use the production preparer at the authenticated installation boundary.
+        # A full local release can still lack a newly pinned Metamod version.
+        (self.mod / 'addons/counterstrikesharp/api').mkdir()
+        (self.mod / 'addons/counterstrikesharp/api/fixture.dll').write_bytes(b'local API')
+        payload = io.BytesIO()
+        with zipfile.ZipFile(payload, 'w') as archive:
+            archive.writestr('addons/metamod/runtime.dll', b'new reviewed Metamod')
+        blob = payload.getvalue()
+        component = {'name':'Metamod', 'version':'fixture-1474',
+            'url':'https://github.com/alliedmodders/metamod-source/releases/download/2.0.0.1474/fixture.zip',
+            'sha256':hashlib.sha256(blob).hexdigest(), 'size':len(blob),
+            'replace_paths':['addons/metamod'], 'allow_paths':['addons/metamod'],
+            'required_paths':['addons/metamod/runtime.dll']}
+        manifest = {'schema_version':1, 'revision':'fixture-1474', 'components':[component]}
+        before = self.files()
+
+        def download(url, destination):
+            self.assertEqual(component['url'], url)
+            self.assertEqual(before, self.files())
+            self.assertFalse((self.data / 'install-backups').exists())
+            destination.write_bytes(blob)
+
+        def install_prepared(game, mod, *, config):
+            self.assertEqual(b'new reviewed Metamod', (mod / 'addons/metamod/runtime.dll').read_bytes())
+            self.assertEqual(b'fixture runtime', (self.mod / 'addons/metamod/runtime.dll').read_bytes())
+            self.effective_mod = mod
+            return self.install_fixture(game, mod, config=config)
+
+        self.mod_install.side_effect = install_prepared
+        with patch.object(runtime_compat, 'prepare_runtime', side_effect=PREPARE_RUNTIME), \
+                patch.object(runtime_compat, 'load_runtime_manifest', return_value=manifest), \
+                patch.object(runtime_compat, 'load_runtime_files', return_value={}), \
+                patch.object(runtime_compat, '_download_archive', side_effect=download) as network:
+            status, saved = self.save_paths()
+            self.assertEqual(200, status)
+            self.request('/api/3d/settings')
+            network.assert_not_called()
+            status, result = self.request('/api/3d/setup/install', {
+                'revision':saved['context']['calendar']['revision'], 'source':'external', 'confirm':True})
+            self.assertEqual(200, status, result)
+            self.assertTrue(result['ok'])
+            network.assert_called_once()
+            self.assertTrue(launch.career_match_current(self.game))
 
     def test_ordinary_package_save_then_external_install_unlocks_ladder(self):
         self.assertIsNone(install.bundle_root())

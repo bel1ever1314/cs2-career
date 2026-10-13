@@ -3068,7 +3068,7 @@
     "所选 CS2 尚未安装完整的本地比赛组件，请先安装人机增强。": "The selected CS2 installation is missing local match components. Install the bot enhancement first.",
     "插件恢复进程未能启动。请关闭 CS2，再点击“关闭插件”恢复普通环境。": "The plugin restoration monitor could not start. Close CS2, then click \"Disable plugins\" to restore normal CS2.",
     "普通 CS2 环境已保留，本地开赛时自动开启插件。": "Normal CS2 is preserved. Local plugins are enabled automatically when starting a local match.",
-    "已从本地安装%s（%s 个文件），无需联网。普通 CS2 环境已保留，本地开赛时自动开启插件。安装前备份：%s": "Installed %s locally (%s files), without connecting online. Normal CS2 is preserved; local plugins are enabled when starting a local match. Pre-install backup: %s",
+    "已安装%s（%s 个文件）。普通 CS2 环境已保留，本地开赛时自动开启插件。安装前备份：%s": "Installed %s (%s files). Normal CS2 is preserved; local plugins are enabled when starting a local match. Pre-install backup: %s",
     "插件切换未完成。请确认 CS2 已关闭、游戏目录可写，再刷新状态重试。": "The plugin switch did not complete. Make sure CS2 is closed and the game folder is writable, then refresh and try again.",
     "插件加载入口已关闭。": "Plugin loading is disabled.",
     "插件加载入口已关闭。\n%s": "Plugin loading is disabled.\n%s",
@@ -4129,7 +4129,7 @@
     "正在检查官方人机增强更新……": "Checking official Bot Improver updates…",
     "更新检查未发出，不影响本地安装。": "The update check did not start. Local installation still works.",
     "更新检查未完成，不影响本地安装。": "The update check did not finish. Local installation still works.",
-    "正在检查本地组件、备份并安装人机增强，无需联网……": "Checking local components, backing up and installing Bot Improver. No internet needed…",
+    "正在检查组件并安装人机增强；缺少的兼容组件会从官方来源下载，请稍候……": "Checking and installing Bot Improver. Missing compatible components will be downloaded from official sources; please wait…",
     "发现人机增强新版本，可前往官方页面查看。": "A new Bot Improver release is available on the official page.",
     "当前人机增强已是最新版本。": "Bot Improver is up to date.",
     "暂时无法读取本地人机增强版本，不影响现有安装。": "Could not read the local Bot Improver version. Your installation is unchanged.",
@@ -4160,6 +4160,7 @@
     "本地组件校验清单包含无效或重复文件。": "The local component checklist contains invalid or duplicate files.",
     "官方整包变体引用了未知文件。": "The official bundle variant refers to unknown files.",
     "会话已过期，请重新打开程序。": "Your session has expired. Reopen the program.",
+    "无法下载兼容组件 %s %s，尚未写入游戏。请检查网络后重新点击安装，已校验的下载会保留。官方下载地址：%s。原因：%s": "Could not download compatible component %s %s. No game files were changed. Check your connection and retry; verified downloads are kept. Official download: %s. Reason: %s",
     "预留月度运营 ": "Monthly operating reserve ",
     " · 可用引援预算 ": " · Available transfer budget ",
     "潜力 ": "Potential ",
@@ -4721,6 +4722,18 @@
       "prefix": "下一场的对手是最近一次效力的旧队："
     },
     {
+      "source": "无法下载兼容组件 %s %s，尚未写入游戏。请检查网络后重新点击安装，已校验的下载会保留。官方下载地址：%s。原因：%s",
+      "pattern": "^无法下载兼容组件\\ ([\\s\\S]+?)\\ ([\\s\\S]+?)，尚未写入游戏。请检查网络后重新点击安装，已校验的下载会保留。官方下载地址：([\\s\\S]+?)。原因：([\\s\\S]+?)$",
+      "replacement": "Could not download compatible component {0} {1}. No game files were changed. Check your connection and retry; verified downloads are kept. Official download: {2}. Reason: {3}",
+      "keys": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "prefix": "无法下载兼容组件 "
+    },
+    {
       "source": "最近{maps}图平均Rating约{rating}。虽然队伍一直在赢，仍有人质疑你的贡献；也有人提醒，你的分工不能只用击杀解释。",
       "pattern": "^最近([\\s\\S]+?)图平均Rating约([\\s\\S]+?)。虽然队伍一直在赢，仍有人质疑你的贡献；也有人提醒，你的分工不能只用击杀解释。$",
       "replacement": "Your average Rating across the last {maps} maps is about {rating}. The team keeps winning, but some question your contribution. Others point out that kills alone don't explain your role.",
@@ -4767,17 +4780,6 @@
         "team"
       ],
       "prefix": ""
-    },
-    {
-      "source": "已从本地安装%s（%s 个文件），无需联网。普通 CS2 环境已保留，本地开赛时自动开启插件。安装前备份：%s",
-      "pattern": "^已从本地安装([\\s\\S]+?)（([\\s\\S]+?)\\ 个文件），无需联网。普通\\ CS2\\ 环境已保留，本地开赛时自动开启插件。安装前备份：([\\s\\S]+?)$",
-      "replacement": "Installed {0} locally ({1} files), without connecting online. Normal CS2 is preserved; local plugins are enabled when starting a local match. Pre-install backup: {2}",
-      "keys": [
-        "0",
-        "1",
-        "2"
-      ],
-      "prefix": "已从本地安装"
     },
     {
       "source": "{teammate}没有说很多，只认真回了一句谢谢。第二天训练前，他把你常喝的饮料放在桌边：‘昨天那句话，我记着。’",
@@ -4861,6 +4863,17 @@
         "5"
       ],
       "prefix": ""
+    },
+    {
+      "source": "已安装%s（%s 个文件）。普通 CS2 环境已保留，本地开赛时自动开启插件。安装前备份：%s",
+      "pattern": "^已安装([\\s\\S]+?)（([\\s\\S]+?)\\ 个文件）。普通\\ CS2\\ 环境已保留，本地开赛时自动开启插件。安装前备份：([\\s\\S]+?)$",
+      "replacement": "Installed {0} ({1} files). Normal CS2 is preserved; local plugins are enabled when starting a local match. Pre-install backup: {2}",
+      "keys": [
+        "0",
+        "1",
+        "2"
+      ],
+      "prefix": "已安装"
     },
     {
       "source": "Rating %s · ADR %s · KAST %s · %s 图 · %s / %s / %s",

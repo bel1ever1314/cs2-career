@@ -294,15 +294,17 @@ def install_bundle(state, body: dict, *, before_effect=None) -> dict:
     closed()
     from cs2career.cs2.runtime_compat import prepare_runtime, seed_bundled_runtime
     original_mod = mod
-    # Installation is offline: use the selected official release or verified
-    # local cache, then overlay our bundled plugins. Checking updates is separate.
+    # An explicit external install may fetch missing pinned components. A
+    # complete bundled runtime remains offline; reads and update checks do not
+    # grant permission to download or install anything.
     # Preparation failure precedes any game-file or saved-path changes.
     # Autofill also puts the bundled mod in the editable source field. Clicking
     # either install button for that same folder must use its verified receipt,
     # including our BotBuy overlay, not mistake it for an unknown official DLL.
-    if source == 'bundle' or original_mod == bundle_root():
+    bundled = source == 'bundle' or original_mod == bundle_root()
+    if bundled:
         mod = seed_bundled_runtime(root, original_mod)
-    prepared = prepare_runtime(root, mod, game)
+    prepared = prepare_runtime(root, mod, game, allow_download=not bundled)
     mod = Path(prepared['mod_dir']).resolve()
     runtime = {'requested_source': str(original_mod),
                'origin_source': str(prepared.get('origin_mod_dir') or original_mod),
@@ -344,7 +346,7 @@ def install_bundle(state, body: dict, *, before_effect=None) -> dict:
     (backup / 'BACKUP_MANIFEST.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), 'utf-8')
     total = int(result.get('files', 0)) + skin_files
     installed_name = '设置中的人机增强' if source == 'external' else '随包人机增强'
-    return {'reason': f'已从本地安装{installed_name}（{total} 个文件），无需联网。普通 CS2 环境已保留，本地开赛时自动开启插件。安装前备份：{backup}',
+    return {'reason': f'已安装{installed_name}（{total} 个文件）。普通 CS2 环境已保留，本地开赛时自动开启插件。安装前备份：{backup}',
             'backup_path': str(backup), 'files': total, 'skin_files': skin_files,
             'source': source, 'setup': setup_context(), 'runtime': runtime,
             'reused_components': deepcopy(prepared.get('reused_components', [])),

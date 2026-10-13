@@ -52,7 +52,7 @@ class BundledInstallTests(unittest.TestCase):
         self.running = self.start(patch.object(activities, '_running_cs2', return_value=False))
         self.start(patch('cs2career.cs2.process_state.cs2_running', return_value=False))
         self.runtime_prepare = self.start(patch('tools.career3d_runtime_compat.prepare_runtime',
-            side_effect=lambda root, mod, game: {'mod_dir':str(mod), 'origin_mod_dir':str(mod),
+            side_effect=lambda root, mod, game, **kwargs: {'mod_dir':str(mod), 'origin_mod_dir':str(mod),
                 'revision':'fixture-compatible-1', 'components':{'fixture':'1'}}))
         self.original_install = launch.install_mod
         self.mod_install = self.start(patch.object(launch, 'install_mod', return_value={'ok':True, 'files':2}))
@@ -184,9 +184,11 @@ class BundledInstallTests(unittest.TestCase):
     def test_both_install_buttons_reuse_the_same_known_bundled_folder_offline(self):
         with patch('tools.career3d_runtime_compat.seed_bundled_runtime', return_value=self.mod) as seed:
             install.install_bundle(self.state, {**self.body, 'source':'bundle'})
+            self.assertFalse(self.runtime_prepare.call_args.kwargs['allow_download'])
             seed.assert_called_once_with(self.data.resolve(), self.mod.resolve())
             seed.reset_mock()
             install.install_bundle(self.state, {**self.body, 'source':'external'})
+            self.assertFalse(self.runtime_prepare.call_args.kwargs['allow_download'])
             seed.assert_called_once_with(self.data.resolve(), self.mod.resolve())
             seed.reset_mock()
             self.external_source()
@@ -496,7 +498,8 @@ class BundledInstallTests(unittest.TestCase):
                         for file in mod.rglob('*') if file.is_file()}
         cache = self.data / 'runtime-cache/fixture-compatible/mod'
 
-        def prepare(root, source, game):
+        def prepare(root, source, game, *, allow_download=False):
+            self.assertTrue(allow_download)
             self.assertEqual(root, self.data.resolve())
             self.assertEqual(source, mod.resolve())
             self.assertEqual(game, self.game.resolve())
@@ -539,7 +542,7 @@ class BundledInstallTests(unittest.TestCase):
         self.runtime_prepare.side_effect = ValueError('fixture compatible download could not be verified')
         with self.assertRaisesRegex(ValueError, 'could not be verified'):
             install.install_bundle(self.state, {**self.body, 'source':'external'})
-        self.runtime_prepare.assert_called_once_with(self.data.resolve(), mod.resolve(), self.game.resolve())
+        self.runtime_prepare.assert_called_once_with(self.data.resolve(), mod.resolve(), self.game.resolve(), allow_download=True)
         self.mod_install.assert_not_called()
         self.skin_install.assert_not_called()
         self.assertFalse((self.data / 'install-backups').exists())

@@ -499,6 +499,18 @@ class CompatibilityRuntimeTests(unittest.TestCase):
                 compat.load_runtime_manifest()
         self.download.assert_not_called()
 
+    def test_download_failure_names_component_and_leaves_no_partial_or_game_changes(self):
+        before = self.original_files()
+        def interrupted(url, destination):
+            destination.write_bytes(b'incomplete')
+            raise OSError('connection interrupted')
+        self.download.side_effect = interrupted
+        with self.assertRaisesRegex(ValueError, '无法下载兼容组件 Controller fixture-1'):
+            prepare_with_downloads(self.root, self.mod, self.game)
+        self.assertEqual([], list((self.root / 'runtime-cache/downloads').iterdir()))
+        self.assertEqual(before, self.original_files())
+        self.assertEqual((self.game / 'gameinfo.gi').read_bytes(), b'official untouched game')
+
     def test_checksum_failure_never_publishes_runtime_or_changes_source_game(self):
         before = self.original_files()
         self.urls[self.manifest['components'][0]['url']] = b'wrong artifact'
