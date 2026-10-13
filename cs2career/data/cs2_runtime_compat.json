@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "revision": "windows-20261010.1-cs2-2000930",
-  "checked_date": "2026-10-10",
+  "revision": "windows-20261012.1-improver146-cs2-2000930",
+  "checked_date": "2026-10-12",
   "platform": "windows-x64",
   "game_build": "2000930",
   "components": [
     {
       "name": "CS2 Bot Improver",
-      "version": "1.4.5",
-      "url": "https://github.com/ed0ard/CS2-Bot-Improver/releases/download/v1.4.5/CS2BotImprover.zip",
-      "sha256": "ae37b86533abfe0547c5ad4346d478cd846727509fc092842a81240eb0130140",
-      "size": 73129728,
+      "version": "1.4.6",
+      "url": "https://github.com/ed0ard/CS2-Bot-Improver/releases/download/v1.4.6/CS2BotImprover.zip",
+      "sha256": "e66a17329ccb00b340555fb64b09b0771ea4a0aa04566e7b9a915d7ad4c6f28e",
+      "size": 73126151,
       "replace_paths": [
         "addons/counterstrikesharp/plugins/BotAI",
         "addons/counterstrikesharp/plugins/BotAimImprover",

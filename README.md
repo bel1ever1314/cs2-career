@@ -12,6 +12,8 @@
 
 当前版本是 **1.7.2**。这次补上了更完整的饰品市场、消息与赛事竞猜、和俱乐部商量换人，以及清楚的休赛期待办；地图训练也改为日常维持、比赛突破。逐图选择模拟／CS2／RTS、三个年代的开年阵容和自建队标继续保留。原来的桌面版 **1.6.0-hotfix.1** 也保留下载。
 
+**2026-10-12 人机增强 1.4.6 适配：** 更新安装校验和兼容基线，保留新版瞄准、闪光状态修复及 Metamod 1474；不再把 1.4.6 覆盖回旧版。
+
 **2026-10-12 安装修复：** 修复首次安装缺少 Metamod 时无法继续的问题。明确点击安装后补齐已固定的官方兼容组件，再安装比赛回传和战术插件。
 
 **2026-10-11 兼容更新：** 适配 CS2 1.41.9.0（2000930）的战术导航与观察方向，更新饰品签名和 Metamod 兼容清单。此前的市场、训练和存档更新全部保留。编译、离线回归与程序启动检查已通过；完整实战仍待验证。RayTrace 独立插件仍有旧接口兼容问题，战术导航和观察方向不依赖它。详见 [测试清单](docs/CS2-2000930-测试清单.md)。
@@ -53,7 +55,7 @@
 
 想查看上游新版时，主动点击“检查人机增强更新”即可，它不会自动下载或替换现有组件。游戏内换肤默认关闭，需要时在设置里手动开启。
 
-本版适配 Bot Improver 1.4.5。队友执行自定义战术时，也能响应你的行动无线电：例如守点等待中发出“跟随我”或“撤退”，就会结束旧路线、交给无线电任务；普通报点不打断战术。
+本版适配 Bot Improver 1.4.6。完整官方 1.4.6 可直接离线安装；旧包会在点击安装后补齐固定的 1.4.6 兼容组件。队友执行自定义战术时，也能响应你的行动无线电：例如守点等待中发出“跟随我”或“撤退”，就会结束旧路线、交给无线电任务；普通报点不打断战术。
 
 这套插件用于 **`-insecure` 本地人机对局**。设置中可以一键开启插件或恢复普通 CS2 环境；退出由生涯程序启动的 CS2 后，也会自动恢复。进入官方匹配前，请确认已恢复普通环境并移除 Steam 启动项中的 `-insecure`。
 
@@ -137,7 +139,7 @@ On match day, you can also travel to the assigned venue from the doorway. Prepar
 
 “Check for bot-enhancement updates” only contacts GitHub when you click it and never downloads or replaces components automatically. In-game skin swapping starts disabled; enable it in Settings if you want to use it.
 
-This version supports Bot Improver 1.4.5. Accepted action radio commands such as Follow Me or Fall Back interrupt your team's custom tactics, including waypoint waits. Ordinary information calls keep the tactic running.
+This version supports Bot Improver 1.4.6. A complete official 1.4.6 folder installs offline; older folders receive the pinned 1.4.6 components when you explicitly install. Accepted action radio commands such as Follow Me or Fall Back interrupt your team's custom tactics, including waypoint waits. Ordinary information calls keep the tactic running.
 
 Use these plugins for **local bot matches with `-insecure`**. Settings provides a one-click plugin switch, and Career restores the normal environment after its CS2 session exits. Before official matchmaking, confirm normal mode and remove `-insecure` from your Steam launch options.
 

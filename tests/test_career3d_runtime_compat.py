@@ -30,8 +30,7 @@ def archive_bytes(entries):
 
 
 def prepare_with_downloads(root, mod, game):
-    # Archive upgrade tests explicitly opt into the developer preparation path.
-    # Player installation uses prepare_runtime's offline default.
+    # Missing-component tests opt into the explicit external-install path.
     return compat.prepare_runtime(root, mod, game, allow_download=True)
 
 
@@ -102,12 +101,12 @@ class CompatibilityRuntimeTests(unittest.TestCase):
         production = Path(__file__).resolve().parents[1] / 'cs2career/data/cs2_runtime_compat.json'
         component = deepcopy(json.loads(production.read_text('utf-8'))['components'][0])
         self.assertEqual(component['name'], 'CS2 Bot Improver')
-        entries = [(name, ('official 1.4.5: ' + name).encode('utf-8'))
+        entries = [(name, ('official 1.4.6: ' + name).encode('utf-8'))
                    for name in component['required_paths']]
         entries += [('addons/BotHider/config.json', b'{"official":"hider"}'),
                     ('addons/BotVision/config.json', b'{"official":"vision"}'),
                     ('addons/counterstrikesharp/shared/BotControllerApi/BotControllerApi.dll', b'base api'),
-                    ('Panel v1.4.5.exe', b'never launch panel'),
+                    ('Panel v1.4.6.exe', b'never launch panel'),
                     ('addons/BotHider/bot_info.json', b'never copy player identities'),
                     ('overrides/Medium/botprofile.vpk', b'never copy roster'),
                     ('addons/counterstrikesharp/plugins/CareerMatch/CareerMatch.dll', b'never copy career'),
@@ -119,7 +118,7 @@ class CompatibilityRuntimeTests(unittest.TestCase):
         component['sha256'] = hashlib.sha256(payload).hexdigest()
         component['size'] = len(payload)
         self.manifest['components'].insert(0, component)
-        self.manifest['revision'] = 'windows-fixture.2-improver145'
+        self.manifest['revision'] = 'windows-fixture.2-improver146'
         self.persist_manifest()
         return component
 
@@ -331,7 +330,7 @@ class CompatibilityRuntimeTests(unittest.TestCase):
         result = prepare_with_downloads(self.root, self.mod, self.game)
         runtime = Path(result['mod_dir'])
         for name in base['required_paths']:
-            self.assertEqual((runtime / name).read_bytes(), ('official 1.4.5: ' + name).encode('utf-8'))
+            self.assertEqual((runtime / name).read_bytes(), ('official 1.4.6: ' + name).encode('utf-8'))
         for plugin in old_behavior:
             self.assertFalse((runtime / f'addons/counterstrikesharp/plugins/{plugin}/obsolete.json').exists())
             self.assertFalse((runtime / f'addons/counterstrikesharp/configs/plugins/{plugin}/config.json').exists())
@@ -369,7 +368,7 @@ class CompatibilityRuntimeTests(unittest.TestCase):
         self.add_improver_base()
         runtime = Path(prepare_with_downloads(self.root, self.mod, self.game)['mod_dir'])
         receipt = json.loads((runtime.parent / compat.RECEIPT).read_text('utf-8'))
-        for name in ('Panel v1.4.5.exe', 'addons/BotHider/bot_info.json',
+        for name in ('Panel v1.4.6.exe', 'addons/BotHider/bot_info.json',
                      'overrides/Medium/botprofile.vpk', 'overrides/botprofile.vpk',
                      'addons/counterstrikesharp/plugins/CareerMatch/CareerMatch.dll',
                      'addons/counterstrikesharp/plugins/InventorySimulator/inventories.json',
@@ -727,17 +726,17 @@ class BundledCompatibilityCohortTests(unittest.TestCase):
         self.assertIn('addons/counterstrikesharp/shared/BotControllerApi/BotControllerApi.dll',
                       components['BotController API']['required_paths'])
 
-    def test_improver145_is_pinned_first_and_replaces_complete_old_behavior_cohort(self):
+    def test_improver146_is_pinned_first_and_replaces_complete_old_behavior_cohort(self):
         root = Path(__file__).resolve().parents[1]
         with patch('cs2career.paths.data_file', return_value=root / 'cs2career/data/cs2_runtime_compat.json'):
             manifest = compat.load_runtime_manifest()
-        self.assertEqual(manifest['revision'], 'windows-20261010.1-cs2-2000930')
+        self.assertEqual(manifest['revision'], 'windows-20261012.1-improver146-cs2-2000930')
         base = manifest['components'][0]
         self.assertEqual(base['name'], 'CS2 Bot Improver')
-        self.assertEqual(base['version'], '1.4.5')
-        self.assertEqual(base['url'], 'https://github.com/ed0ard/CS2-Bot-Improver/releases/download/v1.4.5/CS2BotImprover.zip')
-        self.assertEqual(base['sha256'], 'ae37b86533abfe0547c5ad4346d478cd846727509fc092842a81240eb0130140')
-        self.assertEqual(base['size'], 73129728)
+        self.assertEqual(base['version'], '1.4.6')
+        self.assertEqual(base['url'], 'https://github.com/ed0ard/CS2-Bot-Improver/releases/download/v1.4.6/CS2BotImprover.zip')
+        self.assertEqual(base['sha256'], 'e66a17329ccb00b340555fb64b09b0771ea4a0aa04566e7b9a915d7ad4c6f28e')
+        self.assertEqual(base['size'], 73126151)
         for plugin in ('BotAI', 'BotAimImprover', 'BotState', 'NadeSystem'):
             self.assertIn('addons/counterstrikesharp/plugins/' + plugin, base['replace_paths'])
             self.assertIn('addons/counterstrikesharp/plugins/' + plugin, base['allow_paths'])
@@ -757,6 +756,57 @@ class BundledCompatibilityCohortTests(unittest.TestCase):
         self.assertIn('AuditedAbiForHash(hash);', source)
         self.assertIn('CompatibleAbi(hash, Export<VersionFn>("GetVersion")(), exports)', source)
         self.assertIn('if (AuditedModules.ContainsKey(hash)) return ValidateAbi(hash, actual);', source)
+
+
+@unittest.skipUnless(os.environ.get('CS2CAREER_TEST_IMPROVER146_ZIP'),
+                     'Set CS2CAREER_TEST_IMPROVER146_ZIP to the official release archive')
+class OfficialImprover146Tests(unittest.TestCase):
+    """Optional release gate using real, hash-verified upstream files; no game startup."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory(prefix='improver146-')
+        self.addCleanup(self.tmp.cleanup)
+        self.base = Path(self.tmp.name)
+        self.root = self.base / 'career'
+        self.root.mkdir()
+        self.game = self.base / 'game'
+        self.game.mkdir()
+        self.mod = self.base / 'official'
+        self.manifest = compat.load_runtime_manifest()
+        self.archive = Path(os.environ['CS2CAREER_TEST_IMPROVER146_ZIP'])
+        self.assertEqual(compat._hash(self.archive), self.manifest['components'][0]['sha256'])
+        with zipfile.ZipFile(self.archive) as pack:
+            for entry in pack.infolist():
+                relative = compat._relative(entry.filename)
+                if relative.parts[0] in ('addons', 'cfg', 'overrides'):
+                    pack.extract(entry, self.mod)
+
+    def test_complete_146_installs_offline_without_downgrade_or_source_writes(self):
+        before = {rel.as_posix(): compat._hash(path) for path, rel in compat._source_plan(self.mod)}
+        with patch.object(compat, '_download_archive', side_effect=AssertionError('must be offline')):
+            result = compat.prepare_runtime(self.root, self.mod, self.game)
+            runtime = Path(result['mod_dir'])
+            self.assertEqual(result['supplemented_components'], [])
+            self.assertEqual(len(result['reused_components']), len(self.manifest['components']))
+            index = compat.load_runtime_files(self.manifest)
+            variant = next(v for v in index['approved_variants'] if v['id'] == 'official-bundle-1.4.6')
+            for row in index['components'].values():
+                for name in row['files']:
+                    self.assertEqual(compat._hash(runtime / name), before[name], name)
+            for name, expected in variant['files'].items():
+                self.assertEqual(compat._hash(runtime / name), expected, name)
+            self.assertTrue(compat.prepare_runtime(self.root, runtime, self.game)['cache_hit'])
+        self.assertFalse(list(self.game.iterdir()))
+        self.assertEqual(before, {rel.as_posix(): compat._hash(path)
+                                 for path, rel in compat._source_plan(self.mod)})
+
+    def test_mixed_behavior_dlls_are_not_accepted_as_complete_146(self):
+        (self.mod / 'addons/counterstrikesharp/plugins/BotState/BotState.dll').write_bytes(b'older behavior')
+        with patch.object(compat, '_download_archive', side_effect=AssertionError('offline gate')):
+            with self.assertRaisesRegex(ValueError, 'CS2 Bot Improver'):
+                compat.prepare_runtime(self.root, self.mod, self.game)
+        self.assertFalse(list(self.game.iterdir()))
+        self.assertFalse(list((self.root / 'runtime-cache').glob('*/runtime')))
 
 
 if __name__ == '__main__':
