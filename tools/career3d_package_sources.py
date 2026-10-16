@@ -31,6 +31,7 @@ FONT_HASHES = {
 }
 DLLS = frozenset({
     "vendor/CareerMatch/CareerMatch.dll", "vendor/BotBuy/BotBuy.dll",
+    "vendor/BotAimImprover/BotAimImprover.dll",
     "vendor/InvsimCareer/InvsimCareer.dll",
     "vendor/InventorySimulator/plugins/InventorySimulator/InventorySimulator.dll",
 })
@@ -78,7 +79,7 @@ TOOL_FILES = frozenset({
     "benchmark_save_boundary.py", "verify_backend_restart.py",
     "promote_calibration_pack.py", "repair_cs2_runtime.py", "install_tactical_commands.py",
 })
-TOOL_TEST_DIRS = ("tools/identity-tests", "tools/avatar-tests", "tools/botbuy-tests", "tools/botbuy-runtime-tests", "tools/tactical-tests", "tools/tactical-safety-tests")
+TOOL_TEST_DIRS = ("tools/identity-tests", "tools/avatar-tests", "tools/botbuy-tests", "tools/botbuy-runtime-tests", "tools/bot-aim-schema-tests", "tools/tactical-tests", "tools/tactical-safety-tests")
 PRIVATE_HOME = re.compile(
     r"(?P<drive>[A-Z]:)(?P<separator>[/\\]+)Users[/\\]+(?P<user>[^/\\\s\"'<>]+)", re.I)
 CREDENTIAL = re.compile(
@@ -193,7 +194,7 @@ def source_files(root: Path) -> list[Path]:
             _check_file(path, name, root)
             selected.append(path)
     for folder in ("cs2career", "tests", "licenses", "docs", "extensions/_templates",
-                   "vendor/CareerMatch", "vendor/BotBuy", "vendor/InvsimCareer", "vendor/InventorySimulator",
+                   "vendor/CareerMatch", "vendor/BotBuy", "vendor/BotAimImprover", "vendor/InvsimCareer", "vendor/InventorySimulator",
                    *TOOL_TEST_DIRS):
         selected.extend(_walk(root, folder))
     selected.extend(_walk(root, "tools/audio", frozenset({".py", ".md", ".txt", ".json"})))

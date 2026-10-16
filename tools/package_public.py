@@ -29,6 +29,7 @@ SKIP.update({'local-actions-probe', 'view_angle_lab'})
 PRIVATE_TOOLS = {'tools/install_arena_roles_hotfix_20260927.py'}
 SUFFIXES = {'.py','.cs','.csproj','.js','.cjs','.css','.html','.json','.db','.md','.txt','.svg','.png','.ps1','.cmd'}
 DLLS = {'vendor/CareerMatch/CareerMatch.dll','vendor/BotBuy/BotBuy.dll',
+        'vendor/BotAimImprover/BotAimImprover.dll',
         'vendor/InvsimCareer/InvsimCareer.dll',
         'vendor/InventorySimulator/plugins/InventorySimulator/InventorySimulator.dll'}
 
@@ -53,7 +54,8 @@ def source_files(root: Path) -> list[Path]:
             rel = path.relative_to(root)
             if not path.is_file() or excluded_path(rel) or rel.as_posix() in PRIVATE_TOOLS:
                 continue
-            if path.suffix in SUFFIXES or rel.as_posix() in DLLS:
+            if (path.suffix in SUFFIXES or rel.as_posix() in DLLS
+                    or rel.as_posix() == 'vendor/BotAimImprover/LICENSE'):
                 files.append(path)
     if (root/'extensions/README.md').is_file():
         files.append(root/'extensions/README.md')

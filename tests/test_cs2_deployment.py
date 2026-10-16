@@ -238,9 +238,17 @@ class DeploymentTests(unittest.TestCase):
                 before = stamps
         self.assertEqual(b'player crosshair and keys', personal.read_bytes())
         self.assertEqual(b'personal settings', settings.read_bytes())
+        aim = launch._plugin_live(self.csgo, 'BotAimImprover')
+        for name in ('BotAimImprover.dll', 'BotAimImprover.deps.json'):
+            self.assertEqual((launch.vendor_root() / 'BotAimImprover' / name).read_bytes(),
+                             (aim / name).read_bytes())
 
     def test_3d_locked_buy_update_prevents_steam_dispatch(self):
         mod, target, a, b = self._existing_buy_fixture()
+        for path in (self.csgo / 'steam.inf', self.csgo / 'bin/win64/server.dll',
+                     self.csgo.parent / 'bin/win64/cs2.exe'):
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b'fixture only; never executed')
         steam = self.root / 'steam.exe'; steam.write_bytes(b'fixture only')
         cfg = dict(launch.DEFAULTS, steam_exe=str(steam), csgo_path=str(self.csgo), mod_source_path=str(mod))
         request = launch.build_request(a, b, 'A0', 'de_anubis', 't')
@@ -255,6 +263,27 @@ class DeploymentTests(unittest.TestCase):
             steam_start.assert_not_called()
             restore.assert_called_once_with(self.csgo, 'generation')
         self.assertEqual(b'installed-career.10', (target / 'BotBuy.dll').read_bytes())
+
+    def test_locked_aim_patch_prevents_dispatch_and_new_match_request(self):
+        mod, _, a, b = self._existing_buy_fixture()
+        for path in (self.csgo / 'steam.inf', self.csgo / 'bin/win64/server.dll',
+                     self.csgo.parent / 'bin/win64/cs2.exe'):
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b'fixture only; never executed')
+        steam = self.root / 'steam.exe'; steam.write_bytes(b'fixture only')
+        cfg = dict(launch.DEFAULTS, steam_exe=str(steam), csgo_path=str(self.csgo), mod_source_path=str(mod))
+        request = launch.build_request(a, b, 'A0', 'de_anubis', 't')
+        with patch.object(launch, '_arm_cs2_environment', return_value='generation'), \
+             patch.object(launch, '_finish_cs2_environment') as restore, \
+             patch.object(launch, '_spawn_cs2_environment_watch'), \
+             patch.object(launch, '_copy_aim_schema_patch', side_effect=PermissionError('locked BotAimImprover.dll')), \
+             patch.object(launch, 'launch_cs2') as steam_start:
+            with self.assertRaisesRegex(PermissionError, 'locked BotAimImprover'):
+                launch.start_match(a, b, 'A0', 'de_anubis', 't', config=cfg,
+                                   request_override=request, existing_plugins=True)
+            steam_start.assert_not_called()
+            restore.assert_called_once_with(self.csgo, 'generation')
+        self.assertFalse((self.dst / 'match_request.json').exists())
 
     def test_observer_full_prepare_ten_avatars_and_quota(self):
         from cs2career.cs2.profiles import active_manifest

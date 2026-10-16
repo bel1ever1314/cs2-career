@@ -730,7 +730,7 @@ class BundledCompatibilityCohortTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         with patch('cs2career.paths.data_file', return_value=root / 'cs2career/data/cs2_runtime_compat.json'):
             manifest = compat.load_runtime_manifest()
-        self.assertEqual(manifest['revision'], 'windows-20261012.1-improver146-cs2-2000930')
+        self.assertEqual(manifest['revision'], 'windows-20261015.1-cs2-2000933')
         base = manifest['components'][0]
         self.assertEqual(base['name'], 'CS2 Bot Improver')
         self.assertEqual(base['version'], '1.4.6')
@@ -767,6 +767,9 @@ class OfficialImprover146Tests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory(prefix='improver146-')
         self.addCleanup(self.tmp.cleanup)
         self.base = Path(self.tmp.name)
+        # The real .NET payload can exceed MAX_PATH inside the runtime cache.
+        # Remove this owned fixture through the same long-path I/O boundary.
+        self.addCleanup(shutil.rmtree, compat.io_path(self.base))
         self.root = self.base / 'career'
         self.root.mkdir()
         self.game = self.base / 'game'

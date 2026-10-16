@@ -289,6 +289,7 @@ class SkinGamedataCompatibilityTests(unittest.TestCase):
              patch.object(launch, "_copy_career_match", return_value=0), \
              patch.object(launch, "_deploy_tactical_playbook", return_value=0), \
              patch.object(launch, "_copy_botbuy_patch", return_value=0), \
+             patch.object(launch, "_copy_aim_schema_patch", return_value=0), \
              patch.object(launch, "apply_bothider_config"):
             self.assertTrue(launch.install_mod(self.game, mod)["ok"])
         self.assertEqual(b"source legacy backup must not be copied", source_previous.read_bytes())

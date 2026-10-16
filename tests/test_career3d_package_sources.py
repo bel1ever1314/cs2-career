@@ -179,6 +179,36 @@ class Career3DSourcePackageTests(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 self.stage(root, output, assets, fonts, hashes)
 
+    def test_aim_patch_includes_rebuild_sources_license_and_tests(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            public = (
+                'vendor/BotAimImprover/BotAimImprover.dll',
+                'vendor/BotAimImprover/BotAimImprover.deps.json',
+                'vendor/BotAimImprover/BotAimImprover.csproj',
+                'vendor/BotAimImprover/BotAimImprover.cs',
+                'vendor/BotAimImprover/PawnBotSchema.cs',
+                'vendor/BotAimImprover/CHANGES.txt',
+                'vendor/BotAimImprover/LICENSE',
+                'tools/bot-aim-schema-tests/Program.cs',
+                'tools/bot-aim-schema-tests/BotAimSchema.Tests.csproj',
+            )
+            private = ('vendor/BotAimImprover/bin/Debug/BotAimImprover.dll',
+                       'vendor/BotAimImprover/obj/project.assets.json',
+                       'vendor/BotAimImprover/Unapproved.dll',
+                       'tools/bot-aim-schema-tests/bin/Debug/Generated.dll')
+            for relative in public + private:
+                path = root / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(b'fixture source or binary')
+            selected = {path.relative_to(root).as_posix() for path in pkg.source_files(root)}
+            self.assertTrue(set(public).issubset(selected))
+            self.assertFalse(set(private) & selected)
+            from tools import package_public
+            legacy = {path.relative_to(root).as_posix() for path in package_public.source_files(root)}
+            self.assertTrue(set(public).issubset(legacy))
+            self.assertFalse(set(private) & legacy)
+
     def test_tier_scenes_are_public_sources_but_private_nested_state_is_not(self):
         with tempfile.TemporaryDirectory() as folder:
             base = Path(folder)

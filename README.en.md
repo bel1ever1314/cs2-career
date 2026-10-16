@@ -10,6 +10,8 @@ The career now has a 3D world to walk around in. You're a chicken with a dorm ro
 
 The current version is **1.7.2**. This refresh expands the skin market, tips and match predictions, adds club discussions about roster changes, and makes break-time tasks clearer. Routine training maintains map familiarity; matches unlock new highs. Per-map simulation / CS2 / RTS choices, opening rosters for three eras and custom club logos remain included. The **1.6.0-hotfix.1** desktop version is still available separately.
 
+**CS2 2000933 compatibility — 2026-10-15:** Updates tactical navigation and look validation, and adds a BotAimImprover patch that looks up `m_pBot` through schema instead of a fixed offset. Retains Bot Improver 1.4.6, missing-component downloads on explicit installation, and repeated match-preparation fixes. Full gameplay validation remains pending. See the [2000933 test checklist](docs/CS2-2000933-测试清单.md).
+
 **Installation fix — 2026-10-12:** Fixes fresh installs blocked by a missing pinned Metamod component. An explicit install now fetches missing verified components before deploying the career plugins.
 
 **Compatibility refresh — 2026-10-11:** Updates tactical navigation and look direction for CS2 1.41.9.0 (2000930), skin signatures and the pinned Metamod runtime. The previous market, training and save-system updates remain included. Builds, offline regressions and backend startup checks passed; full gameplay validation remains pending. The independent RayTrace plugin still has an old-interface compatibility issue; CareerMatch navigation and observation do not depend on it. See the [compatibility audit](docs/tactical-server-2000930-audit.md).

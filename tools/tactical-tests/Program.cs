@@ -1,5 +1,7 @@
 using CareerMatch;
 
+try
+{
 if (args.Length != 1) throw new ArgumentException("Pass the installed server.dll (file audit only; never loads or executes the game DLL).");
 if (!TacticalNativeNavigation.TryAuditFile(args[0], out var audit, out var error)) throw new Exception(error);
 if (audit is null || audit.MoveRva != audit.CodeRva(0x2cfec0) || audit.IdleRva != audit.CodeRva(0x2c8230) || audit.StateRva != audit.CodeRva(0x2de010)
@@ -29,7 +31,8 @@ Func<byte[], (bool, string)> verify = bytes =>
     var passed = TacticalNativeNavigation.TryAuditBytes(bytes, out _, out _, out var reason);
     return (passed, reason);
 };
-if (audit.Sha256 == TacticalServer930.Sha256) Server930Regression.Run(args[0], verify);
+if (audit.Sha256 == TacticalServer933.Sha256) Server933Regression.Run(args[0], verify);
+else if (audit.Sha256 == TacticalServer930.Sha256) Server930Regression.Run(args[0], verify);
 else if (audit.Sha256 == TacticalServer927.Sha256)
 {
     if (audit.BotVtableRva != 0x17ad950 || audit.MoveToVtableRva != 0x17ad798)
@@ -37,3 +40,10 @@ else if (audit.Sha256 == TacticalServer927.Sha256)
     Server927Regression.Run(args[0], verify);
 }
 else FeatureProfileRegression.Run(args[0], observation: false, verify);
+}
+catch (Exception error)
+{
+    // Report test failures to the caller, not Windows Error Reporting dialogs.
+    Console.Error.WriteLine(error);
+    Environment.ExitCode = 1;
+}

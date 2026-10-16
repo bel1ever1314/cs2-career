@@ -31,6 +31,7 @@ from ..paths import frozen, io_path, logo_dir, save_file, save_root, static_dir,
 from .profiles import active_manifest, active_vpk_path, generate_match_vpk, stable_player_id
 from .result import pick_better_result, result_quality
 from .gameinfo import ensure_gameinfo_mounts
+from .preflight import require_installation_files
 
 SETTINGS_PATH = save_file("cs2.json")
 _SETTINGS_LOCK = threading.RLock()
@@ -1416,6 +1417,7 @@ def install_mod(csgo: Path | None = None, mod: Path | None = None, *, config=Non
     files += _copy_career_match(csgo, mod)
     files += _deploy_tactical_playbook(csgo, tactical_playbook)
     files += _copy_botbuy_patch(csgo)
+    files += _copy_aim_schema_patch(csgo)
     if skins_inventory_mode(cfg) == "external":
         files += _prepare_external_skins(csgo)
     else:
@@ -1697,6 +1699,9 @@ def write_career_cfg(csgo: Path, match: dict, opts: dict | None = None) -> None:
         f"mp_teamlogo_2 {match['t']['logo']}",
         f"bot_aim {opts['bot_aim']}",
         f"bot_nades {opts['bot_nades']}",
+        # BotState 1.10.2 changed its default horizontal FOV from 120 to 180.
+        # Keep the career's previous 1.10.0 horizontal/vertical behavior.
+        "css_bot_fov 120 180",
     ]
     from .natural_behavior import cfg_lines
     lines.extend(cfg_lines(match))
@@ -1963,12 +1968,18 @@ def _copy_botbuy_patch(csgo: Path) -> int:
     return _copy_verified_plugin(vendor_root() / "BotBuy", _plugin_live(csgo, "BotBuy"), "BotBuy")
 
 
+def _copy_aim_schema_patch(csgo: Path) -> int:
+    require_cs2_closed("更新瞄准组件兼容补丁")
+    return _copy_verified_plugin(
+        vendor_root() / "BotAimImprover", _plugin_live(csgo, "BotAimImprover"), "BotAimImprover")
+
+
 def _copy_verified_plugin(src: Path, dst: Path, plugin_name: str) -> int:
     copied = 0
     names = (f"{plugin_name}.dll", f"{plugin_name}.deps.json")
     for name in names:
         if not (src / name).is_file():
-            raise FileNotFoundError(f"比赛回传插件缺少 {name}，请使用完整的CS2联调包。")
+            raise FileNotFoundError(f"{plugin_name} 插件缺少 {name}，请使用完整的CS2联调包。")
     json.loads((src / names[1]).read_text(encoding='utf-8-sig'))
     dst.mkdir(parents=True, exist_ok=True)
     for name in names:
@@ -2252,6 +2263,9 @@ def prepare_game(
     # the explicit post-commit launch stage (never a read/preflight). Equal
     # hashes are a no-op; a locked/failed copy aborts before Steam dispatch.
     _copy_botbuy_patch(csgo)
+    # Replace the old fixed m_pBot offset only during explicit offline launch
+    # preparation, not from settings/status reads or environment toggles.
+    _copy_aim_schema_patch(csgo)
     match["bot_identity"] = opts["bot_identity"]
     from .natural_behavior import configure_match
     configure_match(match, opts.get("bot_movement", "classic"))
@@ -2342,8 +2356,9 @@ def start_match(
     cfg = _clean(dict(config)) if config is not None else settings()
     if not Path(cfg['steam_exe']).is_file():
         raise FileNotFoundError("找不到 steam.exe，请先在游戏设置保存有效路径。")
+    csgo = resolve_csgo_path(cfg['csgo_path'])
+    require_installation_files(csgo)
     match = request_override if request_override is not None else build_request(my_team, opp, player_name, map_code, side)
-    csgo = Path(cfg['csgo_path'])
     generation = _arm_cs2_environment(csgo)
     try:
         prepare_game(

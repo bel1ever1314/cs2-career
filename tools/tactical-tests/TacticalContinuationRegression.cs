@@ -15,7 +15,7 @@ internal static class TacticalContinuationRegression
         Check(TacticalNativeNavigation.TryAuditCode(serverPath, out var audit, out var file, out var why), "current file: "+why);
         Check(audit is not null && TacticalNativeNavigation.IsAuditedServerHash(audit.Sha256) && file is { Length: 9 }, "exact disk build and all nine bodies");
         var native = file!;
-        if (audit!.Sha256 is TacticalServer927.Sha256 or TacticalServer930.Sha256)
+        if (audit!.Sha256 is TacticalServer927.Sha256 or TacticalServer930.Sha256 or TacticalServer933.Sha256)
         {
             // Read/copy file bytes as DATA. Do not load server.dll or call it.
             var disk = File.ReadAllBytes(serverPath);
@@ -41,7 +41,9 @@ internal static class TacticalContinuationRegression
         Check(native[update].Length == 3133 && native[update].AsSpan(offset, 6).SequenceEqual(Convert.FromHexString("0F84D9000000")),
             "exact reviewed MoveToUpdate and original conditional branch");
         var patched = Copy(native); patch.CopyTo(patched[update], offset);
-        var patchedHash = audit!.Sha256 == TacticalServer930.Sha256
+        var patchedHash = audit!.Sha256 == TacticalServer933.Sha256
+            ? "4ACC9E293ACF2D120EEABBB889E6E9F40CAFCDB13C020E40D054D3A10FE11A85"
+            : audit.Sha256 == TacticalServer930.Sha256
             ? "4FFA0672ACDC729602A041DDFDF7AFB60E2B0E67D63D54D09E9384FD0FB4BA70"
             : audit.Sha256 == TacticalServer927.Sha256
             ? "102483B4190FB69DD908FEC4AB628DE93763DCED94B7A46E69D112FDB65D1E3D"

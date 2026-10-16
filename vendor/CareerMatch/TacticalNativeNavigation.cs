@@ -8,7 +8,7 @@ namespace CareerMatch;
 
 // Current-CS2, fail-closed native navigation adapter. No DLL loading, hooks,
 // teleport, velocity writes, aim locks, button ownership, or old-state restore.
-// Audited games: 2000922, 2000924, 2000927 and 2000930 (Oct 08 2026).
+// Audited games: 2000922, 2000924, 2000927, 2000930 and 2000933 (Oct 15 2026).
 // The RVAs documented below describe the legacy 922/924 layout; exact newer
 // profiles supply their reviewed code/table identities via Audit.CodeRva.
 // server.dll SHA256 below; addresses are derived from unique .text signatures,
@@ -47,7 +47,10 @@ internal sealed class TacticalNativeNavigation
     // Reviewed hashes provide a legacy exact-file profile. A different file
     // may use the bounded complete current feature profile below instead.
     internal static bool IsAuditedServerHash(string hash) =>
-        hash is AuditedServerSha256 or PreviousServerSha256 or TacticalServer927.Sha256 or TacticalServer930.Sha256;
+        hash is AuditedServerSha256 or PreviousServerSha256 or TacticalServer927.Sha256 or TacticalServer930.Sha256 or TacticalServer933.Sha256;
+
+    internal static int ReviewedCodeDelta(string hash) => hash == TacticalServer933.Sha256
+        ? TacticalServer933.CodeDelta : hash == TacticalServer930.Sha256 ? TacticalServer930.CodeDelta : 0;
 
     private static readonly byte[] MoveSignature = Convert.FromHexString(
         "F20F1002F20F1181E80200008B4208488D91E00200008981F0020000448981F4020000E928E10000");
@@ -96,10 +99,10 @@ internal sealed class TacticalNativeNavigation
     internal sealed record Audit(string Sha256, int MoveRva, int IdleRva, int StateRva, int PathRva, int ImageSize)
     {
         internal TacticalFeatureAudit.Snapshot? Dependencies { get; init; }
-        public int CodeRva(int legacyRva) => legacyRva + (Sha256 == TacticalServer930.Sha256 ? TacticalServer930.CodeDelta : 0);
-        public int BotVtableRva => Sha256 == TacticalServer930.Sha256 ? TacticalServer930.BotVtable : Sha256 == TacticalServer927.Sha256 ? TacticalServer927.BotVtable : 0x17ad970;
-        public int MoveToVtableRva => Sha256 == TacticalServer930.Sha256 ? TacticalServer930.MoveToVtable : Sha256 == TacticalServer927.Sha256 ? TacticalServer927.MoveToVtable : 0x17ad7b8;
-        public string CompatibilityProfile => Sha256 == TacticalServer930.Sha256 ? "reviewed_2000930" : Sha256 == TacticalServer927.Sha256 ? "reviewed_2000927"
+        public int CodeRva(int legacyRva) => legacyRva + ReviewedCodeDelta(Sha256);
+        public int BotVtableRva => Sha256 == TacticalServer933.Sha256 ? TacticalServer933.BotVtable : Sha256 == TacticalServer930.Sha256 ? TacticalServer930.BotVtable : Sha256 == TacticalServer927.Sha256 ? TacticalServer927.BotVtable : 0x17ad970;
+        public int MoveToVtableRva => Sha256 == TacticalServer933.Sha256 ? TacticalServer933.MoveToVtable : Sha256 == TacticalServer930.Sha256 ? TacticalServer930.MoveToVtable : Sha256 == TacticalServer927.Sha256 ? TacticalServer927.MoveToVtable : 0x17ad7b8;
+        public string CompatibilityProfile => Sha256 == TacticalServer933.Sha256 ? "reviewed_2000933" : Sha256 == TacticalServer930.Sha256 ? "reviewed_2000930" : Sha256 == TacticalServer927.Sha256 ? "reviewed_2000927"
             : Dependencies is null ? "reviewed_whole_file" : "current_stable_rva_features";
     }
     private readonly nint _module;
@@ -146,7 +149,7 @@ internal sealed class TacticalNativeNavigation
         try
         {
             var hash = Convert.ToHexString(SHA256.HashData(bytes));
-            int delta = hash == TacticalServer930.Sha256 ? TacticalServer930.CodeDelta : 0;
+            int delta = ReviewedCodeDelta(hash);
             var dependencies = IsAuditedServerHash(hash) ? null : TacticalFeatureAudit.Audit(bytes, observation: false);
             int nt = Read32(bytes, 0x3c);
             if (Read32(bytes, nt) != 0x4550 || Read16(bytes, nt + 4) != 0x8664)
@@ -180,7 +183,7 @@ internal sealed class TacticalNativeNavigation
             for (var i = 0; i < ContinuationBodies.Length; i++)
             {
                 var body = ContinuationBodies[i];
-                var expected = (hash == TacticalServer930.Sha256 ? TacticalServer930.NavigationHashes[i] : hash == TacticalServer927.Sha256 ? TacticalServer927.NavigationHashes[i] : body.Sha);
+                var expected = (hash == TacticalServer933.Sha256 ? TacticalServer933.NavigationHashes[i] : hash == TacticalServer930.Sha256 ? TacticalServer930.NavigationHashes[i] : hash == TacticalServer927.Sha256 ? TacticalServer927.NavigationHashes[i] : body.Sha);
                 if (body.Rva + delta < textRva || (long)body.Rva + delta + body.Length > textRva+textLength
                     || Convert.ToHexString(SHA256.HashData(text.Slice(body.Rva + delta - textRva, body.Length))) != expected)
                     throw new InvalidDataException("navigation_continuation_audit_mismatch:"+body.Name);
@@ -419,7 +422,7 @@ internal sealed class TacticalNativeNavigation
         && Marshal.ReadIntPtr(module+evidence.MoveToVtableRva) == module + evidence.CodeRva(0x32a630)
         && Marshal.ReadIntPtr(module+evidence.MoveToVtableRva+8) == module + evidence.CodeRva(0x330e90)
         && Marshal.ReadIntPtr(module+evidence.MoveToVtableRva+16) == module + evidence.CodeRva(0x32aaf0)
-        && MatchMemory(module + evidence.CodeRva(0x2dcab0), RunBody) && MatchMemory(module + evidence.CodeRva(0x2e7a00), evidence.Sha256 == TacticalServer930.Sha256 ? TacticalServer930.WalkBody : WalkBody);
+        && MatchMemory(module + evidence.CodeRva(0x2dcab0), RunBody) && MatchMemory(module + evidence.CodeRva(0x2e7a00), evidence.Sha256 == TacticalServer933.Sha256 ? TacticalServer933.WalkBody : evidence.Sha256 == TacticalServer930.Sha256 ? TacticalServer930.WalkBody : WalkBody);
 
     // Pure byte checks used by file/synthetic regression tests, without loading
     // a game module. Only two EXACT full-body variants exist. Other known
@@ -434,8 +437,9 @@ internal sealed class TacticalNativeNavigation
         var hashes = audited.Select(body => Convert.ToHexString(SHA256.HashData(body))).ToArray();
         var current = hashes[0] == TacticalServer927.NavigationHashes[0];
         var latest = hashes[0] == TacticalServer930.NavigationHashes[0];
+        var current933 = hashes[0] == TacticalServer933.NavigationHashes[0];
         for (var i = 0; i < ContinuationBodies.Length; i++)
-            if (hashes[i] != (latest ? TacticalServer930.NavigationHashes[i] : current ? TacticalServer927.NavigationHashes[i] : ContinuationBodies[i].Sha))
+            if (hashes[i] != (current933 ? TacticalServer933.NavigationHashes[i] : latest ? TacticalServer930.NavigationHashes[i] : current ? TacticalServer927.NavigationHashes[i] : ContinuationBodies[i].Sha))
             { reason = "navigation_continuation_snapshot_not_audited:"+ContinuationBodies[i].Name; return false; }
         if (!audited[MoveToUpdateIndex].AsSpan(DefuseVisibilityOffset, 6).SequenceEqual(DefuseVisibilityBranch))
         { reason = "navigation_defuse_visibility_branch_not_audited"; return false; }

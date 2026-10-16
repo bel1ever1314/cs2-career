@@ -15,6 +15,25 @@ from tools.package_career3d import archive, launch_cmd, seal_source_manifest, di
 
 
 class Package3DTests(unittest.TestCase):
+    def test_editor_cleanup_handles_long_paths_and_keeps_imported_resources(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            game = base / 'game'
+            editor = game / '.godot/editor' / ('nested-' + 'x' * 90)
+            long_file = editor / ('resource-' + 'y' * 150 + '.cfg')
+            source_pkg._io_path(editor).mkdir(parents=True)
+            source_pkg._io_path(long_file).write_bytes(b'generated editor state')
+            self.assertGreater(len(str(long_file)), 260)
+            imported = game / '.godot/imported/texture.ctex'
+            imported.parent.mkdir(parents=True)
+            imported.write_bytes(b'preserve imported runtime texture')
+            marker = base / 'unrelated.txt'
+            marker.write_bytes(b'leave unrelated data alone')
+            pkg.clean_import_editor_cache(game)
+            self.assertFalse((game / '.godot/editor').exists())
+            self.assertEqual(imported.read_bytes(), b'preserve imported runtime texture')
+            self.assertEqual(marker.read_bytes(), b'leave unrelated data alone')
+
     def test_runtime_audio_excludes_retired_entrance_but_keeps_new_stems(self):
         with tempfile.TemporaryDirectory() as temporary:
             base = Path(temporary)
@@ -204,7 +223,9 @@ class Package3DTests(unittest.TestCase):
             runtime = build / 'runtime-vendor'
             actual = {p.relative_to(runtime).as_posix() for p in runtime.rglob('*') if p.is_file()}
             self.assertEqual(actual, set(pkg.RUNTIME_VENDOR_FILES))
-            self.assertEqual(len(actual), 12)
+            self.assertEqual(len(actual), 14)
+            self.assertIn('BotAimImprover/BotAimImprover.dll', actual)
+            self.assertIn('BotAimImprover/BotAimImprover.deps.json', actual)
             for relative in actual:
                 self.assertEqual(digest(runtime / relative), digest(root / 'vendor' / relative))
             self.assertTrue(extra.is_file())
@@ -223,6 +244,16 @@ class Package3DTests(unittest.TestCase):
             with self.assertRaises(FileNotFoundError):
                 pkg.stage_runtime_vendor(root, base / 'runtime-vendor')
             self.assertFalse((base / 'runtime-vendor').exists())
+
+    def test_missing_aim_schema_patch_never_produces_partial_runtime(self):
+        for name in ('BotAimImprover.dll', 'BotAimImprover.deps.json'):
+            with self.subTest(file=name), tempfile.TemporaryDirectory() as temporary:
+                base = Path(temporary)
+                root, _, _, _ = self.fixture(base)
+                (root / 'vendor/BotAimImprover' / name).unlink()
+                with self.assertRaisesRegex(FileNotFoundError, 'BotAimImprover'):
+                    pkg.stage_runtime_vendor(root, base / 'runtime-vendor')
+                self.assertFalse((base / 'runtime-vendor').exists())
 
     def test_ordinary_build_uses_current_sources_and_matching_embedded_archive(self):
         with tempfile.TemporaryDirectory() as temporary:

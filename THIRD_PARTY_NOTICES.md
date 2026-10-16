@@ -16,6 +16,12 @@
   匿名行为脚本的来源、规范化方式与哈希在 botprofile_behavior/resources.json；
   BotBuy 生涯修改是延迟实体校验及阻止生涯 SSG08 随机改成冲锋枪。
   AGPL 全文见根目录 LICENSE。
+- BotAimImprover：ed0ard / CS2-Bullseye-Bot，AGPL-3.0。
+  基于 2.1.6（7157ff94dee6d0a0b2701c0c44dd0f2e6c9b988d）的生涯兼容补丁，
+  将固定 Bot 指针偏移改为 CounterStrikeSharp 的运行时字段查询，不改变上游瞄准逻辑。
+  完整源码、许可证与修改说明位于 vendor/BotAimImprover；兼容版本 2.1.6-career1。
+  https://github.com/ed0ard/CS2-Bullseye-Bot
+
 - InventorySimulator：Ian Lucas，MIT；本地 DLL 是历史项目已有的修改版本。
   https://github.com/ianlucas/cs2-css-inventory-simulator
   授权见 licenses/InventorySimulator-MIT.txt；恢复源码和验证限制见 RECOVERED_SOURCE.md。

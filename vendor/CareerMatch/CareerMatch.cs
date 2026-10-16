@@ -233,7 +233,7 @@ public sealed record TakeoverRecord(
 public sealed partial class CareerMatchPlugin : BasePlugin
 {
     public override string ModuleName => "CareerMatch";
-    public override string ModuleVersion => "1.7.2-cs2.2000930.1";
+    public override string ModuleVersion => "1.7.2-cs2.2000933.1";
     public override string ModuleAuthor => "CS2 Career Sim";
     public override string ModuleDescription =>
         "Auto-setup named career bots, force human side, export score + box score.";

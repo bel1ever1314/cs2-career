@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "revision": "windows-20261012.1-improver146-cs2-2000930",
-  "checked_date": "2026-10-12",
+  "revision": "windows-20261015.1-cs2-2000933",
+  "checked_date": "2026-10-15",
   "platform": "windows-x64",
-  "game_build": "2000930",
+  "game_build": "2000933",
   "components": [
     {
       "name": "CS2 Bot Improver",

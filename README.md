@@ -12,6 +12,8 @@
 
 当前版本是 **1.7.2**。这次补上了更完整的饰品市场、消息与赛事竞猜、和俱乐部商量换人，以及清楚的休赛期待办；地图训练也改为日常维持、比赛突破。逐图选择模拟／CS2／RTS、三个年代的开年阵容和自建队标继续保留。原来的桌面版 **1.6.0-hotfix.1** 也保留下载。
 
+**2026-10-15 CS2 2000933 适配：** 更新战术导航与观察方向的版本校验；瞄准补丁通过 schema 查找 `m_pBot`，避免依赖已变化的固定偏移。保留 Bot Improver 1.4.6、首次安装补齐组件和重复开赛准备修复；完整实战仍待验证。详见 [2000933 测试清单](docs/CS2-2000933-测试清单.md)。
+
 **2026-10-12 人机增强 1.4.6 适配：** 更新安装校验和兼容基线，保留新版瞄准、闪光状态修复及 Metamod 1474；不再把 1.4.6 覆盖回旧版。
 
 **2026-10-12 安装修复：** 修复首次安装缺少 Metamod 时无法继续的问题。明确点击安装后补齐已固定的官方兼容组件，再安装比赛回传和战术插件。
@@ -98,6 +100,8 @@ The career now has a 3D world to walk around in. You're a chicken with a dorm ro
 [Download 1.7.2](https://github.com/bel1ever1314/cs2-career/releases/latest) · [Download the 1.6.0 desktop release](https://github.com/bel1ever1314/cs2-career/releases/tag/v1.6.0-hotfix.1) · [Changelog](RELEASE_NOTES.md) · [Feedback](https://github.com/bel1ever1314/cs2-career/issues)
 
 The current version is **1.7.2**, with per-map tactic loading, custom VPK templates, uncapped Rating and match-result fixes. The **1.6.0-hotfix.1** desktop version remains available separately.
+
+**CS2 2000933 compatibility — 2026-10-15:** Updates tactical navigation and look validation, and adds a BotAimImprover patch that looks up `m_pBot` through schema instead of a fixed offset. Retains Bot Improver 1.4.6, missing-component downloads on explicit installation, and repeated match-preparation fixes. Full gameplay validation remains pending. See the [2000933 test checklist](docs/CS2-2000933-测试清单.md).
 
 **Installation fix — 2026-10-12:** Fixes fresh installs blocked by a missing pinned Metamod component. An explicit install now fetches missing verified components before deploying the career plugins.
 

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "version": "1.7.2",
+  "version": "1.7.2-CS2-2000933",
   "distribution": "external-runtime-not-bundled",
   "components": [
     {
@@ -20,21 +20,18 @@
     },
     {
       "name": "BotAimImprover",
-      "version": "2.1.6",
-      "source_commit": "17e895b68e0c5c365d5c6fea12f1f74342724ce8",
+      "version": "2.1.6-career1",
+      "source_commit": "7157ff94dee6d0a0b2701c0c44dd0f2e6c9b988d",
+      "local_source": "vendor/BotAimImprover",
       "url": "https://github.com/ed0ard/CS2-Bullseye-Bot",
-      "license": "AGPL-3.0",
-      "source_pin_version": "2.1.5",
-      "source_pin_note": "The 1.4.6 upstream tree still references the older source commit. Version and behavior were checked in the official release DLL; exact DLL hash is pinned in cs2_runtime_files.json."
+      "license": "AGPL-3.0"
     },
     {
       "name": "BotState",
       "version": "1.10.2",
-      "source_commit": "ce28e5c1359e9be910a3578694c94e5e8715d2a4",
+      "source_commit": "962743f26273ddc9b4e88de6d1d945ddffad3eee",
       "url": "https://github.com/ed0ard/CS2-Smarter-Bot",
-      "license": "AGPL-3.0",
-      "source_pin_version": "1.10.0",
-      "source_pin_note": "The 1.4.6 upstream tree still references the older source commit. Version and behavior were checked in the official release DLL; exact DLL hash is pinned in cs2_runtime_files.json."
+      "license": "AGPL-3.0"
     },
     {
       "name": "NadeSystem",
@@ -99,5 +96,5 @@
       "license": "GPL-3.0"
     }
   ],
-  "developer_notes": "Compatibility provenance pins only. Public packages do not include the complete bot runtime or HL2SDK mirror, or re-license their source or assets. Bot Improver 1.4.6 reuses the source submodule pins below but ships rebuilt BotAimImprover/BotState DLLs; exact release binaries are recorded in cs2_runtime_files.json. The approved bundle contains the matching BotController 0.7.1 cohort from 0ae8f18fd6872a369cb984e0e95e5a352be092fe; 0.7.0 remains the standalone fallback."
+  "developer_notes": "Compatibility provenance pins only. Public packages do not include the complete bot runtime or HL2SDK mirror, or re-license their source or assets. Official Bot Improver 1.4.6 release DLL hashes are recorded in cs2_runtime_files.json. The approved 1.4.6 cohort includes matching BotController 0.7.1 native/managed/API files, BotRandomizer, BotAimImprover and BotState; the 1.4.5 variant is retained for explicit upgrades. BotController 0.7.0 remains the standalone fallback. The bundled BotAimImprover 2.1.6-career1 overlay uses the corresponding source in vendor/BotAimImprover and schema lookup for m_pBot on CS2 2000933; the original official runtime folder is preserved."
 }

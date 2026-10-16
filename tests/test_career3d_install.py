@@ -462,12 +462,12 @@ class BundledInstallTests(unittest.TestCase):
         self.assertEqual(len(manifests), 1)
         self.assertEqual(json.loads(manifests[0].read_text('utf-8'))['status'], 'failed')
 
-    def test_external_install_deploys_our_match_and_buy_components_in_mock_game(self):
+    def test_external_install_deploys_our_match_buy_and_aim_components_in_mock_game(self):
         mod = self.external_source()
         (mod / 'addons/BotHider').mkdir()
         (mod / 'addons/BotHider/runtime.dll').write_bytes(b'fixture BotHider')
         vendor = self.root / 'fixture-vendor'
-        for name in ('CareerMatch', 'BotBuy'):
+        for name in ('CareerMatch', 'BotBuy', 'BotAimImprover'):
             folder = vendor / name
             folder.mkdir(parents=True)
             (folder / (name + '.dll')).write_bytes(('fixture ' + name).encode('ascii'))
@@ -482,7 +482,7 @@ class BundledInstallTests(unittest.TestCase):
             result = install.install_bundle(self.state, {**self.body, 'source':'external'})
         self.assertTrue(self.game.is_relative_to(QA_ROOT.resolve()))
         self.assertEqual((self.game / 'addons/metamod/runtime.dll').read_bytes(), b'user-selected runtime')
-        for name in ('CareerMatch', 'BotBuy'):
+        for name in ('CareerMatch', 'BotBuy', 'BotAimImprover'):
             folder = self.game / 'addons/counterstrikesharp/plugins' / name
             self.assertEqual((folder / (name + '.dll')).read_bytes(), ('fixture ' + name).encode('ascii'))
             self.assertEqual((folder / (name + '.deps.json')).read_text('utf-8'), '{}')

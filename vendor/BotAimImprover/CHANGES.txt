@@ -1,0 +1,20 @@
+Base: ed0ard/CS2-Bullseye-Bot v2.1.6
+Commit: 7157ff94dee6d0a0b2701c0c44dd0f2e6c9b988d
+https://github.com/ed0ard/CS2-Bullseye-Bot/tree/7157ff94dee6d0a0b2701c0c44dd0f2e6c9b988d
+License: AGPL-3.0, original LICENSE included.
+
+2026-10-15 local compatibility change (2.1.6-career1):
+Resolve CCSPlayerPawn::m_pBot from the running CS2 schema once during plugin
+load instead of retaining the platform constant. No old-offset fallback.
+If the field is unavailable, use the upstream inactive-plugin error path
+before a native hook is installed. Log the resolved field for diagnosis.
+Keep upstream aim priorities, weapon selection, visibility checks, hook,
+CCSBot target/enemy/visibility offsets, and controller-cache behavior intact.
+No BotAI or CareerMatch native function-body patches are added or removed.
+
+Official Windows 1.4.6 ZIP SHA256:
+e66a17329ccb00b340555fb64b09b0771ea4a0aa04566e7b9a915d7ad4c6f28e
+Official BotAimImprover.dll SHA256:
+d11a2e2d67f8fba62afb22ce958926b63ff34b74022e9c0d192d1c61e318b77a
+Static PE/IL audit confirmed its .cctor IL_027e hard-codes 0x1518.
+CS2 build 2000933's schema is 0x14F8; build 2000930's schema is 0x1518.

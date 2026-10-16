@@ -3,8 +3,16 @@ using CareerMatch;
 // Standalone entry point. Compile THIS source (not the navigation Program.cs)
 // with TacticalNativeLook.cs and the CSS API reference. It does not bind any
 // live module, allocate a native descriptor, or execute a server.dll function.
-if (args.Length != 1) throw new ArgumentException("Pass server.dll for a file-only look audit.");
-TacticalNativeLookRegression.Run(args[0]);
+try
+{
+    if (args.Length != 1) throw new ArgumentException("Pass server.dll for a file-only look audit.");
+    TacticalNativeLookRegression.Run(args[0]);
+}
+catch (Exception error)
+{
+    Console.Error.WriteLine(error);
+    Environment.ExitCode = 1;
+}
 
 internal static class TacticalNativeLookRegression
 {
@@ -27,7 +35,8 @@ internal static class TacticalNativeLookRegression
         Check(!TacticalNativeLook.IsAuditedServerHash(new string('0', 64)) &&
             !TacticalNativeLook.IsAuditedServerHash(TacticalNativeLook.AuditedServerSha256.ToLowerInvariant()),
             "unreviewed and non-exact build hashes refuse");
-        int delta = audit!.Sha256 == TacticalServer930.Sha256 ? TacticalServer930.CodeDelta : 0;
+        int delta = audit!.Sha256 == TacticalServer933.Sha256 ? TacticalServer933.CodeDelta
+            : audit.Sha256 == TacticalServer930.Sha256 ? TacticalServer930.CodeDelta : 0;
         Check(audit.LookRva == 0x2dda40 + delta && audit.ClearRva == 0x2fc1d0 + delta && audit.ConsumerRva == 0x2e6d30 + delta &&
             audit is { LookBytes: 347, ClearBytes: 20, ConsumerBytes: 1500 } && TacticalNativeLook.IsAuditedServerHash(audit.Sha256),
             "complete function identities");
@@ -187,7 +196,8 @@ internal static class TacticalNativeLookRegression
             bool passed = TacticalNativeLook.TryAuditBytes(bytes, out _, out _, out var why);
             return (passed, why);
         };
-        if (audit!.Sha256 == TacticalServer930.Sha256) Server930Regression.Run(serverPath, verify);
+        if (audit!.Sha256 == TacticalServer933.Sha256) Server933Regression.Run(serverPath, verify);
+        else if (audit.Sha256 == TacticalServer930.Sha256) Server930Regression.Run(serverPath, verify);
         else if (audit.Sha256 == TacticalServer927.Sha256) Server927Regression.Run(serverPath, verify);
         else FeatureProfileRegression.Run(serverPath, observation: true, verify);
         Console.WriteLine($"{_checks} native-look file/lease checks passed. No server module loaded or executed; live aim is not tested.");

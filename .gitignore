@@ -23,6 +23,7 @@ work/career3d_redesign/temp/
 !vendor/InventorySimulator/plugins/InventorySimulator/InventorySimulator.dll
 !vendor/InvsimCareer/InvsimCareer.dll
 !vendor/BotBuy/BotBuy.dll
+!vendor/BotAimImprover/BotAimImprover.dll
 vendor/**/bin/
 vendor/**/obj/
 tools/**/bin/

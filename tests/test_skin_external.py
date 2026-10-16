@@ -1,4 +1,4 @@
-"""External inventory ownership, using D: mock game trees and no game/network."""
+"""External inventory ownership in disposable trees with no game/network."""
 from copy import deepcopy
 import json
 import os
@@ -14,9 +14,7 @@ from cs2career.career import skins
 
 class ExternalInventoryTests(unittest.TestCase):
     def setUp(self):
-        qa = Path('D:/CS2CareerBuilds/v1.6.0/optional-skin-compat-20261001/qa')
-        qa.mkdir(parents=True, exist_ok=True)
-        self.tmp = tempfile.TemporaryDirectory(prefix='external-inventory-', dir=qa)
+        self.tmp = tempfile.TemporaryDirectory(prefix='external-inventory-')
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
         self.game = self.root / 'game' / 'csgo'

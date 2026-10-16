@@ -31,6 +31,7 @@ ENGINE_LEGAL_HASHES = {
 RUNTIME_VENDOR_FILES = (
     'CareerMatch/CareerMatch.dll', 'CareerMatch/CareerMatch.deps.json',
     'BotBuy/BotBuy.dll', 'BotBuy/BotBuy.deps.json',
+    'BotAimImprover/BotAimImprover.dll', 'BotAimImprover/BotAimImprover.deps.json',
     'InvsimCareer/InvsimCareer.dll', 'InvsimCareer/InvsimCareer.deps.json',
     'InventorySimulator/gamedata/inventory-simulator.json',
     'InventorySimulator/plugins/InventorySimulator/InventorySimulator.dll',
@@ -198,6 +199,16 @@ def freeze_backend(source, build):
     return build / 'dist/CareerBackend'
 
 
+def clean_import_editor_cache(target):
+    """Remove only generated editor folders, including Windows long filenames."""
+    from tools.career3d_package_sources import _io_path
+    cache = Path(target) / '.godot'
+    if cache.is_dir():
+        for child in cache.iterdir():
+            if child.is_dir() and child.name != 'imported':
+                shutil.rmtree(_io_path(child))
+
+
 def stage_game(source, target, engine, media_config, *, version=VERSION):
     project = source / 'work/career3d_redesign'
     target.mkdir(parents=True, exist_ok=False)
@@ -235,11 +246,7 @@ def stage_game(source, target, engine, media_config, *, version=VERSION):
     if result.returncode or 'SCRIPT ERROR:' in result.stdout + result.stderr:
         raise RuntimeError('Godot project import failed:\n' + result.stdout + result.stderr)
     (target.parent / 'godot-import.log').write_text(result.stdout + result.stderr, encoding='utf-8')
-    cache = target / '.godot'
-    if cache.is_dir():
-        for child in cache.iterdir():
-            if child.is_dir() and child.name != 'imported':
-                shutil.rmtree(child)
+    clean_import_editor_cache(target)
     return result
 
 

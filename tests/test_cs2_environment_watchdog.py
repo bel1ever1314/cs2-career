@@ -371,6 +371,10 @@ class MatchEnvironmentDispatchTests(unittest.TestCase):
         self.steam = self.root / 'steam.exe'
         self.steam.write_bytes(b'never executed')
         self.csgo = self.root / 'game/csgo'
+        for path in (self.csgo / 'steam.inf', self.csgo / 'bin/win64/server.dll',
+                     self.csgo.parent / 'bin/win64/cs2.exe'):
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b'fixture only; never executed')
         self.cfg = dict(launch.DEFAULTS, steam_exe=str(self.steam), csgo_path=str(self.csgo),
                         mod_source_path=str(self.root / 'mod'))
         self.request = dict(human_team='ct', map='de_dust2', nonce='game-one',
