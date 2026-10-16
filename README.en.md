@@ -43,9 +43,9 @@ The local ladder uses your current career player. The two highest-rated particip
 
 ## Playing in CS2
 
-Install and sign into Steam and CS2, and obtain a compatible [CS2 Bot Improver Windows runtime](https://github.com/ed0ard/CS2-Bot-Improver/releases). The public 3D package includes Career and its bridge components; the complete bot enhancement is obtained separately.
+Install and sign into Steam and CS2. Since 2026-10-16, the default Windows download includes Bot Improver 1.4.6 and its runtime dependencies. No separate enhancement download or manual install action is required.
 
-1. Fully exit CS2. Open Settings on the phone or computer, set the Steam, CS2 and extracted bot-enhancement paths, then choose “安装填写目录的人机增强” (Install from the configured folder). The installer checks your local release and installs it together with Career's bundled tactics, result reporting and compatibility components, backing up existing files. Your original release folder stays unchanged; later matches use the compatible runtime copy. If a pinned compatible component is missing locally, the first installation downloads it from its official source.
+1. Fully exit CS2 and confirm your Steam and CS2 paths in Settings. Choosing Enter CS2 prepares missing or outdated bundled components offline, backing up replaced files. Current components are reused.
 2. Prepare a career, ladder, or custom match, complete the player draft and map veto, then launch CS2.
 3. Finish the official match and return to the career computer to review and import the result.
 
@@ -53,7 +53,7 @@ On match day, you can also travel to the assigned venue from the doorway. Prepar
 
 “Check for bot-enhancement updates” only contacts GitHub when you click it and never downloads or replaces components automatically. In-game skin swapping starts disabled; enable it in Settings if you want to use it.
 
-This version supports Bot Improver 1.4.5. Accepted action radio commands such as Follow Me or Fall Back interrupt your team's custom tactics, including waypoint waits. Ordinary information calls keep the tactic running.
+This version supports Bot Improver 1.4.6. Accepted action radio commands such as Follow Me or Fall Back interrupt your team's custom tactics, including waypoint waits. Ordinary information calls keep the tactic running.
 
 Use these plugins for **local bot matches with `-insecure`**. Settings provides a one-click plugin switch, and Career restores the normal environment after its CS2 session exits. Before official matchmaking, confirm normal mode and remove `-insecure` from your Steam launch options.
 

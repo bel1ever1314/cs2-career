@@ -78,7 +78,11 @@ func can_prepare_here() -> bool:
 func current_preflight() -> Dictionary:
 	var current: Dictionary = CareerBridge.context.get("match_preflight", {})
 	var id := str(current_game().get("id", ""))
-	if str(preflight.get("match_id", "")) == id and not id.is_empty(): return preflight
+	# Installation/settings updates refresh the shared projection. Never let an
+	# older page-local BP response keep its obsolete component error on screen.
+	if str(preflight.get("match_id", "")) == id and not id.is_empty():
+		if str(current.get("match_id", "")) != id or int(preflight.get("revision", -1)) > int(current.get("revision", -1)):
+			return preflight
 	return current if str(current.get("match_id", "")) == id else {}
 
 func current_connection() -> Dictionary:

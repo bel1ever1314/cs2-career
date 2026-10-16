@@ -438,6 +438,9 @@ def recover_cs2_map(state, event, match, mode, *, retire_request=None):
 def _dispatch_launch(cfg, arguments, kwargs):
     """External adapter only: no career mutation or save transaction here."""
     from cs2career.cs2 import launch
+    from cs2career.services.bundled_launch import prepare
+    # This adapter runs only after the handoff coordinator saved its intent.
+    cfg = prepare(cfg)
     return launch.start_match(*arguments, **kwargs, config=cfg, existing_plugins=True)
 
 

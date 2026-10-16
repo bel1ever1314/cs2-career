@@ -1,0 +1,30 @@
+CS2 Career 1.7.2 / CS2 2000933 — integrated runtime release, 2026-10-16
+
+This package contains the verified Bot Improver 1.4.6 runtime, Metamod 1474,
+CounterStrikeSharp 1.0.376 with its .NET runtime, and the official 0.7.1
+BotController native/managed/API cohort. Panel, Steam, CS2 and private player
+data are excluded. Each component retains its original copyright and license.
+
+Pinned production sources and build instructions are in third_party/bot-runtime;
+SOURCE_INDEX.json identifies their exact revisions and checksums. These files
+are also available in CS2Career-1.7.2-runtime-sources.zip on the same GitHub
+release. Runtime binary checksums are in RUNTIME_COMPAT_RECEIPT.json. Source
+gitlinks from an aggregate Bot Improver tag are not used instead of the actual
+released plugin versions; BotState 1.10.2 and BotAimImprover 2.1.6 use their
+individually reviewed revisions. The application deploys its schema-compatible
+BotAimImprover 2.1.6-career1 overlay when preparing a match.
+
+The application source ZIP supplies complete local modifications to CareerMatch,
+BotBuy and BotAimImprover. InventorySimulator and InvsimCareer carry their
+existing MIT notices and source-recovery documentation. This distribution
+does not relicense third-party code or Valve/team artwork.
+
+To build an upstream component, extract its source ZIP and follow that project's
+README/build scripts. Use recursive Git submodule checkout at the source_trees
+revisions recorded in SOURCE_INDEX.json where applicable. Native SDK build
+dependencies are listed separately by repository, commit and source_prefix;
+they are not a mirrored Valve SDK distribution. System toolchains, .NET SDK,
+CMake, MSVC and NuGet restore remain external development requirements.
+
+Sources: https://github.com/bel1ever1314/cs2-career/releases/tag/v1.7.2
+Application: AGPL-3.0-only, with preserved legacy and third-party notices.

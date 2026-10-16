@@ -22,6 +22,8 @@
 
 ### 开始游玩
 
+**2026-10-16：默认下载已更新为完整人机增强整合包。** 修复安装成功后仍显示旧检查结果的问题；点击“进入 CS2”时自动离线准备随包组件，无需单独下载或手动安装。此前普通包说明仅适用于旧附件。
+
 1. 打开 [最新发布页](https://github.com/bel1ever1314/cs2-career/releases/latest)，下载 `CS2Career-1.7.2-windows.zip`。
 2. 完整解压到可写入的文件夹，双击 `开始游戏.cmd` 或 `Launch-CS2Career.cmd`。
 3. 按开局引导创建角色、抽取能力并调整小鸡形象，也可以选择年代接管职业选手。
@@ -47,9 +49,9 @@
 
 ### 亲自进入 CS2
 
-需要自行安装并登录 Steam 和 CS2，以及获取兼容的 [CS2 Bot Improver Windows 运行包](https://github.com/ed0ard/CS2-Bot-Improver/releases)。公开的 3D 运行包提供生涯程序和桥接组件，完整人机增强另行获取。
+需要自行安装并登录 Steam 和 CS2。当前完整整合包已附带 Bot Improver 1.4.6 及兼容组件，不需要另外下载人机增强；上游来源见[官方项目](https://github.com/ed0ard/CS2-Bot-Improver)。
 
-1. 完全退出 CS2，在手机或电脑的“设置”中填写 Steam、CS2 与已解压的人机增强目录，点击“安装填写目录的人机增强”。程序直接检查本地发行包，连同随程序提供的战术、比赛回传和兼容组件一起安装，并保留安装前备份。原发行包不变，后续开赛使用兼容副本；若本地缺少已固定的兼容版本，首次安装会从官方来源下载所需组件。
+1. 完全退出 CS2，在手机或电脑的“设置”中确认 Steam 和 CS2 路径。从生涯点击“进入 CS2”时，程序自动离线准备缺少或过旧的随包组件，并保留安装前备份；已就绪的组件不重复安装。
 2. 从职业比赛、本地天梯或自定义对局准备比赛，完成选人与地图 BP 后启动 CS2。
 3. 打完正式比赛，回到生涯电脑查看回传战绩并录入结果。
 
@@ -57,7 +59,7 @@
 
 想查看上游新版时，主动点击“检查人机增强更新”即可，它不会自动下载或替换现有组件。游戏内换肤默认关闭，需要时在设置里手动开启。
 
-本版适配 Bot Improver 1.4.6。完整官方 1.4.6 可直接离线安装；旧包会在点击安装后补齐固定的 1.4.6 兼容组件。队友执行自定义战术时，也能响应你的行动无线电：例如守点等待中发出“跟随我”或“撤退”，就会结束旧路线、交给无线电任务；普通报点不打断战术。
+本版适配 Bot Improver 1.4.6。整合包开赛时自动准备组件；不附带增强的源码构建仍保留手动指定发行包的入口。队友执行自定义战术时，也能响应你的行动无线电：例如守点等待中发出“跟随我”或“撤退”，就会结束旧路线、交给无线电任务；普通报点不打断战术。
 
 这套插件用于 **`-insecure` 本地人机对局**。设置中可以一键开启插件或恢复普通 CS2 环境；退出由生涯程序启动的 CS2 后，也会自动恢复。进入官方匹配前，请确认已恢复普通环境并移除 Steam 启动项中的 `-insecure`。
 
@@ -133,9 +135,9 @@ The local ladder uses your current career player. The two highest-rated particip
 
 ### Playing in CS2
 
-Install and sign into Steam and CS2, and obtain a compatible [CS2 Bot Improver Windows runtime](https://github.com/ed0ard/CS2-Bot-Improver/releases). The public 3D package includes Career and its bridge components; the complete bot enhancement is obtained separately.
+Install and sign into Steam and CS2. The current integrated Windows package includes Bot Improver 1.4.6 and its runtime dependencies; no separate enhancement download is required.
 
-1. Fully exit CS2. Open Settings on the phone or computer, set the Steam, CS2 and extracted bot-enhancement paths, then choose “安装填写目录的人机增强” (Install from the configured folder). The installer checks your local release and installs it together with Career's bundled tactics, result reporting and compatibility components, backing up existing files. Your original release folder stays unchanged; later matches use the compatible runtime copy. If a pinned compatible component is missing locally, the first installation downloads it from its official source.
+1. Fully exit CS2 and confirm your Steam and CS2 paths in Settings. Choosing Enter CS2 prepares missing or outdated bundled components offline, backing up replaced files. Current components are reused; no separate install action is needed.
 2. Prepare a career, ladder, or custom match, complete the player draft and map veto, then launch CS2.
 3. Finish the official match and return to the career computer to review and import the result.
 
@@ -143,7 +145,7 @@ On match day, you can also travel to the assigned venue from the doorway. Prepar
 
 “Check for bot-enhancement updates” only contacts GitHub when you click it and never downloads or replaces components automatically. In-game skin swapping starts disabled; enable it in Settings if you want to use it.
 
-This version supports Bot Improver 1.4.6. A complete official 1.4.6 folder installs offline; older folders receive the pinned 1.4.6 components when you explicitly install. Accepted action radio commands such as Follow Me or Fall Back interrupt your team's custom tactics, including waypoint waits. Ordinary information calls keep the tactic running.
+This version includes Bot Improver 1.4.6. Source builds without the bundle retain the external installer. Accepted action radio commands such as Follow Me or Fall Back interrupt your team's custom tactics, including waypoint waits. Ordinary information calls keep the tactic running.
 
 Use these plugins for **local bot matches with `-insecure`**. Settings provides a one-click plugin switch, and Career restores the normal environment after its CS2 session exits. Before official matchmaking, confirm normal mode and remove `-insecure` from your Steam launch options.
 

@@ -349,12 +349,15 @@ def read_cs2_config():
 def config_status():
     from cs2career.cs2 import launch
     from cs2career.cs2.runtime_compat import runtime_context
+    from cs2career.services.installation import bundle_root
     cfg = read_cs2_config()
+    bundled = bundle_root()
+    mod_source = bundled or Path(cfg.get('mod_source_path') or '')
     csgo = launch.resolve_csgo_path(cfg.get('csgo_path') or '')
     checks = {'steam': bool(cfg.get('steam_exe')) and Path(cfg['steam_exe']).is_file(),
               'csgo': bool(cfg.get('csgo_path')) and launch.is_csgo_dir(csgo)
                       and (csgo / 'gameinfo.gi').is_file(),
-              'mod': bool(cfg.get('mod_source_path')) and launch._improver_here(Path(cfg['mod_source_path']))}
+              'mod': bool(bundled or cfg.get('mod_source_path')) and launch._improver_here(mod_source)}
     checks['runtime'] = checks['csgo'] and launch.mod_installed(csgo)
     checks['career_match'] = checks['csgo'] and all((launch.plugin_dir(csgo) / name).is_file()
         for name in ('CareerMatch.dll', 'CareerMatch.deps.json'))
@@ -375,16 +378,22 @@ def config_status():
                         for key, label in component_labels.items() if checks['csgo'] and not checks[key]]
     if checks['career_match'] and not launch.career_match_current(csgo):
         missing.append('career_match_update')
-        component_errors.append('比赛回传／战术组件需要更新。点击“安装填写目录的人机增强”即可使用随程序提供的新版，无需重新下载人机包。')
+        component_errors.append('比赛回传／战术组件将在进入 CS2 时自动更新。' if bundled else
+            '比赛回传／战术组件需要更新。点击“安装填写目录的人机增强”即可使用随程序提供的新版，无需重新下载人机包。')
     if not missing:
         reason = '路径和比赛组件已就绪。'
     else:
         reason = ' '.join(path_errors + component_errors)
-        if component_errors:
+        if component_errors and not bundled:
             reason += ' 请在设置中点击“安装填写目录的人机增强”。'
-    return {'ready': not missing, 'reason': reason, 'missing': missing, 'checks': checks,
+    installed_ready = not missing
+    auto_prepare = bool(bundled and checks['steam'] and checks['csgo'])
+    if auto_prepare and missing:
+        reason = '已附带完整人机增强；点击进入 CS2 时自动准备或更新组件，无需手动安装。'
+    return {'ready': installed_ready or auto_prepare, 'installed_ready': installed_ready,
+            'auto_prepare': auto_prepare, 'reason': reason, 'missing': missing, 'checks': checks,
             'path_errors': path_errors, 'component_errors': component_errors,
-            'compatibility': runtime_context(Path(cfg.get('mod_source_path') or '')),
+            'compatibility': runtime_context(mod_source),
             'difficulty': cfg['difficulty'], 'difficulties': list(launch.DIFFICULTIES),
             'csgo_path': str(csgo) if cfg.get('csgo_path') else '', 'steam_exe': cfg.get('steam_exe', ''),
             'mod_source_path': cfg.get('mod_source_path', ''), 'plugins_install_enabled': True}

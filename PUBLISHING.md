@@ -2,10 +2,10 @@
 
 ## 1.7.2 · 3D 版
 
-本版发布普通 Windows 包与对应源码，按作者要求设置为 GitHub Latest。
+本版发布完整增强 Windows 包、应用源码与组件源码，按作者要求设置为 GitHub Latest。
 本次刷新同一个 1.7.2：适配 CS2 2000933 的战术导航与观察方向，加入 BotAimImprover 的 schema 兼容补丁。
 保留 Bot Improver 1.4.6、10 月 12 日首次安装和重复准备修复，以及此前市场、转会、训练和存档更新。
-普通包不含完整人机增强；完整实战尚未验证，RayTrace 独立插件的已知限制写入发布说明。
+2026-10-16 改为随包离线自动准备；程序文件沿用用户确认可用的测试包，RayTrace 独立插件的已知限制写入发布说明。
 不创建带后缀的新版本。
 GitHub 的 Latest 使用非 draft、非 prerelease 发布。
 主分支保存当前源码；既有 1.6.0-hotfix.1 标签和正式 Release 不修改。
@@ -17,18 +17,18 @@ GitHub 的 Latest 使用非 draft、非 prerelease 发布。
 朋友测试整合包通过 `tools/package_career3d_friends.py` 从这个干净运行包派生，
 单独附加已核对的人机增强、许可与对应来源资料，不复制个人存档或游戏目录。
 
-发布普通 Windows ZIP、源码 ZIP、`BUILD_MANIFEST.json` 和 `SHA256SUMS.txt`。
-普通包的 `source/` 必须附带同一份公开源码 ZIP，必要的许可证和素材出处保留。
-朋友整合包单独保存在本地，供测试者使用；GitHub 普通包不携带完整增强。
+发布整合 Windows ZIP、源码 ZIP、组件源码 ZIP、`BUILD_MANIFEST.json` 和 `SHA256SUMS.txt`。
+运行包的 `source/` 必须附带同一份公开应用源码 ZIP，必要的许可证和素材出处保留。
+整合包来自已验证的本地测试包，剔除整个 `game/runtime`；保持程序二进制不变，补齐组件对应源码和许可。
 外部 SDK 镜像不混入公开源码；依赖获取信息见
 `docs/external-runtime-pins.json`，更详细的构建记录见
 `docs/3d-preview-packaging.zh-CN.txt`。
 
 Git 推送使用已有仓库的历史，主分支不强推。此次按作者要求替换 1.7.2，
-只将 v1.7.2 标签更新到本次构建提交，并保留原标签的提交记录；其他标签不改。
+保留 v1.7.2 及已有构建标签，新增 v1.7.2-cs2-2000933-autoready 指向本次提交；不强推已有标签。
 不上传用户存档、
 账号、私人扩展、原始 Demo、日志和缓存。GitHub Release 的所有附件上传
-并核对完毕后才从 draft 发布，以免玩家下载到缺少源码或文件的版本。
+并核对 SHA-256 后才替换默认下载名；旧附件改名保留作回退。
 
 ## 1.6.0 · 桌面版构建记录
 

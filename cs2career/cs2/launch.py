@@ -2003,6 +2003,10 @@ def _copy_verified_plugin(src: Path, dst: Path, plugin_name: str) -> int:
             copied += 1
         finally:
             pending.unlink(missing_ok=True)
+    # An explicit install must invalidate pre-install status, even when a
+    # replacement preserves a timestamp or the files already compare equal.
+    if plugin_name == 'CareerMatch':
+        _matching_plugin_bytes.cache_clear()
     return copied
 
 

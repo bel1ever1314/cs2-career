@@ -12,7 +12,7 @@
 - CS2 Bot Improver：ed0ard 与原项目贡献者，AGPL-3.0。
   https://github.com/ed0ard/CS2-Bot-Improver
   复用的内容是 botprofile_presets 匿名模板、Medium 参数规律、1.4.5 匿名 Rush 行为脚本及 vendor/BotBuy 源码。
-  原1700人名单及增强整包不随发行包分发。模板来源哈希在 presets.json；
+  不分发原1700人名单或管理 Panel；2026-10-16 整合包包含经校验的增强运行组件。模板来源哈希在 presets.json；
   匿名行为脚本的来源、规范化方式与哈希在 botprofile_behavior/resources.json；
   BotBuy 生涯修改是延迟实体校验及阻止生涯 SSG08 随机改成冲锋枪。
   AGPL 全文见根目录 LICENSE。
@@ -83,11 +83,13 @@ https://github.com/ValveResourceFormat/ValveResourceFormat 。本地验证使用
 3D 界面的年度颁奖舞台为原创布局，不包含 HLTV 标志或上游典礼录像。
 
 沙二自然动作试验使用 XBribo/CS2-Bot-Controller 的 ABI 20 移动输入接口。
-接口定义参考 https://github.com/XBribo/CS2-Bot-Controller （AGPL-3.0）；不打包或替换其原生 DLL。
+接口定义参考 https://github.com/XBribo/CS2-Bot-Controller （AGPL-3.0）；整合包保留官方发行的配套原生 DLL，不自行修改。
 本地 Demo 派生动作包放在测试版 natural_routes 目录，不随公开源码或标准 Release 分发。
 
 进入 CS2 需要 Steam、CS2、Metamod、CounterStrikeSharp、BotHider 和 Bot Improver 的运行组件，
-玩家从官方/上游发行页获取。这些完整产品不包含在本发行包中，不受本项目 LICENSE 重新授权。
+当前整合包包含增强运行组件，但不包含 Steam、CS2 本体或管理 Panel；第三方组件不受本项目 LICENSE 重新授权。
+固定版本来源、构建依赖及校验值见 `third_party/bot-runtime/SOURCE_INDEX.json`，
+对应源码同时提供于本次 Release 的 `CS2Career-1.7.2-runtime-sources.zip`；组件许可证在 `legal/bot-runtime/`。
 CounterStrikeSharp 的许可说明：
 https://github.com/roflmuffin/CounterStrikeSharp/blob/main/LICENSE
 

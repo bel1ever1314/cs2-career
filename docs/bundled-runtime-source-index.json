@@ -1,0 +1,520 @@
+{
+  "schema_version": 1,
+  "runtime_release": "Bot Improver 1.4.6",
+  "components": [
+    {
+      "component": "BotVision",
+      "license": "AGPL-3.0-only",
+      "source_trees": [
+        {
+          "repository": "XBribo/CS2-Bot-Vision",
+          "commit": "33ab01fc5ec4e27b6f07aff653d54638ad84ebcb",
+          "archive_url": "https://codeload.github.com/XBribo/CS2-Bot-Vision/zip/33ab01fc5ec4e27b6f07aff653d54638ad84ebcb",
+          "download_sha256": "b04d26fd7dfce25e9671ca201999a08d285c3b67e998aa92dd781ee89bf7a622",
+          "source_prefix": "",
+          "source_files": 46,
+          "excluded_data_files": 6,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        }
+      ],
+      "archive": "BotVision-33ab01fc5ec4-source.zip",
+      "sha256": "408f5f7e5e745b857d70333b25a38dcdd40a2dc05eb45cbeeb35d95623898fdd"
+    },
+    {
+      "component": "CounterStrikeSharp",
+      "license": "GPL-3.0-with-plugin-MIT-exception",
+      "source_trees": [
+        {
+          "repository": "roflmuffin/CounterStrikeSharp",
+          "commit": "653d651f1ac09ac1ddb423d588f871b891038860",
+          "archive_url": "https://codeload.github.com/roflmuffin/CounterStrikeSharp/zip/653d651f1ac09ac1ddb423d588f871b891038860",
+          "download_sha256": "0c769c2653eaf8fc74740c0dce2a100e4ea672548a0cac0ae1e36bd5770123c7",
+          "source_prefix": "",
+          "source_files": 1987,
+          "excluded_data_files": 144,
+          "anonymized_documentation_examples": [
+            "docfx/docs/admin-framework/defining-admin-groups.md",
+            "docfx/docs/admin-framework/defining-admin-immunity.md",
+            "docfx/docs/admin-framework/defining-admins.md",
+            "docfx/docs/admin-framework/defining-command-overrides.md",
+            "managed/CounterStrikeSharp.API/Modules/Commands/Targeting/TargetType.cs"
+          ],
+          "scope": "production source including pinned submodules"
+        },
+        {
+          "repository": "alliedmodders/metamod-source",
+          "commit": "fa6f80e4662e5b96cc2e97722d812f374581dfd8",
+          "archive_url": "https://codeload.github.com/alliedmodders/metamod-source/zip/fa6f80e4662e5b96cc2e97722d812f374581dfd8",
+          "download_sha256": "5f6bfc57f702a9d6f77f4ce794fede80ce7e54f68b5dcd9a7dad0ac7fb71c589",
+          "source_prefix": "libraries/metamod-source/",
+          "source_files": 99,
+          "excluded_data_files": 52,
+          "anonymized_documentation_examples": [
+            "samples/s1_sample_mm/README.md"
+          ],
+          "scope": "production source including pinned submodules"
+        },
+        {
+          "repository": "alliedmodders/amtl",
+          "commit": "285b4f853c0003023838140113e3ec066bd800c6",
+          "archive_url": "https://codeload.github.com/alliedmodders/amtl/zip/285b4f853c0003023838140113e3ec066bd800c6",
+          "download_sha256": "058e789d83b14fcf2dbb381b49cbddb82de767f673e756391604e98a59d50551",
+          "source_prefix": "libraries/metamod-source/third_party/amtl/",
+          "source_files": 55,
+          "excluded_data_files": 23,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        },
+        {
+          "repository": "google/googletest",
+          "commit": "a651a4d44e65b749467fa3dddf93819a22f0cc4a",
+          "archive_url": "https://codeload.github.com/google/googletest/zip/a651a4d44e65b749467fa3dddf93819a22f0cc4a",
+          "download_sha256": "ba64f77522d75611020466468c95f7fe8b7ccffa69a946e29e8ee2d866acbc7c",
+          "source_prefix": "libraries/metamod-source/third_party/amtl/third_party/googletest/",
+          "source_files": 188,
+          "excluded_data_files": 139,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        },
+        {
+          "repository": "Kenzzer/KHook",
+          "commit": "40d233d160b5bf60cc3e732939142b222fbd8ece",
+          "archive_url": "https://codeload.github.com/Kenzzer/KHook/zip/40d233d160b5bf60cc3e732939142b222fbd8ece",
+          "download_sha256": "3efdccb02cbf70431fb89b2e4a7c7d10dc88fe636506a296e3056e668ff83c68",
+          "source_prefix": "libraries/metamod-source/third_party/khook/",
+          "source_files": 22,
+          "excluded_data_files": 13,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        },
+        {
+          "repository": "alliedmodders/safetyhook",
+          "commit": "ec3f698a1d9936d72c57c639536fbbedab6d7c8a",
+          "archive_url": "https://codeload.github.com/alliedmodders/safetyhook/zip/ec3f698a1d9936d72c57c639536fbbedab6d7c8a",
+          "download_sha256": "84c2f5deda5907ed982d4e465c6730fd6c0b433d4dc88c543d554fee018d0b02",
+          "source_prefix": "libraries/metamod-source/third_party/khook/third_party/safetyhook/",
+          "source_files": 40,
+          "excluded_data_files": 22,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        },
+        {
+          "repository": "google/googletest",
+          "commit": "73a63ea05dc8ca29ec1d2c1d66481dd0de1950f1",
+          "archive_url": "https://codeload.github.com/google/googletest/zip/73a63ea05dc8ca29ec1d2c1d66481dd0de1950f1",
+          "download_sha256": "666545da8d8b09b3d21435a0f05158ed817edeb0d6129a0dec53e8e956a69cc7",
+          "source_prefix": "libraries/metamod-source/third_party/khook/third_party/googletest/",
+          "source_files": 101,
+          "excluded_data_files": 150,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        },
+        {
+          "repository": "google/gtest-parallel",
+          "commit": "cd488bdedc1d2cffb98201a17afc1b298b0b90f1",
+          "archive_url": "https://codeload.github.com/google/gtest-parallel/zip/cd488bdedc1d2cffb98201a17afc1b298b0b90f1",
+          "download_sha256": "62eb6ddbc6ffe2e32ca4e7ecb56920b779a12ef36c51f3fe0980a854401dd288",
+          "source_prefix": "libraries/metamod-source/third_party/khook/third_party/gtest-parallel/",
+          "source_files": 7,
+          "excluded_data_files": 2,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        },
+        {
+          "repository": "gabime/spdlog",
+          "commit": "91807c2e718890ca2c0c88620326c6919ce041f4",
+          "archive_url": "https://codeload.github.com/gabime/spdlog/zip/91807c2e718890ca2c0c88620326c6919ce041f4",
+          "download_sha256": "baf14558bf6686223e1b0ba14a5786965e21d683bfa40ab55d22e7ba27aecdfc",
+          "source_prefix": "libraries/spdlog/",
+          "source_files": 132,
+          "excluded_data_files": 37,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        },
+        {
+          "repository": "kubo/funchook",
+          "commit": "7cb8819594f0d586454011ab691fab4edb625068",
+          "archive_url": "https://codeload.github.com/kubo/funchook/zip/7cb8819594f0d586454011ab691fab4edb625068",
+          "download_sha256": "10d703813c4b93ee7e67748d3c2040839a5eb8e55aac9d3d3a40cfe47985b95d",
+          "source_prefix": "libraries/funchook/",
+          "source_files": 37,
+          "excluded_data_files": 19,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        },
+        {
+          "repository": "LWJGL-CI/dyncall",
+          "commit": "3bcebd526fe16f0aa520e32597ff3dbfbf30b1e4",
+          "archive_url": "https://codeload.github.com/LWJGL-CI/dyncall/zip/3bcebd526fe16f0aa520e32597ff3dbfbf30b1e4",
+          "download_sha256": "bde1972c643dcacbb3a3aaba778451c6694a0722228fba079c6ce2d7998a8640",
+          "source_prefix": "libraries/dyncall/",
+          "source_files": 220,
+          "excluded_data_files": 362,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        },
+        {
+          "repository": "qubka/DynoHook",
+          "commit": "d7f8ebb059dcfb20d5800051cf1c6e702f688470",
+          "archive_url": "https://codeload.github.com/qubka/DynoHook/zip/d7f8ebb059dcfb20d5800051cf1c6e702f688470",
+          "download_sha256": "8d02e66e6496bb180c64eac7f5757d9a148c6eca411fedd67aa5035db94c028b",
+          "source_prefix": "libraries/DynoHook/",
+          "source_files": 41,
+          "excluded_data_files": 11,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        },
+        {
+          "repository": "asmjit/asmjit",
+          "commit": "51b10b19b6631434d3f9ad536a6fb140944a36d2",
+          "archive_url": "https://codeload.github.com/asmjit/asmjit/zip/51b10b19b6631434d3f9ad536a6fb140944a36d2",
+          "download_sha256": "4f62b1b6247864417fb50a2928d541ccf8e9273b0c3ce36ccd443c9d6ca7bc9a",
+          "source_prefix": "libraries/DynoHook/src/external/asmjit/",
+          "source_files": 172,
+          "excluded_data_files": 25,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        },
+        {
+          "repository": "zyantific/zydis",
+          "commit": "4a661c659edaa51c3a459a885add92a216c87612",
+          "archive_url": "https://codeload.github.com/zyantific/zydis/zip/4a661c659edaa51c3a459a885add92a216c87612",
+          "download_sha256": "c6bc3319745bdde4e4f8196a899f6080e50ff2740233bd6c083fbf0a681612e7",
+          "source_prefix": "libraries/DynoHook/src/external/zydis/",
+          "source_files": 104,
+          "excluded_data_files": 468,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        },
+        {
+          "repository": "zyantific/zycore-c",
+          "commit": "c6b1d5d6ffd89a2f0d5c240f8ad3e8e262a8a1ed",
+          "archive_url": "https://codeload.github.com/zyantific/zycore-c/zip/c6b1d5d6ffd89a2f0d5c240f8ad3e8e262a8a1ed",
+          "download_sha256": "5510c79e89120fce8d1e7523e8eb8e264fa915c25517395178bae4c1eb2e2ee5",
+          "source_prefix": "libraries/DynoHook/src/external/zydis/dependencies/zycore/",
+          "source_files": 45,
+          "excluded_data_files": 5,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        },
+        {
+          "repository": "asmjit/asmjit",
+          "commit": "0dd16b0a98ae1da48563c9cc62f757a9e6bbe9b6",
+          "archive_url": "https://codeload.github.com/asmjit/asmjit/zip/0dd16b0a98ae1da48563c9cc62f757a9e6bbe9b6",
+          "download_sha256": "814e86590283d7bf0a2c87d2b1fc642194ace651082c34a49359b3fd26892c51",
+          "source_prefix": "libraries/asmjit/",
+          "source_files": 137,
+          "excluded_data_files": 21,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        },
+        {
+          "repository": "SteamDatabase/Protobufs",
+          "commit": "9ce69f52d9159611cb075c5598e63290192ec5c0",
+          "archive_url": "https://codeload.github.com/SteamDatabase/Protobufs/zip/9ce69f52d9159611cb075c5598e63290192ec5c0",
+          "download_sha256": "bbaaf46ad711271e1de50f16ad695e9eff95b1355b5cf6e90199664540c2e5cd",
+          "source_prefix": "libraries/Protobufs/",
+          "source_files": 525,
+          "excluded_data_files": 1,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        }
+      ],
+      "archive": "CounterStrikeSharp-653d651f1ac0-source.zip",
+      "sha256": "545d60de57134b3c0fac0c57b1ebb38a0964cf3c02d5c7e8ab40b3602606b9fc"
+    },
+    {
+      "component": "CounterStrikeSharp-API-1.0.371",
+      "license": "GPL-3.0-with-plugin-MIT-exception",
+      "source_trees": [
+        {
+          "repository": "roflmuffin/CounterStrikeSharp",
+          "commit": "3923c5d7b9aafe971884a3bd9287500da34bfa6d",
+          "archive_url": "https://codeload.github.com/roflmuffin/CounterStrikeSharp/zip/3923c5d7b9aafe971884a3bd9287500da34bfa6d",
+          "download_sha256": "7dc6eed7d0d77f849e077a897ed2fd5346b76773f30e9f99bb664158ce29ff99",
+          "source_prefix": "",
+          "source_files": 1725,
+          "excluded_data_files": 346,
+          "anonymized_documentation_examples": [
+            "managed/CounterStrikeSharp.API/Modules/Commands/Targeting/TargetType.cs"
+          ],
+          "scope": "managed API production project and root build/notices"
+        }
+      ],
+      "archive": "CounterStrikeSharp-API-1.0.371-3923c5d7b9aa-source.zip",
+      "sha256": "1b94b6179b5e4853cc26084192198e1d9215d2888044e1fda01eea9f03b3e554"
+    },
+    {
+      "component": "RayTrace",
+      "license": "GPL-3.0",
+      "source_trees": [
+        {
+          "repository": "FUNPLAY-pro-CS2/Ray-Trace",
+          "commit": "b6c81b3b53839628ed58085b6f57237d7868ab55",
+          "archive_url": "https://codeload.github.com/FUNPLAY-pro-CS2/Ray-Trace/zip/b6c81b3b53839628ed58085b6f57237d7868ab55",
+          "download_sha256": "68ff7702fe3f269ef6a9233db42ec582b1f14c698556a97cc4ff0628ed0d4c9d",
+          "source_prefix": "",
+          "source_files": 60,
+          "excluded_data_files": 1,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        },
+        {
+          "repository": "gabime/spdlog",
+          "commit": "0209b12c502bbdd37e04d238d74af851457e8210",
+          "archive_url": "https://codeload.github.com/gabime/spdlog/zip/0209b12c502bbdd37e04d238d74af851457e8210",
+          "download_sha256": "488b272fcbd5c71b5b95a6120de23ab8f6659e1553450af48dd607187303bf49",
+          "source_prefix": "vendor/spdlog/",
+          "source_files": 136,
+          "excluded_data_files": 40,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        },
+        {
+          "repository": "SlynxCZ/KHook",
+          "commit": "f6785fd70869972841d9bc0a87013355eb9ce7e1",
+          "archive_url": "https://codeload.github.com/SlynxCZ/KHook/zip/f6785fd70869972841d9bc0a87013355eb9ce7e1",
+          "download_sha256": "b3058ebe61d882929bf8349d2ccb212a0484cfaeaf785783e6c9ab0b8b5150e3",
+          "source_prefix": "vendor/khook/",
+          "source_files": 18,
+          "excluded_data_files": 0,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        },
+        {
+          "repository": "SlynxCZ/safetyhook",
+          "commit": "c0b657b6add39a9151a192a66c6833ffb19f4d9a",
+          "archive_url": "https://codeload.github.com/SlynxCZ/safetyhook/zip/c0b657b6add39a9151a192a66c6833ffb19f4d9a",
+          "download_sha256": "0a1af284b2a7a5ba69b64c116aa04a0261d794c29e36802f022cf18050bd4b3a",
+          "source_prefix": "vendor/khook/third_party/safetyhook/",
+          "source_files": 37,
+          "excluded_data_files": 14,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        }
+      ],
+      "archive": "RayTrace-b6c81b3b5383-source.zip",
+      "sha256": "2cc1c068769fe1cda2edf459933f15ea02eb9686392688fe49b6aa5d659c9eb4"
+    },
+    {
+      "component": "Harmony",
+      "license": "MIT",
+      "source_trees": [
+        {
+          "repository": "pardeike/Harmony",
+          "commit": "a264a1bf1ce689e4589e8dcc54b1e2818602a90a",
+          "archive_url": "https://codeload.github.com/pardeike/Harmony/zip/a264a1bf1ce689e4589e8dcc54b1e2818602a90a",
+          "download_sha256": "0dac984e9902cefe6c87e93a6f6adc89d91db078493ad366f64d4b8182e7a0f1",
+          "source_prefix": "",
+          "source_files": 211,
+          "excluded_data_files": 152,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        },
+        {
+          "repository": "pardeike/MonoMod",
+          "commit": "dfc30a1506d37fb88a2c2be004f525205f46a24c",
+          "archive_url": "https://codeload.github.com/pardeike/MonoMod/zip/dfc30a1506d37fb88a2c2be004f525205f46a24c",
+          "download_sha256": "5a6e9db76e596269013e190acd97e67bcef367a0be11ede7529e38d1e3310d50",
+          "source_prefix": "LocalMonoMod/",
+          "source_files": 401,
+          "excluded_data_files": 58,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        },
+        {
+          "repository": "icedland/iced",
+          "commit": "c50f29b7bc305696895c075f3fc7719751426b12",
+          "archive_url": "https://codeload.github.com/icedland/iced/zip/c50f29b7bc305696895c075f3fc7719751426b12",
+          "download_sha256": "9b85785f161c2642ee71bd43d03332f0533e71d80229c499e089acfe057a26f6",
+          "source_prefix": "LocalMonoMod/external/iced/",
+          "source_files": 1029,
+          "excluded_data_files": 1050,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        }
+      ],
+      "archive": "Harmony-a264a1bf1ce6-source.zip",
+      "sha256": "c88d730b0990873674be566b0b8e4ab06730fbfc46b4aa9500feea87dc30b3a0"
+    },
+    {
+      "component": "BotHider",
+      "license": "AGPL-3.0-only",
+      "source_trees": [
+        {
+          "repository": "XBribo/CS2-Bot-Hider",
+          "commit": "12069c25a756deedc72f8fc116ac3b18045d1223",
+          "archive_url": "https://codeload.github.com/XBribo/CS2-Bot-Hider/zip/12069c25a756deedc72f8fc116ac3b18045d1223",
+          "download_sha256": "f5f61104fa9dc40c6c8ed538aa72dca12751a593349e5639f6221022ed49d2b6",
+          "source_prefix": "",
+          "source_files": 84,
+          "excluded_data_files": 7,
+          "anonymized_documentation_examples": [
+            "TECH.md"
+          ],
+          "scope": "production source including pinned submodules"
+        }
+      ],
+      "archive": "BotHider-12069c25a756-source.zip",
+      "sha256": "a79966e537da80b966494719b01f19d339bb36c204a3d20b98942f8cc25becd2"
+    },
+    {
+      "component": "BotAI",
+      "license": "AGPL-3.0",
+      "source_trees": [
+        {
+          "repository": "ed0ard/CS2-BotAI",
+          "commit": "a23f7e24bd485cc23e0d9340ba74e8d8aa3ba6e0",
+          "archive_url": "https://codeload.github.com/ed0ard/CS2-BotAI/zip/a23f7e24bd485cc23e0d9340ba74e8d8aa3ba6e0",
+          "download_sha256": "2e9d7686869beb38191c6840c2ea636206a5bed3cee8b027dd4062cb885fffa9",
+          "source_prefix": "",
+          "source_files": 10,
+          "excluded_data_files": 0,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        }
+      ],
+      "archive": "BotAI-a23f7e24bd48-source.zip",
+      "sha256": "beaae0b8ef8fad8f03fdb345104560c085ed040347367bc1d1ce1218ab3a3416"
+    },
+    {
+      "component": "NadeSystem",
+      "license": "AGPL-3.0",
+      "source_trees": [
+        {
+          "repository": "ed0ard/CS2-Bot-NadeSystem",
+          "commit": "009ce03005af68ba68dae62967bddc8e92ad172c",
+          "archive_url": "https://codeload.github.com/ed0ard/CS2-Bot-NadeSystem/zip/009ce03005af68ba68dae62967bddc8e92ad172c",
+          "download_sha256": "9d410ab7c3d758611a3acb1c3e15f1c99eacf084b31b3795926e26d73e432c34",
+          "source_prefix": "",
+          "source_files": 17,
+          "excluded_data_files": 0,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        }
+      ],
+      "archive": "NadeSystem-009ce03005af-source.zip",
+      "sha256": "d6ce71bcac796423e1623c19bf7697173dfdb21cdedd6c14f22cb23ba4bd53a1"
+    },
+    {
+      "component": "BotRandomizer",
+      "license": "AGPL-3.0",
+      "source_trees": [
+        {
+          "repository": "ed0ard/CS2-Bot-Randomizer",
+          "commit": "024f314b782433daf1150eba700a7b381e99baa1",
+          "archive_url": "https://codeload.github.com/ed0ard/CS2-Bot-Randomizer/zip/024f314b782433daf1150eba700a7b381e99baa1",
+          "download_sha256": "1f738f0f2bae94812de5ee0ea9c2160e9b9be5d4f49fba542501fcf654567e7e",
+          "source_prefix": "",
+          "source_files": 21,
+          "excluded_data_files": 1,
+          "anonymized_documentation_examples": [],
+          "scope": "production source including pinned submodules"
+        }
+      ],
+      "archive": "BotRandomizer-024f314b7824-source.zip",
+      "sha256": "0f4a859ee31b8a2a3553cf0e1af2fb83d6a40c6734f143d3488e2b378093849a"
+    },
+    {
+      "component": "BotController",
+      "repository": "XBribo/CS2-Bot-Controller",
+      "commit": "0ae8f18fd6872a369cb984e0e95e5a352be092fe",
+      "license": "AGPL-3.0-only",
+      "archive": "BotController-0ae8f18fd687-source.zip",
+      "sha256": "c45485e09d56a30717492695fef0fdd33b2f75092645f45824334451b7dbc588",
+      "source_url": "https://github.com/XBribo/CS2-Bot-Controller/tree/0ae8f18fd6872a369cb984e0e95e5a352be092fe",
+      "gitlinks": []
+    },
+    {
+      "component": "BotState",
+      "repository": "ed0ard/CS2-Smarter-Bot",
+      "commit": "962743f26273ddc9b4e88de6d1d945ddffad3eee",
+      "license": "AGPL-3.0",
+      "archive": "BotState-962743f26273-source.zip",
+      "sha256": "b95a852af7d6c050033ceae8bb1944902db086cbe4073f3cab573c10aabe3e4e",
+      "source_url": "https://github.com/ed0ard/CS2-Smarter-Bot/tree/962743f26273ddc9b4e88de6d1d945ddffad3eee",
+      "gitlinks": []
+    },
+    {
+      "component": "BotImprover-inline",
+      "repository": "ed0ard/CS2-Bot-Improver",
+      "commit": "55772a6a6a332e4f896223adbc7d2000749cfa1b",
+      "license": "AGPL-3.0; Panel excluded",
+      "archive": "BotImprover-inline-55772a6a6a33-source.zip",
+      "sha256": "20c679e8b031e6a7057eeef28e7f64b28e9307d3f5b875a66b409000d942f03c",
+      "source_url": "https://github.com/ed0ard/CS2-Bot-Improver/tree/55772a6a6a332e4f896223adbc7d2000749cfa1b",
+      "gitlinks": [
+        {
+          "path": "addons/BotController",
+          "commit": "0ae8f18fd6872a369cb984e0e95e5a352be092fe"
+        },
+        {
+          "path": "addons/BotHider",
+          "commit": "12069c25a756deedc72f8fc116ac3b18045d1223"
+        },
+        {
+          "path": "addons/BotVision",
+          "commit": "33ab01fc5ec4e27b6f07aff653d54638ad84ebcb"
+        },
+        {
+          "path": "addons/counterstrikesharp/plugins/BotAI",
+          "commit": "a23f7e24bd485cc23e0d9340ba74e8d8aa3ba6e0"
+        },
+        {
+          "path": "addons/counterstrikesharp/plugins/BotAimImprover",
+          "commit": "17e895b68e0c5c365d5c6fea12f1f74342724ce8"
+        },
+        {
+          "path": "addons/counterstrikesharp/plugins/BotBuy",
+          "commit": "11884e0564b8b57bee5f4729a5fca781bd5e6749"
+        },
+        {
+          "path": "addons/counterstrikesharp/plugins/BotRandomizer",
+          "commit": "024f314b782433daf1150eba700a7b381e99baa1"
+        },
+        {
+          "path": "addons/counterstrikesharp/plugins/BotState",
+          "commit": "ce28e5c1359e9be910a3578694c94e5e8715d2a4"
+        },
+        {
+          "path": "addons/counterstrikesharp/plugins/NadeSystem",
+          "commit": "009ce03005af68ba68dae62967bddc8e92ad172c"
+        }
+      ]
+    },
+    {
+      "component": "BotAimImprover",
+      "version": "2.1.6-career1",
+      "archive": "Career-BotAimImprover-2.1.6-career1-source.zip",
+      "sha256": "38ea3e18a28dd1283e5e1e0cd5e5615acb4f5e7eb57b65349f9617383619d5ba",
+      "source": "Application source vendor/BotAimImprover; upstream 7157ff94dee6d0a0b2701c0c44dd0f2e6c9b988d"
+    }
+  ],
+  "external_build_dependencies": [
+    {
+      "kind": "external_sdk_dependency",
+      "repository": "alliedmodders/hl2sdk",
+      "commit": "625bfd4e39816ad0e1eae3b3144a3b5425c5c7a0",
+      "source_prefix": "libraries/hl2sdk-cs2/"
+    },
+    {
+      "kind": "external_sdk_dependency",
+      "repository": "alliedmodders/hl2sdk-manifests",
+      "commit": "20b3a014264b38908c4a5d4eb263ba2c488f3dc1",
+      "source_prefix": "libraries/metamod-source/hl2sdk-manifests/"
+    },
+    {
+      "kind": "external_sdk_dependency",
+      "repository": "alliedmodders/hl2sdk-manifests",
+      "commit": "4304a88cf5cb750d5f694884ad132f82a644542e",
+      "source_prefix": "hl2sdk-manifests/"
+    }
+  ],
+  "excluded": [
+    "management Panel",
+    "Steam/CS2 binaries",
+    "private player saves",
+    "Valve HL2SDK mirror"
+  ]
+}
