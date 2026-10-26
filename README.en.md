@@ -55,7 +55,7 @@ On match day, you can also travel to the assigned venue from the doorway. Prepar
 
 “Check for bot-enhancement updates” only contacts GitHub when you click it and never downloads or replaces components automatically. In-game skin swapping starts disabled; enable it in Settings if you want to use it.
 
-This version supports Bot Improver 1.4.6. Accepted action radio commands such as Follow Me or Fall Back interrupt your team's custom tactics, including waypoint waits. Ordinary information calls keep the tactic running.
+This version supports Bot Improver 1.4.7. Accepted action radio commands such as Follow Me or Fall Back interrupt your team's custom tactics, including waypoint waits. Ordinary information calls keep the tactic running.
 
 Use these plugins for **local bot matches with `-insecure`**. Settings provides a one-click plugin switch, and Career restores the normal environment after its CS2 session exits. Before official matchmaking, confirm normal mode and remove `-insecure` from your Steam launch options.
 

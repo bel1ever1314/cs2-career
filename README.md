@@ -137,7 +137,7 @@ The local ladder uses your current career player. The two highest-rated particip
 
 ### Playing in CS2
 
-Install and sign into Steam and CS2. The current integrated Windows package includes Bot Improver 1.4.6 and its runtime dependencies; no separate enhancement download is required.
+Install and sign into Steam and CS2. The current integrated Windows package includes Bot Improver 1.4.7 and its runtime dependencies; no separate enhancement download is required.
 
 1. Fully exit CS2 and confirm your Steam and CS2 paths in Settings. Choosing Enter CS2 prepares missing or outdated bundled components offline, backing up replaced files. Current components are reused; no separate install action is needed.
 2. Prepare a career, ladder, or custom match, complete the player draft and map veto, then launch CS2.
@@ -147,7 +147,7 @@ On match day, you can also travel to the assigned venue from the doorway. Prepar
 
 “Check for bot-enhancement updates” only contacts GitHub when you click it and never downloads or replaces components automatically. In-game skin swapping starts disabled; enable it in Settings if you want to use it.
 
-This version includes Bot Improver 1.4.6. Source builds without the bundle retain the external installer. Accepted action radio commands such as Follow Me or Fall Back interrupt your team's custom tactics, including waypoint waits. Ordinary information calls keep the tactic running.
+This version includes Bot Improver 1.4.7. Source builds without the bundle retain the external installer. Accepted action radio commands such as Follow Me or Fall Back interrupt your team's custom tactics, including waypoint waits. Ordinary information calls keep the tactic running.
 
 Use these plugins for **local bot matches with `-insecure`**. Settings provides a one-click plugin switch, and Career restores the normal environment after its CS2 session exits. Before official matchmaking, confirm normal mode and remove `-insecure` from your Steam launch options.
 
