@@ -1,0 +1,12 @@
+{
+  "repository": "https://github.com/ed0ard/CS2-Bot-NadeSystem",
+  "version": "1.2.3",
+  "commit": "7605f272d0500a7bad5b6294555485c7721a40da",
+  "local_version": "1.2.3-career1",
+  "license": "AGPL-3.0",
+  "modified_date": "2026-10-25",
+  "official_windows_dll_sha256": "2a5a68a31221818977582b45701ebb46b077eceab9f7630104f5155c46f69866",
+  "official_bundle_sha256": "2018c8925dc5fced00a5dbde87efa65de4181613f2e0246f4a416349eae36b56",
+  "changes_file": "CHANGES.txt",
+  "live_cs2_test": false
+}

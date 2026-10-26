@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "bundle": "CS2 Bot Improver 1.4.7",
+  "archive_sha256": "2018c8925dc5fced00a5dbde87efa65de4181613f2e0246f4a416349eae36b56",
+  "source_note": "BotHider and BotVision binaries match their 2026-10-25 official release assets; use those release commits, including their post-tag bundle refresh. Other plugin pins are the v1.4.7 Git submodule pins. Application-modified plugins are supplied in vendor/ in the application source ZIP.",
+  "components": [
+    ["BotImprover-managed", "ed0ard/CS2-Bot-Improver", "91de1b49d429afad622776f8e0271ce61c56761c", "AGPL-3.0; Panel excluded"],
+    ["BotController", "XBribo/CS2-Bot-Controller", "e53785147e1a7c8e7de1174539526f0ea1912a3c", "AGPL-3.0"],
+    ["BotHider", "XBribo/CS2-Bot-Hider", "7e10d328bffd76bc64fabd4822eb900d193fc661", "AGPL-3.0"],
+    ["BotVision", "XBribo/CS2-Bot-Vision", "df8f0707c7590cd55d9ffb8f6824ec9f3c959f5f", "AGPL-3.0"],
+    ["BotAI", "ed0ard/CS2-BotAI", "7d6997e11b952abb899d71abefa959c6e49cdfef", "AGPL-3.0"],
+    ["BotAimImprover", "ed0ard/CS2-Bullseye-Bot", "d796572b6d258b938a9d8db3c5d4c802a46049f7", "AGPL-3.0"],
+    ["BotBuy", "ed0ard/CS2-Bot-Buy", "11884e0564b8b57bee5f4729a5fca781bd5e6749", "AGPL-3.0"],
+    ["BotRandomizer", "ed0ard/CS2-Bot-Randomizer", "1c7c3ebad4b984bf8c4c75511b71cc109ab820bd", "AGPL-3.0"],
+    ["BotState", "ed0ard/CS2-Smarter-Bot", "e8c74af3bd2465478d6d07742f25ce53f4302bc7", "AGPL-3.0"],
+    ["NadeSystem", "ed0ard/CS2-Bot-NadeSystem", "7605f272d0500a7bad5b6294555485c7721a40da", "AGPL-3.0"],
+    ["CounterStrikeSharp", "roflmuffin/CounterStrikeSharp", "d9efaf83b951c74b988ed0a358d03db79c0a4205", "GPL-3.0 with plugin exception"],
+    ["Metamod", "alliedmodders/metamod-source", "170058a2f0dbd58106b7c76bfe88a94672295356", "zlib/libpng"],
+    ["Harmony", "pardeike/Harmony", "a264a1bf1ce689e4589e8dcc54b1e2818602a90a", "MIT"]
+  ]
+}

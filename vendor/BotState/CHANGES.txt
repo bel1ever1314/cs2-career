@@ -1,0 +1,8 @@
+Base: ed0ard/CS2-Smarter-Bot e8c74af3bd2465478d6d07742f25ce53f4302bc7
+Bundled by official CS2 Bot Improver v1.4.7 (2026-10-25).
+Career patch 1.10.4-career1:
+- Do not globally reveal the attacker through smoke after a bot is hurt.
+- Preserve the defuser's 3.5-second hidden / 1.5-second visible cycle, native
+  hearing and existing smoke behavior. Preserve upstream performance changes.
+Compiled with CounterStrikeSharp.API 1.0.378 and the 1.4.7 BotControllerApi.
+Live CS2 testing pending.

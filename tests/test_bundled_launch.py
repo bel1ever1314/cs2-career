@@ -23,7 +23,7 @@ class BundledLaunchTests(unittest.TestCase):
         self.mod = self.root / 'mod'
         self.mod.mkdir()
         self.vendor = self.root / 'vendor'
-        for name in ('CareerMatch', 'BotBuy', 'BotAimImprover'):
+        for name in launch.CAREER_RUNTIME_PLUGINS:
             target = self.vendor / name
             target.mkdir(parents=True)
             (target / (name + '.dll')).write_bytes(('new ' + name).encode())
@@ -57,7 +57,7 @@ class BundledLaunchTests(unittest.TestCase):
         dest = game / self.relative
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(mod / self.relative, dest)
-        for name in ('CareerMatch', 'BotBuy', 'BotAimImprover'):
+        for name in launch.CAREER_RUNTIME_PLUGINS:
             shutil.copytree(self.vendor / name, game / 'addons/counterstrikesharp/plugins' / name, dirs_exist_ok=True)
         return {'ok': True}
 
@@ -80,6 +80,14 @@ class BundledLaunchTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, '校验清单'):
                 bundled_launch.prepare(self.cfg)
         self.installer.assert_not_called()
+
+    def test_behavior_overlays_override_official_receipt_and_are_rechecked(self):
+        bundled_launch.prepare(self.cfg)
+        name = 'addons/counterstrikesharp/plugins/NadeSystem/NadeSystem.dll'
+        self.receipt['files'][name] = hashlib.sha256(b'official upstream').hexdigest()
+        self.assertTrue(bundled_launch._installed(self.game, self.receipt))
+        (self.game / name).write_bytes(b'official upstream')
+        self.assertFalse(bundled_launch._installed(self.game, self.receipt))
 
     def test_failed_install_is_not_reported_as_ready_and_keeps_backup(self):
         self.installer.side_effect = RuntimeError('locked file')

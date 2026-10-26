@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><AssemblyName>BotBuy</AssemblyName></PropertyGroup>
   <PropertyGroup><DefaultItemExcludes>$(DefaultItemExcludes);obj/**;bin/**</DefaultItemExcludes></PropertyGroup>
-  <ItemGroup><PackageReference Include="CounterStrikeSharp.API" Version="1.0.371" /></ItemGroup>
+  <ItemGroup><PackageReference Include="CounterStrikeSharp.API" Version="1.0.378" /></ItemGroup>
 </Project>

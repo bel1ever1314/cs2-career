@@ -32,6 +32,8 @@ FONT_HASHES = {
 DLLS = frozenset({
     "vendor/CareerMatch/CareerMatch.dll", "vendor/BotBuy/BotBuy.dll",
     "vendor/BotAimImprover/BotAimImprover.dll",
+    "vendor/NadeSystem/NadeSystem.dll", "vendor/BotState/BotState.dll",
+    "vendor/BotState/libs/BotControllerApi.dll",
     "vendor/InvsimCareer/InvsimCareer.dll",
     "vendor/InventorySimulator/plugins/InventorySimulator/InventorySimulator.dll",
 })
@@ -78,8 +80,9 @@ TOOL_FILES = frozenset({
     "flow_evidence.py", "compare_player_flows.py", "playthrough.py",
     "benchmark_save_boundary.py", "verify_backend_restart.py",
     "promote_calibration_pack.py", "repair_cs2_runtime.py", "install_tactical_commands.py",
+    "package_improver_local.py",
 })
-TOOL_TEST_DIRS = ("tools/identity-tests", "tools/avatar-tests", "tools/botbuy-tests", "tools/botbuy-runtime-tests", "tools/bot-aim-schema-tests", "tools/tactical-tests", "tools/tactical-safety-tests")
+TOOL_TEST_DIRS = ("tools/identity-tests", "tools/avatar-tests", "tools/botbuy-tests", "tools/botbuy-runtime-tests", "tools/bot-aim-schema-tests", "tools/tactical-tests", "tools/tactical-safety-tests", "tools/nade-budget-tests")
 PRIVATE_HOME = re.compile(
     r"(?P<drive>[A-Z]:)(?P<separator>[/\\]+)Users[/\\]+(?P<user>[^/\\\s\"'<>]+)", re.I)
 CREDENTIAL = re.compile(
@@ -194,7 +197,7 @@ def source_files(root: Path) -> list[Path]:
             _check_file(path, name, root)
             selected.append(path)
     for folder in ("cs2career", "tests", "licenses", "docs", "extensions/_templates",
-                   "vendor/CareerMatch", "vendor/BotBuy", "vendor/BotAimImprover", "vendor/InvsimCareer", "vendor/InventorySimulator",
+                   "vendor/CareerMatch", "vendor/BotBuy", "vendor/BotAimImprover", "vendor/NadeSystem", "vendor/BotState", "vendor/InvsimCareer", "vendor/InventorySimulator",
                    *TOOL_TEST_DIRS):
         selected.extend(_walk(root, folder))
     selected.extend(_walk(root, "tools/audio", frozenset({".py", ".md", ".txt", ".json"})))

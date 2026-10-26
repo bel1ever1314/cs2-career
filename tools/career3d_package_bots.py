@@ -318,17 +318,19 @@ def _fetch_source(repo: str, commit: str, output: zipfile.ZipFile, legal: Path,
             if PurePosixPath(relative).suffix.casefold() == ".md":
                 # Installation examples may contain the author's sample SteamID.
                 # Preserve code verbatim; anonymize documentation examples only.
-                text = blob.decode("utf-8-sig")
+                text = blob.decode("utf-8-sig", errors="surrogateescape")
                 cleaned = STEAM_ID.sub("<STEAM_ID>", text)
                 cleaned = PRIVATE_TEXT.sub("<PRIVATE_EXAMPLE_REMOVED>", cleaned)
                 if cleaned != text:
-                    blob = cleaned.encode("utf-8")
+                    blob = cleaned.encode("utf-8", errors="surrogateescape")
                     sanitized_docs.append(relative)
             elif PurePosixPath(relative).suffix.casefold() in (".cs", ".c", ".cpp", ".h", ".hpp"):
                 # API documentation also appears in source comments. Change only
                 # unambiguous comments; any account literal in executable code
                 # still fails the scan below.
-                text = blob.decode("utf-8-sig")
+                # Some upstream C/C++ headers contain legacy copyright bytes.
+                # Keep those bytes intact while examining ASCII comments.
+                text = blob.decode("utf-8-sig", errors="surrogateescape")
                 lines = []
                 for line in text.splitlines(keepends=True):
                     index = line.find("//")
@@ -340,7 +342,7 @@ def _fetch_source(repo: str, commit: str, output: zipfile.ZipFile, legal: Path,
                     lines.append(line)
                 cleaned = "".join(lines)
                 if cleaned != text:
-                    blob = cleaned.encode("utf-8")
+                    blob = cleaned.encode("utf-8", errors="surrogateescape")
                     sanitized_docs.append(relative)
             if PurePosixPath(relative).suffix.casefold() not in BINARY_SOURCE_SUFFIXES:
                 _public_text(blob, f"{repo}/{relative}", allow_id_base=True)

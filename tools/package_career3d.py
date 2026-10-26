@@ -32,6 +32,8 @@ RUNTIME_VENDOR_FILES = (
     'CareerMatch/CareerMatch.dll', 'CareerMatch/CareerMatch.deps.json',
     'BotBuy/BotBuy.dll', 'BotBuy/BotBuy.deps.json',
     'BotAimImprover/BotAimImprover.dll', 'BotAimImprover/BotAimImprover.deps.json',
+    'NadeSystem/NadeSystem.dll', 'NadeSystem/NadeSystem.deps.json',
+    'BotState/BotState.dll', 'BotState/BotState.deps.json',
     'InvsimCareer/InvsimCareer.dll', 'InvsimCareer/InvsimCareer.deps.json',
     'InventorySimulator/gamedata/inventory-simulator.json',
     'InventorySimulator/plugins/InventorySimulator/InventorySimulator.dll',

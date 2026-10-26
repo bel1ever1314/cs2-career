@@ -185,7 +185,7 @@ def _snapshot_targets(game: Path, mod: Path, cfg: dict, real_skins: bool) -> lis
     targets.update(Path('cfg') / name for name in _HOOKS)
     targets.add(Path('addons/BotHider/config.json'))
     css = Path('addons/counterstrikesharp')
-    for name in ('CareerMatch', 'BotBuy'):
+    for name in launch.CAREER_RUNTIME_PLUGINS:
         targets.update(css / 'plugins' / name / (name + suffix) for suffix in ('.dll', '.deps.json'))
     targets.add(css / 'plugins/CareerMatch/tactical_playbook.json')
     # Installation stages every map, so rollback must cover every snapshot.

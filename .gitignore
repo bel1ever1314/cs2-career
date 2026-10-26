@@ -24,6 +24,9 @@ work/career3d_redesign/temp/
 !vendor/InvsimCareer/InvsimCareer.dll
 !vendor/BotBuy/BotBuy.dll
 !vendor/BotAimImprover/BotAimImprover.dll
+!vendor/NadeSystem/NadeSystem.dll
+!vendor/BotState/BotState.dll
+!vendor/BotState/libs/BotControllerApi.dll
 vendor/**/bin/
 vendor/**/obj/
 tools/**/bin/

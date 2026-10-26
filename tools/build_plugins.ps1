@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $artifactsRoot = [System.IO.Path]::GetFullPath($OutputRoot)
 New-Item -ItemType Directory -Path $artifactsRoot -Force | Out-Null
-foreach ($pluginName in @('CareerMatch','BotBuy')) {
+foreach ($pluginName in @('CareerMatch','BotBuy','BotAimImprover','BotState','NadeSystem')) {
     $project = Join-Path $projectRoot "vendor/$pluginName/$pluginName.csproj"
     $output = Join-Path $artifactsRoot "bin/$pluginName"
     $intermediate = (Join-Path $artifactsRoot "obj/$pluginName") + [System.IO.Path]::DirectorySeparatorChar

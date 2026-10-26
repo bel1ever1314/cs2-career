@@ -25,6 +25,8 @@ internal sealed class TacticalHoldControls : ITacticalTravelApi
     // ABI merely because its numeric version is greater.
     private static readonly Dictionary<string, int> AuditedModules = new(StringComparer.Ordinal)
     {
+        // Bot Improver 1.4.7 / e537851: same Cdecl exports, PE GetVersion B8 16 00 00 00 C3.
+        ["3CE93E6377EA02C6F398802D12CB1245C0B4E464327BE0D5267C65084650A333"] = 22,
         ["8645168D4BB6A55CE8A8AC4246BCE394496E4EECF4F56C2F2A7932A98EB75D61"] = 22,
         ["E3D0424CE253B11CFFA714B03D53580EA2F176C0A53D4FA06FF1B9DE4C46DCE8"] = 20,
     };

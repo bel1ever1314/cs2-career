@@ -1,58 +1,22 @@
 {
   "schema_version": 1,
-  "approved_variants": [
-    {
-      "id": "official-bundle-1.4.6",
-      "source_archive_sha256": "e66a17329ccb00b340555fb64b09b0771ea4a0aa04566e7b9a915d7ad4c6f28e",
-      "source_version": "1.4.6",
-      "files": {
-        "addons/BotController/bin/win64/BotController.dll": "c957e7cdec12a0e8ee20cb45c18bd1f16d2dfeebf5b5f2324a3adbfabb314756",
-        "addons/counterstrikesharp/plugins/BotControllerImpl/BotControllerImpl.dll": "3e5cea0532c30b416bb23626b111b22ffdbf63ed251decf7bc91c5705b83b1e2",
-        "addons/counterstrikesharp/plugins/BotRandomizer/BotRandomizer.dll": "96fdb406fc156f9cedc565553dac951581527f54c0bd725d8d2fb86a596e862e",
-        "addons/counterstrikesharp/shared/BotControllerApi/BotControllerApi.dll": "d0fe3c696654de54c4bb31341cf7e02c6414108e97295ed99e9663fc653f7849",
-        "addons/counterstrikesharp/plugins/BotAimImprover/BotAimImprover.dll": "d11a2e2d67f8fba62afb22ce958926b63ff34b74022e9c0d192d1c61e318b77a",
-        "addons/counterstrikesharp/plugins/BotState/BotState.dll": "f756cd40a2baae13794a20c465cfa5e037624cc16944094df4b1376bcd809790"
-      },
-      "component_versions": {
-        "BotController": "0.7.1",
-        "BotController API": "0.7.1",
-        "BotRandomizer": "official-bundle-1.4.6"
-      }
-    },
-    {
-      "id": "official-bundle-1.4.5",
-      "source_archive_sha256": "ae37b86533abfe0547c5ad4346d478cd846727509fc092842a81240eb0130140",
-      "source_version": "1.4.5",
-      "files": {
-        "addons/BotController/bin/win64/BotController.dll": "c957e7cdec12a0e8ee20cb45c18bd1f16d2dfeebf5b5f2324a3adbfabb314756",
-        "addons/counterstrikesharp/plugins/BotControllerImpl/BotControllerImpl.dll": "3e5cea0532c30b416bb23626b111b22ffdbf63ed251decf7bc91c5705b83b1e2",
-        "addons/counterstrikesharp/plugins/BotRandomizer/BotRandomizer.dll": "96fdb406fc156f9cedc565553dac951581527f54c0bd725d8d2fb86a596e862e",
-        "addons/counterstrikesharp/shared/BotControllerApi/BotControllerApi.dll": "d0fe3c696654de54c4bb31341cf7e02c6414108e97295ed99e9663fc653f7849"
-      },
-      "component_versions": {
-        "BotController": "0.7.1",
-        "BotController API": "0.7.1",
-        "BotRandomizer": "official-bundle-1.4.5"
-      }
-    }
-  ],
-  "manifest_sha256": "5d6731f4f565ce7a165634f26cc1dded5859b27a32b6dbf8645a67e7ba908cab",
+  "manifest_sha256": "c9c4b15ed01fc6948881a0a0a61cb8536e1994853882d153f4460cd1beb9a9fb",
   "components": [
     {
       "name": "CS2 Bot Improver",
-      "version": "1.4.6",
-      "archive_sha256": "e66a17329ccb00b340555fb64b09b0771ea4a0aa04566e7b9a915d7ad4c6f28e",
+      "version": "1.4.7",
+      "archive_sha256": "2018c8925dc5fced00a5dbde87efa65de4181613f2e0246f4a416349eae36b56",
       "files": {
-        "addons/counterstrikesharp/plugins/BotAI/BotAI.deps.json": "0967a0b388a2f40613c9788a586b44bd4175dbe0454664d8a2f332ed31bfc527",
-        "addons/counterstrikesharp/plugins/BotAI/BotAI.dll": "0488146396a9de5c182ebea82018c203fb45dacfe3d2a3ff51dbb36a0df1fff4",
-        "addons/counterstrikesharp/plugins/BotAimImprover/BotAimImprover.deps.json": "4f517c58e96582c2ac5b2bbfdd478f50b79020adf3f030811d72e8c338e00f7b",
-        "addons/counterstrikesharp/plugins/BotAimImprover/BotAimImprover.dll": "d11a2e2d67f8fba62afb22ce958926b63ff34b74022e9c0d192d1c61e318b77a",
+        "addons/counterstrikesharp/plugins/BotAI/BotAI.deps.json": "317fa1fbe3fff3d421240a5dd22f995326190f6155739fcdbbe4bce5e074892a",
+        "addons/counterstrikesharp/plugins/BotAI/BotAI.dll": "bdd0ad36b55596538ba45eb5671df3344edb5ca9bb4eb3c3c0482f46ad82e7ca",
+        "addons/counterstrikesharp/plugins/BotAimImprover/BotAimImprover.deps.json": "4dfda80bfe0f02951ecb53ed336c931950657e859b44b47e9b28981d572f7b41",
+        "addons/counterstrikesharp/plugins/BotAimImprover/BotAimImprover.dll": "ceb90a88fe0137ef15da14d461ec63627c24ddad08a4987f7491e2c827603ad2",
         "addons/counterstrikesharp/plugins/BotBuy/BotBuy.deps.json": "899b74d2a0f532db819adc7fcfa58f50fca4fba52586dc5f877418fc9a7ed546",
         "addons/counterstrikesharp/plugins/BotBuy/BotBuy.dll": "ce1d1ba6cfa247cb04b8d1629a81739b0b826184c3e02f990670646142772128",
-        "addons/counterstrikesharp/plugins/BotState/BotState.deps.json": "5bfda524b8cba8178a06d511ac4a0f9dc78abc764e7cd3af484fa02b48fe13ab",
-        "addons/counterstrikesharp/plugins/BotState/BotState.dll": "f756cd40a2baae13794a20c465cfa5e037624cc16944094df4b1376bcd809790",
-        "addons/counterstrikesharp/plugins/NadeSystem/NadeSystem.deps.json": "3e62251389bdff1d250203f1fff3e942462d2f617e0a797c1edbbf5ea3475266",
-        "addons/counterstrikesharp/plugins/NadeSystem/NadeSystem.dll": "5d67365de159eff23055b59d99ea2f88cd07e7ccd4d61800e79879d83b336945",
+        "addons/counterstrikesharp/plugins/BotState/BotState.deps.json": "bbab83c5804134cf4db98bc109e34d929fc66a12ea0e8c0ef450912f0fc2ac67",
+        "addons/counterstrikesharp/plugins/BotState/BotState.dll": "7717e2f42e1c65bbec61e4a0fe891e70aeae9f886f7540d019a31ff03a99a199",
+        "addons/counterstrikesharp/plugins/NadeSystem/NadeSystem.deps.json": "712f6eeb3dfff77212f8919502e9fdbf8c0cf51db15a89fe6427b898341ef833",
+        "addons/counterstrikesharp/plugins/NadeSystem/NadeSystem.dll": "2a5a68a31221818977582b45701ebb46b077eceab9f7630104f5155c46f69866",
         "addons/counterstrikesharp/plugins/NadeSystem/grenades/cs_italy_flash.json": "890ebcc51f4fb2bfc270d0ed30f48682305bdadf3fdd5cb7d1925b258f619a3e",
         "addons/counterstrikesharp/plugins/NadeSystem/grenades/cs_italy_he.json": "0d3500c5741f799c932622d8c92187dda3db7ea62aa7ef7fb48ba2831322b71e",
         "addons/counterstrikesharp/plugins/NadeSystem/grenades/cs_italy_molotov.json": "e7d5d3537621eead4983686c96f3c98cff4dc9aa2adcdb7e17dab9147944b337",
@@ -105,9 +69,9 @@
         "addons/counterstrikesharp/plugins/RoundDamageRecap/RoundDamageRecap.dll": "cd4aa4311e4b9182cd39b90b715e9d5d02fc044f59ab12bbe8b874a424b424d3",
         "cfg/bot_buy.cfg": "675ed21a347e12499274544d4cb5f3d8fefa2e24752e0e22328a670b0138fcae",
         "cfg/gamemode_armsrace.cfg": "c69c8794c568ceb81a3acf018adf1d9044fee218d2f749419c406b1376a3b94c",
-        "cfg/gamemode_casual.cfg": "2058b96690720727a23e6c3edb00228635e6db87a5212e16a07f98edb68fb90d",
-        "cfg/gamemode_competitive.cfg": "cb64d1a9e724c05c3f9662c44ce001789a927645197c1e3e4e613861e592e82d",
-        "cfg/gamemode_competitive2v2.cfg": "8753cf0fade1d80f8a8a60776951a41bb32d7605b25fe77ab0f6f8bdf8249795",
+        "cfg/gamemode_casual.cfg": "43a3ff7321ded73360fa8b6de5041ac4cf288e8dfff6dec66d2f0d08a31b0d97",
+        "cfg/gamemode_competitive.cfg": "a9c1119649aa01b4dee6c9ef988bbeaf47d3a598689ad09e00fe415812baa41c",
+        "cfg/gamemode_competitive2v2.cfg": "8334da2517d6dcc63dc20246616e6ba11e7d3ea7f74507b262d0e7822491f2fb",
         "cfg/gamemode_competitive2v2_offline.cfg": "a3a25dc47869d93a99353ec33d788fa695959e6c9a0675ef78332da23e896868",
         "cfg/gamemode_competitive_offline.cfg": "84deb359b25e77cb44793d9025434de06e9d296c6341dd936cfda429dbac40a1",
         "cfg/gamemode_custom.cfg": "52dcbac3b36f7432bff18374064c2a7527ae73869d57d02a76bcf4716f58524a",
@@ -125,24 +89,24 @@
     },
     {
       "name": "Metamod",
-      "version": "2.0.0.1474",
-      "archive_sha256": "846158a0f67ad1e286b1aec5edb216d29dd35bb0fe754718a30f0fa2fe77a8ca",
+      "version": "bundled-1.4.7",
+      "archive_sha256": "2018c8925dc5fced00a5dbde87efa65de4181613f2e0246f4a416349eae36b56",
       "files": {
-        "addons/metamod.vdf": "333b1e594cff06326c1175261eaf3556d9d7cab06a3e2691c659b3f054125db0",
         "addons/metamod/README.txt": "beefa6adcfe74722375701798b1bb991715bf9d419574472eb85766e1ac6e5db",
-        "addons/metamod/bin/win64/metamod.2.cs2.dll": "acf8d85b1953818ac27771326312e15fff93fd7b05b17869025911c9211923d4",
-        "addons/metamod/bin/win64/server.dll": "9c9fbdc8340cd75373c1cdb697fabe9121aca02a805c0223b2b2c51454e94c8b",
+        "addons/metamod/bin/win64/metamod.2.cs2.dll": "94efe2ec67a3cfb882dc708893debfc599c2f9278f62a32b5943ca144aa75c7f",
+        "addons/metamod/bin/win64/server.dll": "728919bd38ba52b0e015bb8c588815cb49909a8b083c0ddf519e0d528a9cde21",
         "addons/metamod/metaplugins.ini": "d32d862096e70fdb4ea60edfa78a50c5b11ca262644287596f18d62dfc903540",
+        "addons/metamod.vdf": "333b1e594cff06326c1175261eaf3556d9d7cab06a3e2691c659b3f054125db0",
         "addons/metamod_x64.vdf": "ec4ce540f57aa42bd94240226148d2989443b76f76a69e4eed5cd967f9cb9fcd"
       }
     },
     {
       "name": "CounterStrikeSharp",
-      "version": "1.0.376",
-      "archive_sha256": "4f2777545a0940351450440288e7487509d539f770e66cf1c30cc2419084c5f8",
+      "version": "1.0.378",
+      "archive_sha256": "2018c8925dc5fced00a5dbde87efa65de4181613f2e0246f4a416349eae36b56",
       "files": {
-        "addons/counterstrikesharp/api/CounterStrikeSharp.API.deps.json": "e0997815272b22dec926dee70e3a029a4be99d266a9f6f804f57454b6d93945b",
-        "addons/counterstrikesharp/api/CounterStrikeSharp.API.dll": "e81f05d960c37ee623d552733fc919e206c8c1d16157886342d06a2f4d0dab17",
+        "addons/counterstrikesharp/api/CounterStrikeSharp.API.deps.json": "cb0cb39790f5d2a2fa4ec4dbad5d9b9fa50d051020e4694b8668e14fa68d440a",
+        "addons/counterstrikesharp/api/CounterStrikeSharp.API.dll": "6030fb03bd6655ebece823e98deb0b35d39f6ab7bd958e687627136150bbc3db",
         "addons/counterstrikesharp/api/CounterStrikeSharp.API.runtimeconfig.json": "7f62be048d31660d1b5b8693150b48164cfa32ea030c4587b02f23dfd671f4eb",
         "addons/counterstrikesharp/api/CounterStrikeSharp.API.xml": "6c60cc9f4a3f3f4a6bc8b1c9ef99cb422ea98f0d426b3d713a05d0b5fa260a85",
         "addons/counterstrikesharp/api/FastGenericNew.dll": "951402e8e53173e9a20aa2e6717d9da272a2835c46462f9373c1fa31622ccc71",
@@ -186,11 +150,12 @@
         "addons/counterstrikesharp/api/Tomlyn.dll": "7cb44fc1961ebd1687ca85588c9eba559db71ed86ac3b637a95c225bb523703c",
         "addons/counterstrikesharp/api/runtimes/win/lib/net10.0/System.Diagnostics.EventLog.Messages.dll": "b7b798826d1bbca2c8b05114874deadfc5b420778c8cc1ced1ea53f76b2b16e1",
         "addons/counterstrikesharp/api/runtimes/win/lib/net10.0/System.Diagnostics.EventLog.dll": "3238054eca635f6b0b5be1dee8f8b59c703c4244f07eae8b8a2a94be7f1a47e5",
-        "addons/counterstrikesharp/bin/win64/counterstrikesharp.dll": "1353cbbf1b92e2a12f1dd36cb37fcdd34d31bc7da40ece47a873f8d7eb1e9c9c",
+        "addons/counterstrikesharp/bin/win64/counterstrikesharp.dll": "3978f821f9b5724d5108ca414de5386e7570f6ee84c6e8c275742a850d36a98b",
         "addons/counterstrikesharp/configs/admin_groups.example.json": "40f9fac01d76a8ff087c6a4bad510fe056744ff0c16af82feb77f5556442e4f1",
         "addons/counterstrikesharp/configs/admin_overrides.example.json": "fbceaf0523f3f3a089e3d32f1661dc4b1d5cb0787fb28cfbd4710d0704197139",
         "addons/counterstrikesharp/configs/admins.example.json": "4dcbdd51da06e8d80b21d0479d7a3f6d7699a503224dadd6eb66ded5911b9a92",
         "addons/counterstrikesharp/configs/core.example.json": "1c5e6812ff5d03de99118cbef8ecd5426b84ff4e4d572509e2f55bb2c67f2311",
+        "addons/counterstrikesharp/configs/core.json": "b8cedd51455561c5ae72716adf55b651722406f3a82e13a2db0441c5aa449fb5",
         "addons/counterstrikesharp/configs/plugins/README.txt": "3e4e96b6b2dd5d126b23ddc52dd74d6995f27196a012dcf953cdd9c2dc356fbc",
         "addons/counterstrikesharp/dotnet/LICENSE.txt": "7f6839a61ce892b79c6549e2dc5a81fdbd240a0b260f8881216b45b7fda8b45d",
         "addons/counterstrikesharp/dotnet/ThirdPartyNotices.txt": "deb4427a295e1ed474b0d81c5a0d972c1b550b9a715cda939cdfa9236b1b418f",
@@ -531,7 +496,7 @@
         "addons/counterstrikesharp/dotnet/shared/Microsoft.NETCore.App/10.0.3/mscorrc.dll": "e7378dc9b76d1c0f68abf2cc52cdc9215df4ca96af5f60c928344cfe0cf39d51",
         "addons/counterstrikesharp/dotnet/shared/Microsoft.NETCore.App/10.0.3/msquic.dll": "6246f5fe726fbf612ca621961fd90a440425d64e9f4e51b7bb7adb80651032fa",
         "addons/counterstrikesharp/dotnet/shared/Microsoft.NETCore.App/10.0.3/netstandard.dll": "9a0296faf333af31a73d1527f4efb82a60e14f7c23a43a3c37477eb258253e53",
-        "addons/counterstrikesharp/gamedata/gamedata.json": "a86b78c2add744c8031030bf7f5fbcf68f00b2121d50776c6108b7f6922bd48c",
+        "addons/counterstrikesharp/gamedata/gamedata.json": "62bd8c4fba251b5fc95834d01e6c1d92bac9e6f79a6899f6421be6e82170f562",
         "addons/counterstrikesharp/lang/en.json": "04cc167dd4f4e5ce0ea2866a2cfc8f9cc3de11882b52405dff0d6e5cef1a6fcc",
         "addons/counterstrikesharp/lang/es.json": "6040a286fe02fc8dc8231c4215f82b8da395d9e79c53a7bf698f1a5956ed6102",
         "addons/counterstrikesharp/lang/pt-BR.json": "2bdb6c186c42d7834e2b225753513e5eb7e53fa6012767af079183805364911e",
@@ -545,60 +510,62 @@
     },
     {
       "name": "BotController",
-      "version": "0.7.0",
-      "archive_sha256": "75d5885fe8dbbf55773bc044740b08ce269afdd57007175c71f28204579ec743",
+      "version": "bundled-1.4.7",
+      "archive_sha256": "2018c8925dc5fced00a5dbde87efa65de4181613f2e0246f4a416349eae36b56",
       "files": {
-        "addons/BotController/bin/win64/BotController.dll": "8645168d4bb6a55ce8a8ac4246bce394496e4eecf4f56c2f2a7932a98eb75d61",
+        "addons/BotController/bin/win64/BotController.dll": "3ce93e6377ea02c6f398802d12cb1245c0b4e464327be0d5267c65084650a333",
         "addons/BotController/gamedata.json": "b126a312ef19c937941d1d50595e6089fdac14cc18ef6f414c7803bf3985d102",
         "addons/metamod/BotController.vdf": "ff186f07a8a6cb13b7bafd89048e3533c80cb39c18c3a8f34c858e685748d24f"
       }
     },
     {
       "name": "BotController API",
-      "version": "0.7.0",
-      "archive_sha256": "5aa0ad73afa617e5c6b61f124d4af0719a972acf642c9dbe34ddaae2ae21ea35",
+      "version": "bundled-1.4.7",
+      "archive_sha256": "2018c8925dc5fced00a5dbde87efa65de4181613f2e0246f4a416349eae36b56",
       "files": {
-        "addons/counterstrikesharp/plugins/BotControllerImpl/BotControllerImpl.dll": "b9ab1c0d80b67905a8edcd81de60947c204ae7afedf3e3e34f40343fed5f281b",
-        "addons/counterstrikesharp/shared/BotControllerApi/BotControllerApi.dll": "9bc7d816395e6f789140d5f14ccf01060f249e75d9a596396dbb3b8be9c8f5d7"
+        "addons/counterstrikesharp/plugins/BotControllerImpl/BotControllerImpl.dll": "679000c8aad08f5541145b562405de45462bc0778a939aa25090b9d30e7b05a2",
+        "addons/counterstrikesharp/shared/BotControllerApi/BotControllerApi.dll": "06da3905c875b5273d87b30d52fa0e6aa16c5a1d162ed6f77694a38c2878ae58"
       }
     },
     {
       "name": "BotHider",
-      "version": "0.5.1",
-      "archive_sha256": "9988286b9c6c849b2a75b5b252ee40734ff430c2a82ab56bc852866448cc507b",
+      "version": "bundled-1.4.7",
+      "archive_sha256": "2018c8925dc5fced00a5dbde87efa65de4181613f2e0246f4a416349eae36b56",
       "files": {
-        "addons/BotHider/bin/win64/BotHider.dll": "57f7b72cf8b0e7b83c45286eb312eb06c335f18b3f7482eab07670a49d8bdf00",
-        "addons/BotHider/config.json": "87d02bb9600d536334eadb6539652d347b445363d0a5e6a937a8a6ebb9397720",
-        "addons/BotHider/gamedata.json": "7e8e4ec32044e50d85f562cde8e3096f8d04ddfaad36e89caa57bf37827a8eef",
-        "addons/counterstrikesharp/plugins/BotHiderImpl/BotHiderImpl.deps.json": "4efc7678c75b1013239c8fd876a4c2bcdc2f3b999d3ccd5611ac8c0ba754fd40",
-        "addons/counterstrikesharp/plugins/BotHiderImpl/BotHiderImpl.dll": "a3b104075c8c29984ad7be60dddf0c66b75c0897871469cb39ed54b6dac21d55",
+        "addons/BotHider/bin/win64/BotHider.dll": "bf2c0567403517685296cc5eba7cf528f48419c5d5edc52abeedba2805e19a5e",
+        "addons/BotHider/config.json": "4d9aaca9ed298ba302615b97a4fc4ce48a64d4c7ec9e4028e7066b3a600370a3",
+        "addons/BotHider/gamedata.json": "d819729b4903a01b7af6dac7cc3e7e657d2c22d07bcfa7b47a148007d5bf950e",
+        "addons/BotHider/map_whitelist.json": "18139dabb7b8f86a3efc0660415684af1a73e1b174e5dbafdf02f0c3a1438f90",
+        "addons/counterstrikesharp/plugins/BotHiderImpl/BotHiderImpl.deps.json": "82eac8e0e36db880af7c37b30b14249678386950c75eba064eee9b00217df20f",
+        "addons/counterstrikesharp/plugins/BotHiderImpl/BotHiderImpl.dll": "03a34d3e3a218c1cb4d8d13c440003c06f2603f0b1332288b78e8aa196eebd66",
         "addons/counterstrikesharp/shared/0Harmony/0Harmony.dll": "fd77b88724f4104440df0cf979a851d35eec75ea3a7e86297d04abe47c71aff6",
-        "addons/counterstrikesharp/shared/BotHiderApi/BotHiderApi.deps.json": "eb9f2e0187198fb34de726dd10006a0618ecebc72145e2ea1ad959d828c66bf3",
-        "addons/counterstrikesharp/shared/BotHiderApi/BotHiderApi.dll": "064a5fcd77724f4e278981d83d4ae361b2a36b17601af0f8e22e266c4d774001",
+        "addons/counterstrikesharp/shared/BotHiderApi/BotHiderApi.deps.json": "41e2ddeaddf59b2dd146e3ad2d989f529e4924d85817f47ee2f867ff5148d7a1",
+        "addons/counterstrikesharp/shared/BotHiderApi/BotHiderApi.dll": "2bd46afa4a9682905aef436ff0a43c891b5fcea9ee7895f6c73fd8b9eb95f8db",
         "addons/metamod/BotHider.vdf": "8c4766472418871c530b842e1d1835ecd65a637aea2bfb3b239868a61331fef0"
       }
     },
     {
       "name": "BotVision",
-      "version": "0.3.0",
-      "archive_sha256": "04fb6ebc8c1554a96fbdea1029e276785cda015e72ed4e9c489e2c08d8516618",
+      "version": "bundled-1.4.7",
+      "archive_sha256": "2018c8925dc5fced00a5dbde87efa65de4181613f2e0246f4a416349eae36b56",
       "files": {
-        "addons/BotVision/bin/win64/BotVision.dll": "61dc2de390e35c0bc20d315fb037a06017df680cd07cf9a559f842835f94681c",
+        "addons/BotVision/bin/win64/BotVision.dll": "1a6bac379a2be37ff83799937d1762d3813af8810dad65d77642d1197ee4f89a",
         "addons/BotVision/config.json": "7db9667c0873a2a2c30fc9d66a087a925175f4128e887d39fa9dc73791de88b3",
-        "addons/BotVision/gamedata.json": "12b30b3bc88def7fdb148203eec1662647aaaf0d5a41a3eb2372b8e486b0bccd",
+        "addons/BotVision/gamedata.json": "72347e5892bb2e18e81685a716312e3986bc780fefeec25a050d82aa879161ad",
         "addons/metamod/BotVision.vdf": "375eaedadd623fbfe1fb7a1d94c14684f1b4f8bad64a455a25c55ef90af96e3a"
       }
     },
     {
       "name": "BotRandomizer",
-      "version": "1.3.2",
-      "archive_sha256": "1355fc025b7bde74bd24a66cf868ecb515cc59766600d8cf083d3c1c22a2176f",
+      "version": "bundled-1.4.7",
+      "archive_sha256": "2018c8925dc5fced00a5dbde87efa65de4181613f2e0246f4a416349eae36b56",
       "files": {
-        "addons/counterstrikesharp/plugins/BotRandomizer/BotRandomizer.deps.json": "1e1a0990ebfff84a232128a8f431a988b5d4e3f118c4509ba1371875d7c2dd08",
-        "addons/counterstrikesharp/plugins/BotRandomizer/BotRandomizer.dll": "d9f758d486cf0119f21700cf7cdac81de38da680628ecd436823e95cb0b12a1e",
+        "addons/counterstrikesharp/plugins/BotRandomizer/BotRandomizer.deps.json": "e44390bd6836cbde6f1eef567964f55c8513e86fec7f75f10b10cddbda2637d0",
+        "addons/counterstrikesharp/plugins/BotRandomizer/BotRandomizer.dll": "d0744311705b38f7d961f028fff89246370e981691766972e6a16dd1c4348633",
         "addons/counterstrikesharp/plugins/BotRandomizer/charm_placements.json": "6c2660cf41b62e2d79f693d3735fe9da91a975a116596839e0ab553491935b1c",
         "addons/counterstrikesharp/plugins/BotRandomizer/cosmetic_catalog.json": "c5e9a0d9d2f3c05e5d5f4eb49247f93e78c7ca1be8909960483117549922f4eb"
       }
     }
-  ]
+  ],
+  "approved_variants": []
 }

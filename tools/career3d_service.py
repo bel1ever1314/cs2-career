@@ -344,8 +344,8 @@ def handler_class():
                     return
                 # A manual GitHub query has no career state dependency. Never
                 # hold the simulation/save lock while waiting for the network.
-                from tools.career3d_runtime_updates import check_updates
-                self._json({'ok': True, **check_updates()})
+                from tools.career3d_runtime_updates import check_all_updates
+                self._json({'ok': True, **check_all_updates()})
                 return
             if urlparse(self.path).path not in ("/api/3d/context", "/api/3d/match", "/api/3d/team", "/api/3d/player", "/api/3d/players", "/api/3d/event", "/api/3d/news", "/api/3d/mail", "/api/3d/ladder/status",
                 "/api/3d/custom/catalog", "/api/3d/custom/status", "/api/3d/market", "/api/3d/supplies", "/api/3d/predictions",

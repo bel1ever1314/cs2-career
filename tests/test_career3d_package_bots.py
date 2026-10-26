@@ -174,6 +174,20 @@ class BotPackageTests(unittest.TestCase):
         for relative in ("Harmony/Harmony.projitems", "native/version.rc", "build/AMBuildScript", "Lib/Public.snk"):
             self.assertTrue(package._source_allowed(relative), relative)
 
+    def test_source_archive_preserves_legacy_encoded_header_bytes(self):
+        original = b'// Copyright \xa9 Example\nvoid Fixture() {}\n'
+        source = io.BytesIO()
+        with zipfile.ZipFile(source, "w") as archive:
+            archive.writestr("repo-commit/native/plugin.cpp", original)
+        legal = self.base / "legacy-legal"
+        legal.mkdir()
+        output = self.base / "legacy-source.zip"
+        with patch.object(package, "_download", return_value=source.getvalue()):
+            with zipfile.ZipFile(output, "w") as archive:
+                package._fetch_source("example/repo", "a" * 40, archive, legal)
+        with zipfile.ZipFile(output) as archive:
+            self.assertEqual(original, archive.read("native/plugin.cpp"))
+
     def test_pinned_source_zip_keeps_license_code_and_recurses_submodules(self):
         parent = io.BytesIO()
         with zipfile.ZipFile(parent, "w") as archive:

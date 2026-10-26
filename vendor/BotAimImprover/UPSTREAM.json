@@ -1,15 +1,12 @@
 {
   "repository": "https://github.com/ed0ard/CS2-Bullseye-Bot",
-  "version": "2.1.6",
-  "commit": "7157ff94dee6d0a0b2701c0c44dd0f2e6c9b988d",
-  "local_version": "2.1.6-career1",
+  "version": "2.1.7",
+  "commit": "d796572b6d258b938a9d8db3c5d4c802a46049f7",
+  "local_version": "2.1.7-career1",
   "license": "AGPL-3.0",
-  "modified_date": "2026-10-15",
-  "original_source_sha256_lf": "033425cc98bb7671a58a03a33d014c1cc0fc51b36694717ccda3984ebbea81bb",
-  "official_windows_dll_sha256": "d11a2e2d67f8fba62afb22ce958926b63ff34b74022e9c0d192d1c61e318b77a",
-  "official_bundle_sha256": "e66a17329ccb00b340555fb64b09b0771ea4a0aa04566e7b9a915d7ad4c6f28e",
-  "changes": [
-    "Resolve CCSPlayerPawn.m_pBot from CounterStrikeSharp schema once per plugin load before hooking; no fixed-offset fallback.",
-    "Log the resolved offset and expose a local compatibility version suffix; upstream aiming behavior is unchanged."
-  ]
+  "modified_date": "2026-10-25",
+  "official_windows_dll_sha256": "ceb90a88fe0137ef15da14d461ec63627c24ddad08a4987f7491e2c827603ad2",
+  "official_bundle_sha256": "2018c8925dc5fced00a5dbde87efa65de4181613f2e0246f4a416349eae36b56",
+  "changes_file": "CHANGES.txt",
+  "live_cs2_test": false
 }

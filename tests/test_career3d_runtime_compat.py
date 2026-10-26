@@ -711,32 +711,27 @@ class BundledCompatibilityCohortTests(unittest.TestCase):
         with patch('cs2career.paths.data_file', return_value=root / 'cs2career/data/cs2_runtime_compat.json'):
             manifest = compat.load_runtime_manifest()
         components = {component['name']:component for component in manifest['components']}
-        for name, filename, sha256 in (
-                ('BotController', 'BotController-MM-windows-0.7.0.zip',
-                 '75d5885fe8dbbf55773bc044740b08ce269afdd57007175c71f28204579ec743'),
-                ('BotController API', 'BotController-CSS-API-0.7.0.zip',
-                 '5aa0ad73afa617e5c6b61f124d4af0719a972acf642c9dbe34ddaae2ae21ea35')):
+        base = components['CS2 Bot Improver']
+        for name in ('BotController', 'BotController API', 'BotHider', 'BotVision', 'CounterStrikeSharp'):
             with self.subTest(component=name):
-                component = components[name]
-                self.assertEqual(component['version'], '0.7.0')
-                self.assertEqual(component['url'],
-                                 'https://github.com/XBribo/CS2-Bot-Controller/releases/download/v0.7.0/' + filename)
-                self.assertEqual(component['sha256'].lower(), sha256)
+                self.assertEqual(components[name]['url'], base['url'])
+                self.assertEqual(components[name]['sha256'], base['sha256'])
+        self.assertEqual(components['CounterStrikeSharp']['version'], '1.0.378')
         self.assertIn(NATIVE, components['BotController']['required_paths'])
         self.assertIn('addons/counterstrikesharp/shared/BotControllerApi/BotControllerApi.dll',
                       components['BotController API']['required_paths'])
 
-    def test_improver146_is_pinned_first_and_replaces_complete_old_behavior_cohort(self):
+    def test_improver147_is_pinned_first_and_replaces_complete_old_behavior_cohort(self):
         root = Path(__file__).resolve().parents[1]
         with patch('cs2career.paths.data_file', return_value=root / 'cs2career/data/cs2_runtime_compat.json'):
             manifest = compat.load_runtime_manifest()
-        self.assertEqual(manifest['revision'], 'windows-20261015.1-cs2-2000933')
+        self.assertEqual(manifest['revision'], 'windows-20261025.1-improver147')
         base = manifest['components'][0]
         self.assertEqual(base['name'], 'CS2 Bot Improver')
-        self.assertEqual(base['version'], '1.4.6')
-        self.assertEqual(base['url'], 'https://github.com/ed0ard/CS2-Bot-Improver/releases/download/v1.4.6/CS2BotImprover.zip')
-        self.assertEqual(base['sha256'], 'e66a17329ccb00b340555fb64b09b0771ea4a0aa04566e7b9a915d7ad4c6f28e')
-        self.assertEqual(base['size'], 73126151)
+        self.assertEqual(base['version'], '1.4.7')
+        self.assertEqual(base['url'], 'https://github.com/ed0ard/CS2-Bot-Improver/releases/download/v1.4.7/CS2BotImprover.zip')
+        self.assertEqual(base['sha256'], '2018c8925dc5fced00a5dbde87efa65de4181613f2e0246f4a416349eae36b56')
+        self.assertEqual(base['size'], 73702554)
         for plugin in ('BotAI', 'BotAimImprover', 'BotState', 'NadeSystem'):
             self.assertIn('addons/counterstrikesharp/plugins/' + plugin, base['replace_paths'])
             self.assertIn('addons/counterstrikesharp/plugins/' + plugin, base['allow_paths'])
@@ -758,13 +753,13 @@ class BundledCompatibilityCohortTests(unittest.TestCase):
         self.assertIn('if (AuditedModules.ContainsKey(hash)) return ValidateAbi(hash, actual);', source)
 
 
-@unittest.skipUnless(os.environ.get('CS2CAREER_TEST_IMPROVER146_ZIP'),
-                     'Set CS2CAREER_TEST_IMPROVER146_ZIP to the official release archive')
-class OfficialImprover146Tests(unittest.TestCase):
+@unittest.skipUnless(os.environ.get('CS2CAREER_TEST_IMPROVER147_ZIP'),
+                     'Set CS2CAREER_TEST_IMPROVER147_ZIP to the official release archive')
+class OfficialImprover147Tests(unittest.TestCase):
     """Optional release gate using real, hash-verified upstream files; no game startup."""
 
     def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory(prefix='improver146-')
+        self.tmp = tempfile.TemporaryDirectory(prefix='improver147-')
         self.addCleanup(self.tmp.cleanup)
         self.base = Path(self.tmp.name)
         # The real .NET payload can exceed MAX_PATH inside the runtime cache.
@@ -776,7 +771,7 @@ class OfficialImprover146Tests(unittest.TestCase):
         self.game.mkdir()
         self.mod = self.base / 'official'
         self.manifest = compat.load_runtime_manifest()
-        self.archive = Path(os.environ['CS2CAREER_TEST_IMPROVER146_ZIP'])
+        self.archive = Path(os.environ['CS2CAREER_TEST_IMPROVER147_ZIP'])
         self.assertEqual(compat._hash(self.archive), self.manifest['components'][0]['sha256'])
         with zipfile.ZipFile(self.archive) as pack:
             for entry in pack.infolist():
@@ -784,7 +779,7 @@ class OfficialImprover146Tests(unittest.TestCase):
                 if relative.parts[0] in ('addons', 'cfg', 'overrides'):
                     pack.extract(entry, self.mod)
 
-    def test_complete_146_installs_offline_without_downgrade_or_source_writes(self):
+    def test_complete_147_installs_offline_without_downgrade_or_source_writes(self):
         before = {rel.as_posix(): compat._hash(path) for path, rel in compat._source_plan(self.mod)}
         with patch.object(compat, '_download_archive', side_effect=AssertionError('must be offline')):
             result = compat.prepare_runtime(self.root, self.mod, self.game)
@@ -792,18 +787,15 @@ class OfficialImprover146Tests(unittest.TestCase):
             self.assertEqual(result['supplemented_components'], [])
             self.assertEqual(len(result['reused_components']), len(self.manifest['components']))
             index = compat.load_runtime_files(self.manifest)
-            variant = next(v for v in index['approved_variants'] if v['id'] == 'official-bundle-1.4.6')
             for row in index['components'].values():
                 for name in row['files']:
                     self.assertEqual(compat._hash(runtime / name), before[name], name)
-            for name, expected in variant['files'].items():
-                self.assertEqual(compat._hash(runtime / name), expected, name)
             self.assertTrue(compat.prepare_runtime(self.root, runtime, self.game)['cache_hit'])
         self.assertFalse(list(self.game.iterdir()))
         self.assertEqual(before, {rel.as_posix(): compat._hash(path)
                                  for path, rel in compat._source_plan(self.mod)})
 
-    def test_mixed_behavior_dlls_are_not_accepted_as_complete_146(self):
+    def test_mixed_behavior_dlls_are_not_accepted_as_complete_147(self):
         (self.mod / 'addons/counterstrikesharp/plugins/BotState/BotState.dll').write_bytes(b'older behavior')
         with patch.object(compat, '_download_archive', side_effect=AssertionError('offline gate')):
             with self.assertRaisesRegex(ValueError, 'CS2 Bot Improver'):

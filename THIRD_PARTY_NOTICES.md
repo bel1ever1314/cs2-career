@@ -12,15 +12,19 @@
 - CS2 Bot Improver：ed0ard 与原项目贡献者，AGPL-3.0。
   https://github.com/ed0ard/CS2-Bot-Improver
   复用的内容是 botprofile_presets 匿名模板、Medium 参数规律、1.4.5 匿名 Rush 行为脚本及 vendor/BotBuy 源码。
-  不分发原1700人名单或管理 Panel；2026-10-16 整合包包含经校验的增强运行组件。模板来源哈希在 presets.json；
+  不分发原1700人名单或管理 Panel；2026-10-25 整合包包含官方 1.4.7 的经校验增强运行组件。模板来源哈希在 presets.json；
   匿名行为脚本的来源、规范化方式与哈希在 botprofile_behavior/resources.json；
   BotBuy 生涯修改是延迟实体校验及阻止生涯 SSG08 随机改成冲锋枪。
   AGPL 全文见根目录 LICENSE。
 - BotAimImprover：ed0ard / CS2-Bullseye-Bot，AGPL-3.0。
-  基于 2.1.6（7157ff94dee6d0a0b2701c0c44dd0f2e6c9b988d）的生涯兼容补丁，
+  基于 2.1.7（d796572b6d258b938a9d8db3c5d4c802a46049f7）的生涯兼容补丁，
   将固定 Bot 指针偏移改为 CounterStrikeSharp 的运行时字段查询，不改变上游瞄准逻辑。
-  完整源码、许可证与修改说明位于 vendor/BotAimImprover；兼容版本 2.1.6-career1。
+  完整源码、许可证与修改说明位于 vendor/BotAimImprover；兼容版本 2.1.7-career1。
   https://github.com/ed0ard/CS2-Bullseye-Bot
+
+- BotState 与 NadeSystem：ed0ard 与原项目贡献者，AGPL-3.0。
+  https://github.com/ed0ard/CS2-Smarter-Bot 和 https://github.com/ed0ard/CS2-Bot-NadeSystem 。
+  生涯修改包括烟中受伤显露规则、个人雷火／闪光与全队烟雾额度、伤害道具衰减、连续投闪间隔及投掷结算。对应源码、固定提交、许可和修改说明位于 vendor/BotState 与 vendor/NadeSystem。官方组件完整来源见 docs/runtime-sources-147.json。
 
 - InventorySimulator：Ian Lucas，MIT；本地 DLL 是历史项目已有的修改版本。
   https://github.com/ianlucas/cs2-css-inventory-simulator

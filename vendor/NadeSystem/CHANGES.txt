@@ -1,0 +1,14 @@
+Base: ed0ard/CS2-Bot-NadeSystem 7605f272d0500a7bad5b6294555485c7721a40da
+Bundled by official CS2 Bot Improver v1.4.7 (2026-10-25).
+Career patch 1.2.3-career1:
+- Shared round ledger for ordinary, retaliatory and situational real grenades.
+- One HE-or-fire allowance per bot; remaining holders independently lose it with
+  35% probability at 30, 60 and 90 seconds. No team credit or refill.
+- Two flashes per bot; smoke pool equals the initial bot count on that side.
+- Same-team flashes targeting a nearby area or overlapping cached enemy slots
+  are spaced three seconds from actual spawn. No extra visibility queries.
+- Reserve before queuing; consume once after a successful spawn. Failed spawns
+  release reservations and cooldowns. Round generations reject old callbacks.
+- Keep upstream enemy-information, grenade-zone, smoke-overlap, native factory
+  and decoy utility behavior. No pre-aim or movement-coordination feature added.
+Compiled with CounterStrikeSharp.API 1.0.378. Live CS2 testing pending.

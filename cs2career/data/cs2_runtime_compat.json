@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "revision": "windows-20261015.1-cs2-2000933",
-  "checked_date": "2026-10-15",
+  "revision": "windows-20261025.1-improver147",
+  "checked_date": "2026-10-25",
   "platform": "windows-x64",
-  "game_build": "2000933",
+  "game_build": "",
   "components": [
     {
       "name": "CS2 Bot Improver",
-      "version": "1.4.6",
-      "url": "https://github.com/ed0ard/CS2-Bot-Improver/releases/download/v1.4.6/CS2BotImprover.zip",
-      "sha256": "e66a17329ccb00b340555fb64b09b0771ea4a0aa04566e7b9a915d7ad4c6f28e",
-      "size": 73126151,
+      "version": "1.4.7",
+      "url": "https://github.com/ed0ard/CS2-Bot-Improver/releases/download/v1.4.7/CS2BotImprover.zip",
+      "sha256": "2018c8925dc5fced00a5dbde87efa65de4181613f2e0246f4a416349eae36b56",
+      "size": 73702554,
       "replace_paths": [
         "addons/counterstrikesharp/plugins/BotAI",
         "addons/counterstrikesharp/plugins/BotAimImprover",
@@ -65,9 +65,9 @@
     },
     {
       "name": "Metamod",
-      "version": "2.0.0.1474",
-      "url": "https://github.com/alliedmodders/metamod-source/releases/download/2.0.0.1474/mmsource-2.0.0-git1474-windows.zip",
-      "sha256": "846158a0f67ad1e286b1aec5edb216d29dd35bb0fe754718a30f0fa2fe77a8ca",
+      "version": "bundled-1.4.7",
+      "url": "https://github.com/ed0ard/CS2-Bot-Improver/releases/download/v1.4.7/CS2BotImprover.zip",
+      "sha256": "2018c8925dc5fced00a5dbde87efa65de4181613f2e0246f4a416349eae36b56",
       "replace_paths": [
         "addons/metamod/bin"
       ],
@@ -84,13 +84,13 @@
         "addons/metamod/bin/win64/server.dll",
         "addons/metamod_x64.vdf"
       ],
-      "size": 14658549
+      "size": 73702554
     },
     {
       "name": "CounterStrikeSharp",
-      "version": "1.0.376",
-      "url": "https://github.com/roflmuffin/CounterStrikeSharp/releases/download/v1.0.376/counterstrikesharp-with-runtime-windows-1.0.376.zip",
-      "sha256": "4f2777545a0940351450440288e7487509d539f770e66cf1c30cc2419084c5f8",
+      "version": "1.0.378",
+      "url": "https://github.com/ed0ard/CS2-Bot-Improver/releases/download/v1.4.7/CS2BotImprover.zip",
+      "sha256": "2018c8925dc5fced00a5dbde87efa65de4181613f2e0246f4a416349eae36b56",
       "replace_paths": [
         "addons/counterstrikesharp/bin",
         "addons/counterstrikesharp/api",
@@ -114,13 +114,14 @@
         "addons/counterstrikesharp/dotnet/shared/Microsoft.NETCore.App/10.0.3/coreclr.dll",
         "addons/counterstrikesharp/dotnet/dotnet.exe",
         "addons/metamod/counterstrikesharp.vdf"
-      ]
+      ],
+      "size": 73702554
     },
     {
       "name": "BotController",
-      "version": "0.7.0",
-      "url": "https://github.com/XBribo/CS2-Bot-Controller/releases/download/v0.7.0/BotController-MM-windows-0.7.0.zip",
-      "sha256": "75d5885fe8dbbf55773bc044740b08ce269afdd57007175c71f28204579ec743",
+      "version": "bundled-1.4.7",
+      "url": "https://github.com/ed0ard/CS2-Bot-Improver/releases/download/v1.4.7/CS2BotImprover.zip",
+      "sha256": "2018c8925dc5fced00a5dbde87efa65de4181613f2e0246f4a416349eae36b56",
       "replace_paths": [
         "addons/BotController/bin",
         "addons/BotController/gamedata.json"
@@ -133,13 +134,14 @@
         "addons/BotController/bin/win64/BotController.dll",
         "addons/BotController/gamedata.json",
         "addons/metamod/BotController.vdf"
-      ]
+      ],
+      "size": 73702554
     },
     {
       "name": "BotController API",
-      "version": "0.7.0",
-      "url": "https://github.com/XBribo/CS2-Bot-Controller/releases/download/v0.7.0/BotController-CSS-API-0.7.0.zip",
-      "sha256": "5aa0ad73afa617e5c6b61f124d4af0719a972acf642c9dbe34ddaae2ae21ea35",
+      "version": "bundled-1.4.7",
+      "url": "https://github.com/ed0ard/CS2-Bot-Improver/releases/download/v1.4.7/CS2BotImprover.zip",
+      "sha256": "2018c8925dc5fced00a5dbde87efa65de4181613f2e0246f4a416349eae36b56",
       "replace_paths": [
         "addons/counterstrikesharp/shared/BotControllerApi",
         "addons/counterstrikesharp/plugins/BotControllerImpl"
@@ -151,16 +153,17 @@
       "required_paths": [
         "addons/counterstrikesharp/shared/BotControllerApi/BotControllerApi.dll",
         "addons/counterstrikesharp/plugins/BotControllerImpl/BotControllerImpl.dll"
-      ]
+      ],
+      "size": 73702554
     },
     {
       "name": "BotHider",
-      "version": "0.5.1",
+      "version": "bundled-1.4.7",
       "preserve_paths": [
         "addons/BotHider/config.json"
       ],
-      "url": "https://github.com/XBribo/CS2-Bot-Hider/releases/download/v0.5.1/BotHider-Windows-0.5.1.zip",
-      "sha256": "9988286b9c6c849b2a75b5b252ee40734ff430c2a82ab56bc852866448cc507b",
+      "url": "https://github.com/ed0ard/CS2-Bot-Improver/releases/download/v1.4.7/CS2BotImprover.zip",
+      "sha256": "2018c8925dc5fced00a5dbde87efa65de4181613f2e0246f4a416349eae36b56",
       "replace_paths": [
         "addons/BotHider/bin",
         "addons/BotHider/gamedata.json",
@@ -181,16 +184,17 @@
         "addons/counterstrikesharp/shared/BotHiderApi/BotHiderApi.dll",
         "addons/counterstrikesharp/plugins/BotHiderImpl/BotHiderImpl.dll",
         "addons/metamod/BotHider.vdf"
-      ]
+      ],
+      "size": 73702554
     },
     {
       "name": "BotVision",
-      "version": "0.3.0",
+      "version": "bundled-1.4.7",
       "preserve_paths": [
         "addons/BotVision/config.json"
       ],
-      "url": "https://github.com/XBribo/CS2-Bot-Vision/releases/download/v0.3.0/BotVision-Windows-0.3.0.zip",
-      "sha256": "04fb6ebc8c1554a96fbdea1029e276785cda015e72ed4e9c489e2c08d8516618",
+      "url": "https://github.com/ed0ard/CS2-Bot-Improver/releases/download/v1.4.7/CS2BotImprover.zip",
+      "sha256": "2018c8925dc5fced00a5dbde87efa65de4181613f2e0246f4a416349eae36b56",
       "replace_paths": [
         "addons/BotVision/bin",
         "addons/BotVision/gamedata.json"
@@ -203,14 +207,14 @@
         "addons/BotVision/bin/win64/BotVision.dll",
         "addons/BotVision/gamedata.json",
         "addons/metamod/BotVision.vdf"
-      ]
+      ],
+      "size": 73702554
     },
     {
       "name": "BotRandomizer",
-      "version": "1.3.2",
-      "url": "https://github.com/ed0ard/CS2-Bot-Randomizer/releases/download/v1.3.2/BotRandomizer.zip",
-      "sha256": "1355fc025b7bde74bd24a66cf868ecb515cc59766600d8cf083d3c1c22a2176f",
-      "target_prefix": "addons/counterstrikesharp/plugins/BotRandomizer",
+      "version": "bundled-1.4.7",
+      "url": "https://github.com/ed0ard/CS2-Bot-Improver/releases/download/v1.4.7/CS2BotImprover.zip",
+      "sha256": "2018c8925dc5fced00a5dbde87efa65de4181613f2e0246f4a416349eae36b56",
       "replace_paths": [
         "addons/counterstrikesharp/plugins/BotRandomizer"
       ],
@@ -222,7 +226,14 @@
         "addons/counterstrikesharp/plugins/BotRandomizer/BotRandomizer.deps.json",
         "addons/counterstrikesharp/plugins/BotRandomizer/cosmetic_catalog.json",
         "addons/counterstrikesharp/plugins/BotRandomizer/charm_placements.json"
-      ]
+      ],
+      "size": 73702554
     }
-  ]
+  ],
+  "validation": "offline-prepared; live CS2 verification pending",
+  "cs2_news_baseline": {
+    "gid": "1847286114034398",
+    "date": "2026-10-22",
+    "timestamp": 1792709770
+  }
 }

@@ -113,10 +113,10 @@ func render(host: Node, parent: Node, compact: bool = false) -> void:
 		install_bundle_button.name = "DeviceSettingsInstallBundle"
 		install_bundle_button.set_meta("install_source", "bundle")
 		action_buttons.append(install_bundle_button)
-	var check_button: Button = host._button(parent, "检查人机增强更新", check_updates, false)
+	var check_button: Button = host._button(parent, "检查 CS2 与人机增强更新", check_updates, false)
 	check_button.name = "DeviceSettingsCheckUpdates"
 	action_buttons.append(check_button)
-	UI.label(parent, "仅点击检查更新时连接 GitHub，不会自动下载或替换插件。", 12, UI.MUTED)
+	UI.label(parent, "点击后查询 Steam 与 GitHub 官方更新，不下载游戏或替换插件。", 12, UI.MUTED)
 	if not update_url.is_empty():
 		var release_button: Button = host._button(parent, "打开官方更新页面", open_update_page, false)
 		release_button.name = "DeviceSettingsUpdatePage"
@@ -283,7 +283,7 @@ func check_updates() -> void:
 	if not pending:
 		checking_updates = false
 		pending_path = ""
-	_set_message("正在检查官方人机增强更新……" if pending else "更新检查未发出，不影响本地安装。")
+	_set_message("正在检查 CS2 与人机增强官方更新……" if pending else "更新检查未发出，不影响本地安装。")
 	_sync_form_state()
 
 func open_update_page() -> void:

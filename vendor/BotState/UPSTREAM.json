@@ -1,0 +1,12 @@
+{
+  "repository": "https://github.com/ed0ard/CS2-Smarter-Bot",
+  "version": "1.10.4",
+  "commit": "e8c74af3bd2465478d6d07742f25ce53f4302bc7",
+  "local_version": "1.10.4-career1",
+  "license": "AGPL-3.0",
+  "modified_date": "2026-10-25",
+  "official_windows_dll_sha256": "7717e2f42e1c65bbec61e4a0fe891e70aeae9f886f7540d019a31ff03a99a199",
+  "official_bundle_sha256": "2018c8925dc5fced00a5dbde87efa65de4181613f2e0246f4a416349eae36b56",
+  "changes_file": "CHANGES.txt",
+  "live_cs2_test": false
+}

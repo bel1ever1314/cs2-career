@@ -1,100 +1,104 @@
 {
   "schema_version": 1,
-  "version": "1.7.2-CS2-2000933",
-  "distribution": "external-runtime-not-bundled",
+  "version": "1.7.2-improver147-20261025",
+  "distribution": "full-runtime-bundled",
   "components": [
     {
-      "name": "CS2 Bot Improver",
-      "version": "1.4.6",
-      "source_commit": "55772a6a6a332e4f896223adbc7d2000749cfa1b",
-      "url": "https://github.com/ed0ard/CS2-Bot-Improver/releases/tag/v1.4.6",
-      "license": "AGPL-3.0; management panel has separate terms",
-      "archive_sha256": "e66a17329ccb00b340555fb64b09b0771ea4a0aa04566e7b9a915d7ad4c6f28e"
+      "name": "BotImprover-managed",
+      "version": "1.4.7",
+      "source_commit": "91de1b49d429afad622776f8e0271ce61c56761c",
+      "url": "https://github.com/ed0ard/CS2-Bot-Improver",
+      "license": "AGPL-3.0; Panel excluded",
+      "archive_sha256": "2018c8925dc5fced00a5dbde87efa65de4181613f2e0246f4a416349eae36b56"
+    },
+    {
+      "name": "BotController",
+      "version": "bundled-1.4.7",
+      "source_commit": "e53785147e1a7c8e7de1174539526f0ea1912a3c",
+      "url": "https://github.com/XBribo/CS2-Bot-Controller",
+      "license": "AGPL-3.0"
+    },
+    {
+      "name": "BotHider",
+      "version": "0.6.0",
+      "source_commit": "7e10d328bffd76bc64fabd4822eb900d193fc661",
+      "url": "https://github.com/XBribo/CS2-Bot-Hider",
+      "license": "AGPL-3.0"
+    },
+    {
+      "name": "BotVision",
+      "version": "0.4.0",
+      "source_commit": "df8f0707c7590cd55d9ffb8f6824ec9f3c959f5f",
+      "url": "https://github.com/XBribo/CS2-Bot-Vision",
+      "license": "AGPL-3.0"
     },
     {
       "name": "BotAI",
-      "version": "1.8.12",
-      "source_commit": "a23f7e24bd485cc23e0d9340ba74e8d8aa3ba6e0",
+      "version": "bundled-1.4.7",
+      "source_commit": "7d6997e11b952abb899d71abefa959c6e49cdfef",
       "url": "https://github.com/ed0ard/CS2-BotAI",
       "license": "AGPL-3.0"
     },
     {
       "name": "BotAimImprover",
-      "version": "2.1.6-career1",
-      "source_commit": "7157ff94dee6d0a0b2701c0c44dd0f2e6c9b988d",
-      "local_source": "vendor/BotAimImprover",
+      "version": "2.1.7-career1",
+      "source_commit": "d796572b6d258b938a9d8db3c5d4c802a46049f7",
       "url": "https://github.com/ed0ard/CS2-Bullseye-Bot",
-      "license": "AGPL-3.0"
+      "license": "AGPL-3.0",
+      "local_source": "vendor/BotAimImprover"
     },
     {
-      "name": "BotState",
-      "version": "1.10.2",
-      "source_commit": "962743f26273ddc9b4e88de6d1d945ddffad3eee",
-      "url": "https://github.com/ed0ard/CS2-Smarter-Bot",
-      "license": "AGPL-3.0"
-    },
-    {
-      "name": "NadeSystem",
-      "version": "1.2.2",
-      "source_commit": "009ce03005af68ba68dae62967bddc8e92ad172c",
-      "url": "https://github.com/ed0ard/CS2-Bot-NadeSystem",
-      "license": "AGPL-3.0"
+      "name": "BotBuy",
+      "version": "bundled-1.4.7",
+      "source_commit": "11884e0564b8b57bee5f4729a5fca781bd5e6749",
+      "url": "https://github.com/ed0ard/CS2-Bot-Buy",
+      "license": "AGPL-3.0",
+      "local_source": "vendor/BotBuy"
     },
     {
       "name": "BotRandomizer",
-      "version": "1.3.2",
-      "source_commit": "024f314b782433daf1150eba700a7b381e99baa1",
+      "version": "bundled-1.4.7",
+      "source_commit": "1c7c3ebad4b984bf8c4c75511b71cc109ab820bd",
       "url": "https://github.com/ed0ard/CS2-Bot-Randomizer",
       "license": "AGPL-3.0"
     },
     {
-      "name": "BotController",
-      "version": "0.7.0",
-      "source_commit": "451c7ba8ddb007eeb4d72edf291f6e0cbb051e56",
-      "url": "https://github.com/XBribo/CS2-Bot-Controller",
-      "license": "AGPL-3.0-only"
+      "name": "BotState",
+      "version": "1.10.4-career1",
+      "source_commit": "e8c74af3bd2465478d6d07742f25ce53f4302bc7",
+      "url": "https://github.com/ed0ard/CS2-Smarter-Bot",
+      "license": "AGPL-3.0",
+      "local_source": "vendor/BotState"
     },
     {
-      "name": "BotHider",
-      "version": "0.5.1",
-      "source_commit": "12069c25a756deedc72f8fc116ac3b18045d1223",
-      "url": "https://github.com/XBribo/CS2-Bot-Hider/releases/tag/v0.5.1",
-      "license": "AGPL-3.0-only"
-    },
-    {
-      "name": "BotVision",
-      "version": "0.3.0",
-      "source_commit": "33ab01fc5ec4e27b6f07aff653d54638ad84ebcb",
-      "url": "https://github.com/XBribo/CS2-Bot-Vision",
-      "license": "AGPL-3.0-only"
+      "name": "NadeSystem",
+      "version": "1.2.3-career1",
+      "source_commit": "7605f272d0500a7bad5b6294555485c7721a40da",
+      "url": "https://github.com/ed0ard/CS2-Bot-NadeSystem",
+      "license": "AGPL-3.0",
+      "local_source": "vendor/NadeSystem"
     },
     {
       "name": "CounterStrikeSharp",
-      "version": "1.0.376",
-      "source_commit": "653d651f1ac09ac1ddb423d588f871b891038860",
+      "version": "1.0.378",
+      "source_commit": "d9efaf83b951c74b988ed0a358d03db79c0a4205",
       "url": "https://github.com/roflmuffin/CounterStrikeSharp",
-      "license": "GPL-3.0 with plugin MIT exception"
-    },
-    {
-      "name": "CounterStrikeSharp managed API used by RayTrace",
-      "version": "1.0.371",
-      "source_commit": "3923c5d7b9aafe971884a3bd9287500da34bfa6d",
-      "url": "https://www.nuget.org/packages/CounterStrikeSharp.API/1.0.371",
-      "license": "GPL-3.0 with plugin MIT exception"
+      "license": "GPL-3.0 with plugin exception"
     },
     {
       "name": "Metamod",
-      "version": "2.0.0-dev+1474",
-      "source_commit": "eed24a6",
-      "url": "https://github.com/alliedmodders/metamod-source/releases/tag/2.0.0.1474",
+      "version": "2.0.0-dev+1483",
+      "source_commit": "170058a2f0dbd58106b7c76bfe88a94672295356",
+      "url": "https://github.com/alliedmodders/metamod-source",
       "license": "zlib/libpng"
     },
     {
-      "name": "RayTrace",
-      "source_commit": "b6c81b3b53839628ed58085b6f57237d7868ab55",
-      "url": "https://github.com/FUNPLAY-pro-CS2/Ray-Trace",
-      "license": "GPL-3.0"
+      "name": "Harmony",
+      "version": "2.4.2",
+      "source_commit": "a264a1bf1ce689e4589e8dcc54b1e2818602a90a",
+      "url": "https://github.com/pardeike/Harmony",
+      "license": "MIT"
     }
   ],
-  "developer_notes": "Compatibility provenance pins only. Public packages do not include the complete bot runtime or HL2SDK mirror, or re-license their source or assets. Official Bot Improver 1.4.6 release DLL hashes are recorded in cs2_runtime_files.json. The approved 1.4.6 cohort includes matching BotController 0.7.1 native/managed/API files, BotRandomizer, BotAimImprover and BotState; the 1.4.5 variant is retained for explicit upgrades. BotController 0.7.0 remains the standalone fallback. The bundled BotAimImprover 2.1.6-career1 overlay uses the corresponding source in vendor/BotAimImprover and schema lookup for m_pBot on CS2 2000933; the original official runtime folder is preserved."
+  "developer_notes": "BotHider and BotVision binaries match their 2026-10-25 official release assets; use those release commits, including their post-tag bundle refresh. Other plugin pins are the v1.4.7 Git submodule pins. Application-modified plugins are supplied in vendor/ in the application source ZIP. No Steam, CS2, Panel, player save, SDK mirror or personal roster is included. Actual CS2 gameplay remains unverified."
 }

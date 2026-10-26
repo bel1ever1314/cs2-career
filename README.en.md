@@ -16,6 +16,8 @@ The current version is **1.7.2**. This refresh expands the skin market, tips and
 
 **Compatibility refresh — 2026-10-11:** Updates tactical navigation and look direction for CS2 1.41.9.0 (2000930), skin signatures and the pinned Metamod runtime. The previous market, training and save-system updates remain included. Builds, offline regressions and backend startup checks passed; full gameplay validation remains pending. The independent RayTrace plugin still has an old-interface compatibility issue; CareerMatch navigation and observation do not depend on it. See the [compatibility audit](docs/tactical-server-2000930-audit.md).
 
+**Bot Improver 1.4.7 — 2026-10-25:** The full Windows package includes the current runtime and career overlays: shared per-bot HE/fire allowance with 35% decay at 30/60/90 seconds, team smoke allowance, personal flashes and three-second spacing for overlapping flash targets. Damage no longer reveals the attacker precisely through smoke; the defuser reveal cycle remains. Offline installation and logic checks passed; live CS2 gameplay and FPS have not been tested on this update.
+
 ## Getting started
 
 1. Open the [latest release](https://github.com/bel1ever1314/cs2-career/releases/latest) and download `CS2Career-1.7.2-windows.zip`.
@@ -43,7 +45,7 @@ The local ladder uses your current career player. The two highest-rated particip
 
 ## Playing in CS2
 
-Install and sign into Steam and CS2. Since 2026-10-16, the default Windows download includes Bot Improver 1.4.6 and its runtime dependencies. No separate enhancement download or manual install action is required.
+Install and sign into Steam and CS2. The default Windows download now includes Bot Improver 1.4.7 and its runtime dependencies. No separate enhancement download or manual install action is required.
 
 1. Fully exit CS2 and confirm your Steam and CS2 paths in Settings. Choosing Enter CS2 prepares missing or outdated bundled components offline, backing up replaced files. Current components are reused.
 2. Prepare a career, ladder, or custom match, complete the player draft and map veto, then launch CS2.

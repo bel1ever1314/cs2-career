@@ -1418,6 +1418,7 @@ def install_mod(csgo: Path | None = None, mod: Path | None = None, *, config=Non
     files += _deploy_tactical_playbook(csgo, tactical_playbook)
     files += _copy_botbuy_patch(csgo)
     files += _copy_aim_schema_patch(csgo)
+    files += _copy_behavior_patches(csgo)
     if skins_inventory_mode(cfg) == "external":
         files += _prepare_external_skins(csgo)
     else:
@@ -1968,6 +1969,15 @@ def _copy_botbuy_patch(csgo: Path) -> int:
     return _copy_verified_plugin(vendor_root() / "BotBuy", _plugin_live(csgo, "BotBuy"), "BotBuy")
 
 
+CAREER_RUNTIME_PLUGINS = ('CareerMatch', 'BotBuy', 'BotAimImprover', 'NadeSystem', 'BotState')
+
+
+def _copy_behavior_patches(csgo: Path) -> int:
+    require_cs2_closed("更新生涯道具与烟雾补丁")
+    return sum(_copy_verified_plugin(vendor_root() / name, _plugin_live(csgo, name), name)
+               for name in ('NadeSystem', 'BotState'))
+
+
 def _copy_aim_schema_patch(csgo: Path) -> int:
     require_cs2_closed("更新瞄准组件兼容补丁")
     return _copy_verified_plugin(
@@ -2270,6 +2280,7 @@ def prepare_game(
     # Replace the old fixed m_pBot offset only during explicit offline launch
     # preparation, not from settings/status reads or environment toggles.
     _copy_aim_schema_patch(csgo)
+    _copy_behavior_patches(csgo)
     match["bot_identity"] = opts["bot_identity"]
     from .natural_behavior import configure_match
     configure_match(match, opts.get("bot_movement", "classic"))

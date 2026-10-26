@@ -21,7 +21,7 @@ def _installed(game, receipt):
     from cs2career.cs2 import launch
     expected = {name: sha for name, sha in receipt['files'].items()
                 if Path(name).suffix.lower() in ('.dll', '.exe')}
-    for plugin in ('CareerMatch', 'BotBuy', 'BotAimImprover'):
+    for plugin in launch.CAREER_RUNTIME_PLUGINS:
         for suffix in ('.dll', '.deps.json'):
             source = launch.vendor_root() / plugin / (plugin + suffix)
             sha = _hash(source)
